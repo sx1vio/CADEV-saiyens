@@ -11,12 +11,12 @@ Le vote du public se joue sur WhatsApp, Telegram et LinkedIn. Leurs robots lisen
 
 ## Options envisagées
 
-| Option | Pour | Contre |
-|---|---|---|
-| **Injection serveur** : l'API sert `/u/*` et `/p/*` en lisant `index.html` et en y injectant les balises de la ressource | Simple ; même réponse pour un humain et un robot ; aucune dépendance au rendu React | L'API doit connaître l'emplacement du build du front |
-| Détection des robots par agent utilisateur, pré-rendu pour eux | Classique | Liste de robots à maintenir ; comportement différent selon le visiteur (fragile, difficile à tester) |
-| Rendu serveur complet (Next.js, Vite SSR) | Référencement complet | Réécriture du front, contraire au choix Vite, budget et délai |
-| Pré-rendu statique au build | Rapide | Les Passports changent en permanence |
+| Option                                                                                                                   | Pour                                                                                | Contre                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Injection serveur** : l'API sert `/u/*` et `/p/*` en lisant `index.html` et en y injectant les balises de la ressource | Simple ; même réponse pour un humain et un robot ; aucune dépendance au rendu React | L'API doit connaître l'emplacement du build du front                                                 |
+| Détection des robots par agent utilisateur, pré-rendu pour eux                                                           | Classique                                                                           | Liste de robots à maintenir ; comportement différent selon le visiteur (fragile, difficile à tester) |
+| Rendu serveur complet (Next.js, Vite SSR)                                                                                | Référencement complet                                                               | Réécriture du front, contraire au choix Vite, budget et délai                                        |
+| Pré-rendu statique au build                                                                                              | Rapide                                                                              | Les Passports changent en permanence                                                                 |
 
 ## Décision
 
@@ -25,9 +25,11 @@ Le vote du public se joue sur WhatsApp, Telegram et LinkedIn. Leurs robots lisen
 ## Conséquences
 
 ### Positives
+
 - Aperçus corrects et propres à chaque Passport et chaque salle (critère « correct sur WhatsApp et LinkedIn », R7).
 - La Proof Card (PR5) réutilise le même mécanisme.
 
 ### Négatives
+
 - L'image Docker de l'API embarque une copie de `index.html` du build du front (copiée à la construction) ; les deux images doivent venir du même commit (garanti par l'étiquette SHA).
 - Un Passport non listé ou supprimé renvoie des balises génériques (pas de fuite d'information).

@@ -6,16 +6,16 @@ Ce document concerne le **rôle 5** (IA et intégrations). Il décrit les deux s
 
 ### Usages
 
-| Usage | Job ou endpoint | Entrée | Sortie attendue | Priorité |
-|---|---|---|---|---|
-| Piste IA d'une question | `ai.hint` | Titre, corps, extrait (secrets masqués), étiquettes, langue | Markdown court : hypothèses de cause, pistes de vérification, « à vérifier » | P0 (S2) |
-| Affinage des étiquettes | `POST /tags/detect` | Trace d'erreur masquée, étiquettes détectées localement | JSON : `{ tags: string[] }` parmi les étiquettes existantes | MVP+ (S9) |
-| Suggestion de complétude | dans `ai.hint` ou à la demande | Brouillon de question | JSON : `{ missing: string[] }` | MVP+ (S8) |
-| Traduction FR ↔ EN | `ai.translate` | Texte, langue cible | Texte traduit, **code laissé intact** | MVP+ (S10) |
-| Tâches depuis une discussion | `ai.room-tasks` | Derniers messages de la salle | JSON validé : `{ tasks: [{ title, description, level }] }` | P1 (R5) |
-| Salle depuis le README | `POST /rooms/draft-from-repo` | README, issues « good first issue » | JSON : description, stack, tâches | P1 (R12) |
-| Fiche de résolution | `ai.resolution-sheet` | Question + réponse validée | JSON : problème, cause, solution, extrait | P1 (S12) |
-| Résumé « vue recruteur » | à la demande | **Chiffres structurés du Passport uniquement** | 3 phrases, chacune reliée à une preuve | P2 (PR12) |
+| Usage                        | Job ou endpoint                | Entrée                                                      | Sortie attendue                                                              | Priorité   |
+| ---------------------------- | ------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------- |
+| Piste IA d'une question      | `ai.hint`                      | Titre, corps, extrait (secrets masqués), étiquettes, langue | Markdown court : hypothèses de cause, pistes de vérification, « à vérifier » | P0 (S2)    |
+| Affinage des étiquettes      | `POST /tags/detect`            | Trace d'erreur masquée, étiquettes détectées localement     | JSON : `{ tags: string[] }` parmi les étiquettes existantes                  | MVP+ (S9)  |
+| Suggestion de complétude     | dans `ai.hint` ou à la demande | Brouillon de question                                       | JSON : `{ missing: string[] }`                                               | MVP+ (S8)  |
+| Traduction FR ↔ EN           | `ai.translate`                 | Texte, langue cible                                         | Texte traduit, **code laissé intact**                                        | MVP+ (S10) |
+| Tâches depuis une discussion | `ai.room-tasks`                | Derniers messages de la salle                               | JSON validé : `{ tasks: [{ title, description, level }] }`                   | P1 (R5)    |
+| Salle depuis le README       | `POST /rooms/draft-from-repo`  | README, issues « good first issue »                         | JSON : description, stack, tâches                                            | P1 (R12)   |
+| Fiche de résolution          | `ai.resolution-sheet`          | Question + réponse validée                                  | JSON : problème, cause, solution, extrait                                    | P1 (S12)   |
+| Résumé « vue recruteur »     | à la demande                   | **Chiffres structurés du Passport uniquement**              | 3 phrases, chacune reliée à une preuve                                       | P2 (PR12)  |
 
 ### Port et adaptateurs
 
@@ -23,11 +23,11 @@ Ce document concerne le **rôle 5** (IA et intégrations). Il décrit les deux s
 // modules/ai/domain/ports.ts
 export interface LlmPort {
   complete<T>(req: {
-    task: AiTaskKind;              // 'hint' | 'translate' | 'room_tasks' | ...
-    promptVersion: string;         // ex. 'hint@3'
-    system: string;                // instructions fixes, versionnées
+    task: AiTaskKind; // 'hint' | 'translate' | 'room_tasks' | ...
+    promptVersion: string; // ex. 'hint@3'
+    system: string; // instructions fixes, versionnées
     userContent: UntrustedInput[]; // contenu utilisateur, toujours encadré
-    outputSchema?: ZodSchema<T>;   // sortie JSON validée quand c'est une donnée
+    outputSchema?: ZodSchema<T>; // sortie JSON validée quand c'est une donnée
     maxTokens: number;
     timeoutMs: number;
   }): Promise<LlmResult<T>>;
@@ -39,13 +39,13 @@ export interface LlmPort {
 
 ### Quotas, délais, coûts
 
-| Règle | Valeur | Source |
-|---|---|---|
-| Appels par utilisateur | **10 par heure** (`LLM_HOURLY_QUOTA_PER_USER`), compté dans `ai_requests` | §8 |
-| Cache | Par `(kind, empreinte de l'entrée normalisée, version du prompt)`. Deux questions identiques ne coûtent qu'un appel | §8 |
-| Délai maximal de la piste | 10 s, puis `ai_status = failed` : la question continue sans piste | S2 |
-| Plafond de dépense | Fixé avec la clé chez le fournisseur ; alerte à 80 % | §16 (rôle 5, 7 oct.) |
-| Quota atteint | `ai_status = skipped` et message clair (« limite d'IA atteinte, la question part directement aux devs ») | S2 |
+| Règle                     | Valeur                                                                                                              | Source               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Appels par utilisateur    | **10 par heure** (`LLM_HOURLY_QUOTA_PER_USER`), compté dans `ai_requests`                                           | §8                   |
+| Cache                     | Par `(kind, empreinte de l'entrée normalisée, version du prompt)`. Deux questions identiques ne coûtent qu'un appel | §8                   |
+| Délai maximal de la piste | 10 s, puis `ai_status = failed` : la question continue sans piste                                                   | S2                   |
+| Plafond de dépense        | Fixé avec la clé chez le fournisseur ; alerte à 80 %                                                                | §16 (rôle 5, 7 oct.) |
+| Quota atteint             | `ai_status = skipped` et message clair (« limite d'IA atteinte, la question part directement aux devs »)            | S2                   |
 
 ### Protection contre l'injection de prompt (correctif M2)
 
@@ -87,25 +87,25 @@ Toute sortie de l'IA est rendue par le composant `AiContent` avec la mention **�
 
 ```ts
 export interface GithubPort {
-  getUser(token: Token): Promise<GithubUser>;                     // id, login, created_at, avatar
-  listOwnedRepos(token: Token): Promise<GithubRepo[]>;            // non forkés, taille, pushed_at, topics
-  getRepoLanguages(fullName: string): Promise<Record<string, number>>;   // X3
-  getRepo(fullName: string): Promise<GithubRepo | null>;          // R1 : vérification du dépôt
-  listOpenIssues(fullName: string, labels?: string[]): Promise<GithubIssue[]>;  // R2, R12
-  getPullRequest(fullName: string, n: number): Promise<GithubPull | null>;      // R9
-  getReadme(fullName: string): Promise<string | null>;            // R12
+  getUser(token: Token): Promise<GithubUser>; // id, login, created_at, avatar
+  listOwnedRepos(token: Token): Promise<GithubRepo[]>; // non forkés, taille, pushed_at, topics
+  getRepoLanguages(fullName: string): Promise<Record<string, number>>; // X3
+  getRepo(fullName: string): Promise<GithubRepo | null>; // R1 : vérification du dépôt
+  listOpenIssues(fullName: string, labels?: string[]): Promise<GithubIssue[]>; // R2, R12
+  getPullRequest(fullName: string, n: number): Promise<GithubPull | null>; // R9
+  getReadme(fullName: string): Promise<string | null>; // R12
 }
 ```
 
 ### Quota (risque §14)
 
-| Mesure | Détail |
-|---|---|
-| Appels authentifiés **avec le jeton de l'utilisateur** | 5 000 requêtes par heure *par utilisateur*, au lieu de 60 par IP sans authentification |
-| Requêtes conditionnelles | `If-None-Match` avec l'`ETag` stocké dans `github_cache` ; un `304` ne consomme pas de quota |
-| Cache | Profil et dépôts : 6 h ; langages : 24 h ; PR : pas de cache à la vérification (on veut l'état fusionné réel) |
-| Lecture de l'en-tête `X-RateLimit-Remaining` | Sous 100 : les jobs non urgents sont replanifiés après `X-RateLimit-Reset` |
-| Import paresseux | Les langages ne sont demandés que pour les 30 dépôts les plus récents |
+| Mesure                                                 | Détail                                                                                                        |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Appels authentifiés **avec le jeton de l'utilisateur** | 5 000 requêtes par heure _par utilisateur_, au lieu de 60 par IP sans authentification                        |
+| Requêtes conditionnelles                               | `If-None-Match` avec l'`ETag` stocké dans `github_cache` ; un `304` ne consomme pas de quota                  |
+| Cache                                                  | Profil et dépôts : 6 h ; langages : 24 h ; PR : pas de cache à la vérification (on veut l'état fusionné réel) |
+| Lecture de l'en-tête `X-RateLimit-Remaining`           | Sous 100 : les jobs non urgents sont replanifiés après `X-RateLimit-Reset`                                    |
+| Import paresseux                                       | Les langages ne sont demandés que pour les 30 dépôts les plus récents                                         |
 
 ### Vérification d'une contribution (R9)
 

@@ -3,6 +3,7 @@
 Un seul dépôt contient le front, l'API, le code partagé, l'infrastructure et la documentation. Gestionnaire de paquets : **pnpm workspaces**. Orchestration des tâches : **Turborepo**. Voir [ADR-0001](../adr/0001-monorepo-pnpm-turborepo.md).
 
 Pourquoi un monorepo ici :
+
 - Une fonctionnalité (par exemple S1, poser une question) touche le contrat, l'API et le front : **une seule PR** les change ensemble, sans désynchronisation.
 - Les règles qui doivent être identiques des deux côtés (masquage des secrets, détection d'étiquettes, barème XP affiché) ne sont écrites qu'une fois.
 - Une seule CI, une seule configuration TypeScript, ESLint et Prettier.
@@ -119,8 +120,8 @@ export const CreateQuestionBody = z.object({
   tagSlugs: z.array(z.string()).min(1).max(5),
   urgency: z.enum(['low', 'normal', 'high']),
   lang: z.enum(['fr', 'en']),
-  reproUrl: z.string().url().optional(),   // S14
-  roomId: z.string().uuid().optional(),    // R14
+  reproUrl: z.string().url().optional(), // S14
+  roomId: z.string().uuid().optional(), // R14
 });
 export type CreateQuestionBody = z.infer<typeof CreateQuestionBody>;
 ```
@@ -152,36 +153,36 @@ flowchart LR
     config[packages/config] -.dev.-> web & api & contracts & core
 ```
 
-| Règle | Pourquoi | Contrôle |
-|---|---|---|
-| `apps/*` ne s'importent jamais entre elles | Le front et l'API se parlent par HTTP, rien d'autre | ESLint `import/no-restricted-paths` |
-| `packages/core` n'importe rien d'autre du dépôt | Reste pur et portable | ESLint + absence de dépendances dans son `package.json` |
-| `packages/contracts` n'importe que `core` et `zod` | Pas de code serveur ou navigateur dans le contrat | Revue + ESLint |
-| Pas de dépendance fantôme | Chaque paquet déclare ce qu'il utilise | pnpm (mode strict par défaut) |
-| Pas de cycle | Graphe acyclique imposé par Turborepo | `turbo` échoue sur un cycle |
+| Règle                                              | Pourquoi                                            | Contrôle                                                |
+| -------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
+| `apps/*` ne s'importent jamais entre elles         | Le front et l'API se parlent par HTTP, rien d'autre | ESLint `import/no-restricted-paths`                     |
+| `packages/core` n'importe rien d'autre du dépôt    | Reste pur et portable                               | ESLint + absence de dépendances dans son `package.json` |
+| `packages/contracts` n'importe que `core` et `zod` | Pas de code serveur ou navigateur dans le contrat   | Revue + ESLint                                          |
+| Pas de dépendance fantôme                          | Chaque paquet déclare ce qu'il utilise              | pnpm (mode strict par défaut)                           |
+| Pas de cycle                                       | Graphe acyclique imposé par Turborepo               | `turbo` échoue sur un cycle                             |
 
 ## Tâches Turborepo
 
-| Commande racine | Effet |
-|---|---|
-| `pnpm dev` | Lance PostgreSQL (Docker), l'API, le worker et le front en mode développement |
-| `pnpm build` | Construit `core`, `contracts`, puis `api` et `web` (ordre résolu par `dependsOn: ["^build"]`) |
-| `pnpm lint` | ESLint sur tous les paquets |
-| `pnpm typecheck` | `tsc --noEmit` partout |
-| `pnpm test` | Tests unitaires (Vitest) de tous les paquets |
-| `pnpm test:e2e` | Tests Playwright de `apps/web` contre une API locale |
-| `pnpm db:migrate` | `prisma migrate dev` dans `apps/api` |
-| `pnpm db:seed` | Étiquettes et comptes de démonstration |
+| Commande racine   | Effet                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `pnpm dev`        | Lance PostgreSQL (Docker), l'API, le worker et le front en mode développement                 |
+| `pnpm build`      | Construit `core`, `contracts`, puis `api` et `web` (ordre résolu par `dependsOn: ["^build"]`) |
+| `pnpm lint`       | ESLint sur tous les paquets                                                                   |
+| `pnpm typecheck`  | `tsc --noEmit` partout                                                                        |
+| `pnpm test`       | Tests unitaires (Vitest) de tous les paquets                                                  |
+| `pnpm test:e2e`   | Tests Playwright de `apps/web` contre une API locale                                          |
+| `pnpm db:migrate` | `prisma migrate dev` dans `apps/api`                                                          |
+| `pnpm db:seed`    | Étiquettes et comptes de démonstration                                                        |
 
 Le cache Turborepo évite de reconstruire ce qui n'a pas changé. En CI, seuls les paquets touchés par la PR et leurs dépendants sont testés (`turbo run test --filter=...[origin/main]`).
 
 ## Versions et outillage
 
-| Outil | Version | Remarque |
-|---|---|---|
-| Node.js | 24 LTS | Figée dans `.nvmrc` et dans le champ `engines` |
-| pnpm | 10.34.x | Figée via `packageManager` dans `package.json` (Corepack). pnpm 12 existe, mais on garde la branche 10, éprouvée, pendant le challenge |
+| Outil      | Version              | Remarque                                                                                                                                                   |
+| ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node.js    | 24 LTS               | Figée dans `.nvmrc` et dans le champ `engines`                                                                                                             |
+| pnpm       | 10.34.x              | Figée via `packageManager` dans `package.json` (Corepack). pnpm 12 existe, mais on garde la branche 10, éprouvée, pendant le challenge                     |
 | TypeScript | 6.0.x, mode `strict` | `noUncheckedIndexedAccess` activé. TypeScript 7 est sorti, mais typescript-eslint ne le supporte pas encore (`<6.1`) : on le réévaluera après le challenge |
-| Turborepo | 2.x | Clé `tasks` (et non plus `pipeline`) dans `turbo.json` |
+| Turborepo  | 2.x                  | Clé `tasks` (et non plus `pipeline`) dans `turbo.json`                                                                                                     |
 
 Les versions exactes des bibliothèques sont figées par `pnpm-lock.yaml`, commité. Une mise à jour de dépendance est une PR `chore(deps)` à part.

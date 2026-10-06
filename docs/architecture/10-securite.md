@@ -4,15 +4,15 @@ Responsable : **rôle 4 (DevOps et sécurité)**, qui a le dernier mot sur ce qu
 
 ## Modèle de menace (résumé)
 
-| Actif | Menace principale | Mesures |
-|---|---|---|
-| Comptes utilisateurs | Vol de session, CSRF, fixation de session | Cookie `__Host-` HttpOnly Secure SameSite=Lax, sessions serveur hachées, vérification de l'origine |
-| Jetons GitHub | Fuite de la base | Chiffrement AES-256-GCM au repos, scopes en lecture seule |
-| Secrets collés par les devs dans leurs questions | Exposition publique, envoi à l'IA, stockage local | Masquage côté client avant la file (O9) et côté serveur avant stockage et envoi à l'IA |
-| Crédibilité des scores | Triche (votes croisés, faux comptes, dépôts vides) | Plafonds, journal append-only, X3, détection de collusion (P2), signalement |
-| Disponibilité de la démo | Spam, abus, déni de service applicatif | Limitation du débit, quotas IA, modération rapide |
-| Intégrité de l'IA | Injection de prompt | Contenu traité comme donnée, sortie JSON validée, aucune action automatique (M2) |
-| Visiteurs | XSS via le contenu utilisateur | Markdown assaini, CSP stricte, aucun `dangerouslySetInnerHTML` hors du composant de rendu assaini |
+| Actif                                            | Menace principale                                  | Mesures                                                                                            |
+| ------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Comptes utilisateurs                             | Vol de session, CSRF, fixation de session          | Cookie `__Host-` HttpOnly Secure SameSite=Lax, sessions serveur hachées, vérification de l'origine |
+| Jetons GitHub                                    | Fuite de la base                                   | Chiffrement AES-256-GCM au repos, scopes en lecture seule                                          |
+| Secrets collés par les devs dans leurs questions | Exposition publique, envoi à l'IA, stockage local  | Masquage côté client avant la file (O9) et côté serveur avant stockage et envoi à l'IA             |
+| Crédibilité des scores                           | Triche (votes croisés, faux comptes, dépôts vides) | Plafonds, journal append-only, X3, détection de collusion (P2), signalement                        |
+| Disponibilité de la démo                         | Spam, abus, déni de service applicatif             | Limitation du débit, quotas IA, modération rapide                                                  |
+| Intégrité de l'IA                                | Injection de prompt                                | Contenu traité comme donnée, sortie JSON validée, aucune action automatique (M2)                   |
+| Visiteurs                                        | XSS via le contenu utilisateur                     | Markdown assaini, CSP stricte, aucun `dangerouslySetInnerHTML` hors du composant de rendu assaini  |
 
 ## Authentification et sessions
 
@@ -25,6 +25,7 @@ Responsable : **rôle 4 (DevOps et sécurité)**, qui a le dernier mot sur ce qu
 ## Protection CSRF
 
 `SameSite=Lax` bloque déjà la plupart des cas. En plus, toute requête qui modifie l'état doit :
+
 1. avoir un en-tête `Origin` égal à `APP_URL` ;
 2. porter l'en-tête `X-DevHub-Client: web`, qu'un formulaire d'un autre site ne peut pas ajouter sans déclencher un pré-vol CORS refusé.
 
@@ -59,13 +60,13 @@ Cross-Origin-Opener-Policy: same-origin
 
 ## Secrets
 
-| Règle | Contrôle |
-|---|---|
-| Clés (IA, SMTP, OAuth, chiffrement) uniquement en **variables d'environnement côté serveur** | Fichier `.env` absent du dépôt (`.gitignore`), `.env.example` sans valeur |
-| Jamais de secret dans le front | Seules les variables préfixées `VITE_PUBLIC_` arrivent dans le bundle ; revue systématique |
-| Détection dans le dépôt | `gitleaks` en CI et en hook `pre-commit` |
-| Secrets de production | Stockés dans les **secrets GitHub Actions** (environnement `production` protégé) et dans un `.env` sur le VPS en `chmod 600`, propriété de l'utilisateur de déploiement |
-| Rotation | Procédure documentée dans [11](11-infrastructure-deploiement.md#rotation-des-secrets) ; rotation immédiate si un secret apparaît dans un commit |
+| Règle                                                                                        | Contrôle                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clés (IA, SMTP, OAuth, chiffrement) uniquement en **variables d'environnement côté serveur** | Fichier `.env` absent du dépôt (`.gitignore`), `.env.example` sans valeur                                                                                               |
+| Jamais de secret dans le front                                                               | Seules les variables préfixées `VITE_PUBLIC_` arrivent dans le bundle ; revue systématique                                                                              |
+| Détection dans le dépôt                                                                      | `gitleaks` en CI et en hook `pre-commit`                                                                                                                                |
+| Secrets de production                                                                        | Stockés dans les **secrets GitHub Actions** (environnement `production` protégé) et dans un `.env` sur le VPS en `chmod 600`, propriété de l'utilisateur de déploiement |
+| Rotation                                                                                     | Procédure documentée dans [11](11-infrastructure-deploiement.md#rotation-des-secrets) ; rotation immédiate si un secret apparaît dans un commit                         |
 
 ### Masquage des secrets dans le contenu utilisateur
 
@@ -100,8 +101,8 @@ Le cadre de référence est le droit des pays des utilisateurs, notamment le Cod
 
 ## Revue de sécurité
 
-| Quand | Quoi | Qui |
-|---|---|---|
-| Jalon 1 (8 oct.) | Revue de base : OAuth, sessions, secrets, en-têtes | Emmanuel + un back-end |
-| Chaque PR qui touche `identity`, `sync`, `moderation`, `ai` ou `infra/` | Checklist sécurité de la [revue de code](../equipe/revue-de-code.md) | Emmanuel en relecteur obligatoire (CODEOWNERS) |
-| 21 oct. | Revue complète : CSP en mode bloquant, test d'abus des XP (X2), injections de prompt, scan des en-têtes | Emmanuel, toute l'équipe |
+| Quand                                                                   | Quoi                                                                                                    | Qui                                            |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Jalon 1 (8 oct.)                                                        | Revue de base : OAuth, sessions, secrets, en-têtes                                                      | Emmanuel + un back-end                         |
+| Chaque PR qui touche `identity`, `sync`, `moderation`, `ai` ou `infra/` | Checklist sécurité de la [revue de code](../equipe/revue-de-code.md)                                    | Emmanuel en relecteur obligatoire (CODEOWNERS) |
+| 21 oct.                                                                 | Revue complète : CSP en mode bloquant, test d'abus des XP (X2), injections de prompt, scan des en-têtes | Emmanuel, toute l'équipe                       |

@@ -4,13 +4,13 @@ Responsable : **rôle 4 (DevOps et sécurité)**. Tout tourne chez **Systalink**
 
 ## Produits Systalink utilisés
 
-| Produit | Rôle | Où on le montre | Statut |
-|---|---|---|---|
-| **VPS** | Héberge Caddy, l'API et le worker (Docker Compose) | `/systalink`, README, démo | P0 |
-| **Base de données** (PostgreSQL de préférence) | Profils, questions, salles, Proof XP, file de tâches | `/systalink`, schéma du README | P0 |
-| **Sauvegarde cloud** | Sauvegarde quotidienne, restauration testée | Date de la dernière sauvegarde affichée (Y1, Y6) | P0 |
-| **Messagerie pro** | E-mails SMTP de notification | Mention « Envoyé via Systalink Mail » | P1 (Y3) |
-| **Stockage objet** | Avatars, captures, Proof Cards | `/systalink` | P2 (Y4), seulement si le produit figure dans la liste officielle |
+| Produit                                        | Rôle                                                 | Où on le montre                                  | Statut                                                           |
+| ---------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| **VPS**                                        | Héberge Caddy, l'API et le worker (Docker Compose)   | `/systalink`, README, démo                       | P0                                                               |
+| **Base de données** (PostgreSQL de préférence) | Profils, questions, salles, Proof XP, file de tâches | `/systalink`, schéma du README                   | P0                                                               |
+| **Sauvegarde cloud**                           | Sauvegarde quotidienne, restauration testée          | Date de la dernière sauvegarde affichée (Y1, Y6) | P0                                                               |
+| **Messagerie pro**                             | E-mails SMTP de notification                         | Mention « Envoyé via Systalink Mail »            | P1 (Y3)                                                          |
+| **Stockage objet**                             | Avatars, captures, Proof Cards                       | `/systalink`                                     | P2 (Y4), seulement si le produit figure dans la liste officielle |
 
 **Plan B** (§8) : si la liste officielle exclut l'un de ces produits, on en utilise au moins trois de la liste officielle. La liste est à confirmer auprès de `cadev@systalink.com` (rôle 1, 6 octobre).
 
@@ -48,25 +48,25 @@ Seuls les ports 80 et 443 sont ouverts sur Internet, plus SSH limité aux clés 
 
 ## Routage Caddy
 
-| Chemin | Destination | Particularités |
-|---|---|---|
-| `/api/v1/events` | `api:3000` | `flush_interval -1` (SSE sans tampon), pas de compression |
-| `/api/*` | `api:3000` | Compression `zstd` puis `gzip` |
-| `/u/*`, `/p/*` | `api:3000` | HTML avec balises Open Graph injectées |
-| `/og/*`, `/badge/*` | `api:3000` | `Cache-Control: public, max-age=3600` |
-| `/assets/*` | fichiers statiques | `Cache-Control: public, max-age=31536000, immutable` (noms avec empreinte) |
-| `/sw.js`, `/manifest.webmanifest` | fichiers statiques | `Cache-Control: no-cache` (sinon les mises à jour ne passent pas) |
-| tout le reste | `index.html` | Repli SPA |
+| Chemin                            | Destination        | Particularités                                                             |
+| --------------------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `/api/v1/events`                  | `api:3000`         | `flush_interval -1` (SSE sans tampon), pas de compression                  |
+| `/api/*`                          | `api:3000`         | Compression `zstd` puis `gzip`                                             |
+| `/u/*`, `/p/*`                    | `api:3000`         | HTML avec balises Open Graph injectées                                     |
+| `/og/*`, `/badge/*`               | `api:3000`         | `Cache-Control: public, max-age=3600`                                      |
+| `/assets/*`                       | fichiers statiques | `Cache-Control: public, max-age=31536000, immutable` (noms avec empreinte) |
+| `/sw.js`, `/manifest.webmanifest` | fichiers statiques | `Cache-Control: no-cache` (sinon les mises à jour ne passent pas)          |
+| tout le reste                     | `index.html`       | Repli SPA                                                                  |
 
 Le fichier de référence est [`infra/Caddyfile`](../../infra/Caddyfile).
 
 ## Environnements
 
-| Environnement | Où | Données | Déploiement |
-|---|---|---|---|
-| **Local** | Poste du développeur ; PostgreSQL dans Docker (`infra/docker-compose.dev.yml`) | Graines + comptes de démo | `pnpm dev` |
-| **CI** | GitHub Actions ; service PostgreSQL éphémère | Données de test | À chaque push |
-| **Production** (= URL de démo) | VPS Systalink | Réelles + comptes démo marqués | Automatique à chaque fusion sur `main` (CI verte) |
+| Environnement                  | Où                                                                             | Données                        | Déploiement                                       |
+| ------------------------------ | ------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------- |
+| **Local**                      | Poste du développeur ; PostgreSQL dans Docker (`infra/docker-compose.dev.yml`) | Graines + comptes de démo      | `pnpm dev`                                        |
+| **CI**                         | GitHub Actions ; service PostgreSQL éphémère                                   | Données de test                | À chaque push                                     |
+| **Production** (= URL de démo) | VPS Systalink                                                                  | Réelles + comptes démo marqués | Automatique à chaque fusion sur `main` (CI verte) |
 
 Il n'y a **pas d'environnement de préproduction séparé** (20 jours, un VPS). La sécurité vient de la CI, du déploiement progressif (migrations puis redémarrage), des sauvegardes et de la possibilité de revenir à l'image précédente en une commande. Si Systalink fournit un second VPS ou une seconde base, on ajoute un environnement `staging` déployé à chaque PR.
 
@@ -110,12 +110,12 @@ Les migrations doivent donc être **compatibles avec la version précédente du 
 
 ## Sauvegardes
 
-| Élément | Règle |
-|---|---|
-| Fréquence | Quotidienne à 02:30 UTC (cron sur le VPS, ou service natif de sauvegarde Systalink s'il couvre la base) |
-| Contenu | `pg_dump --format=custom` de la base, chiffré, envoyé vers la sauvegarde cloud Systalink |
-| Rétention | 7 sauvegardes quotidiennes + 4 hebdomadaires |
-| Date affichée | Le job `status.check` lit la date de la dernière sauvegarde réussie et l'expose dans `/systalink` (Y1). Pas de valeur codée en dur |
+| Élément                 | Règle                                                                                                                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fréquence               | Quotidienne à 02:30 UTC (cron sur le VPS, ou service natif de sauvegarde Systalink s'il couvre la base)                                                                                               |
+| Contenu                 | `pg_dump --format=custom` de la base, chiffré, envoyé vers la sauvegarde cloud Systalink                                                                                                              |
+| Rétention               | 7 sauvegardes quotidiennes + 4 hebdomadaires                                                                                                                                                          |
+| Date affichée           | Le job `status.check` lit la date de la dernière sauvegarde réussie et l'expose dans `/systalink` (Y1). Pas de valeur codée en dur                                                                    |
 | **Restauration testée** | Avant le 20 octobre (planning) puis le 22 octobre : restauration complète dans une base vide, puis vérification du nombre de lignes des tables principales. Procédure dans `infra/scripts/restore.sh` |
 
 ## Observabilité

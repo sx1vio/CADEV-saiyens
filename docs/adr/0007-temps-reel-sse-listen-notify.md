@@ -11,12 +11,12 @@ Le v3 exige des notifications en moins d'une minute, sans préciser comment le f
 
 ## Options envisagées
 
-| Option | Pour | Contre |
-|---|---|---|
-| **SSE + LISTEN/NOTIFY** | HTTP standard, passe les proxys, reprise automatique (`Last-Event-ID`), aucun service ajouté | Unidirectionnel (suffisant ici) |
-| WebSocket (Socket.IO) | Bidirectionnel | Proxys mobiles parfois hostiles, reprise à gérer soi-même, inutile pour un flux descendant, et passage à plusieurs instances qui demande Redis |
-| Interrogation périodique seule | Trivial | Latence et consommation de data, mauvais pour l'économie de data (O6) |
-| Service tiers (Pusher, Ably) | Rien à héberger | Service externe hors Systalink, coût, données qui sortent |
+| Option                         | Pour                                                                                         | Contre                                                                                                                                         |
+| ------------------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SSE + LISTEN/NOTIFY**        | HTTP standard, passe les proxys, reprise automatique (`Last-Event-ID`), aucun service ajouté | Unidirectionnel (suffisant ici)                                                                                                                |
+| WebSocket (Socket.IO)          | Bidirectionnel                                                                               | Proxys mobiles parfois hostiles, reprise à gérer soi-même, inutile pour un flux descendant, et passage à plusieurs instances qui demande Redis |
+| Interrogation périodique seule | Trivial                                                                                      | Latence et consommation de data, mauvais pour l'économie de data (O6)                                                                          |
+| Service tiers (Pusher, Ably)   | Rien à héberger                                                                              | Service externe hors Systalink, coût, données qui sortent                                                                                      |
 
 ## Décision
 
@@ -25,11 +25,14 @@ Le v3 exige des notifications en moins d'une minute, sans préciser comment le f
 ## Conséquences
 
 ### Positives
+
 - La promesse « moins d'une minute » devient « quelques centaines de millisecondes ».
 - Fonctionne avec plusieurs instances d'API sans brique supplémentaire.
 
 ### Négatives
+
 - Une connexion ouverte par onglet connecté ; Caddy doit désactiver le tampon sur cette route.
 
 ### Risques et parades
+
 - Risque : proxy d'opérateur qui coupe les connexions longues → Parade : ping toutes les 25 s, reprise automatique, repli par interrogation.

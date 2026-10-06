@@ -11,11 +11,11 @@ Le cahier des charges impose des sessions par cookie HttpOnly et SameSite. Il re
 
 ## Options envisagées
 
-| Option | Pour | Contre |
-|---|---|---|
-| **Identifiant opaque + table `sessions`** | Révocation immédiate (déconnexion, suppression de compte, bannissement par la modération) ; aucune donnée exposée | Une lecture en base par requête (rapide, indexée, et la base est de toute façon interrogée) |
-| JWT dans un cookie | Pas de lecture en base | Révocation difficile (liste noire = retour à une table) ; jeton plus gros ; rotation des clés à gérer |
-| JWT dans `localStorage` | Simple côté front | Exposé au XSS ; **contraire au cahier des charges** |
+| Option                                    | Pour                                                                                                              | Contre                                                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Identifiant opaque + table `sessions`** | Révocation immédiate (déconnexion, suppression de compte, bannissement par la modération) ; aucune donnée exposée | Une lecture en base par requête (rapide, indexée, et la base est de toute façon interrogée)           |
+| JWT dans un cookie                        | Pas de lecture en base                                                                                            | Révocation difficile (liste noire = retour à une table) ; jeton plus gros ; rotation des clés à gérer |
+| JWT dans `localStorage`                   | Simple côté front                                                                                                 | Exposé au XSS ; **contraire au cahier des charges**                                                   |
 
 ## Décision
 
@@ -24,10 +24,12 @@ Le cahier des charges impose des sessions par cookie HttpOnly et SameSite. Il re
 ## Conséquences
 
 ### Positives
+
 - La modération peut couper une session immédiatement ; la suppression de compte (A3) déconnecte partout.
 - Une fuite de la table `sessions` ne permet pas d'usurper une session.
 
 ### Négatives
+
 - Le SSE et chaque requête relisent la session (mise en cache mémoire de 60 s par process).
 
 ## Décisions liées

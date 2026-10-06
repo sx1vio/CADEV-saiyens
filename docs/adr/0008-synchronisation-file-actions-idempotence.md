@@ -7,19 +7,22 @@
 
 ## Contexte
 
-Le hors ligne est le différenciateur le plus spectaculaire et le chantier le plus risqué. Le cahier des charges fixe les grandes lignes (§6.5) : UUID par action, file IndexedDB envoyée dans l'ordre, en-tête `Idempotency-Key`, table `idempotency_keys`, `POST /sync` par lot, conflits à deux colonnes avec un plan B « dernière modification gagnante ». Il reste à décider *comment* le front et l'API s'articulent.
+Le hors ligne est le différenciateur le plus spectaculaire et le chantier le plus risqué. Le cahier des charges fixe les grandes lignes (§6.5) : UUID par action, file IndexedDB envoyée dans l'ordre, en-tête `Idempotency-Key`, table `idempotency_keys`, `POST /sync` par lot, conflits à deux colonnes avec un plan B « dernière modification gagnante ». Il reste à décider _comment_ le front et l'API s'articulent.
 
 ## Options envisagées
 
 ### Option A : deux chemins (en ligne : appels directs ; hors ligne : file)
+
 - **Pour** : en ligne, le code est « classique ».
 - **Contre** : deux chemins à maintenir ; le chemin hors ligne, rarement exécuté pendant le développement, casse sans qu'on le voie. C'est exactement ce qui plante en démo.
 
 ### Option B : file unique pour toutes les écritures
+
 - **Pour** : **un seul chemin**, exécuté en permanence par toute l'équipe ; le simulateur O5 devient trivial ; idempotence garantie partout.
 - **Contre** : une légère latence ajoutée (écriture IndexedDB avant l'envoi, quelques millisecondes).
 
 ### Option C : moteur de synchronisation générique (CRDT, RxDB, PouchDB/CouchDB…)
+
 - **Pour** : conflits gérés automatiquement.
 - **Contre** : change de base de données ou ajoute une couche lourde ; surdimensionné pour des créations surtout additives ; bundle plus gros.
 
@@ -30,14 +33,17 @@ Le hors ligne est le différenciateur le plus spectaculaire et le chantier le pl
 ## Conséquences
 
 ### Positives
+
 - Aucun doublon possible, même avec des réseaux qui coupent au milieu d'une réponse.
 - Le parcours hors ligne est testé à chaque utilisation de l'application.
 - Le plan B (dernière modification gagnante) ne change pas le contrat.
 
 ### Négatives
+
 - Les endpoints d'écriture exigent tous l'en-tête `Idempotency-Key` (y compris pour les outils de test : un helper est fourni).
 
 ### Risques et parades
+
 - Risque : retard de l'écran de conflit → Parade : plan B prévu, contrat inchangé.
 - Risque : secrets stockés en clair dans IndexedDB → Parade : masquage avant la mise en file (O9), purge à la déconnexion.
 

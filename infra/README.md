@@ -2,16 +2,16 @@
 
 Propriétaire : **Emmanuel OKORIE** (rôle 4, DevOps et sécurité). Documentation : [docs/architecture/11-infrastructure-deploiement.md](../docs/architecture/11-infrastructure-deploiement.md).
 
-| Fichier | Rôle |
-|---|---|
-| `docker-compose.dev.yml` | PostgreSQL et Mailpit pour le développement local |
-| `docker-compose.yml` | Production sur le VPS Systalink (Caddy, API, worker) |
-| `Caddyfile` | TLS, en-têtes de sécurité, routage, front statique |
-| `Dockerfile.api` | Image de l'API et du worker (à ajuster à l'initialisation d'`apps/api`) |
-| `Dockerfile.web` | Image Caddy avec le build du front (à ajuster à l'initialisation d'`apps/web`) |
-| `scripts/deploy.sh` | Migrations, redémarrage, smoke test, retour arrière automatique |
-| `scripts/backup.sh` | Sauvegarde chiffrée quotidienne + fichier de statut pour `/systalink` |
-| `scripts/restore.sh` | Restauration dans une base cible + comptage des lignes |
+| Fichier                  | Rôle                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| `docker-compose.dev.yml` | PostgreSQL et Mailpit pour le développement local                              |
+| `docker-compose.yml`     | Production sur le VPS Systalink (Caddy, API, worker)                           |
+| `Caddyfile`              | TLS, en-têtes de sécurité, routage, front statique                             |
+| `Dockerfile.api`         | Image de l'API et du worker (à ajuster à l'initialisation d'`apps/api`)        |
+| `Dockerfile.web`         | Image Caddy avec le build du front (à ajuster à l'initialisation d'`apps/web`) |
+| `scripts/deploy.sh`      | Migrations, redémarrage, smoke test, retour arrière automatique                |
+| `scripts/backup.sh`      | Sauvegarde chiffrée quotidienne + fichier de statut pour `/systalink`          |
+| `scripts/restore.sh`     | Restauration dans une base cible + comptage des lignes                         |
 
 ## Préparation du VPS (une fois)
 

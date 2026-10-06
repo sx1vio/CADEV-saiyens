@@ -1,0 +1,10 @@
+# Fichiers générés ou tiers : jamais reformatés
+pnpm-lock.yaml
+node_modules/
+dist/
+coverage/
+.turbo/
+apps/api/src/generated/
+apps/api/prisma/migrations/
+.claude/skills/
+*.pdf

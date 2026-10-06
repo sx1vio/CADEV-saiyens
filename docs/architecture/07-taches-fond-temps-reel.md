@@ -1,6 +1,7 @@
 # 07 · Tâches de fond et temps réel
 
 Deux besoins, une seule brique : **PostgreSQL**.
+
 - Les **tâches de fond** (piste IA, matching, e-mails, escalade…) passent par une file stockée dans PostgreSQL, gérée par **pg-boss**. Voir [ADR-0006](../adr/0006-file-taches-pg-boss.md).
 - Le **temps réel** (notifications, nouvelles réponses, « Je m'en occupe ») passe par **Server-Sent Events**, alimentés par `LISTEN/NOTIFY`. Voir [ADR-0007](../adr/0007-temps-reel-sse-listen-notify.md).
 
@@ -18,27 +19,27 @@ Dans le **process worker** (`apps/api/src/worker.ts`), un conteneur séparé de 
 
 ### Catalogue des jobs
 
-| Job | Déclencheur | Rôle | Délai max | Reprises | US |
-|---|---|---|---|---|---|
-| `ai.hint` | `QuestionAsked` | Piste IA ; met à jour `ai_hint` et `ai_status` ; notifie l'auteur | 10 s (puis `failed`) | 1 | S2 |
-| `matching.run` | `QuestionAsked` (après `ai.hint` ou en parallèle) | Calcule les scores, choisit 3 aidants, écrit `match_events`, notifie | 30 s | 3 | S3 |
-| `matching.escalate` | `MatchCreated`, `startAfter` = +15 min | Sans réponse ni « Je m'en occupe » actif : sollicite 3 aidants de plus (vague 2) ; sinon ne fait rien | 30 s | 3 | §6.1, S11 |
-| `notifications.fanout` | Événements métier | Crée les `notifications`, `NOTIFY`, planifie l'e-mail si l'utilisateur n'est pas connecté | 10 s | 5 | S3, Y3 |
-| `notifications.email` | `notifications.fanout` (+2 min si non lue) | Envoi SMTP Systalink, lien de désabonnement | 60 s | 5 (repli exponentiel) | Y3 |
-| `notifications.telegram` | `notifications.fanout` | Message du bot Telegram | 10 s | 3 | Y7 (P1) |
-| `github.import-profile` | `UserSignedUp`, `POST /me/github/refresh` | Dépôts, langages, âge du compte ; recalcule G (X3) | 120 s | 3 | PR1, X3 |
-| `github.verify-pr` | `TaskCompleted` | Vérifie PR fusionnée et auteur ; met à jour `verification` | 30 s | 5 | R9 |
-| `github.import-issues` | `POST /rooms/:id/tasks/import-issues` | Crée les tâches depuis les issues ouvertes | 60 s | 3 | R2 |
-| `ai.room-tasks` | `POST /rooms/:id/ai/tasks` | Propositions de tâches, en attente de validation | 30 s | 1 | R5 |
-| `ai.resolution-sheet` | `AnswerAccepted` | Fiche de résolution proposée à l'auteur | 30 s | 1 | S12 (P1) |
-| `ai.translate` | `POST …/translate` | Traduction FR ↔ EN, mise en cache | 15 s | 1 | S10 |
-| `sos.still-resolved-check` | `AnswerAccepted`, +24 h | « Toujours résolu ? » | 10 s | 3 | S15 (P2) |
-| `passport.recompute-skills` | Changement d'XP ou de GitHub | Recalcule `user_skills` | 30 s | 3 | PR3 |
-| `passport.render-card` | Changement de score | Régénère la Proof Card | 30 s | 2 | PR5 |
-| `status.check` | Cron toutes les 5 min | Sonde chaque service Systalink ; écrit `status_checks` | 30 s | 0 | Y1, Y5 |
-| `maintenance.purge` | Cron quotidien 03:00 UTC | Purge des `idempotency_keys` > 7 j, `status_checks` > 30 j, sessions expirées | 5 min | 1 | — |
-| `demo.reset-sandbox` | Cron quotidien 02:00 UTC | Remet à zéro le bac à sable de l'essai sans compte | 5 min | 1 | T2 |
-| `moderation.collusion-scan` | Cron quotidien | Détection de validations croisées suspectes | 5 min | 1 | X8 (P2) |
+| Job                         | Déclencheur                                       | Rôle                                                                                                  | Délai max            | Reprises              | US        |
+| --------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------- | --------------------- | --------- |
+| `ai.hint`                   | `QuestionAsked`                                   | Piste IA ; met à jour `ai_hint` et `ai_status` ; notifie l'auteur                                     | 10 s (puis `failed`) | 1                     | S2        |
+| `matching.run`              | `QuestionAsked` (après `ai.hint` ou en parallèle) | Calcule les scores, choisit 3 aidants, écrit `match_events`, notifie                                  | 30 s                 | 3                     | S3        |
+| `matching.escalate`         | `MatchCreated`, `startAfter` = +15 min            | Sans réponse ni « Je m'en occupe » actif : sollicite 3 aidants de plus (vague 2) ; sinon ne fait rien | 30 s                 | 3                     | §6.1, S11 |
+| `notifications.fanout`      | Événements métier                                 | Crée les `notifications`, `NOTIFY`, planifie l'e-mail si l'utilisateur n'est pas connecté             | 10 s                 | 5                     | S3, Y3    |
+| `notifications.email`       | `notifications.fanout` (+2 min si non lue)        | Envoi SMTP Systalink, lien de désabonnement                                                           | 60 s                 | 5 (repli exponentiel) | Y3        |
+| `notifications.telegram`    | `notifications.fanout`                            | Message du bot Telegram                                                                               | 10 s                 | 3                     | Y7 (P1)   |
+| `github.import-profile`     | `UserSignedUp`, `POST /me/github/refresh`         | Dépôts, langages, âge du compte ; recalcule G (X3)                                                    | 120 s                | 3                     | PR1, X3   |
+| `github.verify-pr`          | `TaskCompleted`                                   | Vérifie PR fusionnée et auteur ; met à jour `verification`                                            | 30 s                 | 5                     | R9        |
+| `github.import-issues`      | `POST /rooms/:id/tasks/import-issues`             | Crée les tâches depuis les issues ouvertes                                                            | 60 s                 | 3                     | R2        |
+| `ai.room-tasks`             | `POST /rooms/:id/ai/tasks`                        | Propositions de tâches, en attente de validation                                                      | 30 s                 | 1                     | R5        |
+| `ai.resolution-sheet`       | `AnswerAccepted`                                  | Fiche de résolution proposée à l'auteur                                                               | 30 s                 | 1                     | S12 (P1)  |
+| `ai.translate`              | `POST …/translate`                                | Traduction FR ↔ EN, mise en cache                                                                     | 15 s                 | 1                     | S10       |
+| `sos.still-resolved-check`  | `AnswerAccepted`, +24 h                           | « Toujours résolu ? »                                                                                 | 10 s                 | 3                     | S15 (P2)  |
+| `passport.recompute-skills` | Changement d'XP ou de GitHub                      | Recalcule `user_skills`                                                                               | 30 s                 | 3                     | PR3       |
+| `passport.render-card`      | Changement de score                               | Régénère la Proof Card                                                                                | 30 s                 | 2                     | PR5       |
+| `status.check`              | Cron toutes les 5 min                             | Sonde chaque service Systalink ; écrit `status_checks`                                                | 30 s                 | 0                     | Y1, Y5    |
+| `maintenance.purge`         | Cron quotidien 03:00 UTC                          | Purge des `idempotency_keys` > 7 j, `status_checks` > 30 j, sessions expirées                         | 5 min                | 1                     | —         |
+| `demo.reset-sandbox`        | Cron quotidien 02:00 UTC                          | Remet à zéro le bac à sable de l'essai sans compte                                                    | 5 min                | 1                     | T2        |
+| `moderation.collusion-scan` | Cron quotidien                                    | Détection de validations croisées suspectes                                                           | 5 min                | 1                     | X8 (P2)   |
 
 ### Règles d'écriture d'un job
 
@@ -102,18 +103,18 @@ sequenceDiagram
 
 ### Types d'événements
 
-| `event` | Destinataire | Effet côté front |
-|---|---|---|
-| `notification.created` | Utilisateur | Pastille, liste des notifications |
-| `question.ai_hint` | Auteur, observateurs de la question | Affiche la piste IA |
-| `question.matched` | Auteur | Affiche les aidants sollicités et leurs raisons |
-| `question.claimed` | Auteur | « Moussa examine ta question depuis 2 min » (S11) |
-| `answer.created` | Auteur, observateurs | Ajoute la réponse |
-| `answer.accepted` | Aidant, observateurs | Statut résolu ; animation +XP chez l'aidant |
-| `xp.awarded` | Utilisateur | Met à jour le total et le Passport |
-| `task.updated` | Membres de la salle | Met à jour la tâche (prise, vérifiée par GitHub…) |
-| `room_message.created` | Membres de la salle | Ajoute le message |
-| `content.hidden` | Tous les observateurs | Retire le contenu de l'affichage (M1 : moins d'une minute) |
+| `event`                | Destinataire                        | Effet côté front                                           |
+| ---------------------- | ----------------------------------- | ---------------------------------------------------------- |
+| `notification.created` | Utilisateur                         | Pastille, liste des notifications                          |
+| `question.ai_hint`     | Auteur, observateurs de la question | Affiche la piste IA                                        |
+| `question.matched`     | Auteur                              | Affiche les aidants sollicités et leurs raisons            |
+| `question.claimed`     | Auteur                              | « Moussa examine ta question depuis 2 min » (S11)          |
+| `answer.created`       | Auteur, observateurs                | Ajoute la réponse                                          |
+| `answer.accepted`      | Aidant, observateurs                | Statut résolu ; animation +XP chez l'aidant                |
+| `xp.awarded`           | Utilisateur                         | Met à jour le total et le Passport                         |
+| `task.updated`         | Membres de la salle                 | Met à jour la tâche (prise, vérifiée par GitHub…)          |
+| `room_message.created` | Membres de la salle                 | Ajoute le message                                          |
+| `content.hidden`       | Tous les observateurs               | Retire le contenu de l'affichage (M1 : moins d'une minute) |
 
 ### Repli
 
