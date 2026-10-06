@@ -1,0 +1,27 @@
+# Dépendances et builds
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+apps/api/src/generated/
+
+# Environnement : ne jamais commiter de secrets
+.env
+.env.*
+!.env.example
+
+# Tests
+playwright-report/
+test-results/
+
+# Éditeurs et OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Journaux
+*.log

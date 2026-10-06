@@ -1,0 +1,17 @@
+// Conventional Commits avec les portées du projet (docs/equipe/workflow-git.md)
+export default {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    'scope-enum': [
+      2,
+      'always',
+      [
+        'api', 'web', 'core', 'contracts', 'config', 'infra', 'docs', 'adr', 'deps', 'ci',
+        'identity', 'passport', 'reputation', 'sync', 'sos', 'matching', 'notifications',
+        'discovery', 'rooms', 'github', 'ai', 'moderation', 'platform',
+        'offline', 'i18n', 'ui',
+      ],
+    ],
+    'subject-case': [0],
+  },
+};
