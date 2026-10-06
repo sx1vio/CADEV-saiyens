@@ -101,6 +101,7 @@ const MAP: Record<string, SimpleIcon> = {
   supabase: siSupabase,
   prisma: siPrisma,
   tailwind: siTailwindcss,
+  tailwindcss: siTailwindcss,
   astro: siAstro,
   vite: siVite,
   terraform: siTerraform,

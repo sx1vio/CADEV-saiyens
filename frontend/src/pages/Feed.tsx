@@ -1,14 +1,16 @@
 import { PenSquare, Hash, Award, Briefcase, Flame, GraduationCap, Image as ImageIcon, Link2, PlaySquare, Puzzle, Sparkles, TrendingUp, Wand2, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { Avatar } from '@/components/ui/primitives'
+import { Avatar, Skeleton } from '@/components/ui/primitives'
+import { fetchHome, fetchNews, NEWS_CATEGORIES, type HomeNews, type Lang, type NewsItem } from '@/platform/news'
+import { ArticleCard, DevtoCard, HeroNews, HnRow, ReleaseCard, RepoRow, SectionHead, VideoTile } from '@/platform/newsui'
 import { BrandLogo } from '@/platform/logos'
 import { COMMUNITIES, POSTS } from '@/platform/data/feed'
 import { JOBS } from '@/platform/data/jobs'
 import { VIDEOS } from '@/platform/data/videos'
 import { usePlatform } from '@/platform/store'
 import type { Post } from '@/platform/types'
-import { CUBE, Chips, CommunityIcon, CompanyLogo, PostCard, ServiceHeader, SideCard, StatCard, VideoThumb, companyOf, compact } from '@/platform/ui'
+import { Ago, CUBE, Chips, CommunityIcon, CompanyLogo, PostCard, ServiceHeader, SideCard, StatCard, VideoThumb, companyOf, compact } from '@/platform/ui'
 import { Button } from '@/components/ui/button'
 import { PLATFORM_CERTS } from '@/platform/data/certs'
 import { useQuery } from '@/lib/query'
@@ -81,7 +83,7 @@ export default function Feed() {
     <div className="dh-page mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-8 sm:py-8">
       <ServiceHeader
         title="Accueil"
-        subtitle="Ce qui se passe dans la communauté : actu IA et tech, projets, questions et opportunités."
+        subtitle="L’actu IA, tech et dev en continu, les vidéos du moment, les projets et les questions de la communauté."
         actions={
           me && (
             <>
@@ -95,8 +97,11 @@ export default function Feed() {
           )
         }
       />
+      <NewsTop />
       {me && <FeedStats />}
-      <div className="mt-8 flex gap-6">
+      <NewsBody />
+      <SectionHead title="Communauté DevHub" />
+      <div className="flex gap-6">
       <div className="min-w-0 flex-1">
         {/* Services de l'écosystème, en bandeau sur petits écrans */}
         <div className="no-scrollbar -mx-3 mb-4 flex gap-2 overflow-x-auto px-3 lg:hidden">
@@ -110,9 +115,9 @@ export default function Feed() {
 
         {/* Composer */}
         {me && (
-          <div data-tour="hero" className="flex items-center gap-3 rounded-[20px] bg-surface-1 p-2.5">
+          <div data-tour="hero" className="flex items-center gap-3 rounded-[20px] bg-surface-1 p-3">
             <Avatar name={me.displayName} src={me.avatarUrl} size={38} />
-            <button type="button" onClick={() => nav('/publier')} className="h-10 min-w-0 flex-1 truncate rounded-[8px] border border-line bg-inset px-3.5 text-left text-[14px] text-subtle ">
+            <button type="button" onClick={() => nav('/publier')} className="h-11 min-w-0 flex-1 truncate rounded-full bg-canvas px-4 text-left text-[14px] text-subtle shadow-sm">
               Partage un projet, une actu, une question…
             </button>
             <button type="button" onClick={() => nav('/publier?type=launch')} aria-label="Publier un projet avec image" className="hidden size-10 place-items-center rounded-[8px] text-muted hover:bg-surface-2 hover:text-fg sm:grid">
@@ -126,7 +131,7 @@ export default function Feed() {
         )}
 
         <div className="mt-6 flex items-center gap-4">
-          <h2 className="shrink-0 text-[17px] font-bold tracking-[-0.02em] text-fg">Fil</h2>
+          <h2 className="shrink-0 text-[17px] font-bold tracking-[-0.02em] text-fg">Posts</h2>
           <Chips items={TABS} value={tab} onChange={(v) => setParams(v === 'pour-toi' ? {} : { f: v }, { replace: true })} className="min-w-0 flex-1" />
           <div className="hidden shrink-0 items-center gap-1 rounded-[8px] bg-surface-1 p-0.5 sm:flex" role="group" aria-label="Tri">
             {(
@@ -297,4 +302,179 @@ function FeedStats() {
 function hot(p: Post) {
   const hours = (Date.now() - new Date(p.createdAt).getTime()) / 3_600_000
   return (p.score + p.comments * 2) / Math.pow(hours + 2, 1.2)
+}
+
+/* ================================================================
+   Actualités réelles (backend /api/news) : à la une, rubriques, vidéos,
+   Hacker News, dépôts, versions, DEV Community.
+   ================================================================ */
+
+function useHome(lang: Lang) {
+  return useQuery<HomeNews>(`news:home:${lang}`, () => fetchHome(lang))
+}
+
+function NewsStatus({ data, error }: { data?: HomeNews; error: unknown }) {
+  if (error && !data)
+    return (
+      <p className="mt-6 rounded-[20px] bg-surface-1 p-5 text-[14px] text-muted">
+        Les actualités ne sont pas disponibles pour le moment (serveur injoignable). Le reste de la plateforme fonctionne normalement.
+      </p>
+    )
+  if (!data) return null
+  return (
+    <p className="mt-3 flex flex-wrap items-center gap-2 text-[12.5px] text-muted">
+      <span className={cn('size-2 rounded-full', data.offline ? 'bg-warning' : 'bg-success')} />
+      {data.offline ? 'Hors ligne : dernières actualités enregistrées sur ton appareil' : `${data.sources} sources suivies en continu`}
+      {data.updatedAt && (
+        <>
+          <span aria-hidden>·</span>
+          mis à jour <Ago iso={data.updatedAt} />
+        </>
+      )}
+      <Link to="/sources" className="font-medium text-fg underline-offset-2 hover:underline">
+        Voir les sources
+      </Link>
+    </p>
+  )
+}
+
+function NewsTop() {
+  const { data, error } = useHome('all')
+  return (
+    <section className="mt-7">
+      {!data && !error ? <Skeleton className="h-[380px] rounded-[24px]" /> : data && <HeroNews items={data.hero} />}
+      <NewsStatus data={data} error={error} />
+    </section>
+  )
+}
+
+function NewsBody() {
+  const [cat, setCat] = useState('all')
+  const [lang, setLang] = useState<Lang>('all')
+  const { data } = useHome(lang)
+  const [more, setMore] = useState<NewsItem[]>([])
+  const [loadingMore, setLoadingMore] = useState(false)
+  const { data: catItems } = useQuery<NewsItem[]>(cat === 'all' ? null : `news:cat:${cat}:${lang}`, () => fetchNews({ category: cat, kind: 'article', lang, limit: 24 }))
+  if (!data) return null
+
+  // « Tout » : les rubriques mélangées par date, une même histoire une seule fois
+  const heroIds = new Set(data.hero.map((h) => h.id))
+  const all = Object.values(data.sections)
+    .flat()
+    .filter((i) => !heroIds.has(i.id))
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  const list = [...(cat === 'all' ? all.slice(0, 18) : (catItems ?? data.sections[cat] ?? [])), ...more]
+
+  const loadMore = async () => {
+    const last = list[list.length - 1]
+    if (!last) return
+    setLoadingMore(true)
+    try {
+      const items = await fetchNews({ category: cat === 'all' ? undefined : cat, kind: 'article', lang, before: last.publishedAt, limit: 18 })
+      setMore((m) => [...m, ...items])
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  return (
+    <>
+      <section className="mt-10">
+        <SectionHead title="Actualités">
+          <Chips
+            items={NEWS_CATEGORIES}
+            value={cat}
+            onChange={(v) => {
+              setCat(v)
+              setMore([])
+            }}
+            className="min-w-0 flex-1"
+          />
+          <div className="flex shrink-0 gap-1 rounded-full bg-surface-1 p-1" role="group" aria-label="Langue">
+            {(['all', 'fr', 'en'] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                aria-pressed={lang === l}
+                onClick={() => {
+                  setLang(l)
+                  setMore([])
+                }}
+                className={cn('h-7 rounded-full px-3 text-[12.5px] font-medium', lang === l ? 'bg-fg text-canvas' : 'text-muted hover:text-fg')}
+              >
+                {l === 'all' ? 'Toutes' : l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </SectionHead>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {list.map((it) => (
+            <ArticleCard key={it.id} item={it} />
+          ))}
+        </div>
+        <div className="mt-4 flex justify-center">
+          <Button variant="secondary" onClick={loadMore} loading={loadingMore}>
+            Plus d’actualités
+          </Button>
+        </div>
+      </section>
+
+      {data.videos.length > 0 && (
+        <section className="mt-12">
+          <SectionHead title="Vidéos du moment" action={{ label: 'Toutes les vidéos', to: '/videos' }} />
+          <div className="grid gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+            {data.videos.slice(0, 8).map((v) => (
+              <VideoTile key={v.id} item={v} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="mt-12 grid gap-8 xl:grid-cols-2">
+        {data.hn.length > 0 && (
+          <section>
+            <SectionHead title="En tête de Hacker News" />
+            <ol className="flex flex-col gap-2">
+              {data.hn.slice(0, 10).map((it, i) => (
+                <HnRow key={it.id} item={it} rank={i + 1} />
+              ))}
+            </ol>
+          </section>
+        )}
+        {data.repos.length > 0 && (
+          <section>
+            <SectionHead title="Dépôts GitHub de la semaine" />
+            <ul className="flex flex-col gap-2">
+              {data.repos.slice(0, 10).map((it) => (
+                <RepoRow key={it.id} item={it} />
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+
+      {data.releases.length > 0 && (
+        <section className="mt-12">
+          <SectionHead title="Nouvelles versions" />
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {data.releases.slice(0, 12).map((it) => (
+              <ReleaseCard key={it.id} item={it} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {data.devto.length > 0 && (
+        <section className="mt-12">
+          <SectionHead title="À lire sur DEV Community" />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {data.devto.slice(0, 8).map((it) => (
+              <DevtoCard key={it.id} item={it} />
+            ))}
+          </div>
+        </section>
+      )}
+      <div className="mt-12" />
+    </>
+  )
 }

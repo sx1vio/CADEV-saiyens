@@ -215,7 +215,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               type="button"
               className={row}
               onClick={async () => {
-                await api.logout()
+                await Promise.all([api.logout(), fetch('/api/auth/logout', { method: 'POST' }).catch(() => null)])
                 setUser(null)
                 invalidate('')
                 nav('/')
@@ -374,7 +374,7 @@ function UserMenu({ trigger }: { trigger?: ReactNode }) {
         icon={<LogOut />}
         danger
         onSelect={async () => {
-          await api.logout()
+          await Promise.all([api.logout(), fetch('/api/auth/logout', { method: 'POST' }).catch(() => null)])
           setUser(null)
           invalidate('')
           nav('/')

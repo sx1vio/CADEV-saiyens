@@ -23,8 +23,8 @@ export default defineConfig({
         lang: 'fr',
         start_url: '/',
         display: 'standalone',
-        background_color: '#0B0D1C',
-        theme_color: '#0B0D1C',
+        background_color: '#FFFFFF',
+        theme_color: '#000000',
         icons: [
           { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
@@ -37,9 +37,15 @@ export default defineConfig({
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            // Actualités et vidéos lisibles hors ligne ; jamais la connexion ni le profil (/api/auth, /api/me)
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/news') || url.pathname.startsWith('/api/videos'),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'api', expiration: { maxEntries: 100 } },
+            options: { cacheName: 'api-news', expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 3 } },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname === '/api/img' || url.hostname === 'i.ytimg.com',
+            handler: 'CacheFirst',
+            options: { cacheName: 'video-thumbs', expiration: { maxEntries: 150, maxAgeSeconds: 60 * 60 * 24 * 7 } },
           },
           {
             // Avatars et bannières : mis en cache à la première vue, jamais préchargés (économie de data)
@@ -58,5 +64,9 @@ export default defineConfig({
   ],
   build: {
     target: 'es2022',
+  },
+  // En développement, l'API (backend/) tourne sur le port 8787 et est servie sous /api
+  server: {
+    proxy: { '/api': { target: 'http://127.0.0.1:8787', changeOrigin: false } },
   },
 })

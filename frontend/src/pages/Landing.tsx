@@ -1,34 +1,46 @@
-import { ArrowRight, BrainCircuit, CloudOff, FolderGit2, GitPullRequestArrow, LifeBuoy, Radio, ServerCog, ShieldCheck, Users } from 'lucide-react'
-import { GitHubIcon } from '@/components/icons'
+import { ArrowRight, Award, Briefcase, GraduationCap, LifeBuoy, PlaySquare, Puzzle, Users, Wand2, Newspaper } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import heroHub from '@/assets/hero-hub.webp'
-import heroHubSm from '@/assets/hero-hub-sm.webp'
-import { Djeli } from '@/components/djeli'
-import { ActivityFeed, DemoBadge, errorText } from '@/components/domain'
+import { errorText } from '@/components/domain'
 import { Button, ButtonLink } from '@/components/ui/button'
-import { ScoreBar } from '@/components/ui/data'
-import { Avatar, Card, CardHeader, IconChip, Skeleton, StatusDot, TechTag } from '@/components/ui/primitives'
-import { formatNumber, useLang } from '@/i18n'
-import { countryName } from '@/lib/geo'
+import { Skeleton } from '@/components/ui/primitives'
 import { invalidate, useQuery } from '@/lib/query'
-import { useNetwork } from '@/offline/network'
 import { api } from '@/services'
-import { useSession, useUI } from '@/stores/app'
+import { useSession } from '@/stores/app'
+import { BrandLogo } from '@/platform/logos'
+import { fetchHome, type HomeNews } from '@/platform/news'
+import { HeroNews, SectionHead, VideoTile } from '@/platform/newsui'
+import { CUBE, Cube, Sparkline } from '@/platform/ui'
+import { PLATFORM_CERTS } from '@/platform/data/certs'
+import { JOBS } from '@/platform/data/jobs'
+import { SKILLS } from '@/platform/data/skills'
 
-/** Page publique « en direct » (T1) : comprise en 20 secondes, essai sans compte (T2). */
+const SERVICES = [
+  { to: '/', icon: Newspaper, title: 'Actualités', text: 'IA, Apple, Google, Samsung, dev : plus de 70 sources suivies en continu, en français et en anglais.', cube: CUBE.orange },
+  { to: '/videos', icon: PlaySquare, title: 'Vidéos', text: 'Les nouvelles vidéos des chaînes tech et dev qui comptent, lisibles sur la plateforme.', cube: CUBE.pink },
+  { to: '/sos', icon: LifeBuoy, title: 'Entraide', text: 'Bloqué ? Une piste en quelques secondes, puis l’aide d’un dev qui a déjà résolu le même problème.', cube: CUBE.purple },
+  { to: '/emplois', icon: Briefcase, title: 'Emplois', text: 'Des offres où les entreprises demandent des compétences prouvées, pas des CV déclaratifs.', cube: CUBE.blue },
+  { to: '/certifications', icon: Award, title: 'Certifications', text: 'Gratuites sur DevHub, et la base de toutes les certifications du marché pour bien choisir.', cube: CUBE.green },
+  { to: '/skills', icon: Puzzle, title: 'Skills et plugins IA', text: 'Pour Claude Code, Codex, Antigravity et Cursor : skills, serveurs MCP, règles de projet.', cube: CUBE.purple },
+  { to: '/apprendre', icon: GraduationCap, title: 'Apprendre', text: 'Des parcours gratuits, du premier HTML aux agents IA, qui mènent à une certification.', cube: CUBE.green },
+  { to: '/creer', icon: Wand2, title: 'Créer une app avec l’IA', text: 'Un guide de l’idée à la mise en ligne, avec les points d’attention de chaque étape.', cube: CUBE.orange },
+  { to: '/communautes', icon: Users, title: 'Communautés', text: 'Des espaces par sujet pour partager tes projets, tes questions et tes découvertes.', cube: CUBE.blue },
+]
+
+/** Page publique : comprise en 20 secondes, remplie de vraies infos, essai sans compte. */
 export default function Landing() {
   const { t } = useTranslation()
-  const lang = useLang()
   const nav = useNavigate()
   const setUser = useSession((s) => s.setUser)
-  const setSim = useNetwork((s) => s.setSim)
-  const setSync = useUI((s) => s.setSync)
   const [busy, setBusy] = useState(false)
-  const { data } = useQuery('landing', () => api.getLanding())
-  const { data: devs } = useQuery('devs:presence', () => api.discoverDevs({}))
+  const { data: news } = useQuery<HomeNews>('news:home:all', () => fetchHome('all'))
+  const { data: health } = useQuery<{ newsItems: number }>('health', async () => {
+    const r = await fetch('/api/health')
+    if (!r.ok) throw new Error(String(r.status))
+    return r.json()
+  })
 
   const tryDemo = async () => {
     setBusy(true)
@@ -44,235 +56,125 @@ export default function Landing() {
     }
   }
 
-  const s = data?.stats
-  const stats = [
-    { value: s ? formatNumber(s.devs, lang) : null, label: t('landing.statDevs') },
-    { value: s ? formatNumber(s.questionsResolved, lang) : null, label: t('landing.statResolved') },
-    { value: s ? (s.medianFirstResponseMinutes !== null ? t('landing.minutes', { count: s.medianFirstResponseMinutes }) : '—') : null, label: t('landing.statMedian') },
-    { value: s ? formatNumber(s.countries, lang) : null, label: t('landing.statCountries') },
-  ]
-
   return (
-    <div className="dh-page mx-auto flex max-w-7xl flex-col gap-5 px-4 pt-5 pb-16 sm:px-6 sm:pt-8">
-      {/* -------- Hero (image 01) -------- */}
-      <section className="relative overflow-hidden rounded-[28px] bg-hero px-6 pt-8 pb-9 text-on-hero shadow-accent sm:px-10 sm:pt-12 sm:pb-14 lg:min-h-[440px]">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_0%,rgba(255,255,255,0.18),transparent_55%)]" />
-        <img
-          src={heroHub}
-          srcSet={`${heroHubSm} 360w, ${heroHub} 600w`}
-          sizes="(max-width: 640px) 360px, 600px"
-          alt=""
-          width={600}
-          height={573}
-          fetchPriority="low"
-          className="pointer-events-none absolute -right-24 -bottom-24 w-[420px] max-w-none opacity-60 sm:-right-10 sm:-bottom-20 sm:w-[520px] sm:opacity-90 lg:top-1/2 lg:right-0 lg:bottom-auto lg:w-[560px] lg:-translate-y-1/2 lg:opacity-100"
-        />
-        <div aria-hidden className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,var(--accent-strong)_0%,color-mix(in_oklab,var(--accent-strong),transparent_35%)_45%,transparent_75%)] sm:block" />
-        <div className="relative max-w-xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-on-hero/15 px-3 py-1 text-xs font-semibold backdrop-blur">
-            <Radio className="size-3.5" />
-            {t('landing.live')} · {t('app.slogan')}
-          </span>
-          <h1 className="mt-5 text-[34px] leading-[1.04] font-semibold tracking-[-0.035em] sm:text-[48px] lg:text-[54px]">{t('landing.heroTitle')}</h1>
-          <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-on-hero-muted sm:text-[17px]">{t('landing.heroSubtitle')}</p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button variant="contrast" size="lg" loading={busy} onClick={tryDemo} className="sm:min-w-52">
-              {t('landing.tryNow')}
+    <div className="dh-page mx-auto flex max-w-7xl flex-col px-4 pt-6 pb-8 sm:px-6 sm:pt-10">
+      {/* Accroche */}
+      <section className="grid items-stretch gap-4 lg:grid-cols-[1.25fr_1fr]">
+        <div className="flex flex-col justify-center py-4">
+          <p className="inline-flex w-fit items-center gap-2 rounded-full bg-surface-1 px-3 py-1.5 text-[12.5px] font-medium text-fg">
+            <span className="size-2 rounded-full bg-success" />
+            Par les devs, pour les devs
+          </p>
+          <h1 className="mt-5 text-[44px] leading-[1.0] font-bold tracking-[-0.05em] text-fg sm:text-[64px]">La plateforme où les devs se retrouvent.</h1>
+          <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-muted">
+            L’actu IA et tech en continu, les vidéos qui comptent, l’entraide, les emplois, les certifications gratuites, les skills pour agents IA et un guide pour créer ton app. Au même endroit.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-2.5">
+            <ButtonLink to="/connexion" variant="primary" size="lg">
+              <BrandLogo name="GitHub" size={18} mono />
+              Rejoindre avec GitHub
+            </ButtonLink>
+            <Button variant="secondary" size="lg" loading={busy} onClick={tryDemo}>
+              Visiter sans compte
               <ArrowRight />
             </Button>
-            <ButtonLink to="/connexion" size="lg" className="border border-on-hero/30 bg-on-hero/10 text-on-hero backdrop-blur hover:bg-on-hero/20" icon={<GitHubIcon />}>
-              {t('landing.github')}
-            </ButtonLink>
           </div>
-          <p className="mt-3 text-xs text-on-hero-muted">{t('landing.tryHint')}</p>
-          {devs && devs.length > 0 && (
-            <Link to="/decouvrir" className="mt-7 inline-flex items-center gap-3 rounded-full bg-on-hero/12 py-1.5 pr-4 pl-1.5 text-[13px] font-medium text-on-hero backdrop-blur-md transition-colors hover:bg-on-hero/20">
-              <span className="flex -space-x-2.5">
-                {devs.slice(0, 6).map((d) => (
-                  <Avatar key={d.id} name={d.displayName} src={d.avatarUrl} size={32} className="ring-2 ring-[color-mix(in_oklab,var(--accent-strong),white_10%)]" />
+          <p className="mt-3 text-[12.5px] text-subtle">Aussi avec GitLab ou Google. Gratuit, sans publicité.</p>
+        </div>
+
+        {/* Carte noire : la plateforme en chiffres réels */}
+        <div className="flex flex-col rounded-[28px] bg-black p-6 text-white sm:p-7">
+          <p className="text-[13px] text-white/60">éléments d’actu indexés</p>
+          <div className="mt-2 flex items-end justify-between gap-4">
+            <span className="text-[56px] leading-none font-bold tracking-[-0.05em] tabular">{health ? health.newsItems.toLocaleString('fr-FR') : '—'}</span>
+            <Sparkline values={[3, 4, 4, 6, 5, 7, 8, 8, 10, 11]} className="h-14 w-[45%]" />
+          </div>
+          <p className="mt-3 text-[12.5px] text-white/70">
+            <span className="font-semibold text-[#4ade80]">{news?.sources ?? '…'}</span> sources suivies, mises à jour toutes les 15 minutes
+          </p>
+          {news && (
+            <ul className="mt-6 flex flex-col gap-1.5">
+              {Object.values(news.sections)
+                .flat()
+                .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+                .slice(0, 4)
+                .map((it) => (
+                  <li key={it.id}>
+                    <a href={it.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-[14px] px-2 py-1.5 transition-colors hover:bg-[#1c1c1e]">
+                      <span className="w-14 shrink-0 text-[11px] text-white/45">{new Date(it.publishedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-white/90">{it.title}</span>
+                      <span className="hidden shrink-0 text-[11px] text-white/45 sm:inline">{it.sourceName}</span>
+                    </a>
+                  </li>
                 ))}
-              </span>
-              {t('landing.community', { devs: devs.length, countries: new Set(devs.map((d) => d.country)).size })}
-            </Link>
+            </ul>
           )}
-        </div>
-        <Djeli pose="wave" size={132} float className="absolute right-6 bottom-4 hidden sm:inline-grid lg:right-[300px] lg:bottom-8" />
-      </section>
-
-      {/* -------- Chiffres (image 02 : grands chiffres) -------- */}
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {stats.map((st) => (
-          <Card key={st.label} className="p-4 sm:p-5">
-            {st.value === null ? <Skeleton className="h-8 w-20" /> : <div className="text-[26px] font-semibold leading-none tracking-tight tabular text-fg sm:text-[32px]">{st.value}</div>}
-            <p className="mt-2 text-[13px] text-muted">{st.label}</p>
-          </Card>
-        ))}
-      </section>
-      {s?.source === 'local' && (
-        <p className="-mt-2 flex items-center gap-2 text-xs text-subtle">
-          <DemoBadge /> {t('common.demoDataHint')}
-        </p>
-      )}
-
-      {/* -------- Bento -------- */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        <Card className="p-5 sm:p-6 lg:col-span-2 lg:row-span-2">
-          <CardHeader
-            icon={<StatusDot tone="success" pulse />}
-            title={t('landing.liveTitle')}
-            action={
-              <ButtonLink to="/sos" variant="pill" size="xs">
-                {t('common.seeAll')}
-              </ButtonLink>
-            }
-          />
-          <div className="mt-5">{data ? <ActivityFeed items={data.live} /> : <Skeleton className="h-72 rounded-[14px]" />}</div>
-        </Card>
-
-        {[
-          { icon: <LifeBuoy />, tone: 'accent' as const, title: t('landing.help'), text: t('landing.helpText'), to: '/sos' },
-          { icon: <FolderGit2 />, tone: 'blue' as const, title: t('landing.build'), text: t('landing.buildText'), to: '/projets' },
-        ].map((p) => (
-          <Link key={p.to} to={p.to} className="group surface-card flex flex-col gap-3 p-5 transition-colors hover:border-line-strong sm:p-6">
-            <IconChip tone={p.tone}>{p.icon}</IconChip>
-            <h2 className="text-lg font-semibold tracking-tight text-fg">{p.title}</h2>
-            <p className="text-sm leading-relaxed text-muted">{p.text}</p>
-            <ArrowRight className="mt-auto size-4 text-subtle transition-transform group-hover:translate-x-1 group-hover:text-fg" />
-          </Link>
-        ))}
-      </section>
-
-      {/* -------- Passports (Prouver) -------- */}
-      <section className="glow-border relative overflow-hidden rounded-[24px] bg-surface-1 p-5 sm:p-7">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[var(--gradient-glow)]" />
-        <div className="relative flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <IconChip tone="success">
-              <ShieldCheck />
-            </IconChip>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fg">{t('landing.featuredTitle')}</h2>
-            <p className="mt-1 max-w-xl text-sm text-muted">{t('landing.proveText')}</p>
-          </div>
-          <ButtonLink to="/decouvrir" variant="pill" size="sm" className="mt-3 self-start sm:mt-0 sm:self-auto">
-            {t('nav.discover')}
-          </ButtonLink>
-        </div>
-        <div className="relative mt-6 grid gap-3 md:grid-cols-3">
-          {(data?.featured ?? []).map((p) => (
-            <Link key={p.user.id} to={`/u/${p.user.handle}`} className="group flex flex-col gap-4 rounded-[18px] border border-line bg-surface-2 p-4 transition-colors hover:border-line-strong">
-              <div className="flex items-center gap-3">
-                <Avatar name={p.user.displayName} src={p.user.avatarUrl} size={44} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate font-semibold text-fg">{p.user.displayName}</p>
-                    {p.user.isDemo && <DemoBadge />}
-                  </div>
-                  <p className="truncate text-xs text-subtle">
-                    {p.user.city}, {countryName(p.user.country, lang)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold tabular text-fg">{p.totalXp}</p>
-                  <p className="text-[10.5px] text-subtle">XP</p>
-                </div>
+          <div className="mt-auto grid grid-cols-3 gap-2 pt-6">
+            {[
+              { n: PLATFORM_CERTS.length, l: 'certifications gratuites', c: CUBE.green },
+              { n: JOBS.length, l: 'offres d’emploi', c: CUBE.orange },
+              { n: SKILLS.length, l: 'skills et plugins IA', c: CUBE.purple },
+            ].map((x) => (
+              <div key={x.l} className="rounded-[18px] bg-[#1c1c1e] p-3">
+                <Cube color={x.c} size={16} />
+                <p className="mt-2 text-[22px] leading-none font-bold tabular">{x.n}</p>
+                <p className="mt-1 text-[11.5px] leading-tight text-white/55">{x.l}</p>
               </div>
-              <div className="flex flex-col gap-2">
-                {p.skills.slice(0, 3).map((sk) => (
-                  <div key={sk.tagId} className="flex items-center gap-2.5">
-                    <span className="w-20 truncate font-mono text-[11.5px] text-muted">{sk.tag.label}</span>
-                    <ScoreBar g={sk.githubSignal} p={Math.min(60, sk.xpTag)} height={6} className="flex-1" />
-                    <span className="w-6 text-right text-xs font-semibold tabular text-fg">{sk.score}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted">
-                <span className="font-semibold text-fg">{p.stats.devsUnblocked}</span> {t('passport.stats.unblocked')} ·{' '}
-                <span className="font-semibold text-fg">{p.stats.contributions}</span> {t('passport.stats.contributions')}
-              </p>
-            </Link>
-          ))}
-          {!data && [0, 1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-[18px]" />)}
-        </div>
-        <div className="relative mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-subtle">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-sm bg-score-g" /> {t('passport.legendG')}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-sm bg-score-p" /> {t('passport.legendP')}
-          </span>
-        </div>
-      </section>
-
-      {/* -------- Pourquoi DevHub à l'heure de l'IA -------- */}
-      <section className="flex flex-col gap-4">
-        <h2 className="max-w-2xl text-2xl font-semibold tracking-tight text-fg sm:text-[28px]">{t('landing.whyTitle')}</h2>
-        <div className="grid gap-3 md:grid-cols-3">
-          {[
-            { icon: <BrainCircuit />, title: t('landing.why1'), text: t('landing.why1Text') },
-            { icon: <GitPullRequestArrow />, title: t('landing.why2'), text: t('landing.why2Text') },
-            { icon: <Users />, title: t('landing.why3'), text: t('landing.why3Text') },
-          ].map((w) => (
-            <Card key={w.title} className="p-5">
-              <IconChip tone="neutral">{w.icon}</IconChip>
-              <h3 className="mt-3 font-semibold text-fg">{w.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted">{w.text}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* -------- Hors ligne + Systalink -------- */}
-      <section className="grid gap-4 md:grid-cols-2">
-        <Card className="flex items-center gap-4 overflow-hidden p-5 sm:p-6">
-          <div className="min-w-0 flex-1">
-            <IconChip tone="warning">
-              <CloudOff />
-            </IconChip>
-            <h2 className="mt-3 text-lg font-semibold tracking-tight text-fg">{t('landing.offlineTitle')}</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{t('landing.offlineText')}</p>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="mt-4"
-              onClick={() => {
-                setSim('offline')
-                setSync(true)
-              }}
-            >
-              {t('landing.offlineCta')}
-            </Button>
-          </div>
-          <Djeli pose="laptop" size={110} className="hidden sm:inline-grid" />
-        </Card>
-        <Card className="p-5 sm:p-6">
-          <IconChip tone="blue">
-            <ServerCog />
-          </IconChip>
-          <h2 className="mt-3 text-lg font-semibold tracking-tight text-fg">{t('landing.systalinkTitle')}</h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted">{t('landing.systalinkText')}</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {['VPS', 'PostgreSQL', 'Backup', 'Mail'].map((x) => (
-              <TechTag key={x} label={x} />
             ))}
           </div>
-          <ButtonLink to="/systalink" variant="secondary" size="sm" className="mt-4">
-            {t('landing.systalinkCta')}
-          </ButtonLink>
-        </Card>
+        </div>
       </section>
 
-      {/* -------- Appel final -------- */}
-      <section className="flex flex-col items-center gap-4 rounded-[24px] border border-line bg-surface-1 px-6 py-10 text-center">
-        <Djeli pose="celebrate" size={96} />
-        <h2 className="max-w-xl text-2xl font-semibold tracking-tight text-fg">{t('app.pitch')}</h2>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button variant="hero" size="lg" loading={busy} onClick={tryDemo}>
-            {t('landing.tryNow')}
-          </Button>
-          <ButtonLink to="/connexion" variant="secondary" size="lg" icon={<GitHubIcon />}>
-            {t('landing.github')}
-          </ButtonLink>
+      {/* La vraie actu, visible sans compte */}
+      <section className="mt-14">
+        <SectionHead title="À la une en ce moment" action={{ label: 'Toute l’actu', to: '/connexion' }} />
+        {news ? <HeroNews items={news.hero} /> : <Skeleton className="h-[380px] rounded-[24px]" />}
+      </section>
+
+      {news && news.videos.length > 0 && (
+        <section className="mt-14">
+          <SectionHead title="Vidéos du moment" action={{ label: 'Toutes les vidéos', to: '/videos' }} />
+          <div className="grid gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+            {news.videos.slice(0, 4).map((v) => (
+              <VideoTile key={v.id} item={v} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Les services */}
+      <section className="mt-14">
+        <SectionHead title="Tout ce qu’il faut à un dev" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SERVICES.map((s) => (
+            <Link key={s.title} to={s.to} className="group flex flex-col rounded-[24px] bg-surface-1 p-5 transition-colors hover:bg-surface-2">
+              <div className="flex items-start justify-between">
+                <s.icon className="size-6 text-fg" />
+                <span className="grid size-9 place-items-center rounded-[12px] bg-canvas shadow-sm">
+                  <Cube color={s.cube} />
+                </span>
+              </div>
+              <h3 className="mt-6 text-[18px] font-bold tracking-[-0.03em] text-fg">{s.title}</h3>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{s.text}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-fg">
+                Découvrir
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
         </div>
+      </section>
+
+      {/* Appel final */}
+      <section className="mt-14 flex flex-col items-start gap-5 rounded-[28px] bg-black p-8 text-white sm:flex-row sm:items-center sm:p-10">
+        <div className="flex-1">
+          <h2 className="text-[30px] leading-tight font-bold tracking-[-0.04em] sm:text-[38px]">Ton profil se remplit tout seul.</h2>
+          <p className="mt-2 max-w-xl text-[15px] text-white/65">Connecte GitHub : tes langages et tes projets sont importés, puis chaque aide donnée, chaque contribution et chaque certification devient une preuve visible par les recruteurs.</p>
+        </div>
+        <ButtonLink to="/connexion" variant="contrast" size="lg">
+          Commencer gratuitement
+          <ArrowRight />
+        </ButtonLink>
       </section>
     </div>
   )

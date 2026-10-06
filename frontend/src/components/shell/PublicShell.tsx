@@ -10,19 +10,24 @@ import { Sheet } from '../ui/overlay'
 import { NetworkIndicator, OfflineBanner } from './network'
 
 const LINKS = [
-  { to: '/sos', key: 'nav.sos' },
-  { to: '/projets', key: 'nav.projects' },
-  { to: '/decouvrir', key: 'nav.discover' },
-  { to: '/classement', key: 'nav.leaderboard' },
-  { to: '/systalink', key: 'nav.systalink' },
+  { to: '/videos', label: 'Vidéos' },
+  { to: '/emplois', label: 'Emplois' },
+  { to: '/certifications', label: 'Certifications' },
+  { to: '/apprendre', label: 'Apprendre' },
+  { to: '/creer', label: 'Créer avec l’IA' },
+  { to: '/sos', label: 'Entraide' },
 ]
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5 text-[17px] font-semibold tracking-tight text-fg', className)}>
-      <img src="/favicon.svg" alt="" className="size-8" />
-      DevHub<span className="-ml-2 text-accent-text">.</span>
-      <span className="-ml-1 hidden font-semibold text-muted sm:inline">Africa</span>
+    <span className={cn('inline-flex items-center gap-2.5 text-[19px] font-bold tracking-[-0.03em] text-fg', className)}>
+      <span className="grid size-8 place-items-center rounded-[10px] bg-accent-strong text-white">
+        <svg viewBox="0 0 64 64" className="size-[22px]" aria-hidden>
+          <path d="M24 20 14 32l10 12M40 20l10 12-10 12" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="32" cy="32" r="5" fill="currentColor" />
+        </svg>
+      </span>
+      DevHub
     </span>
   )
 }
@@ -35,15 +40,15 @@ export function PublicShell() {
   const [open, setOpen] = useState(false)
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
-      <header className="sticky top-0 z-30 border-b border-line bg-[color-mix(in_oklab,var(--bg-base),transparent_12%)] backdrop-blur-xl">
+      <header className="sticky top-0 z-30 bg-canvas/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
           <Link to="/" aria-label={t('app.name')}>
             <Logo />
           </Link>
           <nav className="ml-4 hidden items-center gap-1 lg:flex" aria-label={t('nav.menu')}>
             {LINKS.map((l) => (
-              <NavLink key={l.to} to={l.to} className={({ isActive }) => cn('rounded-full px-3 py-1.5 text-sm font-medium transition-colors', isActive ? 'bg-surface-2 text-fg' : 'text-muted hover:text-fg')}>
-                {t(l.key)}
+              <NavLink key={l.to} to={l.to} className={({ isActive }) => cn('rounded-full px-3.5 py-2 text-[13.5px] font-medium transition-colors', isActive ? 'bg-fg text-canvas' : 'text-fg hover:bg-surface-1')}>
+                {l.label}
               </NavLink>
             ))}
           </nav>
@@ -68,17 +73,17 @@ export function PublicShell() {
       <main id="main" className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-subtle sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <footer className="mt-10 bg-black text-white/70">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-10 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>{t('app.madeIn')}</p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <Link to="/regles" className="hover:text-fg">
+            <Link to="/regles" className="hover:text-white">
               {t('landing.footerRules')}
             </Link>
-            <Link to="/systalink" className="hover:text-fg">
+            <Link to="/systalink" className="hover:text-white">
               {t('nav.systalink')}
             </Link>
-            <Link to="/impact" className="hover:text-fg">
+            <Link to="/impact" className="hover:text-white">
               {t('nav.impact')}
             </Link>
           </div>
@@ -88,7 +93,7 @@ export function PublicShell() {
         <nav className="flex flex-col gap-1">
           {LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} onClick={() => setOpen(false)} className={({ isActive }) => cn('flex h-12 items-center rounded-[12px] px-3 text-[15px] font-medium', isActive ? 'bg-surface-3 text-fg' : 'text-muted')}>
-              {t(l.key)}
+              {l.label}
             </NavLink>
           ))}
           <div className="mt-3 flex gap-2">

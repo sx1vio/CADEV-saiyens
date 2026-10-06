@@ -1,0 +1,33 @@
+{
+  "name": "devhub-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "API DevHub Africa : actualités agrégées (IA, tech, mobile, dev), vidéos, connexions OAuth, données de la plateforme.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "ingest": "tsx src/news/cli.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@fastify/compress": "^9.2.0",
+    "@fastify/cookie": "^11.1.2",
+    "fastify": "^5.12.5",
+    "pg": "^8.23.1",
+    "rss-parser": "^3.13.0",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

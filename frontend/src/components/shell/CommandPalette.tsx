@@ -19,6 +19,7 @@ import { SKILLS } from '@/platform/data/skills'
 import { VIDEOS } from '@/platform/data/videos'
 import { PATHS } from '@/platform/data/learn'
 import { PLATFORM_CERTS } from '@/platform/data/certs'
+import { fetchNews, type NewsItem } from '@/platform/news'
 
 /**
  * Palette Ctrl/Cmd+K (T5) : recherche globale (questions, salles, devs) + actions + navigation.
@@ -39,6 +40,13 @@ export function CommandPalette() {
   const { data: questions } = useQuery(open ? 'palette:questions' : null, () => api.listQuestions('all'))
   const { data: rooms } = useQuery(open ? 'palette:rooms' : null, () => api.listRooms())
   const { data: devs } = useQuery(open ? 'palette:devs' : null, () => api.discoverDevs({}))
+  // Recherche dans les actualités réelles (serveur), avec un léger délai pour ne pas surcharger
+  const [newsQ, setNewsQ] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setNewsQ(q.trim().length > 2 ? q.trim() : ''), 250)
+    return () => clearTimeout(id)
+  }, [q])
+  const { data: news } = useQuery<NewsItem[]>(open && newsQ ? `palette:news:${newsQ}` : null, () => fetchNews({ q: newsQ, limit: 8 }))
 
   useEffect(() => {
     if (!open) setQ('')
@@ -131,6 +139,18 @@ export function CommandPalette() {
 
               {q.length > 1 && (
                 <>
+                  {!!news?.length && (
+                    <Command.Group heading="Actualités">
+                      {news.map((x) => (
+                        <Command.Item key={x.id} value={`actu ${q} ${x.title}`} onSelect={() => (x.kind === 'video' ? go(`/videos/yt/${x.extra.videoId as string}`) : run(() => window.open(x.url, '_blank', 'noopener')))}>
+                          {x.kind === 'video' ? <PlaySquare /> : <Newspaper />}
+                          <span className="truncate">
+                            {x.title} <span className="text-subtle">· {x.sourceName}</span>
+                          </span>
+                        </Command.Item>
+                      ))}
+                    </Command.Group>
+                  )}
                   <Command.Group heading="Fil">
                     {POSTS.map((x) => (
                       <Command.Item key={x.id} value={`p ${x.title} ${x.tags.join(' ')}`} onSelect={() => go(`/post/${x.id}`)}>

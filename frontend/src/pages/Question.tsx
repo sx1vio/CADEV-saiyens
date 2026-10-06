@@ -1,3 +1,4 @@
+import { CUBE, Cube } from '@/platform/ui'
 import {
   ArrowLeft,
   BellRing,
@@ -157,13 +158,13 @@ export default function QuestionPage() {
         </div>
 
         {resolved && accepted && (
-          <div className="flex items-center gap-4 rounded-[20px] border border-success/30 bg-success-soft p-4">
-            <Djeli pose="celebrate" size={64} />
+          <div className="flex items-center gap-4 rounded-[20px] bg-black p-5 text-white">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-[#1c1c1e]"><Cube color={CUBE.green} size={20} /></span>
             <div>
-              <p className="font-semibold text-fg">
+              <p className="font-semibold text-white">
                 {t('question.resolvedBanner', { time: duration(minutesBetween(q.createdAt, accepted.createdAt), lang), name: accepted.author.displayName })}
               </p>
-              <p className="mt-0.5 text-sm text-muted">{t('question.knowledgeCard')}</p>
+              <p className="mt-0.5 text-sm text-white/65">{t('question.knowledgeCard')}</p>
             </div>
           </div>
         )}
@@ -288,7 +289,7 @@ function HintCard({ q }: { q: QuestionDetail }) {
     <section className="glow-border relative overflow-hidden rounded-[20px] bg-surface-1 p-5">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[var(--gradient-glow)]" />
       <div className="relative flex items-center gap-3">
-        <span className="grid size-9 place-items-center rounded-[11px] bg-hero text-on-hero">
+        <span className="grid size-9 place-items-center rounded-[11px] bg-black text-white">
           <Sparkles className="size-[18px]" />
         </span>
         <div className="min-w-0 flex-1">
@@ -321,7 +322,7 @@ function AnswerItem({ a, canAccept, canVote, onAccept, onReport }: { a: AnswerVi
   const [voted, setVoted] = useState(a.votedByMe)
   const [count, setCount] = useState(a.helpfulCount)
   return (
-    <li className={cn('relative flex gap-3 rounded-[18px] border p-4 sm:p-5', a.isAccepted ? 'border-success/40 bg-success-soft/40' : 'border-line bg-surface-2')}>
+    <li className={cn('relative flex gap-3 rounded-[20px] p-4 sm:p-5', a.isAccepted ? 'bg-surface-1 ring-2 ring-success/50' : 'bg-surface-1')}>
       <Avatar name={a.author.displayName} src={a.author.avatarUrl} size={34} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

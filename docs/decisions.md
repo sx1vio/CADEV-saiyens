@@ -248,3 +248,14 @@ Leviers appliqués :
 4. **Typo :** Inter (tailles optiques), titres de page à 42 px gras avec approche négative ; libellés d'indicateurs en minuscules.
 5. **Contenu conservé :** chaque page garde son contenu ; seuls les indicateurs (cartes) et les rangées de liste reprennent la structure du modèle, avec des chiffres calculés sur les vraies données.
 6. **Logos :** Simple Icons (CC0). Pas de logo libre pour OpenAI, AWS, Azure, Oracle, Harvard : monogramme neutre ou icône générique à la place.
+
+## 13. Backend et données réelles (07/10/2026)
+
+> « Je te laisse entamer le backend : importe de vraies données, fais de vraies connexions ; l’accueil rempli d’infos. » — Sylvio
+
+1. **Node + Fastify + TypeScript** : même langage que le front, types partagés plus tard, démarrage rapide.
+2. **PGlite en local, PostgreSQL en production** : Docker n’est pas disponible dans le WSL de développement ; PGlite exécute le vrai moteur PostgreSQL embarqué, donc le SQL et les migrations sont identiques en production (Systalink).
+3. **Agrégation éditoriale propre** : titre + court extrait + lien vers l’éditeur, source toujours affichée, page « Sources » publique ; images servies redimensionnées par notre proxy (data, vie privée) ; promos écartées.
+4. **YouTube sans clé d’API** : flux RSS publics des chaînes ; lecture via `youtube-nocookie.com`, chargée au clic seulement.
+5. **OAuth côté serveur uniquement** ; tant que les clés ne sont pas posées, l’interface le dit et propose l’import du profil GitHub public.
+6. **Limites assumées** : l’API GitHub non authentifiée (60 req/h) impose une collecte GitHub par heure ; un `GITHUB_TOKEN` la lève.

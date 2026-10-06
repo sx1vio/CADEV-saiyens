@@ -51,7 +51,7 @@ Questions auxquelles la plateforme doit répondre :
 | Revue (768 / 1280 px, contrastes thème clair) | ✅ |
 | Commit / push | ✅ Premier commit poussé sur `sylvio-frontend` (06/10/2026) |
 | Développement frontend | ⏳ Pas commencé |
-| Intégration backend | ⏳ Pas commencé |
+| Backend | 🟡 Démarré (07/10/2026) : actualités réelles, vidéos, OAuth, proxy d’images ; les services de la plateforme (posts, emplois, certifs…) restent locaux |
 | Démo / pitch | ⏳ Pas commencé |
 
 ---
@@ -68,6 +68,10 @@ Questions auxquelles la plateforme doit répondre :
 - [ ] Traduire les nouveaux services en anglais (i18n)
 - [ ] Définir avec le rôle 2 l'API des nouveaux services (posts, commentaires, offres, candidatures, certifications, skills, vidéos, parcours)
 - [ ] Prévenir l'équipe du pivot de périmètre (décision §11)
+- [ ] **Pousser** le commit local : `git push origin sylvio-frontend` (clé SSH protégée par phrase de passe)
+- [ ] Créer les applications OAuth GitHub, GitLab, Google et renseigner `backend/.env`
+- [ ] Déployer sur le VPS Systalink (`docker compose up -d`, domaine dans `deploy/Caddyfile`)
+- [ ] Passer les services (posts, commentaires, emplois, candidatures, certifications, progression) du stockage local à l'API
 
 ## Fait
 
@@ -135,6 +139,25 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 07/10/2026 — Backend : vraies données, vraies connexions, accueil rempli
+
+- **Demande de Sylvio** : « commit, push, attaque ces pages ; entame le backend, importe de vraies données, fais de vraies connexions ; un accueil rempli d’infos (vidéos, actu IA, tech, Apple, Samsung, Google…) ; propose et fais des améliorations ».
+- **Git** : commit `f04c1d0` (plateforme multi-services + charte Drivery). **Push bloqué** : la clé SSH `~/.ssh/Sylvio-github` est protégée par une phrase de passe et aucun agent SSH ne tourne dans la session de Claude. À pousser depuis un terminal : `git push origin sylvio-frontend`.
+- **Backend créé (`backend/`)** : Fastify + TypeScript, **PGlite** en local (PostgreSQL embarqué, rien à installer) et **PostgreSQL** en production via `DATABASE_URL` (même SQL, migrations versionnées).
+  - **Collecte réelle toutes les 15 min** : 34 flux RSS vérifiés (OpenAI, Google AI, DeepMind, Hugging Face, The Verge, TechCrunch, Ars Technica, Wired, Engadget, 9to5Mac, MacRumors, Apple Newsroom, 9to5Google, Android Authority, SamMobile, Samsung Newsroom, Frandroid, Numerama, 01net, Korben, GitHub Blog, Cloudflare, TechCabal…), **34 chaînes YouTube** (identifiants résolus en direct : Fireship, Theo, ThePrimeTime, MKBHD, Anthropic, OpenAI, Grafikart, Micode, Underscore_…), Hacker News, DEV Community, dépôts GitHub de la semaine, **radar des versions** de 24 projets (React, Next.js, Node, Vite, Flutter, Claude Code, Codex…). Première collecte : 72/72 sources, ~900 éléments en 20 s.
+  - Nettoyage : dédoublonnage par lien et par sujet, « bons plans » commerciaux écartés, purge à 45 jours.
+  - **Proxy d’images** : redimensionnement WebP + cache disque (18 Ko au lieu de 240 Ko), anti-SSRF ; réponses compressées (accueil 95 Ko → 27 Ko).
+  - **OAuth réel GitHub, GitLab, Google** : `state` à usage unique, échange côté serveur, comptes et sessions en base, cookie HttpOnly. **À activer** en créant les applications OAuth (voir `backend/.env.example`).
+  - Déploiement : `backend/Dockerfile`, `docker-compose.yml` (PostgreSQL + API + Caddy HTTPS), `deploy/Caddyfile`, `backend/README.md`.
+- **Front branché sur l’API** (proxy Vite `/api`) :
+  - **Accueil rempli** : à la une (5 histoires, sources variées), indicateurs personnels, **Actualités** par rubrique (IA, Tech, Apple, Google, Samsung, Mobile, Dev, Cloud, Afrique) et par langue (FR/EN), pagination, **vidéos du moment**, **top Hacker News**, **dépôts GitHub de la semaine**, **nouvelles versions**, **articles DEV**, puis la communauté DevHub.
+  - **Vidéos** : vraies vidéos YouTube filtrables, **lecture intégrée** (youtube-nocookie, chargée au clic) ; les vidéos de démo restent dans « Créateurs DevHub ».
+  - **Page Sources** (transparence) ; **Ctrl+K cherche aussi dans l’actu réelle** ; lecture hors ligne de la dernière actu (cache appareil + service worker).
+  - **Connexion refaite** (charte Drivery) : GitHub / GitLab / Google, retour OAuth géré, repli honnête (import du profil public) tant que les clés ne sont pas posées ; panneau noir avec les vrais titres du moment.
+  - **Accueil public refait** : accroche, chiffres réels, vraie actu à la une, vidéos, les 9 services, appel final ; en-tête et pied de page publics alignés.
+  - **Question** : bandeau « résolue » et réponses alignés sur la charte. **Salle de projet** : déjà conforme.
+- **Vérifié** : builds front et back, captures, parcours de bout en bout (accueil public, connexion, actualités, filtre Apple, lecture vidéo, recherche Ctrl+K, sources) : tout passe, aucune erreur JS.
 
 ### 06/10/2026 (nuit) — Charte « Drivery » sur toute la plateforme
 
