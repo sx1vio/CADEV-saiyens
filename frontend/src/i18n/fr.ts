@@ -57,6 +57,7 @@ const fr = {
     tryNow: 'Essayer sans compte', github: 'Se connecter avec GitHub', tryHint: 'Compte de démonstration, aucune inscription.',
     statDevs: 'devs inscrits', statResolved: 'questions résolues', statMedian: 'temps médian de première réponse', statCountries: 'pays',
     minutes: '{{count}} min', liveTitle: 'Ce qui se passe maintenant',
+    community: '{{devs}} devs de {{countries}} pays s’entraident déjà',
     pillarsTitle: 'Trois gestes, une identité de dev',
     help: 'Aider', helpText: "SOS Dev : décris ton erreur, reçois une piste IA, puis l'aide de 3 devs choisis pour leur expérience réelle du problème.",
     build: 'Construire', buildText: 'Salles de projet reliées à GitHub : publie des tâches, accueille des contributeurs, avance à plusieurs.',
@@ -122,6 +123,7 @@ const fr = {
     rooms: 'Salles qui recrutent', roomsEmpty: 'Aucune salle à te recommander pour le moment.',
     meet: 'Devs à rencontrer', meetEmpty: 'Complète tes stacks pour recevoir des suggestions.',
     activity: 'Fil de la communauté', myQuestions: 'Mes questions', blockedFor: 'bloqué depuis {{time}}',
+    availableNow_one: '{{count}} dev disponible maintenant', availableNow_other: '{{count}} devs disponibles maintenant',
     progress: 'Ta progression', nextLevel: 'Prochain palier : {{level}} en {{tag}}',
   },
   sos: {
@@ -314,6 +316,8 @@ const fr = {
     'github_network': 'Impossible de joindre GitHub. Vérifie ta connexion.', 'translate_server-only': "La traduction s'activera avec l'API.",
   },
   activity: { resolved: 'a débloqué', answered: 'a répondu à', asked: 'a demandé de l’aide sur', joined: 'a rejoint', 'task-done': 'a terminé', 'room-created': 'a ouvert la salle' },
+  presence: { title: 'Membres', now: 'Disponibles maintenant', today: 'Dans la journée', busy: 'Occupés', helps: 'aide volontiers', online: 'En ligne' },
+  hub: { banner: 'Communauté', members: '{{count}} membres', countries: '{{count}} pays', myStacks: 'Mes stacks', status: { now: 'Disponible', today: 'Dans la journée', busy: 'Occupé' }, community: 'La communauté' },
   notFound: { title: 'Page introuvable', text: 'Djeli a cherché partout. Cette page n’existe pas (ou plus).', home: 'Retour au QG' },
   time: { justNow: "à l'instant" },
 }

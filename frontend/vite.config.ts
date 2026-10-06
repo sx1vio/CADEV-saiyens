@@ -33,13 +33,19 @@ export default defineConfig({
       },
       workbox: {
         // Shell précaché ; navigation SPA servie depuis le cache hors ligne.
-        globPatterns: ['**/*.{js,css,html,svg,webp,woff2,png}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2}', 'pwa-*.png', 'assets/**/*.webp'],
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'api', expiration: { maxEntries: 100 } },
+          },
+          {
+            // Avatars et bannières : mis en cache à la première vue, jamais préchargés (économie de data)
+            urlPattern: ({ url }) => url.pathname.startsWith('/avatars/') || url.pathname.startsWith('/covers/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'media', expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 } },
           },
           {
             urlPattern: ({ url }) => url.hostname === 'avatars.githubusercontent.com',

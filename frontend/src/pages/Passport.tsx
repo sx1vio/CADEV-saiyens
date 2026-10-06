@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
+import heroHub from '@/assets/hero-hub.webp'
 import { EmptyState, ErrorState } from '@/components/djeli'
 import { DemoBadge, RoomCard } from '@/components/domain'
 import { GitHubIcon } from '@/components/icons'
@@ -79,13 +80,16 @@ export default function Passport() {
   return (
     <Page wide>
       {/* -------- Identité -------- */}
-      <section className="glow-border relative overflow-hidden rounded-[28px] bg-surface-1 p-5 sm:p-8">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[var(--gradient-glow)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
+      <section className="glow-border relative overflow-hidden rounded-[28px] bg-surface-1 shadow-[var(--shadow-card)]">
+        <div className="relative h-32 overflow-hidden bg-hero sm:h-40">
+          <img src={heroHub} alt="" className="absolute -top-16 right-0 w-[460px] max-w-none opacity-80 sm:right-10" />
+          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_40%,color-mix(in_oklab,var(--surface-1),transparent_10%))]" />
+        </div>
+        <div className="relative -mt-14 flex flex-col gap-6 px-5 pb-6 sm:px-8 sm:pb-8 lg:flex-row lg:items-end">
           <div className="flex min-w-0 flex-1 flex-col items-start gap-4 sm:flex-row sm:gap-5">
             <div className="relative">
-              <Avatar name={u.displayName} src={u.avatarUrl} size={88} className="text-2xl ring-4 ring-surface-1" />
-              <StatusDot tone={u.availability.status === 'now' ? 'success' : u.availability.status === 'today' ? 'warning' : 'neutral'} className="absolute right-1 bottom-1 size-4 ring-4 ring-surface-1" />
+              <Avatar name={u.displayName} src={u.avatarUrl} size={112} className="text-3xl ring-[6px] ring-surface-1 shadow-lg" />
+              <StatusDot tone={u.availability.status === 'now' ? 'success' : u.availability.status === 'today' ? 'warning' : 'neutral'} className="absolute right-2 bottom-2 size-5 ring-[5px] ring-surface-1" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">

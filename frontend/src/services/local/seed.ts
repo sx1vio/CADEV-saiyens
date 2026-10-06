@@ -89,7 +89,7 @@ export function buildSeed(now = Date.now()): State {
       githubId: 9_000_000 + i,
       handle: d.handle,
       displayName: d.name,
-      avatarUrl: null,
+      avatarUrl: d.admin ? '/avatars/djeli.webp' : `/avatars/${d.handle}.webp`,
       country: d.country,
       city: d.city,
       timezone: c.tz,
@@ -432,6 +432,7 @@ export function buildSeed(now = Date.now()): State {
   for (const r of ROOMS) {
     const t0 = now - r.ago
     const room = e.createRoom(U(r.owner), { name: r.name, tagline: r.tagline, description: r.desc, state: r.state, repoFullName: r.repo, demoUrl: r.demo, tagIds: T(...r.tags), wantedRoles: r.roles }, t0, true)
+    room.coverUrl = `/covers/${room.inviteCode}.webp`
     r.members.forEach((m, i) => {
       const jr = e.requestJoin(room.id, U(m), 'Je veux contribuer !', t0 + (i + 1) * D)
       e.respondJoin(jr.id, U(r.owner), true, t0 + (i + 1) * D + 2 * H)

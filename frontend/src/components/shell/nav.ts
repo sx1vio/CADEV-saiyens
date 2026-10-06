@@ -8,14 +8,16 @@ export interface NavEntry {
   shortcut?: string[]
   /** Correspondance exacte de l'URL pour l'état actif */
   end?: boolean
+  /** Couleur de section (pastille d'icône) */
+  tone?: 'violet' | 'rose' | 'blue' | 'green' | 'amber' | 'slate'
 }
 
 export const COMMUNITY_NAV: NavEntry[] = [
-  { to: '/', key: 'nav.home', icon: Home, end: true, tour: 'home', shortcut: ['G', 'H'] },
-  { to: '/sos', key: 'nav.sos', icon: LifeBuoy, shortcut: ['G', 'S'] },
-  { to: '/projets', key: 'nav.projects', icon: FolderGit2, tour: 'projects', shortcut: ['G', 'P'] },
-  { to: '/decouvrir', key: 'nav.discover', icon: Compass, shortcut: ['G', 'D'] },
-  { to: '/classement', key: 'nav.leaderboard', icon: Trophy },
+  { to: '/', key: 'nav.home', icon: Home, end: true, tour: 'home', shortcut: ['G', 'H'], tone: 'violet' },
+  { to: '/sos', key: 'nav.sos', icon: LifeBuoy, shortcut: ['G', 'S'], tone: 'rose' },
+  { to: '/projets', key: 'nav.projects', icon: FolderGit2, tour: 'projects', shortcut: ['G', 'P'], tone: 'blue' },
+  { to: '/decouvrir', key: 'nav.discover', icon: Compass, shortcut: ['G', 'D'], tone: 'green' },
+  { to: '/classement', key: 'nav.leaderboard', icon: Trophy, tone: 'amber' },
 ]
 
 export const PLATFORM_NAV: NavEntry[] = [

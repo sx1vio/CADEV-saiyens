@@ -162,6 +162,8 @@ export interface Room {
   repoFullName: string
   repoVerified: boolean
   demoUrl?: string
+  /** Bannière de la salle (comme la bannière d'un serveur Discord) */
+  coverUrl?: string | null
   inviteCode: string
   visibility: 'public' | 'private'
   tagIds: ID[]
@@ -459,6 +461,7 @@ export interface NewQuestionInput {
 }
 
 export interface NewRoomInput {
+  coverUrl?: string | null
   name: string
   tagline: string
   description: string

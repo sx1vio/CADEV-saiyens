@@ -1,14 +1,16 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router/dom'
 import { MotionConfig } from 'motion/react'
-import { Toaster } from 'sonner'
 import './styles/globals.css'
 import { i18nReady } from './i18n'
 import { router } from './app/router'
 import { TooltipProvider } from './components/ui/overlay'
 import { startNetwork } from './offline/network'
 import { useSession, useUI } from './stores/app'
+
+/** Chargé après le premier affichage : les toasts ne servent qu'après une action. */
+const Toaster = lazy(() => import('sonner').then((m) => ({ default: m.Toaster })))
 
 function Toasts() {
   const theme = useUI((s) => s.theme)
@@ -36,7 +38,9 @@ async function boot() {
       <MotionConfig reducedMotion="user">
           <TooltipProvider delayDuration={300}>
             <RouterProvider router={router} />
-            <Toasts />
+            <Suspense fallback={null}>
+              <Toasts />
+            </Suspense>
           </TooltipProvider>
       </MotionConfig>
     </StrictMode>,

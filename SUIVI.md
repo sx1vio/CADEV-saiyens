@@ -42,11 +42,11 @@ Questions auxquelles la plateforme doit répondre :
 | Stack technique | ✅ React 19 + Vite + TS PWA (Kotlin Multiplatform étudié et écarté) |
 | Mascotte Djeli + visuel 3D | ✅ 6 images générées (Higgsfield) |
 | Projet `frontend/` | ✅ Application complète, build OK, testée de bout en bout |
-| Design system (tokens, composants, thèmes sombre/clair) | ✅ |
+| Design system (tokens, composants, thèmes sombre/clair) | ✅ Refondu : avatars 3D, bannières, présence, matière (06/10/2026) |
 | Shell (rail, colonne repliable, onglets mobiles, Ctrl+K, visite Djeli) | ✅ |
 | Écrans (17) | ✅ Tous en place, vérifiés en captures 375 / 1440 px |
 | Hors ligne (file IndexedDB, simulateur, centre de synchro, SW) | ✅ Testé : écriture hors ligne → rechargement → synchronisation sans doublon |
-| Poids de l'accueil | ✅ 295 Ko transférés (objectif CDC < 300 Ko) |
+| Poids de l'accueil | 🟡 312 Ko en mode local (≈ 290 Ko attendus avec l'API : le serveur local de démo n'est plus chargé) |
 | Revue (768 / 1280 px, contrastes thème clair) | ✅ |
 | Commit / push | ✅ Premier commit poussé sur `sylvio-frontend` (06/10/2026) |
 | Développement frontend | ⏳ Pas commencé |
@@ -133,6 +133,18 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ### 06/10/2026
 
+- **Fix** — Interface en anglais chez Sylvio : son navigateur annonçait l'anglais. Le **français est désormais la langue par défaut** ; l'anglais reste disponible dans le menu, Ctrl+K et les réglages.
+- **Design (refonte, en cours)** — Retour de Sylvio : « design plat ». Skills utilisés : ui-ux-pro-max, emil-design-eng, apple-design ; inspiration 21st.dev. Fait :
+  - 20 avatars 3D illustrés (un par compte démo) + avatar de Djeli pour l'admin, 6 bannières de salles et 1 bannière de communauté (Higgsfield), en WebP dans `public/` (mis en cache à la première vue, jamais préchargés).
+  - Colonne façon Discord : bannière d'espace (communauté ou salle), icônes colorées par section, « Mes stacks » en salons `#`, membres de la salle, panneau utilisateur en bas (statut, thème, réglages, « Je suis bloqué »).
+  - Rail : les salles s'affichent avec leur bannière.
+  - QG : liste des membres par disponibilité en 4e colonne (≥ 1440 px), visages des devs disponibles dans la bannière ; page publique : mur de la communauté.
+  - Matière : lumière d'ambiance (aurore) + grain, cartes en relief avec liseré lumineux, survol en relief (souris seulement), verre dépoli, courbes d'animation fortes, curseur main sur tous les éléments cliquables.
+  - Salle : grande bannière de couverture avec icône qui la chevauche ; Passport : bandeau de profil avec avatar de 112 px (comme un profil Discord).
+  - Palette Ctrl+K sans animation d'ouverture (action fréquente, au clavier) ; sonner chargé à la demande.
+  - Liste des membres du QG affichée à partir de 1600 px (elle comprimait le contenu à 1440).
+  - Vérifié en captures (375, 1440, 1920 px, sombre et clair) ; parcours de démo de bout en bout : 13/13 étapes OK, aucune erreur.
+  - Poids de l'accueil : 312 Ko en mode local, dont 26 Ko de serveur local de démo qui disparaîtront avec la vraie API (≈ 290 Ko attendus).
 - **Git** — Premier commit sur `sylvio-frontend` (front complet, docs, CDC, images d'inspiration) et push vers `origin` avec la clé `~/.ssh/Sylvio-github`.
 - **Setup** — Fichiers Windows `*:Zone.Identifier` supprimés ; `.gitignore` racine ajouté pour les ignorer à l'avenir.
 - **Dev** — Plateforme lancée en local : `npm run dev` dans `frontend/` → http://localhost:5173

@@ -64,10 +64,10 @@ export function CommandPalette() {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="dh-overlay fixed inset-0 z-50 bg-[var(--scrim)] backdrop-blur-[2px]" />
+        <DialogPrimitive.Overlay className="dh-instant fixed inset-0 z-50 bg-[var(--scrim)] backdrop-blur-[2px]" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="dh-pop fixed top-[12dvh] left-1/2 z-50 w-[calc(100%-24px)] max-w-[620px] -translate-x-1/2 overflow-hidden rounded-[20px] border border-line bg-surface-2 shadow-lg focus:outline-none"
+          className="dh-instant fixed top-[12dvh] left-1/2 z-50 w-[calc(100%-24px)] max-w-[620px] -translate-x-1/2 overflow-hidden rounded-[20px] border border-line bg-surface-2 shadow-lg focus:outline-none"
         >
           <DialogPrimitive.Title className="sr-only">{t('nav.searchPlaceholder')}</DialogPrimitive.Title>
           <Command label={t('nav.searchPlaceholder')} loop>

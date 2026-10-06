@@ -59,7 +59,7 @@ export function QuestionCard({ q, className, showBlocked }: { q: QuestionListIte
       onMouseEnter={() => preload.question(q.id)}
       onFocus={() => preload.question(q.id)}
       className={cn(
-        'group flex gap-3.5 rounded-[16px] border border-line bg-surface-2 p-4 transition-[border-color,background-color,transform] duration-150 hover:border-line-strong hover:bg-[color-mix(in_oklab,var(--surface-2),var(--surface-3)_45%)] active:scale-[0.995]',
+        'surface-card card-hover group flex gap-3.5 p-4',
         className,
       )}
     >
@@ -114,37 +114,43 @@ export function RoomCard({ room, className }: { room: RoomListItem; className?: 
       to={`/p/${room.inviteCode}`}
       onMouseEnter={() => preload.room(room.inviteCode)}
       onFocus={() => preload.room(room.inviteCode)}
-      className={cn('group flex flex-col gap-3 rounded-[20px] border border-line bg-surface-2 p-4 transition-[border-color,transform] duration-150 hover:border-line-strong active:scale-[0.995] sm:p-5', className)}
+      className={cn('surface-card card-hover group flex flex-col overflow-hidden !rounded-[20px]', className)}
     >
-      <div className="flex items-start gap-3">
-        <RoomMark name={room.name} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-[15px] font-semibold text-fg">{room.name}</h3>
-            <Badge tone={STATE_TONE[room.state]} size="sm">
-              {t(`projects.state.${room.state}`)}
-            </Badge>
-          </div>
-          <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-muted">{room.tagline}</p>
+      <div className="relative h-28 overflow-hidden bg-surface-3">
+        {room.coverUrl ? (
+          <img src={room.coverUrl} alt="" loading="lazy" decoding="async" className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
+        ) : (
+          <div className="size-full bg-hero opacity-70" />
+        )}
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,color-mix(in_oklab,var(--surface-2),transparent_5%))]" />
+        <Badge tone={STATE_TONE[room.state]} size="sm" className="absolute top-3 right-3 shadow-md">
+          {t(`projects.state.${room.state}`)}
+        </Badge>
+      </div>
+      <div className="relative -mt-7 flex flex-1 flex-col gap-3 px-4 pb-4 sm:px-5">
+        <div className="flex items-end gap-3">
+          <RoomIcon room={room} size={52} className="ring-4 ring-surface-2 shadow-md" />
+          <h3 className="truncate pb-1 text-[16px] font-bold tracking-tight text-fg">{room.name}</h3>
         </div>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {room.tags.slice(0, 4).map((tag) => (
-          <TechTag key={tag.id} label={tag.label} />
-        ))}
-      </div>
-      {room.wantedRoles.length > 0 && (
-        <p className="line-clamp-1 text-[12.5px] text-subtle">
-          <span className="font-medium text-muted">{t('projects.wanted')} · </span>
-          {room.wantedRoles.join(', ')}
-        </p>
-      )}
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
-        <AvatarStack people={room.members} size={22} />
-        <span className={cn('inline-flex items-center gap-1.5 font-medium', room.openTasks ? 'text-accent-text' : 'text-subtle')}>
-          <FolderGit2 className="size-3.5" />
-          {t('projects.openTasks', { count: room.openTasks })}
-        </span>
+        <p className="line-clamp-2 text-[13px] leading-snug text-muted">{room.tagline}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {room.tags.slice(0, 4).map((tag) => (
+            <TechTag key={tag.id} label={tag.label} />
+          ))}
+        </div>
+        {room.wantedRoles.length > 0 && (
+          <p className="line-clamp-1 text-[12.5px] text-subtle">
+            <span className="font-medium text-muted">{t('projects.wanted')} · </span>
+            {room.wantedRoles.join(', ')}
+          </p>
+        )}
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
+          <AvatarStack people={room.members} size={24} />
+          <span className={cn('inline-flex items-center gap-1.5 font-semibold', room.openTasks ? 'text-accent-text' : 'text-subtle')}>
+            <FolderGit2 className="size-3.5" />
+            {t('projects.openTasks', { count: room.openTasks })}
+          </span>
+        </div>
       </div>
     </Link>
   )
@@ -162,6 +168,13 @@ export function RoomMark({ name, size = 40, className }: { name: string; size?: 
   )
 }
 
+/** Icône d'une salle : sa bannière recadrée si elle existe, sinon un monogramme coloré. */
+export function RoomIcon({ room, size = 40, className }: { room: { name: string; coverUrl?: string | null }; size?: number; className?: string }) {
+  if (room.coverUrl)
+    return <img src={room.coverUrl} alt="" width={size} height={size} loading="lazy" decoding="async" style={{ width: size, height: size }} className={cn('shrink-0 rounded-[30%] object-cover', className)} />
+  return <RoomMark name={room.name} size={size} className={className} />
+}
+
 /* ---------------- Devs ---------------- */
 
 export function DevCard({ dev, reason, className }: { dev: DevCardT; reason?: ReactNode; className?: string }) {
@@ -172,12 +185,12 @@ export function DevCard({ dev, reason, className }: { dev: DevCardT; reason?: Re
       to={`/u/${dev.handle}`}
       onMouseEnter={() => preload.passport(dev.handle)}
       onFocus={() => preload.passport(dev.handle)}
-      className={cn('group flex flex-col gap-3 rounded-[20px] border border-line bg-surface-2 p-4 transition-[border-color,transform] duration-150 hover:border-line-strong active:scale-[0.995]', className)}
+      className={cn('surface-card card-hover group flex flex-col gap-3 !rounded-[20px] p-4', className)}
     >
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Avatar name={dev.displayName} src={dev.avatarUrl} size={44} />
-          <StatusDot tone={dev.availability.status === 'now' ? 'success' : dev.availability.status === 'today' ? 'warning' : 'neutral'} className="absolute -right-0.5 -bottom-0.5 size-3 ring-2 ring-surface-2" />
+          <Avatar name={dev.displayName} src={dev.avatarUrl} size={48} />
+          <StatusDot tone={dev.availability.status === 'now' ? 'success' : dev.availability.status === 'today' ? 'warning' : 'neutral'} className="absolute -right-0.5 -bottom-0.5 size-3.5 ring-[3px] ring-surface-2" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">

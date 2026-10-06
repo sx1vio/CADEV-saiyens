@@ -71,7 +71,7 @@ export interface State {
   lastBackupAt: string
 }
 
-export const STATE_VERSION = 5
+export const STATE_VERSION = 6
 
 export function emptyState(): State {
   return {
@@ -472,6 +472,7 @@ export class Engine {
       repoFullName: input.repoFullName,
       repoVerified,
       demoUrl: input.demoUrl,
+      coverUrl: input.coverUrl ?? null,
       inviteCode,
       visibility: 'public',
       tagIds: input.tagIds,

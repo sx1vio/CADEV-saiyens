@@ -28,6 +28,7 @@ export default function Landing() {
   const setSync = useUI((s) => s.setSync)
   const [busy, setBusy] = useState(false)
   const { data } = useQuery('landing', () => api.getLanding())
+  const { data: devs } = useQuery('devs:presence', () => api.discoverDevs({}))
 
   const tryDemo = async () => {
     setBusy(true)
@@ -68,7 +69,7 @@ export default function Landing() {
         />
         <div aria-hidden className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,var(--accent-strong)_0%,color-mix(in_oklab,var(--accent-strong),transparent_35%)_45%,transparent_75%)] sm:block" />
         <div className="relative max-w-xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">
+          <span className="inline-flex items-center gap-2 rounded-full bg-on-hero/15 px-3 py-1 text-xs font-semibold backdrop-blur">
             <Radio className="size-3.5" />
             {t('landing.live')} · {t('app.slogan')}
           </span>
@@ -79,11 +80,21 @@ export default function Landing() {
               {t('landing.tryNow')}
               <ArrowRight />
             </Button>
-            <ButtonLink to="/connexion" size="lg" className="border border-white/30 bg-white/10 text-on-hero backdrop-blur hover:bg-white/20" icon={<GitHubIcon />}>
+            <ButtonLink to="/connexion" size="lg" className="border border-on-hero/30 bg-on-hero/10 text-on-hero backdrop-blur hover:bg-on-hero/20" icon={<GitHubIcon />}>
               {t('landing.github')}
             </ButtonLink>
           </div>
           <p className="mt-3 text-xs text-on-hero-muted">{t('landing.tryHint')}</p>
+          {devs && devs.length > 0 && (
+            <Link to="/decouvrir" className="mt-7 inline-flex items-center gap-3 rounded-full bg-on-hero/12 py-1.5 pr-4 pl-1.5 text-[13px] font-medium text-on-hero backdrop-blur-md transition-colors hover:bg-on-hero/20">
+              <span className="flex -space-x-2.5">
+                {devs.slice(0, 6).map((d) => (
+                  <Avatar key={d.id} name={d.displayName} src={d.avatarUrl} size={32} className="ring-2 ring-[color-mix(in_oklab,var(--accent-strong),white_10%)]" />
+                ))}
+              </span>
+              {t('landing.community', { devs: devs.length, countries: new Set(devs.map((d) => d.country)).size })}
+            </Link>
+          )}
         </div>
         <Djeli pose="wave" size={132} float className="absolute right-6 bottom-4 hidden sm:inline-grid lg:right-[300px] lg:bottom-8" />
       </section>

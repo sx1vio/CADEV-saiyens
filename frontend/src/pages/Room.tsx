@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { EmptyState, ErrorState } from '@/components/djeli'
-import { DemoBadge, errorText, RoomMark, UserLink } from '@/components/domain'
+import { DemoBadge, errorText, RoomIcon, UserLink } from '@/components/domain'
 import { GitHubIcon } from '@/components/icons'
 import { Button, ButtonLink } from '@/components/ui/button'
 import { Markdown } from '@/components/ui/code'
@@ -138,29 +138,35 @@ export default function Room() {
   return (
     <WithPanel panel={panel} panelTitle={t('room.about')}>
       <header className="flex flex-col gap-5">
-        <div className="flex items-start gap-4">
-          <RoomMark name={room.name} size={56} className="text-xl sm:size-16" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="surface-card relative overflow-hidden !rounded-[24px]">
+          <div className="relative h-36 sm:h-48">
+            {room.coverUrl ? <img src={room.coverUrl} alt="" className="size-full object-cover" /> : <div className="size-full bg-hero" />}
+            <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_30%,color-mix(in_oklab,var(--surface-2),transparent_2%))]" />
+            <Badge tone={STATE_TONE[room.state]} className="absolute top-4 right-4 shadow-md">
+              {t(`projects.state.${room.state}`)}
+            </Badge>
+          </div>
+          <div className="relative -mt-12 flex flex-col gap-3 px-5 pb-5 sm:-mt-14 sm:flex-row sm:items-end sm:px-6">
+            <RoomIcon room={room} size={88} className="ring-[5px] ring-surface-2 shadow-lg" />
+            <div className="min-w-0 flex-1 sm:pb-1">
               <h1 className="text-[26px] font-bold leading-tight tracking-[-0.03em] text-fg sm:text-[32px]">{room.name}</h1>
-              <Badge tone={STATE_TONE[room.state]}>{t(`projects.state.${room.state}`)}</Badge>
-            </div>
-            <p className="mt-1 text-[15px] text-muted">{room.tagline}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-              <a href={`https://github.com/${room.repoFullName}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-mono text-[13px] text-fg hover:underline">
-                <GitHubIcon className="size-4" />
-                {room.repoFullName}
-                {room.repoVerified && <BadgeCheck className="size-4 text-success" aria-label={t('room.verifiedRepo')} />}
-              </a>
-              {room.demoUrl && (
-                <a href={room.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-text hover:underline">
-                  {t('projects.demo')} <ExternalLink className="size-3.5" />
+              <p className="mt-1 text-[15px] text-muted">{room.tagline}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                <a href={`https://github.com/${room.repoFullName}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-mono text-[13px] text-fg hover:underline">
+                  <GitHubIcon className="size-4" />
+                  {room.repoFullName}
+                  {room.repoVerified && <BadgeCheck className="size-4 text-success" aria-label={t('room.verifiedRepo')} />}
                 </a>
-              )}
-              <span className="inline-flex items-center gap-2 text-subtle">
-                <AvatarStack people={room.members} size={22} />
-                {t('projects.members', { count: room.memberCount })}
-              </span>
+                {room.demoUrl && (
+                  <a href={room.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-text hover:underline">
+                    {t('projects.demo')} <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                <span className="inline-flex items-center gap-2 text-subtle">
+                  <AvatarStack people={room.members} size={24} />
+                  {t('projects.members', { count: room.memberCount })}
+                </span>
+              </div>
             </div>
           </div>
         </div>

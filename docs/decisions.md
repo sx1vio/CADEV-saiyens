@@ -178,3 +178,35 @@ Leviers appliqués :
 - **Piste en mode local :** produite par des **règles d'erreurs connues** et étiquetée « Piste automatique ». La piste IA réelle viendra du serveur, car la clé ne doit jamais être dans le front.
 - **Activité :** aucune n'est simulée. Pour montrer les deux côtés d'un échange sur un seul appareil, on change de compte démo depuis le menu de l'avatar.
 - **Intégrations GitHub réelles** (API publique) : import du profil, vérification d'un dépôt, vérification qu'une PR est fusionnée.
+
+## 9. Refonte visuelle « pas plat » (06/10/2026)
+
+> « Le design général est plat… sers-toi des skills ui-ux-pro-max, emil-design-eng, apple-design et des MCP UI. » — Sylvio, avec trois captures Discord en référence.
+
+**Diagnostic :** pas d'images (que des initiales), pas de présence humaine, des cartes unies sans relief.
+
+**Décisions :**
+1. **Images :**
+   - 20 avatars 3D illustrés (un par compte démo, style homogène) ;
+   - 6 bannières de salles et 1 bannière de communauté (Higgsfield).
+
+   Les avatars et bannières sont dans `public/` : mis en cache à la première vue, jamais préchargés.
+2. **Structure Discord :**
+   - bannière d'espace en tête de colonne ;
+   - icônes colorées par section ;
+   - « Mes stacks » en salons `#` (simple filtre de SOS Dev, pas de nouveau chat : les Stack Spaces restent en roadmap) ;
+   - liste des membres par disponibilité ;
+   - panneau utilisateur en bas de colonne ;
+   - salles affichées avec leur bannière dans le rail.
+3. **Matière (apple-design, ui-ux-pro-max) :**
+   - lumière d'ambiance (aurore) et grain ;
+   - cartes en dégradé avec liseré lumineux ;
+   - verre dépoli sur les éléments flottants ;
+   - transparence réduite si `prefers-reduced-transparency`.
+4. **Mouvement (emil-design-eng) :**
+   - courbes fortes (`cubic-bezier(0.23, 1, 0.32, 1)`) ;
+   - relief au survol réservé aux souris (`hover: hover`) ;
+   - pression à 0,99 ;
+   - aucune animation sur la palette Ctrl+K (action clavier fréquente).
+5. **Curseur main** remis sur tous les éléments cliquables (Tailwind v4 le retire).
+6. **Langue :** français par défaut, quelle que soit la langue du navigateur.

@@ -76,7 +76,7 @@ export default function Login() {
       <aside className="relative hidden overflow-hidden bg-hero p-10 text-on-hero lg:flex lg:flex-col">
         <div aria-hidden className="absolute inset-0 bg-[radial-gradient(90%_70%_at_0%_100%,rgba(255,255,255,0.16),transparent_60%)]" />
         <Link to="/" className="relative inline-flex items-center gap-2 font-bold">
-          <img src="/favicon.svg" alt="" className="size-9 rounded-[12px] ring-2 ring-white/30" />
+          <img src="/favicon.svg" alt="" className="size-9 rounded-[12px] ring-2 ring-on-hero/30" />
           DevHub Africa
         </Link>
         <img src={heroHub} alt="" width={600} height={573} className="pointer-events-none absolute -top-10 -right-24 w-[520px] max-w-none opacity-90" />

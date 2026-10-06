@@ -34,7 +34,10 @@ import { useQuery, invalidate } from '@/lib/query'
 import { cn } from '@/lib/utils'
 import { api, type RoomDetail } from '@/services'
 import { useSession, useUI } from '@/stores/app'
-import { RoomMark } from '../domain'
+import { RoomIcon } from '../domain'
+import { PresenceAvatar } from '../presence'
+import heroHub from '@/assets/hero-hub.webp'
+import communityBanner from '@/assets/community-banner.webp'
 import { Button } from '../ui/button'
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Tip, useMedia } from '../ui/overlay'
 import { Avatar, CountDot, Kbd } from '../ui/primitives'
@@ -62,7 +65,7 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
       <div className="no-scrollbar flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto py-1">
         {rooms?.map((r) => (
           <RailItem key={r.id} to={`/p/${r.inviteCode}`} label={r.name} active={activeCode === r.inviteCode} onNavigate={onNavigate} badge={r.ownerId === me?.id ? 0 : 0}>
-            <RoomMark name={r.name} size={44} className="rounded-[inherit]" />
+            <RoomIcon room={r} size={44} className="rounded-[inherit]" />
           </RailItem>
         ))}
         <Tip label={t('nav.newRoom')} side="right">
@@ -83,7 +86,7 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       {me && (
         <Tip label={t('nav.myPassport')} side="right">
-          <Link to={`/u/${me.handle}`} onClick={onNavigate} className="mt-1 rounded-full ring-offset-2 ring-offset-rail transition-shadow hover:ring-2 hover:ring-accent" aria-label={t('nav.myPassport')}>
+          <Link to={`/u/${me.handle}`} onClick={onNavigate} className="mt-1 rounded-full lg:hidden ring-offset-2 ring-offset-rail transition-shadow hover:ring-2 hover:ring-accent" aria-label={t('nav.myPassport')}>
             <Avatar name={me.displayName} src={me.avatarUrl} size={40} />
           </Link>
         </Tip>
@@ -117,10 +120,20 @@ function RailItem({ to, label, active, children, onNavigate, badge }: { to: stri
    Colonne de navigation contextuelle (image 04 : repliable + coins inversés)
    ================================================================ */
 
+const TONES: Record<NonNullable<NavEntry['tone']>, { soft: string; solid: string }> = {
+  violet: { soft: 'bg-accent-soft text-accent-text', solid: 'bg-accent-strong text-on-accent' },
+  rose: { soft: 'bg-danger-soft text-danger', solid: 'bg-danger text-canvas' },
+  blue: { soft: 'bg-blue-soft text-blue-text', solid: 'bg-blue text-on-accent' },
+  green: { soft: 'bg-success-soft text-success', solid: 'bg-success text-canvas' },
+  amber: { soft: 'bg-warning-soft text-warning', solid: 'bg-warning text-canvas' },
+  slate: { soft: 'bg-surface-3 text-muted', solid: 'bg-fg text-canvas' },
+}
+
 function NavItem({ entry, collapsed, count, onNavigate }: { entry: NavEntry; collapsed: boolean; count?: number; onNavigate?: () => void }) {
   const { t } = useTranslation()
   const Icon = entry.icon
   const active = !!useMatch({ path: entry.to, end: !!entry.end })
+  const tone = TONES[entry.tone ?? 'slate']
   const link = (
     <Link
       to={entry.to}
@@ -129,15 +142,17 @@ function NavItem({ entry, collapsed, count, onNavigate }: { entry: NavEntry; col
       data-active={active}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'nav-merge flex h-10 items-center gap-3 rounded-[12px] text-[14px] font-medium transition-colors duration-150',
-        collapsed ? 'justify-center px-0' : 'px-3',
+        'nav-merge group flex h-11 items-center gap-3 rounded-[12px] text-[14px] font-medium transition-colors duration-150',
+        collapsed ? 'justify-center px-0' : 'pr-3 pl-1.5',
         !active && 'text-muted hover:bg-surface-2 hover:text-fg',
       )}
     >
-      <Icon className={cn('size-[18px] shrink-0 transition-colors', active && 'text-accent-text')} />
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-[10px] transition-[background-color,color,transform] duration-200 group-active:scale-95', active ? tone.solid : tone.soft)}>
+        <Icon className="size-[17px]" />
+      </span>
       {!collapsed && <span className="flex-1 truncate">{t(entry.key)}</span>}
       {!collapsed && !!count && <CountDot count={count} />}
-      {collapsed && !!count && <span className="absolute top-1.5 right-3 size-2 rounded-full bg-badge" />}
+      {collapsed && !!count && <span className="absolute top-1.5 right-2.5 size-2.5 rounded-full bg-badge ring-2 ring-nav" />}
     </Link>
   )
   return (
@@ -153,44 +168,97 @@ function NavItem({ entry, collapsed, count, onNavigate }: { entry: NavEntry; col
   )
 }
 
+/** Bannière d'espace en tête de colonne (comme la bannière d'un serveur Discord). */
+function SpaceBanner({ image, title, subtitle, collapsed, onToggle, showToggle }: { image: string; title: string; subtitle?: ReactNode; collapsed: boolean; onToggle: () => void; showToggle: boolean }) {
+  const { t } = useTranslation()
+  if (collapsed)
+    return (
+      <div className="mb-3 flex flex-col items-center gap-2">
+        <img src={image} alt="" className="size-11 rounded-[14px] object-cover shadow-md" />
+        {showToggle && (
+          <Tip label={t('nav.expand')} side="right" shortcut={['[']}>
+            <button type="button" onClick={onToggle} aria-label={t('nav.expand')} className="grid size-7 place-items-center rounded-full bg-surface-2 text-muted shadow-raised hover:text-fg">
+              <ChevronRight className="size-4" />
+            </button>
+          </Tip>
+        )}
+      </div>
+    )
+  return (
+    <div className="relative mx-2.5 mb-4 h-[104px] overflow-hidden rounded-[16px] shadow-md">
+      <img src={image} alt="" className="absolute inset-0 size-full object-cover" />
+      <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(6,7,18,0.86))]" />
+      <div className="absolute inset-x-3 bottom-2.5">
+        <p className="truncate text-[15px] font-bold text-on-hero [text-shadow:0_1px_8px_rgba(0,0,0,0.5)]">{title}</p>
+        {subtitle && <p className="truncate text-[11.5px] font-medium text-on-hero-muted">{subtitle}</p>}
+      </div>
+      {showToggle && (
+        <Tip label={t('nav.collapse')} side="right" shortcut={['[']}>
+          <button type="button" onClick={onToggle} aria-label={t('nav.collapse')} className="glass absolute top-2 right-2 grid size-7 place-items-center rounded-full text-fg shadow-md hover:scale-105">
+            <ChevronLeft className="size-4" />
+          </button>
+        </Tip>
+      )}
+    </div>
+  )
+}
+
+/** « Mes stacks » présentées comme des salons : un filtre SOS Dev par technologie. */
+function StackChannels({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+  const { t } = useTranslation()
+  const me = useSession((s) => s.user)
+  const [params] = useSearchParams()
+  const location = useLocation()
+  const { data: passport } = useQuery(me ? `passport:${me.handle}` : null, () => api.getPassport(me!.handle))
+  const { data: open } = useQuery('questions:open-all', () => api.listQuestions('unanswered'))
+  if (collapsed || !passport?.skills.length) return null
+  const activeTag = location.pathname === '/sos' ? params.get('tag') : null
+  return (
+    <div className="mt-5 flex flex-col gap-0.5">
+      <p className="label-caps px-5 pb-1.5">{t('hub.myStacks')}</p>
+      {passport.skills.slice(0, 5).map((s) => {
+        const n = open?.filter((q) => q.tagIds.includes(s.tagId)).length ?? 0
+        const active = activeTag === s.tag.slug
+        return (
+          <div key={s.tagId} className="pl-2.5">
+            <Link
+              to={`/sos?tab=all&tag=${s.tag.slug}`}
+              onClick={onNavigate}
+              data-active={active}
+              className={cn('nav-merge flex h-8 items-center gap-2 rounded-[10px] pr-3 pl-3 text-[13.5px] transition-colors', !active && (n ? 'font-semibold text-fg hover:bg-surface-2' : 'text-subtle hover:bg-surface-2 hover:text-muted'))}
+            >
+              <span className={cn('font-mono text-[15px]', active ? 'text-accent-text' : 'text-subtle')}>#</span>
+              <span className="flex-1 truncate">{s.tag.label.toLowerCase()}</span>
+              {n > 0 && <span className="text-[11px] font-semibold tabular text-subtle">{n}</span>}
+            </Link>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function HubNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const { t } = useTranslation()
   const me = useSession((s) => s.user)
-  const setAsk = useUI((s) => s.setAsk)
   const { data: home } = useQuery(me ? 'home' : null, () => api.getHome())
   const sosCount = home?.openInMyStacks.length ?? 0
   return (
     <>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {!collapsed && <p className="label-caps px-5 pt-1 pb-1.5">{t('nav.sectionCommunity')}</p>}
         {COMMUNITY_NAV.map((e) => (
           <NavItem key={e.to} entry={e} collapsed={collapsed} count={e.to === '/sos' ? sosCount : undefined} onNavigate={onNavigate} />
         ))}
-        {me && <NavItem entry={{ to: `/u/${me.handle}`, key: 'nav.passport', icon: UserRound, tour: 'passport' }} collapsed={collapsed} onNavigate={onNavigate} />}
+        {me && <NavItem entry={{ to: `/u/${me.handle}`, key: 'nav.passport', icon: UserRound, tour: 'passport', tone: 'amber' }} collapsed={collapsed} onNavigate={onNavigate} />}
       </div>
-      <div className="mt-5 flex flex-col gap-1">
+      <StackChannels collapsed={collapsed} onNavigate={onNavigate} />
+      <div className="mt-5 flex flex-col gap-0.5">
         {!collapsed && <p className="label-caps px-5 pb-1.5">{t('nav.sectionPlatform')}</p>}
         {PLATFORM_NAV.map((e) => (
           <NavItem key={e.to} entry={e} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
         {me?.isAdmin && <NavItem entry={ADMIN_NAV} collapsed={collapsed} onNavigate={onNavigate} />}
-      </div>
-      <div className="mt-auto pt-4 pr-2.5 pl-2.5">
-        {collapsed ? (
-          <Tip label={t('nav.ask')} side="right" shortcut={['N']}>
-            <Button variant="hero" size="icon" className="w-full" aria-label={t('nav.ask')} onClick={() => setAsk(true)} data-tour="ask">
-              <Zap />
-            </Button>
-          </Tip>
-        ) : (
-          <div className="glow-border overflow-hidden rounded-[18px] bg-surface-2 p-3.5">
-            <p className="text-sm font-semibold text-fg">{t('home.heroTitle')}</p>
-            <p className="mt-1 text-xs text-muted">{t('ask.subtitle')}</p>
-            <Button variant="hero" size="sm" className="mt-3 w-full" icon={<Zap />} onClick={() => setAsk(true)} data-tour="ask">
-              {t('nav.ask')}
-            </Button>
-          </div>
-        )}
       </div>
     </>
   )
@@ -202,35 +270,29 @@ function RoomNav({ code, collapsed, onNavigate }: { code: string; collapsed: boo
   const [params] = useSearchParams()
   const tab = params.get('tab') ?? 'tasks'
   const items = [
-    { tab: 'tasks', icon: ListChecks, key: 'room.tabs.tasks', count: room?.openTasks },
-    { tab: 'discussion', icon: MessagesSquare, key: 'room.tabs.discussion' },
-    { tab: 'members', icon: Users, key: 'room.tabs.members' },
-    ...(room?.myMembership === 'owner' ? [{ tab: 'requests', icon: Inbox, key: 'room.tabs.requests', count: room.requests.length }] : []),
+    { tab: 'tasks', icon: ListChecks, key: 'room.tabs.tasks', count: room?.openTasks, tone: 'violet' as const },
+    { tab: 'discussion', icon: MessagesSquare, key: 'room.tabs.discussion', tone: 'blue' as const },
+    { tab: 'members', icon: Users, key: 'room.tabs.members', tone: 'green' as const },
+    ...(room?.myMembership === 'owner' ? [{ tab: 'requests', icon: Inbox, key: 'room.tabs.requests', count: room.requests.length, tone: 'amber' as const }] : []),
   ]
   return (
     <>
-      <div className={cn('mb-4 flex items-center gap-3', collapsed ? 'justify-center px-2' : 'px-5')}>
-        {room ? <RoomMark name={room.name} size={collapsed ? 36 : 40} /> : <span className="size-10 rounded-[12px] skeleton" />}
-        {!collapsed && (
-          <div className="min-w-0">
-            <p className="truncate font-semibold text-fg">{room?.name ?? '…'}</p>
-            <p className="truncate text-xs text-subtle">{room?.repoFullName}</p>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {items.map((it) => {
           const active = tab === it.tab
           const Icon = it.icon
+          const tone = TONES[it.tone]
           const link = (
             <Link
               to={`/p/${code}?tab=${it.tab}`}
               onClick={onNavigate}
               data-active={active}
               aria-current={active ? 'page' : undefined}
-              className={cn('nav-merge flex h-10 items-center gap-3 rounded-[12px] text-[14px] font-medium transition-colors', collapsed ? 'justify-center' : 'px-3', !active && 'text-muted hover:bg-surface-2 hover:text-fg')}
+              className={cn('nav-merge group flex h-11 items-center gap-3 rounded-[12px] text-[14px] font-medium transition-colors', collapsed ? 'justify-center' : 'pr-3 pl-1.5', !active && 'text-muted hover:bg-surface-2 hover:text-fg')}
             >
-              <Icon className={cn('size-[18px]', active && 'text-accent-text')} />
+              <span className={cn('grid size-8 shrink-0 place-items-center rounded-[10px] transition-colors', active ? tone.solid : tone.soft)}>
+                <Icon className="size-[17px]" />
+              </span>
               {!collapsed && <span className="flex-1">{t(it.key)}</span>}
               {!collapsed && !!it.count && <CountDot count={it.count} />}
             </Link>
@@ -248,7 +310,23 @@ function RoomNav({ code, collapsed, onNavigate }: { code: string; collapsed: boo
           )
         })}
       </div>
-      <div className="mt-6 pl-2.5">
+      {!collapsed && room && (
+        <div className="mt-5 px-2.5">
+          <p className="label-caps px-2.5 pb-1.5">{t('presence.title')} — {room.members.length}</p>
+          <ul className="flex flex-col">
+            {room.members.slice(0, 8).map((m) => (
+              <li key={m.id}>
+                <Link to={`/u/${m.handle}`} onClick={onNavigate} className="flex items-center gap-2.5 rounded-[10px] px-2.5 py-1.5 text-[13px] text-muted transition-colors hover:bg-surface-2 hover:text-fg">
+                  <Avatar name={m.displayName} src={m.avatarUrl} size={24} />
+                  <span className="flex-1 truncate font-medium">{m.displayName}</span>
+                  {m.id === room.ownerId && <span className="text-[10px] font-semibold uppercase tracking-wide text-accent-text">{t('room.owner')}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="mt-4 pl-2.5">
         <Link to="/projets" onClick={onNavigate} className={cn('flex h-10 items-center gap-3 rounded-[12px] text-sm text-subtle transition-colors hover:bg-surface-2 hover:text-fg', collapsed ? 'justify-center' : 'px-3')}>
           <ArrowLeft className="size-4" />
           {!collapsed && t('nav.projects')}
@@ -258,40 +336,85 @@ function RoomNav({ code, collapsed, onNavigate }: { code: string; collapsed: boo
   )
 }
 
-function SideNav({ collapsed, onNavigate, showToggle = true }: { collapsed: boolean; onNavigate?: () => void; showToggle?: boolean }) {
+/** Panneau utilisateur en bas de colonne (comme Discord) : identité, statut, actions rapides. */
+function UserPanel({ collapsed }: { collapsed: boolean }) {
   const { t } = useTranslation()
-  const toggle = useUI((s) => s.toggleNav)
-  const roomMatch = useMatch('/p/:code/*')
-  return (
-    <div
-      className={cn('relative flex h-full shrink-0 flex-col bg-nav pt-4 pb-4 transition-[width] duration-300 ease-out', collapsed ? 'w-[76px]' : 'w-[var(--nav-w)]')}
-      data-tour="nav"
-    >
-      <div className={cn('mb-5 flex items-center', collapsed ? 'justify-center' : 'justify-between px-5')}>
-        {!collapsed && (
-          <Link to="/" onClick={onNavigate} className="text-[17px] font-bold tracking-tight text-fg">
-            DevHub<span className="text-accent-text">.</span>
-          </Link>
-        )}
-        {showToggle && (
-          <Tip label={collapsed ? t('nav.expand') : t('nav.collapse')} side="right" shortcut={['[']}>
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label={collapsed ? t('nav.expand') : t('nav.collapse')}
-              className="grid size-7 place-items-center rounded-full bg-surface-2 text-muted shadow-raised transition-colors hover:text-fg"
-            >
-              {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-            </button>
-          </Tip>
-        )}
+  const nav = useNavigate()
+  const me = useSession((s) => s.user)
+  const setAsk = useUI((s) => s.setAsk)
+  const { theme, setTheme } = useUI()
+  if (!me) return null
+  if (collapsed)
+    return (
+      <div className="flex flex-col items-center gap-2 border-t border-line px-2 pt-3">
+        <Tip label={t('nav.ask')} side="right" shortcut={['N']}>
+          <Button variant="hero" size="icon" aria-label={t('nav.ask')} onClick={() => setAsk(true)} data-tour="ask">
+            <Zap />
+          </Button>
+        </Tip>
+        <Link to={`/u/${me.handle}`} aria-label={t('nav.myPassport')}>
+          <PresenceAvatar user={me} status={me.availability.status} size={36} ring="ring-nav" />
+        </Link>
       </div>
-      <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {roomMatch ? <RoomNav code={roomMatch.params.code!} collapsed={collapsed} onNavigate={onNavigate} /> : <HubNav collapsed={collapsed} onNavigate={onNavigate} />}
+    )
+  return (
+    <div className="flex flex-col gap-2.5 border-t border-line px-2.5 pt-3">
+      <Button variant="hero" className="w-full" icon={<Zap />} onClick={() => setAsk(true)} data-tour="ask">
+        {t('nav.ask')}
+        <Kbd className="ml-auto border-on-hero/25 bg-on-hero/15 text-on-hero">N</Kbd>
+      </Button>
+      <div className="flex items-center gap-2 rounded-[14px] bg-surface-1 p-1.5 pr-1">
+        <Link to={`/u/${me.handle}`} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[10px] p-1 transition-colors hover:bg-surface-2">
+          <PresenceAvatar user={me} status={me.availability.status} size={34} ring="ring-surface-1" />
+          <span className="min-w-0">
+            <span className="block truncate text-[13px] font-semibold text-fg">{me.displayName}</span>
+            <span className="block truncate text-[11px] text-subtle">{t(`hub.status.${me.availability.status}`)}</span>
+          </span>
+        </Link>
+        <Tip label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}>
+          <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={t('nav.theme')} className="grid size-8 place-items-center rounded-[9px] text-muted transition-colors hover:bg-surface-3 hover:text-fg">
+            {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+        </Tip>
+        <Tip label={t('nav.settings')}>
+          <button type="button" onClick={() => nav('/reglages')} aria-label={t('nav.settings')} className="grid size-8 place-items-center rounded-[9px] text-muted transition-colors hover:bg-surface-3 hover:text-fg">
+            <Settings className="size-4" />
+          </button>
+        </Tip>
       </div>
     </div>
   )
 }
+
+function SideNav({ collapsed, onNavigate, showToggle = true }: { collapsed: boolean; onNavigate?: () => void; showToggle?: boolean }) {
+  const { t } = useTranslation()
+  const toggle = useUI((s) => s.toggleNav)
+  const roomMatch = useMatch('/p/:code/*')
+  const code = roomMatch?.params.code
+  const { data: room } = useQuery<RoomDetail>(code ? `room:${code}` : null, () => api.getRoom(code!))
+  const { data: impact } = useQuery('impact', () => api.getImpact())
+  return (
+    <div className={cn('relative flex h-full shrink-0 flex-col bg-nav pt-2.5 pb-3 transition-[width] duration-300 ease-[var(--ease-drawer)]', collapsed ? 'w-[76px]' : 'w-[var(--nav-w)]')} data-tour="nav">
+      {code ? (
+        <SpaceBanner image={room?.coverUrl ?? heroHub} title={room?.name ?? '…'} subtitle={room?.repoFullName} collapsed={collapsed} onToggle={toggle} showToggle={showToggle} />
+      ) : (
+        <SpaceBanner
+          image={communityBanner}
+          title={t('app.name')}
+          subtitle={impact ? `${t('hub.members', { count: impact.devs })} · ${t('hub.countries', { count: impact.countries })}` : t('hub.banner')}
+          collapsed={collapsed}
+          onToggle={toggle}
+          showToggle={showToggle}
+        />
+      )}
+      <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto pb-3">
+        {code ? <RoomNav code={code} collapsed={collapsed} onNavigate={onNavigate} /> : <HubNav collapsed={collapsed} onNavigate={onNavigate} />}
+      </div>
+      <UserPanel collapsed={collapsed} />
+    </div>
+  )
+}
+
 
 /* ================================================================
    Barre du haut

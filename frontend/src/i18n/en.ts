@@ -59,6 +59,7 @@ const en: Dict = {
     tryNow: 'Try without an account', github: 'Sign in with GitHub', tryHint: 'Demo account, no sign-up.',
     statDevs: 'devs signed up', statResolved: 'questions solved', statMedian: 'median time to first answer', statCountries: 'countries',
     minutes: '{{count}} min', liveTitle: "What's happening now",
+    community: '{{devs}} devs from {{countries}} countries already help each other',
     pillarsTitle: 'Three moves, one developer identity',
     help: 'Help', helpText: 'SOS Dev: describe your error, get an AI hint, then help from 3 devs picked for their real experience of the problem.',
     build: 'Build', buildText: 'Project rooms linked to GitHub: post tasks, welcome contributors, move forward together.',
@@ -124,6 +125,7 @@ const en: Dict = {
     rooms: 'Rooms looking for help', roomsEmpty: 'No room to recommend right now.',
     meet: 'Devs to meet', meetEmpty: 'Complete your stacks to get suggestions.',
     activity: 'Community feed', myQuestions: 'My questions', blockedFor: 'stuck for {{time}}',
+    availableNow_one: '{{count}} dev available now', availableNow_other: '{{count}} devs available now',
     progress: 'Your progress', nextLevel: 'Next level: {{level}} in {{tag}}',
   },
   sos: {
@@ -316,6 +318,8 @@ const en: Dict = {
     'github_network': "Can't reach GitHub. Check your connection.", 'translate_server-only': 'Translation will be enabled with the API.',
   },
   activity: { resolved: 'unblocked', answered: 'answered', asked: 'asked for help on', joined: 'joined', 'task-done': 'completed', 'room-created': 'opened the room' },
+  presence: { title: 'Members', now: 'Available now', today: 'Later today', busy: 'Busy', helps: 'happy to help', online: 'Online' },
+  hub: { banner: 'Community', members: '{{count}} members', countries: '{{count}} countries', myStacks: 'My stacks', status: { now: 'Available', today: 'Later today', busy: 'Busy' }, community: 'The community' },
   notFound: { title: 'Page not found', text: "Djeli looked everywhere. This page doesn't exist (anymore).", home: 'Back to HQ' },
   time: { justNow: 'just now' },
 }

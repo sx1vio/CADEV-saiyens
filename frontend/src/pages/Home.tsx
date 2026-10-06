@@ -7,7 +7,8 @@ import heroHubSm from '@/assets/hero-hub-sm.webp'
 import { Djeli, EmptyState, ErrorState } from '@/components/djeli'
 import { ActivityFeed, DevCard, QuestionCard, RoomCard } from '@/components/domain'
 import { Button, ButtonLink } from '@/components/ui/button'
-import { Card, CardHeader, IconChip, Skeleton } from '@/components/ui/primitives'
+import { Avatar, Card, CardHeader, IconChip, Skeleton } from '@/components/ui/primitives'
+import { MembersPanel } from '@/components/presence'
 import { Segmented } from '@/components/ui/segmented'
 import { formatNumber, useLang } from '@/i18n'
 import { countryName } from '@/lib/geo'
@@ -30,6 +31,7 @@ export default function Home() {
   const setAsk = useUI((s) => s.setAsk)
   const { data, error, refresh } = useQuery<HomeFeed>('home', () => api.getHome())
   const { data: passport } = useQuery(`passport:${me.handle}`, () => api.getPassport(me.handle))
+  const { data: devs } = useQuery('devs:presence', () => api.discoverDevs({}))
   const startTour = useUI((s) => s.startTour)
   const tourStep = useUI((s) => s.tourStep)
 
@@ -182,8 +184,11 @@ export default function Home() {
   const xp = passport?.totalXp ?? 0
   const topSkill = passport?.skills[0]
 
+  const availableNow = (devs ?? []).filter((d) => d.availability.status === 'now')
+
   return (
-    <div className="dh-page mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6 sm:py-8">
+    <div className="flex">
+    <div className="dh-page mx-auto w-full max-w-[1320px] min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8">
       {/* Salutation + titre (images 01 et 02) */}
       <header className="mb-6 flex flex-col gap-1">
         <p className="text-[15px] font-medium text-muted">{t(greetingKey(), { name: firstName })}</p>
@@ -209,6 +214,19 @@ export default function Home() {
                 <ArrowRight className="size-4" />
               </Link>
             </div>
+            {availableNow.length > 0 && (
+              <Link to="/decouvrir?avail=now" className="mt-6 inline-flex items-center gap-3 rounded-full bg-on-hero/12 py-1.5 pr-4 pl-1.5 text-[13px] font-medium text-on-hero backdrop-blur-md transition-colors hover:bg-on-hero/20">
+                <span className="flex -space-x-2">
+                  {availableNow.slice(0, 5).map((d) => (
+                    <Avatar key={d.id} name={d.displayName} src={d.avatarUrl} size={28} className="ring-2 ring-[color-mix(in_oklab,var(--accent-strong),white_10%)]" />
+                  ))}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="size-2 rounded-full bg-success shadow-[0_0_8px_var(--success)]" />
+                  {t('home.availableNow', { count: availableNow.length })}
+                </span>
+              </Link>
+            )}
           </div>
         </section>
 
@@ -251,6 +269,10 @@ export default function Home() {
         </div>
       </div>
     </div>
+      <aside className="sticky top-[var(--topbar-h)] hidden h-[calc(100dvh-var(--topbar-h))] w-[260px] shrink-0 overflow-y-auto border-l border-line bg-[color-mix(in_oklab,var(--bg-nav),transparent_30%)] px-2.5 py-6 min-[1600px]:block">
+        <MembersPanel />
+      </aside>
+    </div>
   )
 }
 
@@ -272,7 +294,7 @@ function TaskTile({ index, title, room, href, status, level }: { index: number; 
           <span className="block truncate text-xs text-subtle group-hover:text-on-accent/80">
             {room} · {t(`room.level.${level}`)}
           </span>
-          <span className="mt-1 inline-block rounded-md bg-surface-3 px-1.5 py-0.5 text-[11px] font-semibold text-accent-text group-hover:bg-white/20 group-hover:text-on-accent">{status}</span>
+          <span className="mt-1 inline-block rounded-md bg-surface-3 px-1.5 py-0.5 text-[11px] font-semibold text-accent-text group-hover:bg-on-hero/20 group-hover:text-on-accent">{status}</span>
         </span>
         <ChevronRight className="size-4 text-subtle group-hover:text-on-accent" />
       </Link>

@@ -8,7 +8,8 @@ export type AppLang = 'fr' | 'en'
 function initialLang(): AppLang {
   const saved = storageGet('dh-lang')
   if (saved === 'fr' || saved === 'en') return saved
-  return navigator.language?.toLowerCase().startsWith('fr') ? 'fr' : navigator.language?.toLowerCase().startsWith('en') ? 'en' : 'fr'
+  // Français par défaut (public cible francophone) ; l'anglais se choisit dans le menu, Ctrl+K ou les réglages.
+  return 'fr'
 }
 
 const startLang = initialLang()
