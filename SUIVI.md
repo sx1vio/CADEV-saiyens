@@ -1,0 +1,177 @@
+# Suivi du projet — CADEV Saiyens
+
+> Journal de bord de la branche `sylvio-frontend`.
+> **Règle :** chaque action, changement, décision ou fix est noté ici, avec sa date. Les entrées les plus récentes vont en haut du journal.
+
+---
+
+## Contexte
+
+**Hackathon :** CADEV 2026 — Systalink Challenge (Coupe d'Afrique des Développeurs)
+**Produit :** DevHub Africa (nom de travail, nom définitif le 8 oct.) — la plateforme des développeurs basée sur la preuve : AIDER → CONSTRUIRE → PROUVER, hors ligne d'abord
+**Équipe :** 5 personnes
+**Branche de travail :** `sylvio-frontend` (périmètre : frontend)
+**Dépôt :** `git@github.com:sx1vio/CADEV-saiyens.git`
+**Dates clés :** gel des P2 le 15 oct. · gel du code le 22 oct. · soumission le 24 oct. · date limite le 25 oct.
+
+**Documents de référence :**
+- `Cahier_des_charges_v3_DevHub_Africa.pdf` — cahier des charges de référence (v3, 5 oct.)
+- `CDC_v3.1_DevHub_Africa_Propositions.pdf` — 59 propositions d'ajouts, **à voter en équipe** (ne remplace pas le v3)
+- `docs/prompts/prompt-frontend-design.md` — brief design/UX du frontend
+- `docs/phase0-analyse.md` — analyse frontend de la Phase 0
+- `docs/decisions.md` — **toutes les décisions frontend** (ambition, Kotlin vs React, périmètre v3.1, mascotte, règles de navigation, architecture)
+
+**Sujet :**
+Une plateforme d'échange pour les développeurs, par les développeurs et pour les développeurs : un espace où ils peuvent se retrouver, échanger, poser des questions, partager leurs connaissances, présenter leurs projets et collaborer.
+
+Questions auxquelles la plateforme doit répondre :
+- Comment les développeurs se rencontrent ?
+- Comment ils échangent ?
+- Comment ils partagent leurs projets ?
+- Comment ils collaborent ?
+- Qu'est-ce qui rend la plateforme réellement utile ?
+
+---
+
+## État actuel
+
+| Élément | État |
+|---|---|
+| Cahier des charges | ✅ Reçu et analysé (v3 + propositions v3.1) |
+| Phase 0 — Analyse | ✅ Terminée ; Sylvio m'a délégué toutes les décisions (`docs/decisions.md`) |
+| Stack technique | ✅ React 19 + Vite + TS PWA (Kotlin Multiplatform étudié et écarté) |
+| Mascotte Djeli + visuel 3D | ✅ 6 images générées (Higgsfield) |
+| Projet `frontend/` | ✅ Application complète, build OK, testée de bout en bout |
+| Design system (tokens, composants, thèmes sombre/clair) | ✅ |
+| Shell (rail, colonne repliable, onglets mobiles, Ctrl+K, visite Djeli) | ✅ |
+| Écrans (17) | ✅ Tous en place, vérifiés en captures 375 / 1440 px |
+| Hors ligne (file IndexedDB, simulateur, centre de synchro, SW) | ✅ Testé : écriture hors ligne → rechargement → synchronisation sans doublon |
+| Poids de l'accueil | ✅ 295 Ko transférés (objectif CDC < 300 Ko) |
+| Revue (768 / 1280 px, contrastes thème clair) | ✅ |
+| Commit / push | ✅ Premier commit poussé sur `sylvio-frontend` (06/10/2026) |
+| Développement frontend | ⏳ Pas commencé |
+| Intégration backend | ⏳ Pas commencé |
+| Démo / pitch | ⏳ Pas commencé |
+
+---
+
+## Reste à faire
+
+- [ ] Partager les types de `src/services/` avec le rôle 2 pour aligner le contrat d'API
+- [ ] Tester sur un vrai téléphone d'entrée de gamme, réseau coupé (CDC O1-O3)
+- [ ] Partager `src/services/api.ts` + `types.ts` + `local/engine.ts` avec le rôle 2 (contrat d'API et règles)
+- [ ] Dette technique : 26 avertissements oxlint (règles React : pureté, setState dans effet, exports mixtes)
+- [ ] Écrire les tests Playwright du parcours dans le dépôt (aujourd'hui dans un script local) + CI
+- [ ] Phase 4 : audit du mouvement, audit d'accessibilité, revue de code
+
+## Fait
+
+- [x] Premier commit et push de `sylvio-frontend` (06/10/2026)
+- [x] Suppression des fichiers `*:Zone.Identifier` + `.gitignore` racine (06/10/2026)
+- [x] README du front : lancer, brancher l'API, architecture, règles d'équipe (06/10/2026)
+- [x] Vérification 768 / 1280 px, connexion, Passport et salle sur mobile (06/10/2026)
+- [x] Design system complet : tokens sombre/clair, boutons, cartes, badges, nav segmentée (image 03), barre G+P, heatmap, code, Markdown assaini (06/10/2026)
+- [x] Shell façon Discord : rail des espaces (QG + mes salles), colonne repliable à coins inversés (image 04), barre du haut, onglets mobiles, tiroir avec balayage, panneau contextuel (06/10/2026)
+- [x] 17 écrans : accueil public, connexion GitHub, onboarding 5 étapes, QG, SOS Dev, question, Projets, nouvelle salle, salle (Kanban), Découvrir, Classement, Passport, Systalink, Impact, Règles, Modération, Réglages, 404 (06/10/2026)
+- [x] Visite guidée par Djeli (7 étapes, projecteur sur les vrais éléments, clavier, mobile) (06/10/2026)
+- [x] Palette Ctrl+K, raccourcis G+H/S/P/D, N, [, ?, / (06/10/2026)
+- [x] Test de bout en bout du parcours de démo (06/10/2026)
+- [x] Budget de poids : 295 Ko pour l'accueil (06/10/2026)
+- [x] Réponses de Sylvio : rôle 3 confirmé, page publique sans compte, décisions déléguées (06/10/2026)
+- [x] Étude Kotlin / Compose Multiplatform → écarté, on reste en React PWA (06/10/2026)
+- [x] `docs/decisions.md` rédigé (06/10/2026)
+- [x] Projet `frontend/` créé (Vite + React + TS) et dépendances installées (06/10/2026)
+- [x] Mascotte Djeli générée : salut, désigne, célèbre, ordinateur (+ lecture, hors ligne en cours) ; visuel 3D du hero (06/10/2026)
+- [x] Phase 0 : analyse du cahier des charges v3 et des propositions v3.1 → `docs/phase0-analyse.md` (06/10/2026)
+- [x] Vérification des contrastes WCAG de la palette (06/10/2026)
+- [x] Prompt de design enregistré dans `docs/prompts/prompt-frontend-design.md` (06/10/2026)
+- [x] Ajout de l'image de référence `04b-sidebar-coins-inverses.png` (06/10/2026)
+- [x] Prompt de design/UX frontend rédigé + 5 images d'inspiration ajoutées (06/10/2026)
+- [x] Création de la branche `sylvio-frontend` (06/10/2026)
+- [x] Création du fichier de suivi `SUIVI.md` (06/10/2026)
+
+---
+
+## Décisions
+
+Les choix structurants (stack, architecture, conventions, périmètre) et leur raison.
+
+| Date | Décision | Raison |
+|---|---|---|
+| 06/10/2026 | Le cahier des charges v3 est la référence ; les propositions v3.1 n'entrent dans le périmètre qu'après le vote d'équipe | Règle du prompt : le CDC l'emporte ; le v3.1 est un document « à discuter » |
+| 06/10/2026 | Mise en page Discord conservée, mais adaptée aux 6 sections du CDC : rail = sections + mes salles ; colonne = sous-sections du contexte | Le CDC dit « ni un Discord », Stack Spaces et chat temps réel sont en roadmap, pas de menu à 15 entrées |
+| 06/10/2026 | IndexedDB (`idb`) pour le cache et la file hors ligne ; `localStorage` seulement pour les préférences | O1/O2 (P0) et section 6.5 du CDC |
+| 06/10/2026 | Services `src/services/` calqués sur les endpoints (CDC §8) et le modèle de données (§7) ; mocks = comptes « Démo » marqués | Brancher la vraie API sans toucher l'UI ; CDC : aucune donnée inventée présentée comme réelle |
+| 06/10/2026 | i18n FR/EN (react-i18next) dès le premier composant | I1 est P0 |
+| 06/10/2026 | Prism au lieu de Shiki, une seule police web en sous-ensemble, Motion en LazyMotion | Budget CDC : accueil < 300 Ko, téléphones d'entrée de gamme |
+| 06/10/2026 | **React PWA, pas Kotlin Multiplatform** | Compose web encore en bêta, rendu canvas + ~9 Mo de Wasm, accessibilité/SEO limités, contredit le CDC (§8, §9). Détails `docs/decisions.md` §2 |
+| 06/10/2026 | Propositions v3.1 retenues : T1-T5, S8-S11, S14, S16, O5, O8, O9, PR7, PR8, PR10, PR11, R11, D6, X5, Y6, M3 | Décision déléguée ; liste et raisons dans `docs/decisions.md` §3 |
+| 06/10/2026 | Mascotte **Djeli** (griot = guide, gardien du savoir) + visite guidée en 6 étapes après l'inscription | Demande de Sylvio : un vrai hub, pas un site plat |
+| 06/10/2026 | 8 règles de navigation et de mise en page (une intention par page, préchargement, skeletons, transitions ≤ 220 ms, raccourcis, état dans l'URL…) | Demande de Sylvio : navigation très fluide, écrans très intuitifs. `docs/decisions.md` §5 |
+| 06/10/2026 | **Polices système** au lieu d'Inter web (Inter utilisée seulement si installée localement) | CDC §9 « polices système » ; −47 Ko, indispensable pour passer sous 300 Ko |
+| 06/10/2026 | Shell connecté, palette, visite, dialogues et serveur local chargés à la demande ; anglais chargé seulement si choisi ; préchargement des pages seulement en 4G sans « économie de data » | Accueil 443 Ko → 295 Ko |
+| 06/10/2026 | La piste « IA » en mode local est une **piste automatique par motifs d'erreurs connues**, étiquetée comme telle ; la vraie piste IA viendra du serveur | Le CDC interdit la clé IA côté front ; ne jamais présenter du généré comme ce qu'il n'est pas |
+| 06/10/2026 | Pas de fausse activité : en démo, on **change de compte démo** (menu avatar) pour jouer les deux côtés d'une conversation | Le CDC interdit les données inventées présentées comme réelles |
+| 06/10/2026 | Code front dans `frontend/` ; services à deux implémentations : `api` (HTTP) et `local` (IndexedDB, qui applique les règles du CDC) | Une app qui marche de bout en bout avant que l'API existe, puis bascule par `VITE_API_URL` |
+
+---
+
+## Idées et suggestions
+
+Pistes d'amélioration proposées en cours de route, à valider ou écarter.
+
+| Date | Idée | Statut |
+|---|---|---|
+| 06/10/2026 | Command palette Ctrl/Cmd+K pour la recherche et la navigation (public de devs) | Vérifié : absente du v3, **P2** dans le v3.1 (T5). Gardée pour après le cœur du MVP |
+| 06/10/2026 | Couche `src/services/` mockée et typée, pour que l'équipe backend puisse brancher l'API sans toucher l'UI | Retenue (voir Décisions) |
+| 06/10/2026 | Pousser au vote d'équipe T1 + T2 (accueil public + essai sans compte), O5 (simulateur réseau), PR7 (barre G + P), S9 (étiquettes auto) | Proposé : faible coût front, fort impact sur le vote |
+| 06/10/2026 | Corrections de palette : `--text-subtle` → `#7E84B2`, fond de pilule active `#6857E0`, texte accent `#9B8FFF`, texte sombre sur pastille corail | Proposé : passe WCAG AA (détails `docs/phase0-analyse.md` §7) |
+
+---
+
+## Journal
+
+### 06/10/2026
+
+- **Git** — Premier commit sur `sylvio-frontend` (front complet, docs, CDC, images d'inspiration) et push vers `origin` avec la clé `~/.ssh/Sylvio-github`.
+- **Setup** — Fichiers Windows `*:Zone.Identifier` supprimés ; `.gitignore` racine ajouté pour les ignorer à l'avenir.
+- **Dev** — Plateforme lancée en local : `npm run dev` dans `frontend/` → http://localhost:5173
+- **Docs** — `frontend/README.md` : lancement, bascule vers la vraie API (`VITE_API_URL`), architecture, règles d'équipe, raccourcis.
+- **Qualité** — `tsc` OK, build OK, oxlint : 0 erreur, 26 avertissements React notés en dette technique.
+- **Design** — Thème clair : vert, orangé et rouge de statut foncés pour passer AA (≥ 4,8:1 sur toutes les surfaces).
+- **Design** — Mobile : le bouton du panneau contextuel devient une pastille flottante au-dessus des onglets (il écrasait l'en-tête des salles) ; identité du Passport empilée sur mobile ; visuel 3D ajouté au panneau de marque de la connexion.
+- **Fix** — Une action déjà reçue par le serveur mais encore en file (page quittée pendant l'envoi) s'affichait deux fois jusqu'à la synchro : masquée désormais par comparaison du `client_id`.
+- **Test** — Parcours de démo automatisé (Playwright) : connexion démo → question avec trace d'erreur (étiquettes détectées, jeton GitHub masqué) → piste → 3 devs sollicités avec raisons → bascule sur Moussa → « Je m'en occupe » → réponse → coupure réseau → réponse en file → rechargement (toujours là) → « Rétablir » → synchronisée sans doublon → retour Awa → « M'a débloqué » → +10 XP dans le Passport de Moussa → création de salle avec vérification réelle du dépôt `vitejs/vite` sur GitHub. Aucune erreur JS.
+- **Perf** — Accueil mesuré à 443 Ko, puis ramené à **295 Ko** : shells, dialogues et serveur local en chargement différé, anglais à la demande, Motion chargé au premier composant animé, images de Djeli en lazy, visuel hero en 2 tailles (17 / 34 Ko), polices système.
+- **Front** — Historique de démo enrichi (22 questions résolues sur 6 mois) pour donner du relief aux Passports, heatmaps et au classement ; dates d'inscription des comptes démo corrigées (le garde-fou « compte < 24 h » bloquait les votes anciens).
+- **Front** — Visite guidée lancée automatiquement à la première arrivée sur le QG (y compris après rechargement), relançable depuis le menu, Ctrl+K et Réglages.
+- **Front** — 17 écrans livrés et vérifiés en captures (375 et 1440 px, sombre et clair) : la page publique « en direct » (T1) avec essai sans compte (T2) ; la connexion GitHub, qui lit le vrai profil public et calcule les compétences selon la règle X3 ; l'onboarding en 5 étapes (PR1, T3, PR10, M3) ; le QG, dont les blocs se réordonnent selon l'intention ; SOS Dev ; la question, avec piste, devs sollicités et leurs raisons, « Je m'en occupe », pair programming, validation et célébration ; la salle, avec Kanban, PR vérifiée sur GitHub, discussion, point du jour relié à SOS et demandes ; le Passport, avec barre G+P, preuves, heatmap et badge README ; Découvrir, Classement, Systalink (mesures réelles), Impact, Règles, Modération, Réglages et 404.
+- **Front** — Shell façon Discord et signature de l'image 04 : coins inversés qui fusionnent l'item actif avec le panneau, en sombre comme en clair.
+- **Fix** — Codes d'erreur à point (`vote.self`) mal lus par i18next : clés normalisées (`vote_self`) et conversion centralisée (`errorKey`).
+- **Fix** — Vite 8 (rolldown) refusait `manualChunks` : option retirée, le découpage automatique suffit.
+- **Fix** — L'icône GitHub n'existe plus dans lucide-react 1.x : icône SVG maison (`src/components/icons.tsx`).
+- **Front** — Couche hors ligne : `src/offline/network.ts` (état réseau réel + simulateur O5 `?net=offline|2g`, file IndexedDB avec UUID, rejeu ordonné, reprise progressive, masquage des secrets O9 avant mise en file).
+- **Front** — Textes FR/EN complets (`src/i18n/fr.ts`, `en.ts`), typés : une clé manquante en anglais casse la compilation (I1).
+- **Front** — Couche de données : contrat `src/services/api.ts` calqué sur l'API du CDC §8, implémentation `local` (IndexedDB) et `http` (vraie API avec `Idempotency-Key`, activée par `VITE_API_URL`). Cache « stale-while-revalidate » maison (`src/lib/query.ts`).
+- **Front** — Moteur du serveur local (`src/services/local/engine.ts`) : barème Proof XP, plafond de 60 XP/jour, votes, validations par paire, matching pondéré + démarrage à froid (X4), escalade à 15 min, « Je m'en occupe », tâches, PR, modération avec annulation append-only. Il sert aussi de spécification exécutable pour le rôle 2.
+- **Front** — Données de démo (`seed.ts`) : 20 devs de 14 pays, 16 vraies questions techniques (nginx/Docker, Kkiapay, Prisma/Wave, Firestore…), 6 salles de projet. Tout est marqué « Démo » et les XP sont recalculés par le moteur.
+- **Front** — Vraies intégrations GitHub (API publique) : import du profil + compétences depuis les dépôts (règle X3), vérification du dépôt d'une salle (R1), vérification qu'une PR est fusionnée par le bon auteur (R9).
+- **Front** — Détection locale (`src/lib/detect.ts`) : étiquettes depuis l'erreur (S9), masquage des secrets (O9), jauge de qualité (S8), piste automatique par motifs d'erreurs connues, toujours étiquetée comme telle.
+- **Design** — Tokens CSS sombre + clair (`src/styles/globals.css`) avec les corrections de contraste AA ; police Inter variable auto-hébergée (48 Ko).
+- **Design** — Assets optimisés : 4 poses de Djeli en WebP (13-18 Ko), visuel hero (34 Ko), icônes PWA, favicon.
+- **Design** — Mascotte Djeli générée avec Higgsfield (`gpt_image_2_5`, fond transparent) : 4 poses validées + visuel 3D du hero (réseau de formes violettes et bleues). ~12 crédits utilisés.
+- **Setup** — `frontend/` créé avec Vite (React + TS) ; installés : react-router 8, zustand, motion, lucide-react, sonner, cmdk, i18next, idb, prism-react-renderer, react-markdown, rehype-sanitize, zod, react-hook-form, Radix, Tailwind v4, vite-plugin-pwa, Playwright.
+- **Décision** — Kotlin Multiplatform étudié à la demande de Sylvio, puis écarté (voir `docs/decisions.md` §2).
+- **Décision** — Rédaction de `docs/decisions.md` : ambition « plateforme incontournable », périmètre v3.1, mascotte, règles de navigation, architecture.
+- **Échange** — Sylvio confirme : rôle 3 (front + hors ligne), page publique sans compte, mascotte 3D pour la visite, navigation très fluide. Il délègue toutes les décisions.
+- **Analyse** — Phase 0 terminée : `docs/phase0-analyse.md` (écarts prompt/CDC, 21 P0 ordonnées selon le chemin critique, P1, P2, propositions v3.1, 16 écrans reliés aux fonctionnalités, 5 parcours, stack, contrastes, 4 questions bloquantes). Aucun code écrit.
+- **Analyse** — 10 écarts relevés entre le prompt de design et le CDC (Discord, localStorage, mocks vs données réelles, Ctrl+K, poids/polices, i18n, hors ligne, thème, bento « Upgrade »/Gantt, contrastes). Le CDC l'emporte.
+- **Design** — Contrastes vérifiés : 4 échecs AA (`--text-subtle` sur les surfaces, texte blanc sur pilule `--accent`, `--accent` en texte sur surface-2/3, texte blanc sur pastille corail). Corrections proposées.
+- **Docs** — Le prompt de design cité plus bas n'existait pas sur le disque : enregistré dans `docs/prompts/prompt-frontend-design.md`.
+- **Design** — Ajout de `docs/design/inspirations/04b-sidebar-coins-inverses.png` (6e image envoyée, détail des coins inversés de la sidebar).
+- **Setup** — Lecture des PDF : texte extrait avec PyMuPDF (poppler absent de la machine).
+- **Design** — Rédaction du prompt de design/UX pour Claude : `docs/prompts/prompt-frontend-design.md` (structure Discord, palette bleu nuit violacé, responsive, skills et MCP à utiliser, phases avec points de validation).
+- **Design** — Ajout de 5 images d'inspiration dans `docs/design/inspirations/` (dashboard Unity, bento Sapphire, navigation segmentée, sidebar repliable, fil d'activité).
+- **Setup** — Branche `sylvio-frontend` créée depuis `main`. Le dépôt était vide (aucun commit).
+- **Setup** — Création de `SUIVI.md` (ce fichier) pour tracer toutes les actions du projet.
+- **Note** — L'accès au dépôt distant `origin` échoue (`Permission denied (publickey)`) : la clé SSH GitHub n'est pas configurée sur cette machine. À régler avant de pousser.
