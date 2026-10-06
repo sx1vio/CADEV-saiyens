@@ -1,0 +1,41 @@
+name: Bug
+description: Un comportement incorrect
+title: "fix: "
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Ce qui se passe
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ce qui devrait se passer
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: |
+        1. Aller sur …
+        2. Couper le réseau …
+    validations:
+      required: true
+  - type: dropdown
+    id: env
+    attributes:
+      label: Où
+      options: [Production (URL de démo), Local, CI]
+  - type: dropdown
+    id: demo
+    attributes:
+      label: Visible en démo ?
+      options: ["Oui (étiquette démo)", "Non"]
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexte
+      description: Appareil, navigateur, état du réseau, identifiant de requête (X-Request-Id)

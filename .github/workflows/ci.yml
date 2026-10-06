@@ -1,0 +1,166 @@
+# CI/CD DevHub Africa — voir docs/architecture/11-infrastructure-deploiement.md
+#
+# Sur chaque PR : qualité, tests, build. Sur main : en plus, images Docker et déploiement.
+# Le déploiement ne s'active que si la variable de dépôt DEPLOY_ENABLED vaut "true"
+# (à positionner par le rôle DevOps une fois le VPS et les secrets prêts).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  quality:
+    name: lint + typecheck + test + build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devhub
+          POSTGRES_PASSWORD: devhub
+          POSTGRES_DB: devhub_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U devhub"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://devhub:devhub@localhost:5432/devhub_test
+      AUTH_FAKE_PROVIDER: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  e2e:
+    name: e2e (Playwright, parcours SOS + hors ligne)
+    runs-on: ubuntu-latest
+    needs: quality
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devhub
+          POSTGRES_PASSWORD: devhub
+          POSTGRES_DB: devhub_e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U devhub"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://devhub:devhub@localhost:5432/devhub_e2e
+      AUTH_FAKE_PROVIDER: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      # Les tests e2e n'existent qu'à partir de l'initialisation d'apps/web.
+      - id: check
+        run: echo "has_e2e=$([ -d apps/web/e2e ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        if: steps.check.outputs.has_e2e == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.has_e2e == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.check.outputs.has_e2e == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.check.outputs.has_e2e == 'true'
+        run: pnpm --filter @devhub/web exec playwright install --with-deps chromium
+      - if: steps.check.outputs.has_e2e == 'true'
+        run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.check.outputs.has_e2e == 'true'
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+
+  security:
+    name: secrets + dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
+
+  images:
+    name: images Docker
+    runs-on: ubuntu-latest
+    needs: [quality, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/Dockerfile.api
+          push: true
+          tags: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/Dockerfile.web
+          push: true
+          tags: ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: déploiement Systalink
+    runs-on: ubuntu-latest
+    needs: images
+    environment: production
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    steps:
+      - name: Déployer via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: /srv/devhub/infra/scripts/deploy.sh ${{ github.sha }}

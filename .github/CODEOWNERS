@@ -1,0 +1,35 @@
+# Propriétaires de code : relecteurs ajoutés automatiquement (docs/equipe/organisation.md).
+# TODO : remplacer les @a-completer par les identifiants GitHub de Florent, Joachim et Emmanuel.
+# La dernière règle qui correspond l'emporte.
+
+*                                         @Caleb20072 @sx1vio
+
+# Front-end
+/apps/web/                                @sx1vio
+
+# Back-end : modules
+/apps/api/src/modules/identity/           @Caleb20072 @a-completer-emmanuel
+/apps/api/src/modules/passport/           @Caleb20072
+/apps/api/src/modules/reputation/         @Caleb20072
+/apps/api/src/modules/discovery/          @Caleb20072
+/apps/api/src/modules/sos/                @a-completer-florent
+/apps/api/src/modules/matching/           @a-completer-florent
+/apps/api/src/modules/notifications/      @a-completer-florent
+/apps/api/src/modules/sync/               @a-completer-florent @sx1vio @a-completer-emmanuel
+/apps/api/src/modules/rooms/              @a-completer-joachim
+/apps/api/src/modules/github/             @a-completer-joachim
+/apps/api/src/modules/ai/                 @a-completer-joachim @a-completer-emmanuel
+/apps/api/src/modules/moderation/         @a-completer-emmanuel
+/apps/api/src/modules/platform/           @a-completer-emmanuel
+/apps/api/prisma/                         @Caleb20072 @a-completer-florent
+
+# Code partagé : contrat front/back
+/packages/contracts/                      @Caleb20072 @sx1vio
+/packages/core/                           @Caleb20072 @a-completer-florent
+
+# Infrastructure et CI
+/infra/                                   @a-completer-emmanuel
+/.github/workflows/                       @a-completer-emmanuel
+
+# Documentation d'architecture
+/docs/adr/                                @Caleb20072

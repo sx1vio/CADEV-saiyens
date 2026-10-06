@@ -1,0 +1,48 @@
+name: User story
+description: Une fonctionnalité du cahier des charges (P0, P1, P2, MVP+)
+title: "[ID] Titre court"
+labels: []
+body:
+  - type: input
+    id: id
+    attributes:
+      label: Identifiant
+      description: Identifiant du cahier des charges (S1, R9, PR5…)
+      placeholder: S1
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      options: [P0, MVP+, Correctif, P1, P2]
+    validations:
+      required: true
+  - type: textarea
+    id: story
+    attributes:
+      label: User story
+      placeholder: "En tant que dev bloqué, je pose une question avec titre, étiquettes, extrait et urgence…"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critères d'acceptation
+      description: Repris du cahier des charges, testables par une personne extérieure en moins de 2 minutes
+      placeholder: "- Publiée en moins de 30 secondes de saisie"
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Découpage technique
+      placeholder: |
+        - [ ] contrat (packages/contracts)
+        - [ ] API (module …)
+        - [ ] front (feature …)
+        - [ ] tests
+  - type: input
+    id: owner
+    attributes:
+      label: Responsable
