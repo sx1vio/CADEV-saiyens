@@ -6,17 +6,17 @@ Base **PostgreSQL** chez Systalink (version 15 ou plus, à confirmer). ORM : **P
 
 ## Conventions
 
-| Convention | Règle |
-|---|---|
-| Nommage | Tables au pluriel et colonnes en `snake_case` dans la base ; `camelCase` côté TypeScript (via `@map`) |
-| Clés primaires | UUID générés par la base (`gen_random_uuid()`), sauf tables de liaison (clé composée) |
-| Dates | `timestamptz`, toujours en UTC. L'affichage dans le fuseau de l'utilisateur est l'affaire du front |
-| Contenus créés hors ligne | Colonne `client_id` (UUID fourni par le client) avec `UNIQUE (author_id, client_id)` |
-| Contenus modifiables | Colonne `version` (entier), incrémentée à chaque modification, pour la détection de conflits (O4) |
+| Convention                | Règle                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Nommage                   | Tables au pluriel et colonnes en `snake_case` dans la base ; `camelCase` côté TypeScript (via `@map`)                          |
+| Clés primaires            | UUID générés par la base (`gen_random_uuid()`), sauf tables de liaison (clé composée)                                          |
+| Dates                     | `timestamptz`, toujours en UTC. L'affichage dans le fuseau de l'utilisateur est l'affaire du front                             |
+| Contenus créés hors ligne | Colonne `client_id` (UUID fourni par le client) avec `UNIQUE (author_id, client_id)`                                           |
+| Contenus modifiables      | Colonne `version` (entier), incrémentée à chaque modification, pour la détection de conflits (O4)                              |
 | Retrait par la modération | Colonne `hidden_at` : le contenu est masqué, jamais supprimé physiquement. Les requêtes publiques filtrent `hidden_at IS NULL` |
-| Journaux | `xp_events` et `admin_actions` sont **append-only** : l'application n'y fait que des `INSERT` |
-| Insensibilité à la casse | `handle` et `email` en `citext` (extension activée par la migration) |
-| Données inventées | Interdites hors des comptes `is_demo = true`, exclus des chiffres d'impact et des classements |
+| Journaux                  | `xp_events` et `admin_actions` sont **append-only** : l'application n'y fait que des `INSERT`                                  |
+| Insensibilité à la casse  | `handle` et `email` en `citext` (extension activée par la migration)                                                           |
+| Données inventées         | Interdites hors des comptes `is_demo = true`, exclus des chiffres d'impact et des classements                                  |
 
 ## Diagramme entité-relation (cœur du MVP)
 
@@ -54,44 +54,47 @@ erDiagram
 
 ### identity
 
-| Table | Rôle | Points d'attention |
-|---|---|---|
-| `users` | Compte et profil public | `github_id` unique ; `privacy` (JSON, PR14) filtré **côté API** ; `can_help_tag_ids` et `want_learn_tag_ids` (PR10, 5 au maximum chacun) ; `coc_accepted_at` (M3) ; `is_demo` ; `deleted_at` pour l'anonymisation (A3) |
-| `oauth_accounts` | Un compte par fournisseur (GitHub en P0, GitLab et Google en P1) | Jeton d'accès **chiffré** (`access_token_enc`, AES-256-GCM) ; scopes GitHub `read:user user:email` |
-| `sessions` | Sessions serveur | L'identifiant est le **SHA-256** du jeton du cookie : une fuite de la base ne permet pas d'usurper une session |
-| `communities` | Écoles, bootcamps, villes (D5, P1) | Vérification facultative par domaine d'e-mail |
+| Table            | Rôle                                                             | Points d'attention                                                                                                                                                                                                     |
+| ---------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`          | Compte et profil public                                          | `github_id` unique ; `privacy` (JSON, PR14) filtré **côté API** ; `can_help_tag_ids` et `want_learn_tag_ids` (PR10, 5 au maximum chacun) ; `coc_accepted_at` (M3) ; `is_demo` ; `deleted_at` pour l'anonymisation (A3) |
+| `oauth_accounts` | Un compte par fournisseur (GitHub en P0, GitLab et Google en P1) | Jeton d'accès **chiffré** (`access_token_enc`, AES-256-GCM) ; scopes GitHub `read:user user:email`                                                                                                                     |
+| `sessions`       | Sessions serveur                                                 | L'identifiant est le **SHA-256** du jeton du cookie : une fuite de la base ne permet pas d'usurper une session                                                                                                         |
+| `communities`    | Écoles, bootcamps, villes (D5, P1)                               | Vérification facultative par domaine d'e-mail                                                                                                                                                                          |
 
 Format de `users.availability` :
 
 ```json
-{ "now": true, "until": "2026-10-16T18:00:00Z",
-  "slots": [{ "day": 1, "from": "18:00", "to": "21:00" }] }
+{
+  "now": true,
+  "until": "2026-10-16T18:00:00Z",
+  "slots": [{ "day": 1, "from": "18:00", "to": "21:00" }]
+}
 ```
 
 Les créneaux sont exprimés dans le fuseau `users.timezone` ; le calcul du terme D du matching les convertit en UTC.
 
 ### passport et reputation
 
-| Table | Rôle | Points d'attention |
-|---|---|---|
-| `tags` | Étiquettes de technologie | `aliases` sert à la détection automatique (S9) et à la correspondance avec les langages GitHub |
-| `user_skills` | Score par étiquette | `github_signal` (G), `xp_tag` (P brut), `score` = min(100, G + min(60, xp_tag)). **Table dérivée** : recalculable à tout moment depuis GitHub et `xp_events` |
-| `xp_events` | Journal des Proof XP | Append-only. Une annulation crée un événement `revert` à points négatifs, lié par `reverts_id`. La contrainte `UNIQUE (user_id, kind, source_type, source_id, tag_id)` empêche un double gain |
-| `endorsements` | Recommandations adossées à une preuve (PR9, P1) | `source_type` + `source_id` obligatoires ; éligibilité vérifiée par l'API |
+| Table          | Rôle                                            | Points d'attention                                                                                                                                                                            |
+| -------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tags`         | Étiquettes de technologie                       | `aliases` sert à la détection automatique (S9) et à la correspondance avec les langages GitHub                                                                                                |
+| `user_skills`  | Score par étiquette                             | `github_signal` (G), `xp_tag` (P brut), `score` = min(100, G + min(60, xp_tag)). **Table dérivée** : recalculable à tout moment depuis GitHub et `xp_events`                                  |
+| `xp_events`    | Journal des Proof XP                            | Append-only. Une annulation crée un événement `revert` à points négatifs, lié par `reverts_id`. La contrainte `UNIQUE (user_id, kind, source_type, source_id, tag_id)` empêche un double gain |
+| `endorsements` | Recommandations adossées à une preuve (PR9, P1) | `source_type` + `source_id` obligatoires ; éligibilité vérifiée par l'API                                                                                                                     |
 
 **Invariant fondamental** : `SUM(points)` sur `xp_events` d'un utilisateur = son total de Proof XP affiché. Le Passport n'a pas de compteur stocké ailleurs qui pourrait diverger. Pour les performances, le total peut être mis en cache, mais il se recalcule toujours depuis le journal.
 
 ### sos
 
-| Table | Rôle | Points d'attention |
-|---|---|---|
-| `questions` | Questions SOS Dev | `status` : `open` → `resolved` (ou `closed`) ; `ai_hint` + `ai_status` ; `accepted_answer_id` unique ; `room_id` si la question vient du « Point du jour » (R14) ; `escalated_at` |
-| `question_tags` | 1 à 5 étiquettes par question | Indexée par `tag_id` pour le matching et les flux par stack |
-| `answers` | Réponses | `helpful_count` dénormalisé (mis à jour avec le vote, dans la même transaction) |
-| `votes` | « Réponse utile » | Clé primaire `(answer_id, voter_id)` : un vote par personne. Voter pour sa propre réponse est refusé par le cas d'usage |
-| `match_events` | Journal du matching | `wave` (1 ou 2 après escalade), `score`, `regime` (`cold_start` ou `normal`, X4), `reasons` (JSON structuré, traduit par le front), `claimed_at` (S11) |
-| `pair_sessions` | Créneaux de pair programming (S5, P1) | Lien de visio fourni par l'utilisateur, validé (HTTPS, liste de domaines) |
-| `translations` | Traductions IA en cache (S10) | `source_hash` invalide la traduction si l'original change ; **le code n'est jamais traduit** |
+| Table           | Rôle                                  | Points d'attention                                                                                                                                                                |
+| --------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `questions`     | Questions SOS Dev                     | `status` : `open` → `resolved` (ou `closed`) ; `ai_hint` + `ai_status` ; `accepted_answer_id` unique ; `room_id` si la question vient du « Point du jour » (R14) ; `escalated_at` |
+| `question_tags` | 1 à 5 étiquettes par question         | Indexée par `tag_id` pour le matching et les flux par stack                                                                                                                       |
+| `answers`       | Réponses                              | `helpful_count` dénormalisé (mis à jour avec le vote, dans la même transaction)                                                                                                   |
+| `votes`         | « Réponse utile »                     | Clé primaire `(answer_id, voter_id)` : un vote par personne. Voter pour sa propre réponse est refusé par le cas d'usage                                                           |
+| `match_events`  | Journal du matching                   | `wave` (1 ou 2 après escalade), `score`, `regime` (`cold_start` ou `normal`, X4), `reasons` (JSON structuré, traduit par le front), `claimed_at` (S11)                            |
+| `pair_sessions` | Créneaux de pair programming (S5, P1) | Lien de visio fourni par l'utilisateur, validé (HTTPS, liste de domaines)                                                                                                         |
+| `translations`  | Traductions IA en cache (S10)         | `source_hash` invalide la traduction si l'original change ; **le code n'est jamais traduit**                                                                                      |
 
 Format de `match_events.reasons` (jamais de pourcentage sans méthode, §6.2) :
 
@@ -105,30 +108,32 @@ Format de `match_events.reasons` (jamais de pourcentage sans méthode, §6.2) :
 
 ### rooms
 
-| Table | Rôle | Points d'attention |
-|---|---|---|
-| `rooms` | Salles de projet | `invite_code` court et unique (URL `/p/:code`) ; `repo_full_name` vérifié via l'API GitHub (R1) ; `stack_tag_ids`, `wanted_roles` (R10) ; `last_activity_at` pour la santé du projet (R11) |
-| `room_members` | Membres et rôle | Le créateur est inséré comme `owner` dans la même transaction que la salle |
-| `join_requests` | Demandes pour rejoindre (R3) | Une seule demande `pending` par couple salle-utilisateur (index partiel en SQL) |
-| `tasks` | Tâches | Statuts `open` → `taken` → `in_review` → `done` ; `verification` (`github_verified` ou `declared`, R9) ; `github_issue_id` unique par salle (import des issues) ; `ai_proposed` (R5) |
-| `room_messages` | Discussion (R4) | Ordre fixé par le serveur : `(created_at, id)` ; `kind = standup` pour le « Point du jour » |
-| `feedback_requests` | Demande de retour ou de revue de code (R6) | `confirmed_at` déclenche les +8 XP du relecteur |
+| Table               | Rôle                                       | Points d'attention                                                                                                                                                                         |
+| ------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `rooms`             | Salles de projet                           | `invite_code` court et unique (URL `/p/:code`) ; `repo_full_name` vérifié via l'API GitHub (R1) ; `stack_tag_ids`, `wanted_roles` (R10) ; `last_activity_at` pour la santé du projet (R11) |
+| `room_members`      | Membres et rôle                            | Le créateur est inséré comme `owner` dans la même transaction que la salle                                                                                                                 |
+| `join_requests`     | Demandes pour rejoindre (R3)               | Une seule demande `pending` par couple salle-utilisateur (index partiel en SQL)                                                                                                            |
+| `tasks`             | Tâches                                     | Statuts `open` → `taken` → `in_review` → `done` ; `verification` (`github_verified` ou `declared`, R9) ; `github_issue_id` unique par salle (import des issues) ; `ai_proposed` (R5)       |
+| `room_messages`     | Discussion (R4)                            | Ordre fixé par le serveur : `(created_at, id)` ; `kind = standup` pour le « Point du jour »                                                                                                |
+| `feedback_requests` | Demande de retour ou de revue de code (R6) | `confirmed_at` déclenche les +8 XP du relecteur                                                                                                                                            |
 
 ### notifications, moderation, platform, technique
 
-| Table | Rôle | Points d'attention |
-|---|---|---|
-| `notifications` | Notifications dans l'application | `seq` (auto-incrément) sert d'identifiant d'événement SSE et permet la reprise après coupure (`Last-Event-ID`) |
-| `push_subscriptions` | Web Push et Telegram (Y7, P1) | — |
-| `reports` | Signalements (M1) | Un signalement par personne et par cible |
-| `admin_actions` | Journal d'audit de la modération (M4) | Append-only |
-| `status_checks` | Résultats des sondes Systalink (Y1, Y5) | Purge au-delà de 30 jours |
-| `idempotency_keys` | Idempotence des écritures | Purge au-delà de 7 jours (voir [04](04-hors-ligne-sync.md#3-idempotence-côté-serveur)) |
-| `ai_requests` | Journal et cache des appels IA | Quota horaire par utilisateur ; cache par `(kind, input_hash, prompt_ver)` |
-| `github_cache` | Cache des réponses GitHub avec `ETag` | Les requêtes conditionnelles avec `ETag` ne décomptent pas le quota quand la réponse est `304` |
-| `content_revisions` | Anciennes versions (plan B des conflits) | Écrite seulement en mode « dernière modification gagnante » |
+| Table                | Rôle                                     | Points d'attention                                                                                             |
+| -------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `notifications`      | Notifications dans l'application         | `seq` (auto-incrément) sert d'identifiant d'événement SSE et permet la reprise après coupure (`Last-Event-ID`) |
+| `push_subscriptions` | Web Push et Telegram (Y7, P1)            | —                                                                                                              |
+| `reports`            | Signalements (M1)                        | Un signalement par personne et par cible                                                                       |
+| `admin_actions`      | Journal d'audit de la modération (M4)    | Append-only                                                                                                    |
+| `status_checks`      | Résultats des sondes Systalink (Y1, Y5)  | Purge au-delà de 30 jours                                                                                      |
+| `idempotency_keys`   | Idempotence des écritures                | Purge au-delà de 7 jours (voir [04](04-hors-ligne-sync.md#3-idempotence-côté-serveur))                         |
+| `ai_requests`        | Journal et cache des appels IA           | Quota horaire par utilisateur ; cache par `(kind, input_hash, prompt_ver)`                                     |
+| `github_cache`       | Cache des réponses GitHub avec `ETag`    | Les requêtes conditionnelles avec `ETag` ne décomptent pas le quota quand la réponse est `304`                 |
+| `content_revisions`  | Anciennes versions (plan B des conflits) | Écrite seulement en mode « dernière modification gagnante »                                                    |
 
 ## Index
+
+> **Migration initiale** : `apps/api/prisma/migrations/20261006174718_init/migration.sql`. Le SQL de cette section y est ajouté à la main, à la fin du fichier. Les colonnes `search` et les index GIN sont **aussi déclarés dans `schema.prisma`** (`Unsupported("tsvector")` avec `dbgenerated`, et `@@index(..., type: Gin)`), sinon Prisma proposerait de les supprimer à la migration suivante. Les index partiels et les déclencheurs sont ignorés par Prisma et n'ont pas besoin d'y figurer. Vérification : `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma` doit afficher une migration vide.
 
 Les index déclarés dans `schema.prisma` couvrent les accès par clé et les listes triées. Les index suivants sont **ajoutés en SQL brut** dans la migration initiale, car Prisma ne sait pas les exprimer :
 
