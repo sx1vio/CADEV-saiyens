@@ -1,0 +1,759 @@
+// Schéma de la base DevHub Africa — v1 (6 octobre 2026)
+// Documentation : docs/architecture/05-modele-donnees.md
+//
+// Conventions :
+// - clés primaires UUID (gen_random_uuid()), noms de tables et colonnes en snake_case ;
+// - dates en timestamptz (UTC) ;
+// - client_id = UUID fourni par le client pour les contenus créables hors ligne, unique par auteur ;
+// - version = compteur de modification pour la détection des conflits (O4) ;
+// - hidden_at = contenu retiré par la modération (M1), jamais supprimé physiquement.
+// Les index plein texte (GIN sur tsvector) sont ajoutés en SQL dans la migration initiale
+// (voir 05-modele-donnees.md § Index).
+// Prisma 7 : l'URL de connexion est dans prisma.config.ts, et le client utilise
+// l'adaptateur @prisma/adapter-pg (voir docs/architecture/05-modele-donnees.md).
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [citext, pgcrypto]
+}
+
+// ─────────────────────────────── Énumérations ───────────────────────────────
+
+enum OAuthProvider {
+  github
+  gitlab
+  google
+}
+
+enum Urgency {
+  low
+  normal
+  high
+}
+
+enum Lang {
+  fr
+  en
+}
+
+enum QuestionStatus {
+  open
+  resolved
+  closed
+}
+
+enum AiStatus {
+  pending // en attente du worker (ou du réseau, côté client)
+  done
+  failed
+  skipped // quota atteint ou IA désactivée
+}
+
+enum PairSessionStatus {
+  proposed
+  accepted
+  declined
+  done
+  cancelled
+}
+
+enum RoomState {
+  idea
+  in_progress
+  looking_for_help
+  shipped
+}
+
+enum RoomVisibility {
+  public
+  unlisted
+}
+
+enum RoomRole {
+  owner
+  maintainer
+  member
+}
+
+enum JoinRequestStatus {
+  pending
+  accepted
+  refused
+  cancelled
+}
+
+enum TaskLevel {
+  first_step // « Premier pas » (R13)
+  easy
+  medium
+  hard
+}
+
+enum TaskStatus {
+  open
+  taken
+  in_review
+  done
+}
+
+enum TaskVerification {
+  github_verified // PR fusionnée et auteur = contributeur (R9)
+  declared // validée manuellement par le créateur
+}
+
+enum RoomMessageKind {
+  text
+  standup // « Point du jour » (R14)
+  system
+}
+
+enum FeedbackKind {
+  feedback
+  code_review
+}
+
+enum FeedbackStatus {
+  open
+  in_progress
+  done
+  cancelled
+}
+
+enum XpKind {
+  answer_accepted // +10
+  answer_fast_bonus // +3, validée en moins de 15 min
+  answer_helpful_vote // +2, 5 votes max par réponse
+  task_completed // +15
+  code_review_given // +8
+  project_demo_shared // +5, une fois par projet
+  question_resolved // +1, auteur
+  difficulty_bonus // +5 (X6, P2)
+  mentoring // +3 (R13, P2)
+  still_resolved // +2 (S15, P2)
+  revert // annulation d'un événement (points négatifs)
+}
+
+enum ReportTargetType {
+  question
+  answer
+  room
+  room_message
+  user
+}
+
+enum ReportStatus {
+  open
+  actioned
+  dismissed
+}
+
+enum ContentType {
+  question
+  answer
+  room_message
+}
+
+// ─────────────────────────────── Identité ───────────────────────────────
+
+model User {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  githubId         BigInt?   @unique @map("github_id")
+  handle           String    @unique @db.Citext
+  displayName      String    @map("display_name")
+  email            String?   @unique @db.Citext
+  emailVerified    Boolean   @default(false) @map("email_verified")
+  avatarUrl        String?   @map("avatar_url")
+  bio              String?   @db.VarChar(500)
+  country          String?   @db.Char(2) // ISO 3166-1 alpha-2
+  timezone         String? // identifiant IANA, ex. Africa/Abidjan
+  languages        Lang[]    @default([fr])
+  availability     Json      @default("{}") // { now: bool, slots: [...] } voir doc
+  lookingFor       String?   @map("looking_for")
+  canHelpTagIds    String[]  @default([]) @map("can_help_tag_ids") @db.Uuid // PR10, 5 max
+  wantLearnTagIds  String[]  @default([]) @map("want_learn_tag_ids") @db.Uuid // PR10, 5 max
+  privacy          Json      @default("{}") // PR14 : { country, timezone, stats, availability, unlisted }
+  doNotDisturb     Boolean   @default(false) @map("do_not_disturb")
+  onboardingIntent String?   @map("onboarding_intent") // T3
+  uiLang           Lang      @default(fr) @map("ui_lang")
+  communityId      String?   @map("community_id") @db.Uuid // D5
+  githubCreatedAt  DateTime? @map("github_created_at") @db.Timestamptz // signal de confiance PR11
+  cocAcceptedAt    DateTime? @map("coc_accepted_at") @db.Timestamptz // M3
+  isAdmin          Boolean   @default(false) @map("is_admin")
+  isDemo           Boolean   @default(false) @map("is_demo")
+  lastSeenAt       DateTime? @map("last_seen_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz // A3 : anonymisation
+
+  community         Community?         @relation(fields: [communityId], references: [id])
+  oauthAccounts     OAuthAccount[]
+  sessions          Session[]
+  skills            UserSkill[]
+  questions         Question[]
+  answers           Answer[]
+  votes             Vote[]
+  matchEvents       MatchEvent[]
+  hostedPairs       PairSession[]      @relation("pair_host")
+  guestPairs        PairSession[]      @relation("pair_guest")
+  ownedRooms        Room[]
+  roomMemberships   RoomMember[]
+  joinRequests      JoinRequest[]
+  assignedTasks     Task[]             @relation("task_assignee")
+  mentoredTasks     Task[]             @relation("task_mentor")
+  roomMessages      RoomMessage[]
+  feedbackRequests  FeedbackRequest[]  @relation("feedback_requester")
+  feedbackReviews   FeedbackRequest[]  @relation("feedback_reviewer")
+  xpEvents          XpEvent[]
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
+  reportsMade       Report[]           @relation("report_reporter")
+  reportsHandled    Report[]           @relation("report_handler")
+  adminActions      AdminAction[]
+  endorsementsGiven Endorsement[]      @relation("endorsement_from")
+  endorsementsRecv  Endorsement[]      @relation("endorsement_to")
+  idempotencyKeys   IdempotencyKey[]
+  aiRequests        AiRequest[]
+
+  @@index([country])
+  @@index([lastSeenAt])
+  @@map("users")
+}
+
+model OAuthAccount {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String        @map("user_id") @db.Uuid
+  provider          OAuthProvider
+  providerAccountId String        @map("provider_account_id")
+  accessTokenEnc    Bytes?        @map("access_token_enc") // AES-256-GCM, jamais en clair
+  scopes            String[]      @default([])
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model Session {
+  id         String   @id // SHA-256 du jeton de session ; le jeton brut n'est que dans le cookie
+  userId     String   @map("user_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz
+  lastUsedAt DateTime @default(now()) @map("last_used_at") @db.Timestamptz
+  userAgent  String?  @map("user_agent")
+  ipHash     String?  @map("ip_hash")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Community {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique
+  name        String
+  kind        String // school | bootcamp | meetup | city
+  country     String?  @db.Char(2)
+  emailDomain String?  @map("email_domain") // vérification optionnelle (D5)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  members User[]
+
+  @@map("communities")
+}
+
+// ─────────────────────────────── Compétences et Passport ───────────────────────────────
+
+model Tag {
+  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug    String   @unique
+  label   String
+  aliases String[] @default([]) // ex. « js », « node » pour la détection S9
+
+  userSkills   UserSkill[]
+  questionTags QuestionTag[]
+  xpEvents     XpEvent[]
+  endorsements Endorsement[]
+
+  @@map("tags")
+}
+
+model UserSkill {
+  userId       String   @map("user_id") @db.Uuid
+  tagId        String   @map("tag_id") @db.Uuid
+  githubRepos  Int      @default(0) @map("github_repos") // dépôts qualifiés (X3)
+  githubSignal Int      @default(0) @map("github_signal") // G = min(40, 5 × githubRepos)
+  xpTag        Int      @default(0) @map("xp_tag") // XP nets gagnés sur l'étiquette
+  score        Int      @default(0) // min(100, G + min(60, xpTag))
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([userId, tagId])
+  @@index([tagId, score(sort: Desc)])
+  @@map("user_skills")
+}
+
+model Endorsement {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fromId     String    @map("from_id") @db.Uuid
+  toId       String    @map("to_id") @db.Uuid
+  tagId      String    @map("tag_id") @db.Uuid
+  sourceType String    @map("source_type") // answer | task | feedback_request
+  sourceId   String    @map("source_id") @db.Uuid
+  text       String    @db.VarChar(200)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  hiddenAt   DateTime? @map("hidden_at") @db.Timestamptz
+
+  from User @relation("endorsement_from", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User @relation("endorsement_to", fields: [toId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@unique([fromId, toId, tagId])
+  @@index([toId])
+  @@map("endorsements")
+}
+
+// ─────────────────────────────── SOS Dev ───────────────────────────────
+
+model Question {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId         String         @map("author_id") @db.Uuid
+  clientId         String         @map("client_id") @db.Uuid
+  title            String         @db.VarChar(150)
+  body             String
+  codeSnippet      String?        @map("code_snippet")
+  urgency          Urgency        @default(normal)
+  lang             Lang
+  status           QuestionStatus @default(open)
+  aiHint           String?        @map("ai_hint")
+  aiStatus         AiStatus       @default(pending) @map("ai_status")
+  acceptedAnswerId String?        @unique @map("accepted_answer_id") @db.Uuid
+  reproUrl         String?        @map("repro_url") // S14
+  roomId           String?        @map("room_id") @db.Uuid // R14
+  escalatedAt      DateTime?      @map("escalated_at") @db.Timestamptz
+  version          Int            @default(1)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt       DateTime?      @map("resolved_at") @db.Timestamptz
+  hiddenAt         DateTime?      @map("hidden_at") @db.Timestamptz
+
+  author         User          @relation(fields: [authorId], references: [id])
+  room           Room?         @relation(fields: [roomId], references: [id])
+  acceptedAnswer Answer?       @relation("accepted_answer", fields: [acceptedAnswerId], references: [id])
+  tags           QuestionTag[]
+  answers        Answer[]      @relation("question_answers")
+  matchEvents    MatchEvent[]
+  pairSessions   PairSession[]
+
+  @@unique([authorId, clientId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@map("questions")
+}
+
+model QuestionTag {
+  questionId String @map("question_id") @db.Uuid
+  tagId      String @map("tag_id") @db.Uuid
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([questionId, tagId])
+  @@index([tagId])
+  @@map("question_tags")
+}
+
+model Answer {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId   String    @map("question_id") @db.Uuid
+  authorId     String    @map("author_id") @db.Uuid
+  clientId     String    @map("client_id") @db.Uuid
+  body         String
+  isAccepted   Boolean   @default(false) @map("is_accepted")
+  helpfulCount Int       @default(0) @map("helpful_count")
+  version      Int       @default(1)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  hiddenAt     DateTime? @map("hidden_at") @db.Timestamptz
+
+  question    Question  @relation("question_answers", fields: [questionId], references: [id], onDelete: Cascade)
+  author      User      @relation(fields: [authorId], references: [id])
+  acceptedFor Question? @relation("accepted_answer")
+  votes       Vote[]
+
+  @@unique([authorId, clientId])
+  @@index([questionId, createdAt])
+  @@map("answers")
+}
+
+model Vote {
+  answerId  String   @map("answer_id") @db.Uuid
+  voterId   String   @map("voter_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  answer Answer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  voter  User   @relation(fields: [voterId], references: [id])
+
+  @@id([answerId, voterId])
+  @@map("votes")
+}
+
+model MatchEvent {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String    @map("question_id") @db.Uuid
+  helperId   String    @map("helper_id") @db.Uuid
+  wave       Int       @default(1) // 1 = premier envoi, 2 = escalade à 15 min
+  rank       Int
+  score      Decimal   @db.Decimal(5, 2)
+  regime     String // cold_start | normal (X4)
+  reasons    Json // [{ code: "solved_similar", params: { n: 5, tags: ["docker"] } }]
+  notifiedAt DateTime  @default(now()) @map("notified_at") @db.Timestamptz
+  claimedAt  DateTime? @map("claimed_at") @db.Timestamptz // « Je m'en occupe » (S11)
+  answeredAt DateTime? @map("answered_at") @db.Timestamptz
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  helper   User     @relation(fields: [helperId], references: [id])
+
+  @@unique([questionId, helperId])
+  @@index([helperId, notifiedAt(sort: Desc)])
+  @@map("match_events")
+}
+
+model PairSession {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String            @map("question_id") @db.Uuid
+  hostId     String            @map("host_id") @db.Uuid
+  guestId    String            @map("guest_id") @db.Uuid
+  startsAt   DateTime          @map("starts_at") @db.Timestamptz
+  videoLink  String            @map("video_link")
+  status     PairSessionStatus @default(proposed)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  host     User     @relation("pair_host", fields: [hostId], references: [id])
+  guest    User     @relation("pair_guest", fields: [guestId], references: [id])
+
+  @@index([questionId])
+  @@map("pair_sessions")
+}
+
+model Translation {
+  contentType ContentType @map("content_type")
+  contentId   String      @map("content_id") @db.Uuid
+  lang        Lang
+  sourceHash  String      @map("source_hash") // invalide la traduction si le texte change
+  text        String
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  @@id([contentType, contentId, lang])
+  @@map("translations")
+}
+
+// ─────────────────────────────── Salles de projet ───────────────────────────────
+
+model Room {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId        String         @map("owner_id") @db.Uuid
+  name           String         @db.VarChar(80)
+  description    String
+  state          RoomState      @default(in_progress)
+  repoFullName   String?        @map("repo_full_name") // owner/repo vérifié via l'API GitHub
+  repoVerifiedAt DateTime?      @map("repo_verified_at") @db.Timestamptz
+  demoUrl        String?        @map("demo_url")
+  inviteCode     String         @unique @map("invite_code") // utilisé dans /p/:code
+  visibility     RoomVisibility @default(public)
+  stackTagIds    String[]       @default([]) @map("stack_tag_ids") @db.Uuid
+  wantedRoles    String[]       @default([]) @map("wanted_roles") // R10
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  lastActivityAt DateTime       @default(now()) @map("last_activity_at") @db.Timestamptz
+  hiddenAt       DateTime?      @map("hidden_at") @db.Timestamptz
+
+  owner            User              @relation(fields: [ownerId], references: [id])
+  members          RoomMember[]
+  joinRequests     JoinRequest[]
+  tasks            Task[]
+  messages         RoomMessage[]
+  feedbackRequests FeedbackRequest[]
+  questions        Question[]
+
+  @@index([visibility, lastActivityAt(sort: Desc)])
+  @@map("rooms")
+}
+
+model RoomMember {
+  roomId   String   @map("room_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  role     RoomRole @default(member)
+  joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamptz
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId])
+  @@map("room_members")
+}
+
+model JoinRequest {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId    String            @map("room_id") @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  message   String?           @db.VarChar(500)
+  status    JoinRequestStatus @default(pending)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  decidedAt DateTime?         @map("decided_at") @db.Timestamptz
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, status])
+  @@map("join_requests")
+}
+
+model Task {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId        String            @map("room_id") @db.Uuid
+  title         String            @db.VarChar(150)
+  description   String?
+  level         TaskLevel         @default(medium)
+  status        TaskStatus        @default(open)
+  assigneeId    String?           @map("assignee_id") @db.Uuid
+  mentorId      String?           @map("mentor_id") @db.Uuid // R13
+  prUrl         String?           @map("pr_url")
+  verification  TaskVerification? // renseigné à la clôture (R8, R9)
+  githubIssueId BigInt?           @map("github_issue_id")
+  aiProposed    Boolean           @default(false) @map("ai_proposed") // R5, validée par le créateur
+  version       Int               @default(1)
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  takenAt       DateTime?         @map("taken_at") @db.Timestamptz
+  completedAt   DateTime?         @map("completed_at") @db.Timestamptz
+
+  room     Room  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  assignee User? @relation("task_assignee", fields: [assigneeId], references: [id])
+  mentor   User? @relation("task_mentor", fields: [mentorId], references: [id])
+
+  @@unique([roomId, githubIssueId])
+  @@index([roomId, status])
+  @@index([assigneeId])
+  @@map("tasks")
+}
+
+model RoomMessage {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId    String          @map("room_id") @db.Uuid
+  authorId  String          @map("author_id") @db.Uuid
+  clientId  String          @map("client_id") @db.Uuid
+  kind      RoomMessageKind @default(text)
+  body      String
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  hiddenAt  DateTime?       @map("hidden_at") @db.Timestamptz
+
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@unique([authorId, clientId])
+  @@index([roomId, createdAt, id])
+  @@map("room_messages")
+}
+
+model FeedbackRequest {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId      String         @map("room_id") @db.Uuid
+  requesterId String         @map("requester_id") @db.Uuid
+  reviewerId  String?        @map("reviewer_id") @db.Uuid
+  kind        FeedbackKind
+  status      FeedbackStatus @default(open)
+  note        String?
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  confirmedAt DateTime?      @map("confirmed_at") @db.Timestamptz // déclenche les +8 XP
+
+  room      Room  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  requester User  @relation("feedback_requester", fields: [requesterId], references: [id])
+  reviewer  User? @relation("feedback_reviewer", fields: [reviewerId], references: [id])
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("feedback_requests")
+}
+
+// ─────────────────────────────── Réputation ───────────────────────────────
+
+// Journal append-only : aucune mise à jour ni suppression applicative.
+// Une annulation = un nouvel événement kind = revert avec points négatifs et revertsId.
+// reverted_at est la seule colonne modifiable, pour marquer l'événement d'origine.
+model XpEvent {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  kind       XpKind
+  points     Int
+  tagId      String?   @map("tag_id") @db.Uuid
+  sourceType String    @map("source_type") // answer | task | feedback_request | room | question
+  sourceId   String    @map("source_id") @db.Uuid
+  revertsId  String?   @unique @map("reverts_id") @db.Uuid
+  revertedAt DateTime? @map("reverted_at") @db.Timestamptz
+  reason     String? // pour les annulations
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user    User     @relation(fields: [userId], references: [id])
+  tag     Tag?     @relation(fields: [tagId], references: [id])
+  reverts XpEvent? @relation("xp_revert", fields: [revertsId], references: [id])
+  revert  XpEvent? @relation("xp_revert")
+
+  // Empêche d'attribuer deux fois le même gain pour la même source et la même étiquette.
+  @@unique([userId, kind, sourceType, sourceId, tagId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([createdAt])
+  @@map("xp_events")
+}
+
+// ─────────────────────────────── Notifications ───────────────────────────────
+
+model Notification {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seq         BigInt    @unique @default(autoincrement()) // ordre et reprise SSE (Last-Event-ID)
+  userId      String    @map("user_id") @db.Uuid
+  type        String // match.request | answer.created | answer.accepted | join.request | ...
+  payload     Json
+  readAt      DateTime? @map("read_at") @db.Timestamptz
+  emailSentAt DateTime? @map("email_sent_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, seq])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  channel   String // webpush | telegram (Y7)
+  endpoint  String
+  keys      Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channel, endpoint])
+  @@map("push_subscriptions")
+}
+
+// ─────────────────────────────── Modération ───────────────────────────────
+
+model Report {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId String           @map("reporter_id") @db.Uuid
+  targetType ReportTargetType @map("target_type")
+  targetId   String           @map("target_id") @db.Uuid
+  reason     String           @db.VarChar(500)
+  status     ReportStatus     @default(open)
+  handledBy  String?          @map("handled_by") @db.Uuid
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  handledAt  DateTime?        @map("handled_at") @db.Timestamptz
+
+  reporter User  @relation("report_reporter", fields: [reporterId], references: [id])
+  handler  User? @relation("report_handler", fields: [handledBy], references: [id])
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([status, createdAt])
+  @@map("reports")
+}
+
+// Journal d'audit append-only des actions d'administration (M4).
+model AdminAction {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminId    String   @map("admin_id") @db.Uuid
+  action     String // hide_content | restore_content | revert_xp | flag_demo | ...
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id") @db.Uuid
+  reason     String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@index([targetType, targetId])
+  @@map("admin_actions")
+}
+
+// ─────────────────────────────── Technique ───────────────────────────────
+
+model IdempotencyKey {
+  userId         String   @map("user_id") @db.Uuid
+  key            String   @db.Uuid
+  endpoint       String
+  requestHash    String   @map("request_hash")
+  status         String // processing | completed
+  responseStatus Int?     @map("response_status")
+  responseBody   Json?    @map("response_body")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, key])
+  @@index([createdAt])
+  @@map("idempotency_keys")
+}
+
+model AiRequest {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  kind         String // hint | room_tasks | translate | resolution_sheet | room_from_readme | recruiter_summary
+  inputHash    String   @map("input_hash") // empreinte pour le cache
+  promptVer    String   @map("prompt_ver") // version du gabarit de prompt
+  status       String // ok | error | timeout | quota
+  output       Json?
+  inputTokens  Int?     @map("input_tokens")
+  outputTokens Int?     @map("output_tokens")
+  latencyMs    Int?     @map("latency_ms")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([kind, inputHash, promptVer])
+  @@map("ai_requests")
+}
+
+model GithubCache {
+  key       String   @id // ex. user:12345:repos, repo:owner/name:languages
+  etag      String?
+  body      Json
+  fetchedAt DateTime @map("fetched_at") @db.Timestamptz
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+
+  @@map("github_cache")
+}
+
+model StatusCheck {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service   String // vps | database | backup | mail | object_storage
+  ok        Boolean
+  latencyMs Int?     @map("latency_ms")
+  detail    Json? // ex. { lastBackupAt: "..." }
+  checkedAt DateTime @default(now()) @map("checked_at") @db.Timestamptz
+
+  @@index([service, checkedAt(sort: Desc)])
+  @@map("status_checks")
+}
+
+model ContentRevision {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contentType ContentType @map("content_type")
+  contentId   String      @map("content_id") @db.Uuid
+  version     Int
+  body        Json // ancienne version complète (plan B « dernière modification gagnante »)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([contentType, contentId, version])
+  @@map("content_revisions")
+}
