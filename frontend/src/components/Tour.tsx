@@ -135,7 +135,7 @@ export function Tour() {
             <X className="size-4" />
           </button>
           <p className="mt-6 label-caps">{t('tour.of', { n: step + 1, total })}</p>
-          <h2 id="tour-title" className="mt-1 text-lg font-bold tracking-tight text-fg">
+          <h2 id="tour-title" className="mt-1 text-lg font-semibold tracking-tight text-fg">
             {t(`tour.${current.key}Title`)}
           </h2>
           <p id="tour-text" className="mt-1.5 text-sm leading-relaxed text-muted">

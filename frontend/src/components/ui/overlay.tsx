@@ -115,7 +115,7 @@ export function DropMenu({ trigger, children, align = 'end' }: { trigger: ReactN
     <Menu.Root>
       <Menu.Trigger asChild>{trigger}</Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content align={align} sideOffset={8} className="dh-pop z-[60] min-w-56 rounded-[14px] border border-line bg-surface-2 p-1.5 shadow-lg">
+        <Menu.Content align={align} sideOffset={8} className="dh-pop z-[60] min-w-56 rounded-[10px] bg-surface-1 p-1.5 shadow-lg">
           {children}
         </Menu.Content>
       </Menu.Portal>
@@ -128,7 +128,7 @@ export function MenuItem({ icon, children, onSelect, danger, hint }: { icon?: Re
     <Menu.Item
       onSelect={onSelect}
       className={cn(
-        'flex h-9 cursor-pointer items-center gap-2.5 rounded-[9px] px-2.5 text-sm outline-none select-none [&_svg]:size-4',
+        'flex h-9 cursor-pointer items-center gap-2.5 rounded-[6px] px-2.5 text-sm outline-none select-none [&_svg]:size-4',
         danger ? 'text-danger data-[highlighted]:bg-danger-soft' : 'text-muted data-[highlighted]:bg-surface-3 data-[highlighted]:text-fg',
       )}
     >

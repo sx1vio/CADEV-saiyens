@@ -30,7 +30,7 @@ export default function Rules() {
                   {action}
                   <span className="mt-0.5 block text-xs text-subtle sm:hidden">{note}</span>
                 </td>
-                <td className="px-2 py-3 text-right font-bold tabular text-success">{pts}</td>
+                <td className="px-2 py-3 text-right font-semibold tabular text-success">{pts}</td>
                 <td className="hidden px-4 py-3 text-muted sm:table-cell">{note}</td>
               </tr>
             ))}

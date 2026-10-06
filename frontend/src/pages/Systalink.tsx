@@ -44,14 +44,14 @@ export default function Systalink() {
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <Card className="p-5 sm:col-span-2">
               <p className="text-[13px] text-muted">{t('systalink.lastBackup')}</p>
-              <p className="mt-1 text-[28px] font-bold leading-none tracking-tight text-fg">{data.lastBackupAt ? relativeTime(data.lastBackupAt, lang) : '—'}</p>
+              <p className="mt-1 text-[28px] font-semibold leading-none tracking-tight text-fg">{data.lastBackupAt ? relativeTime(data.lastBackupAt, lang) : '—'}</p>
               <p className="mt-2 text-xs text-subtle">
                 {t('systalink.host')} · <span className="font-mono">{data.region}</span>
               </p>
             </Card>
             <Card className="flex flex-col justify-between p-5">
               <p className="text-[13px] text-muted">{t('systalink.systalinkProducts')}</p>
-              <p className="text-[28px] font-bold leading-none tracking-tight tabular text-fg">
+              <p className="text-[28px] font-semibold leading-none tracking-tight tabular text-fg">
                 {group('systalink').filter((s) => s.status === 'up').length}/{group('systalink').length}
               </p>
               <StatusDot tone={group('systalink').some((s) => s.status === 'down') ? 'danger' : 'success'} pulse />

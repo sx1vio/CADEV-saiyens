@@ -44,8 +44,8 @@ export function NetworkIndicator({ compact, className }: { compact?: boolean; cl
       data-tour="network"
       aria-label={`${label}${pending ? ` · ${t('network.pending', { count: pending })}` : ''}`}
       className={cn(
-        'relative inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-line bg-surface-2 px-3 text-[13px] font-medium text-muted transition-colors hover:border-line-strong hover:text-fg',
-        compact && 'w-9 justify-center px-0',
+        'relative inline-flex h-8 shrink-0 items-center gap-2 rounded-[6px] px-2.5 text-[13px] font-semibold text-muted transition-colors hover:bg-surface-2 hover:text-fg',
+        compact && 'w-8 justify-center px-0',
         className,
       )}
     >
@@ -56,7 +56,7 @@ export function NetworkIndicator({ compact, className }: { compact?: boolean; cl
           {pending}
         </Badge>
       )}
-      {compact && pending > 0 && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-badge ring-2 ring-surface-1" />}
+      {compact && pending > 0 && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-badge ring-2 ring-canvas" />}
     </button>
   )
 }

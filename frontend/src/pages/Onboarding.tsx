@@ -96,7 +96,7 @@ export default function Onboarding() {
           <div className="flex items-end gap-4">
             <Djeli pose={poses[step]} size={84} float />
             <div className="min-w-0 pb-2">
-              <h1 className="text-[26px] font-bold leading-tight tracking-[-0.03em] text-fg sm:text-[30px]">{t(`onboarding.${titles[step]}`)}</h1>
+              <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em] text-fg sm:text-[30px]">{t(`onboarding.${titles[step]}`)}</h1>
               <p className="mt-1 text-[15px] text-muted">{t(`onboarding.${texts[step]}`)}</p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function Onboarding() {
                 <ol className="flex flex-col gap-3">
                   {[1, 2, 3, 4].map((n) => (
                     <li key={n} className="flex items-start gap-3 rounded-[16px] border border-line bg-surface-2 p-4">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent-text">{n}</span>
+                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent-text">{n}</span>
                       <span className="pt-0.5 text-[15px] text-fg">{t(`onboarding.conduct${n}`)}</span>
                     </li>
                   ))}

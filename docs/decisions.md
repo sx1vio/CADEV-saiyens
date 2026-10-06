@@ -210,3 +210,41 @@ Leviers appliqués :
    - aucune animation sur la palette Ctrl+K (action clavier fréquente).
 5. **Curseur main** remis sur tous les éléments cliquables (Tailwind v4 le retire).
 6. **Langue :** français par défaut, quelle que soit la langue du navigateur.
+
+## 10. Refonte 2 : sobriété façon Discord (06/10/2026)
+
+> « Ce que tu as fait est plat et ultra basique… je parle en terme de design pur et propre. » — Sylvio, avec une capture de Discord à côté de l'écran Découvrir.
+
+**Diagnostic :** la richesse de Discord ne vient pas d'effets, mais d'une vraie police, de paliers de gris nets entre les colonnes, d'une forte densité de contenu (avatars, extraits, réactions) et d'une couleur réservée au contenu et aux états. Notre version faisait l'inverse : police système (Inter jamais chargée), cartes imbriquées, pastilles colorées, dégradés, aurore et liserés lumineux.
+
+**Décisions :**
+1. **Police Figtree** auto-hébergée (20 Ko) : écart assumé avec la règle « polices système » du CDC (§9), car la police fait la moitié de l'identité et reste dans le budget de 300 Ko.
+2. **Profondeur par le ton, pas par l'ombre :** rail et colonne très sombres, contenu un cran plus clair, surfaces en paliers ; ni aurore, ni grain, ni dégradé.
+3. **La signature « coins inversés » (image 04 du brief) est abandonnée** : elle n'existe pas chez Discord et alourdissait la colonne. La décision §9 (« matière ») est annulée sur ce point.
+4. **Une seule action principale par écran :** sur le QG, la barre de saisie porte « Je suis bloqué » ; ailleurs, l'en-tête de salon.
+5. **Contenu d'abord :** les questions deviennent des posts de forum (extrait d'erreur visible), le QG devient un fil.
+
+## 11. Pivot : une plateforme écosystème multi-services (06/10/2026)
+
+> « Oublie le cahier des charges. Fais exactement la plateforme que je décris ici. Je ne veux pas un Discord, mais une vraie plateforme écosystème avec multi services. Inspire-toi de Reddit, YouTube et GitHub. » — Sylvio
+
+**Ce qui change :** le front ne suit plus le périmètre du CDC v3 (3 piliers + roadmap). Les services que le CDC rangeait en roadmap deviennent des écrans : fil d'actualité, communautés, emplois, certifications (gratuites, payantes, base de données), skills et plugins pour agents IA, vidéos, apprentissage, guide de création d'app avec l'IA, templates. La décision §10 (sobriété façon Discord) est remplacée pour la structure ; ses choix visuels (gris neutres, police Figtree, pas d'effets) restent.
+
+**Décisions :**
+1. **Structure YouTube / GitHub :** barre du haut avec recherche centrale et bouton « Créer », menu latéral par services. Le fil reprend les codes de Reddit (votes, communautés, commentaires imbriqués), les vidéos ceux de YouTube, les skills ceux d'une marketplace.
+2. **Le guide « Créer avec l'IA » est un guide, pas un générateur :** à la demande de Sylvio, chaque étape donne les points d'attention (sécurité, secrets, paquets inventés, diffs non relus, coûts…), classés par gravité, avec prompts et checklist.
+3. **Honnêteté des données :** tout le contenu des services est marqué « démo » ; entreprises fictives ; prix des certifications « indicatifs, à vérifier chez l'éditeur » ; aucune affirmation inventée sur des entreprises réelles ; le lecteur vidéo est signalé comme aperçu.
+4. **État personnel local :** votes, candidatures, badges, progression des parcours et du guide sont gardés sur l'appareil (`src/platform/store.ts`), donc disponibles hors ligne, en attendant l'API.
+5. **Point d'équipe nécessaire :** le back-end (rôle 2) travaille sur le CDC v3 ; il faut aligner l'API sur ces services.
+
+## 12. Charte « Drivery » (06/10/2026)
+
+> « Polices, design, textes, tailles, formes, couleurs, copie exactement ceci pour ma plateforme. » — Sylvio, avec une capture du design « Drivery ».
+
+**Décisions :**
+1. **Thème clair par défaut** (clé de stockage `dh-theme2`, pour que les anciens réglages sombres ne masquent pas la nouvelle charte). Le sombre reste un choix explicite.
+2. **Palette :** blanc, gris `#f3f3f5` pour les cartes et rangées, noir pour la barre latérale, la carte phare et les actions principales, lavande `#8d6cf0` pour l'entrée active, rouge `#ff4d4f` pour les compteurs, vert pour les hausses. Textes secondaires à 4,5:1 minimum.
+3. **Formes :** pilules partout (boutons, onglets, champs), cartes à 20 px, aucune bordure sur les cartes ; profondeur par le contraste blanc / gris / noir.
+4. **Typo :** Inter (tailles optiques), titres de page à 42 px gras avec approche négative ; libellés d'indicateurs en minuscules.
+5. **Contenu conservé :** chaque page garde son contenu ; seuls les indicateurs (cartes) et les rangées de liste reprennent la structure du modèle, avec des chiffres calculés sur les vraies données.
+6. **Logos :** Simple Icons (CC0). Pas de logo libre pour OpenAI, AWS, Azure, Oracle, Harvard : monogramme neutre ou icône générique à la place.

@@ -49,7 +49,7 @@ export default function Impact() {
               <Card key={x.label} className="flex flex-col gap-3 p-4 sm:p-5">
                 <IconChip tone={x.tone}>{x.icon}</IconChip>
                 <div>
-                  <p className="text-[28px] font-bold leading-none tracking-tight tabular text-fg sm:text-[34px]">{x.value}</p>
+                  <p className="text-[28px] font-semibold leading-none tracking-tight tabular text-fg sm:text-[34px]">{x.value}</p>
                   <p className="mt-1.5 text-[13px] text-muted">{x.label}</p>
                   {x.hint && <p className="mt-1 text-[11.5px] leading-snug text-subtle">{x.hint}</p>}
                 </div>

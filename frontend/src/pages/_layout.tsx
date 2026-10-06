@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 /** Conteneur de page : même grille partout (règle n°6), entrée en fondu-glissé. */
 export function Page({ children, className, wide }: { children: ReactNode; className?: string; wide?: boolean }) {
-  return <div className={cn('dh-page mx-auto w-full px-4 py-6 sm:px-6 sm:py-8', wide ? 'max-w-7xl' : 'max-w-6xl', className)}>{children}</div>
+  return <div className={cn('dh-page mx-auto w-full px-4 py-5 sm:px-6', wide ? 'max-w-7xl' : 'max-w-[1080px]', className)}>{children}</div>
 }
 
 /**
@@ -18,7 +18,7 @@ export function WithPanel({ children, panel, panelTitle, className }: { children
   const xl = useMedia('(min-width: 1280px)')
   const [open, setOpen] = useState(false)
   return (
-    <div className={cn('mx-auto flex w-full max-w-[1400px] gap-6 px-4 py-6 sm:px-6 sm:py-8', className)}>
+    <div className={cn('mx-auto flex w-full max-w-[1400px] gap-6 px-4 py-5 sm:px-6', className)}>
       <div className="dh-page min-w-0 flex-1">
         {!xl && (
           <Button

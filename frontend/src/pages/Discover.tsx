@@ -38,7 +38,7 @@ export default function Discover() {
     setParams(next, { replace: true })
   }
   const active = [...params.keys()].length > 0
-  const selectCls = 'h-11 rounded-[12px] border border-line bg-inset px-3 text-sm text-fg shadow-inset sm:h-10'
+  const selectCls = 'h-11 rounded-full border border-line-strong bg-canvas px-4 text-sm text-fg sm:h-10'
 
   return (
     <Page wide>
@@ -52,7 +52,7 @@ export default function Discover() {
         }
       />
 
-      <section className="mt-6 flex flex-col gap-3 rounded-[20px] border border-line bg-surface-1 p-3 sm:p-4" aria-label={t('common.search')}>
+      <section className="mt-6 flex flex-col gap-3 rounded-[20px] bg-surface-1 p-3 sm:p-4" aria-label={t('common.search')}>
         <div className="flex flex-col gap-3 md:flex-row">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-subtle" />

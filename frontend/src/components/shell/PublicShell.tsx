@@ -19,7 +19,7 @@ const LINKS = [
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5 text-[17px] font-bold tracking-tight text-fg', className)}>
+    <span className={cn('inline-flex items-center gap-2.5 text-[17px] font-semibold tracking-tight text-fg', className)}>
       <img src="/favicon.svg" alt="" className="size-8" />
       DevHub<span className="-ml-2 text-accent-text">.</span>
       <span className="-ml-1 hidden font-semibold text-muted sm:inline">Africa</span>

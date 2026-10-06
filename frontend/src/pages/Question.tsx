@@ -142,7 +142,7 @@ export default function QuestionPage() {
               </Badge>
             )}
           </div>
-          <h1 className="mt-3 text-[24px] font-bold leading-tight tracking-[-0.025em] text-fg sm:text-[30px]">{q.title}</h1>
+          <h1 className="mt-3 text-[24px] font-semibold leading-tight tracking-[-0.025em] text-fg sm:text-[30px]">{q.title}</h1>
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-subtle">
             <span>{t('question.asked', { time: relativeTime(q.createdAt, lang) })}</span>
             <UserLink user={q.author} size={22} />
@@ -218,7 +218,7 @@ export default function QuestionPage() {
 
         {/* Réponses (fil façon image 05) */}
         <section className="flex flex-col gap-4">
-          <h2 className="text-lg font-bold tracking-tight text-fg">{t('question.answersTitle', { count: q.answers.length })}</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-fg">{t('question.answersTitle', { count: q.answers.length })}</h2>
           {q.answers.length === 0 && pendingAnswers.length === 0 && <p className="rounded-[16px] border border-dashed border-line-strong p-5 text-center text-sm text-muted">{t('question.noAnswers')}</p>}
           <ol className="relative flex flex-col gap-4">
             {q.answers.map((a) => (

@@ -46,7 +46,24 @@ const pages = {
   landing: () => import('@/pages/Landing'),
   login: () => import('@/pages/Login'),
   onboarding: () => import('@/pages/Onboarding'),
-  home: () => import('@/pages/Home'),
+  home: () => import('@/pages/Feed'),
+  post: () => import('@/pages/PostPage'),
+  publish: () => import('@/pages/Publish'),
+  community: () => import('@/pages/Communities'),
+  communities: () => import('@/pages/Communities').then((m) => ({ default: m.CommunityList })),
+  jobs: () => import('@/pages/Jobs'),
+  jobPublish: () => import('@/pages/JobPublish'),
+  certs: () => import('@/pages/Certifications'),
+  certExam: () => import('@/pages/CertExam'),
+  skills: () => import('@/pages/Skills'),
+  skill: () => import('@/pages/Skills').then((m) => ({ default: m.SkillDetail })),
+  videos: () => import('@/pages/Videos'),
+  watch: () => import('@/pages/Videos').then((m) => ({ default: m.Watch })),
+  learn: () => import('@/pages/Learn'),
+  learnPath: () => import('@/pages/Learn').then((m) => ({ default: m.PathPage })),
+  lesson: () => import('@/pages/Learn').then((m) => ({ default: m.LessonPage })),
+  build: () => import('@/pages/BuildGuide'),
+  templates: () => import('@/pages/Templates'),
   sos: () => import('@/pages/SosList'),
   question: () => import('@/pages/Question'),
   projects: () => import('@/pages/Projects'),
@@ -72,7 +89,7 @@ const lazy = (k: keyof typeof pages) => () => pages[k]().then((m) => ({ Componen
 export function preloadCorePages() {
   const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
   if (c?.saveData || (c?.effectiveType && c.effectiveType !== '4g')) return
-  const run = () => [pages.sos, pages.projects, pages.discover, pages.passport, pages.question].forEach((p) => void p())
+  const run = () => [pages.sos, pages.jobs, pages.videos, pages.learn, pages.build, pages.post].forEach((p) => void p())
   if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 6000 })
   else setTimeout(run, 4000)
 }
@@ -151,6 +168,36 @@ export const router = createBrowserRouter([
           return { element: <RequireAuth><m.default /></RequireAuth> }
         },
       },
+      { path: 'post/:id', lazy: lazy('post') },
+      {
+        path: 'publier',
+        lazy: async () => {
+          const m = await pages.publish()
+          return { element: <RequireAuth><m.default /></RequireAuth> }
+        },
+      },
+      { path: 'communautes', lazy: lazy('communities') },
+      { path: 'c/:slug', lazy: lazy('community') },
+      {
+        path: 'emplois/publier',
+        lazy: async () => {
+          const m = await pages.jobPublish()
+          return { element: <RequireAuth><m.default /></RequireAuth> }
+        },
+      },
+      { path: 'emplois', lazy: lazy('jobs') },
+      { path: 'emplois/:id', lazy: lazy('jobs') },
+      { path: 'certifications', lazy: lazy('certs') },
+      { path: 'certifications/:id', lazy: lazy('certExam') },
+      { path: 'skills', lazy: lazy('skills') },
+      { path: 'skills/:id', lazy: lazy('skill') },
+      { path: 'videos', lazy: lazy('videos') },
+      { path: 'videos/:id', lazy: lazy('watch') },
+      { path: 'apprendre', lazy: lazy('learn') },
+      { path: 'apprendre/:pathId', lazy: lazy('learnPath') },
+      { path: 'apprendre/:pathId/:lessonId', lazy: lazy('lesson') },
+      { path: 'creer', lazy: lazy('build') },
+      { path: 'templates', lazy: lazy('templates') },
       { path: 'sos', lazy: lazy('sos') },
       { path: 'sos/:id', lazy: lazy('question') },
       { path: 'projets', lazy: lazy('projects') },

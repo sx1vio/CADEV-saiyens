@@ -149,7 +149,7 @@ export default function Room() {
           <div className="relative -mt-12 flex flex-col gap-3 px-5 pb-5 sm:-mt-14 sm:flex-row sm:items-end sm:px-6">
             <RoomIcon room={room} size={88} className="ring-[5px] ring-surface-2 shadow-lg" />
             <div className="min-w-0 flex-1 sm:pb-1">
-              <h1 className="text-[26px] font-bold leading-tight tracking-[-0.03em] text-fg sm:text-[32px]">{room.name}</h1>
+              <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em] text-fg sm:text-[32px]">{room.name}</h1>
               <p className="mt-1 text-[15px] text-muted">{room.tagline}</p>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                 <a href={`https://github.com/${room.repoFullName}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-mono text-[13px] text-fg hover:underline">

@@ -29,7 +29,7 @@ export type Theme = 'dark' | 'light'
 
 function initialTheme(): Theme {
   const t = document.documentElement.dataset.theme
-  return t === 'light' ? 'light' : 'dark'
+  return t === 'dark' ? 'dark' : 'light'
 }
 
 interface UIState {
@@ -63,8 +63,8 @@ export const useUI = create<UIState>((set) => ({
   theme: initialTheme(),
   setTheme: (theme) => {
     document.documentElement.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#F4F5FB' : '#0B0D1C')
-    storageSet('dh-theme', theme)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#FFFFFF' : '#0B0B0C')
+    storageSet('dh-theme2', theme)
     set({ theme })
   },
   navCollapsed: storageGet('dh-nav') === 'collapsed',

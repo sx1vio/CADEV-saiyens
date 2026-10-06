@@ -11,14 +11,13 @@ export interface SegmentItem<T extends string> {
 }
 
 /**
- * Navigation segmentée (image 03) : conteneur pilule creusé, item actif en relief
- * (liseré lumineux + ombre douce) qui GLISSE d'un onglet à l'autre, point lumineux en option (v3).
+ * Onglets façon Discord : texte sur fond transparent, l'onglet actif est un aplat
+ * plus clair qui glisse d'un onglet à l'autre. `glow` est conservé pour compatibilité, sans effet.
  */
 export function Segmented<T extends string>({
   items,
   value,
   onChange,
-  glow,
   size = 'md',
   className,
   label,
@@ -37,7 +36,7 @@ export function Segmented<T extends string>({
     <div
       role="tablist"
       aria-label={label}
-      className={cn('no-scrollbar inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full bg-inset p-1 shadow-inset', className)}
+      className={cn('no-scrollbar inline-flex max-w-full items-center gap-2 overflow-x-auto', className)}
       onKeyDown={(e) => {
         const i = items.findIndex((it) => it.value === value)
         if (e.key === 'ArrowRight') onChange(items[(i + 1) % items.length].value)
@@ -56,29 +55,21 @@ export function Segmented<T extends string>({
             onClick={() => onChange(it.value)}
             className={cn(
               'relative isolate inline-flex shrink-0 items-center gap-1.5 rounded-full font-medium transition-colors duration-150',
-              size === 'sm' ? 'h-8 px-3 text-[13px]' : 'h-9 px-3.5 text-sm',
-              active ? 'text-fg' : 'text-subtle hover:text-muted',
+              size === 'sm' ? 'h-8 px-3.5 text-[12.5px]' : 'h-9 px-4 text-[13px]',
+              active ? 'text-canvas' : 'bg-surface-1 text-fg hover:bg-surface-2',
               '[&_svg]:size-4',
             )}
           >
             {active && (
               <m.span
                 layoutId={`seg-${id}`}
-                className="absolute inset-0 -z-10 rounded-full bg-surface-3 shadow-raised"
+                className="absolute inset-0 -z-10 rounded-full bg-fg"
                 transition={{ type: 'spring', stiffness: 520, damping: 40, mass: 0.8 }}
               />
             )}
-            {it.icon && <span className={cn('transition-colors', active ? 'text-accent-text' : '')}>{it.icon}</span>}
+            {it.icon && <span className="opacity-80">{it.icon}</span>}
             {it.label}
             {!!it.count && <CountDot count={it.count} className="h-[18px] min-w-[18px] text-[10px]" />}
-            {glow && active && (
-              <m.span
-                layoutId={`seg-glow-${id}`}
-                aria-hidden
-                className="absolute -bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-accent shadow-[0_0_10px_3px_var(--accent)]"
-                transition={{ type: 'spring', stiffness: 520, damping: 40 }}
-              />
-            )}
           </button>
         )
       })}

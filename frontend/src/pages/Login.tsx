@@ -75,14 +75,14 @@ export default function Login() {
       {/* Panneau de marque */}
       <aside className="relative hidden overflow-hidden bg-hero p-10 text-on-hero lg:flex lg:flex-col">
         <div aria-hidden className="absolute inset-0 bg-[radial-gradient(90%_70%_at_0%_100%,rgba(255,255,255,0.16),transparent_60%)]" />
-        <Link to="/" className="relative inline-flex items-center gap-2 font-bold">
+        <Link to="/" className="relative inline-flex items-center gap-2 font-semibold">
           <img src="/favicon.svg" alt="" className="size-9 rounded-[12px] ring-2 ring-on-hero/30" />
           DevHub Africa
         </Link>
         <img src={heroHub} alt="" width={600} height={573} className="pointer-events-none absolute -top-10 -right-24 w-[520px] max-w-none opacity-90" />
         <div className="relative mt-auto max-w-lg">
           <Djeli pose="wave" size={150} float />
-          <p className="mt-6 text-[34px] leading-[1.08] font-bold tracking-tight">{t('app.slogan')}</p>
+          <p className="mt-6 text-[34px] leading-[1.08] font-semibold tracking-tight">{t('app.slogan')}</p>
           <p className="mt-3 text-[16px] leading-relaxed text-on-hero-muted">{t('app.pitch')}</p>
         </div>
       </aside>
@@ -100,7 +100,7 @@ export default function Login() {
         </div>
 
         <div className="dh-page mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
-          <h1 className="text-[30px] font-bold leading-tight tracking-[-0.03em] text-fg">{t('auth.title')}</h1>
+          <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.03em] text-fg">{t('auth.title')}</h1>
           <p className="mt-2 text-muted">{t('auth.subtitle')}</p>
 
           {!found ? (

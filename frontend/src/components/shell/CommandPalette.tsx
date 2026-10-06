@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Command } from 'cmdk'
-import { BarChart3, BookOpenCheck, Compass, FolderGit2, FolderPlus, Home, Languages, LifeBuoy, Map, Moon, Search, ServerCog, Sun, Trophy, UserRound, WifiOff, Zap } from 'lucide-react'
+import { Award, Briefcase, FileCode2, FolderPlus, GraduationCap, Languages, LifeBuoy, Map, Moon, Newspaper, PenSquare, PlaySquare, Search, Sun, UserRound, WifiOff, Zap } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -12,6 +12,13 @@ import { useSession, useUI } from '@/stores/app'
 import { RoomMark } from '../domain'
 import { Sheet } from '../ui/overlay'
 import { Avatar, Kbd } from '../ui/primitives'
+import { ALL_NAV } from './nav'
+import { POSTS } from '@/platform/data/feed'
+import { JOBS } from '@/platform/data/jobs'
+import { SKILLS } from '@/platform/data/skills'
+import { VIDEOS } from '@/platform/data/videos'
+import { PATHS } from '@/platform/data/learn'
+import { PLATFORM_CERTS } from '@/platform/data/certs'
 
 /**
  * Palette Ctrl/Cmd+K (T5) : recherche globale (questions, salles, devs) + actions + navigation.
@@ -47,17 +54,7 @@ export function CommandPalette() {
   }
 
   const pages = useMemo(
-    () => [
-      { to: '/', icon: Home, label: t('nav.home') },
-      { to: '/sos', icon: LifeBuoy, label: t('nav.sos') },
-      { to: '/projets', icon: FolderGit2, label: t('nav.projects') },
-      { to: '/decouvrir', icon: Compass, label: t('nav.discover') },
-      { to: '/classement', icon: Trophy, label: t('nav.leaderboard') },
-      { to: '/systalink', icon: ServerCog, label: t('nav.systalink') },
-      { to: '/impact', icon: BarChart3, label: t('nav.impact') },
-      { to: '/regles', icon: BookOpenCheck, label: t('nav.rules') },
-      ...(me ? [{ to: `/u/${me.handle}`, icon: UserRound, label: t('nav.myPassport') }] : []),
-    ],
+    () => [...ALL_NAV.filter((e) => e.to !== '/admin' || me?.isAdmin), ...(me ? [{ to: `/u/${me.handle}`, icon: UserRound, label: t('nav.myPassport') }] : [])],
     [t, me],
   )
 
@@ -67,7 +64,7 @@ export function CommandPalette() {
         <DialogPrimitive.Overlay className="dh-instant fixed inset-0 z-50 bg-[var(--scrim)] backdrop-blur-[2px]" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="dh-instant fixed top-[12dvh] left-1/2 z-50 w-[calc(100%-24px)] max-w-[620px] -translate-x-1/2 overflow-hidden rounded-[20px] border border-line bg-surface-2 shadow-lg focus:outline-none"
+          className="dh-instant fixed top-[12dvh] left-1/2 z-50 w-[calc(100%-24px)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-[14px] bg-surface-1 shadow-lg focus:outline-none"
         >
           <DialogPrimitive.Title className="sr-only">{t('nav.searchPlaceholder')}</DialogPrimitive.Title>
           <Command label={t('nav.searchPlaceholder')} loop>
@@ -90,6 +87,14 @@ export function CommandPalette() {
                   <Zap className="text-accent-text" />
                   {t('nav.ask')}
                   <Kbd className="ml-auto">N</Kbd>
+                </Command.Item>
+                <Command.Item value="publier post publish" onSelect={() => go('/publier')}>
+                  <PenSquare />
+                  Publier un post
+                </Command.Item>
+                <Command.Item value="offre emploi publier job" onSelect={() => go('/emplois/publier')}>
+                  <Briefcase />
+                  Publier une offre d’emploi
                 </Command.Item>
                 <Command.Item value="new room nouvelle salle" onSelect={() => go('/projets/nouvelle')}>
                   <FolderPlus />
@@ -126,6 +131,54 @@ export function CommandPalette() {
 
               {q.length > 1 && (
                 <>
+                  <Command.Group heading="Fil">
+                    {POSTS.map((x) => (
+                      <Command.Item key={x.id} value={`p ${x.title} ${x.tags.join(' ')}`} onSelect={() => go(`/post/${x.id}`)}>
+                        <Newspaper />
+                        <span className="truncate">{x.title}</span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                  <Command.Group heading="Emplois">
+                    {JOBS.map((x) => (
+                      <Command.Item key={x.id} value={`j ${x.title} ${x.stack.join(' ')} ${x.city}`} onSelect={() => go(`/emplois/${x.id}`)}>
+                        <Briefcase />
+                        <span className="truncate">
+                          {x.title} <span className="text-subtle">· {x.city}</span>
+                        </span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                  <Command.Group heading="Skills & plugins">
+                    {SKILLS.map((x) => (
+                      <Command.Item key={x.id} value={`s ${x.name} ${x.summary} ${x.category}`} onSelect={() => go(`/skills/${x.id}`)}>
+                        <FileCode2 />
+                        <span className="truncate font-mono">{x.name}</span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                  <Command.Group heading="Vidéos">
+                    {VIDEOS.map((x) => (
+                      <Command.Item key={x.id} value={`v ${x.title} ${x.tags.join(' ')}`} onSelect={() => go(`/videos/${x.id}`)}>
+                        <PlaySquare />
+                        <span className="truncate">{x.title}</span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                  <Command.Group heading="Apprendre et certifications">
+                    {PATHS.map((x) => (
+                      <Command.Item key={x.id} value={`l ${x.title} ${x.tagline}`} onSelect={() => go(`/apprendre/${x.id}`)}>
+                        <GraduationCap />
+                        <span className="truncate">{x.title}</span>
+                      </Command.Item>
+                    ))}
+                    {PLATFORM_CERTS.map((x) => (
+                      <Command.Item key={x.id} value={`c certification ${x.title}`} onSelect={() => go(`/certifications/${x.id}`)}>
+                        <Award />
+                        <span className="truncate">{x.title}</span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
                   <Command.Group heading={t('nav.sos')}>
                     {questions?.slice(0, 40).map((x) => (
                       <Command.Item key={x.id} value={`q ${x.title} ${x.tags.map((tg) => tg.label).join(' ')}`} onSelect={() => go(`/sos/${x.id}`)}>

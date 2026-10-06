@@ -33,7 +33,7 @@ export function LevelBadge({ level, score }: { level: SkillLevel; score: number 
   }
   return (
     <span className="inline-flex items-baseline gap-1.5">
-      <span className="text-[15px] font-bold tabular text-fg">{score}</span>
+      <span className="text-[15px] font-semibold tabular text-fg">{score}</span>
       <span className={cn('text-xs font-medium', tones[level])}>{t(`passport.level.${level}`)}</span>
     </span>
   )
@@ -79,7 +79,7 @@ export function StatTile({ value, label, delta, icon, className, hint }: { value
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {icon && <div className="mb-2">{icon}</div>}
-      <div className="text-[28px] font-bold leading-none tracking-tight tabular text-fg sm:text-[32px]">{value}</div>
+      <div className="text-[28px] font-semibold leading-none tracking-tight tabular text-fg sm:text-[32px]">{value}</div>
       <div className="text-[13px] text-muted">{label}</div>
       {delta && <div className={cn('text-xs font-semibold', delta.positive ? 'text-success' : 'text-danger')}>{delta.value}</div>}
       {hint && <div className="text-[11.5px] text-subtle">{hint}</div>}

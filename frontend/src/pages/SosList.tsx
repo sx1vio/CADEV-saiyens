@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { EmptyState, ErrorState } from '@/components/djeli'
-import { PageHeader, QuestionCard } from '@/components/domain'
+import { QuestionCard } from '@/components/domain'
 import { useTags } from '@/components/TagPicker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/primitives'
+import { ServiceHeader } from '@/platform/ui'
 import { Segmented } from '@/components/ui/segmented'
 import { useQuery } from '@/lib/query'
 import { api, type QuestionTab } from '@/services'
@@ -53,64 +54,52 @@ export default function SosList() {
     ...(me ? [{ value: 'mine' as const, label: t('sos.tabs.mine'), icon: <UserRound /> }] : []),
   ]
 
-  const popular = ['docker', 'nodejs', 'react', 'python', 'mobile-money', 'laravel', 'flutter', 'postgresql']
 
   return (
     <Page>
-      <PageHeader
-        title={t('sos.title')}
-        subtitle={t('sos.subtitle')}
+      <ServiceHeader
+        title="Entraide"
+        subtitle="Décris ton blocage : une piste arrive en quelques secondes, puis l’aide d’un dev qui a déjà résolu le même problème."
         actions={
           me && (
-            <Button variant="primary" icon={<Zap />} onClick={() => setAsk(true)}>
+            <Button variant="primary" icon={<Zap />} onClick={() => setAsk(true)} className="hidden sm:inline-flex">
               {t('nav.ask')}
             </Button>
           )
         }
       />
-
-      <div className="mt-6 flex flex-col gap-3">
-        <Segmented label={t('sos.title')} value={tab} onChange={(v) => set('tab', v)} items={tabs} glow className="self-start" />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-subtle" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('sos.searchPlaceholder')} className="pl-10" type="search" aria-label={t('common.search')} />
-          </div>
-          <select
-            value={tag}
-            onChange={(e) => set('tag', e.target.value)}
-            aria-label={t('sos.filterTag')}
-            className="h-11 rounded-[12px] border border-line bg-inset px-3 text-sm text-fg shadow-inset sm:h-10 sm:w-52"
-          >
-            <option value="">{t('sos.allTags')}</option>
-            {tags.map((x) => (
-              <option key={x.id} value={x.slug}>
-                {x.label}
-              </option>
-            ))}
-          </select>
+      <div className="mt-5" />
+      {/* Barre d'outils du forum : recherche, stack, nouvelle question */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-subtle" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('sos.searchPlaceholder')} className="pl-9" type="search" aria-label={t('common.search')} />
         </div>
-        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
-          {popular.map((slug) => {
-            const tg = tags.find((x) => x.slug === slug)
-            if (!tg) return null
-            const on = tag === slug
-            return (
-              <button
-                key={slug}
-                type="button"
-                onClick={() => set('tag', on ? '' : slug)}
-                aria-pressed={on}
-                className={on ? 'h-8 shrink-0 rounded-full bg-accent-strong px-3 font-mono text-xs font-medium text-on-accent' : 'h-8 shrink-0 rounded-full border border-line bg-surface-2 px-3 font-mono text-xs font-medium text-muted transition-colors hover:text-fg'}
-              >
-                {tg.label}
-              </button>
-            )
-          })}
-        </div>
+        <select
+          value={tag}
+          onChange={(e) => set('tag', e.target.value)}
+          aria-label={t('sos.filterTag')}
+          className="h-11 rounded-full border border-line-strong bg-canvas px-4 text-sm text-fg focus:border-fg focus:outline-none sm:h-10 sm:w-52"
+        >
+          <option value="">{t('sos.allTags')}</option>
+          {tags.map((x) => (
+            <option key={x.id} value={x.slug}>
+              {x.label}
+            </option>
+          ))}
+        </select>
+        {me && (
+          <Button variant="primary" icon={<Zap />} onClick={() => setAsk(true)} className="sm:hidden">
+            {t('nav.ask')}
+          </Button>
+        )}
       </div>
 
-      <div className="mt-6">
+      <div className="mt-3 border-b border-line pb-3">
+        <Segmented label={t('sos.title')} value={tab} onChange={(v) => set('tab', v)} items={tabs} />
+      </div>
+
+      <div className="mt-4">
         {error ? (
           <ErrorState error={error} onRetry={refresh} />
         ) : !data ? (
@@ -128,7 +117,7 @@ export default function SosList() {
             }
           />
         ) : (
-          <div className="dh-stagger flex flex-col gap-2.5">
+          <div className="dh-stagger flex flex-col gap-2">
             {data.map((x) => (
               <QuestionCard key={x.id} q={x} showBlocked={tab === 'unanswered'} />
             ))}

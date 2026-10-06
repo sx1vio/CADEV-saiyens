@@ -73,7 +73,7 @@ export default function Landing() {
             <Radio className="size-3.5" />
             {t('landing.live')} · {t('app.slogan')}
           </span>
-          <h1 className="mt-5 text-[34px] leading-[1.04] font-bold tracking-[-0.035em] sm:text-[48px] lg:text-[54px]">{t('landing.heroTitle')}</h1>
+          <h1 className="mt-5 text-[34px] leading-[1.04] font-semibold tracking-[-0.035em] sm:text-[48px] lg:text-[54px]">{t('landing.heroTitle')}</h1>
           <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-on-hero-muted sm:text-[17px]">{t('landing.heroSubtitle')}</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button variant="contrast" size="lg" loading={busy} onClick={tryDemo} className="sm:min-w-52">
@@ -103,7 +103,7 @@ export default function Landing() {
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {stats.map((st) => (
           <Card key={st.label} className="p-4 sm:p-5">
-            {st.value === null ? <Skeleton className="h-8 w-20" /> : <div className="text-[26px] font-bold leading-none tracking-tight tabular text-fg sm:text-[32px]">{st.value}</div>}
+            {st.value === null ? <Skeleton className="h-8 w-20" /> : <div className="text-[26px] font-semibold leading-none tracking-tight tabular text-fg sm:text-[32px]">{st.value}</div>}
             <p className="mt-2 text-[13px] text-muted">{st.label}</p>
           </Card>
         ))}
@@ -135,7 +135,7 @@ export default function Landing() {
         ].map((p) => (
           <Link key={p.to} to={p.to} className="group surface-card flex flex-col gap-3 p-5 transition-colors hover:border-line-strong sm:p-6">
             <IconChip tone={p.tone}>{p.icon}</IconChip>
-            <h2 className="text-lg font-bold tracking-tight text-fg">{p.title}</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-fg">{p.title}</h2>
             <p className="text-sm leading-relaxed text-muted">{p.text}</p>
             <ArrowRight className="mt-auto size-4 text-subtle transition-transform group-hover:translate-x-1 group-hover:text-fg" />
           </Link>
@@ -150,7 +150,7 @@ export default function Landing() {
             <IconChip tone="success">
               <ShieldCheck />
             </IconChip>
-            <h2 className="mt-3 text-2xl font-bold tracking-tight text-fg">{t('landing.featuredTitle')}</h2>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fg">{t('landing.featuredTitle')}</h2>
             <p className="mt-1 max-w-xl text-sm text-muted">{t('landing.proveText')}</p>
           </div>
           <ButtonLink to="/decouvrir" variant="pill" size="sm" className="mt-3 self-start sm:mt-0 sm:self-auto">
@@ -172,7 +172,7 @@ export default function Landing() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold tabular text-fg">{p.totalXp}</p>
+                  <p className="font-semibold tabular text-fg">{p.totalXp}</p>
                   <p className="text-[10.5px] text-subtle">XP</p>
                 </div>
               </div>
@@ -205,7 +205,7 @@ export default function Landing() {
 
       {/* -------- Pourquoi DevHub à l'heure de l'IA -------- */}
       <section className="flex flex-col gap-4">
-        <h2 className="max-w-2xl text-2xl font-bold tracking-tight text-fg sm:text-[28px]">{t('landing.whyTitle')}</h2>
+        <h2 className="max-w-2xl text-2xl font-semibold tracking-tight text-fg sm:text-[28px]">{t('landing.whyTitle')}</h2>
         <div className="grid gap-3 md:grid-cols-3">
           {[
             { icon: <BrainCircuit />, title: t('landing.why1'), text: t('landing.why1Text') },
@@ -228,7 +228,7 @@ export default function Landing() {
             <IconChip tone="warning">
               <CloudOff />
             </IconChip>
-            <h2 className="mt-3 text-lg font-bold tracking-tight text-fg">{t('landing.offlineTitle')}</h2>
+            <h2 className="mt-3 text-lg font-semibold tracking-tight text-fg">{t('landing.offlineTitle')}</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-muted">{t('landing.offlineText')}</p>
             <Button
               variant="secondary"
@@ -248,7 +248,7 @@ export default function Landing() {
           <IconChip tone="blue">
             <ServerCog />
           </IconChip>
-          <h2 className="mt-3 text-lg font-bold tracking-tight text-fg">{t('landing.systalinkTitle')}</h2>
+          <h2 className="mt-3 text-lg font-semibold tracking-tight text-fg">{t('landing.systalinkTitle')}</h2>
           <p className="mt-1.5 text-sm leading-relaxed text-muted">{t('landing.systalinkText')}</p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {['VPS', 'PostgreSQL', 'Backup', 'Mail'].map((x) => (
@@ -264,7 +264,7 @@ export default function Landing() {
       {/* -------- Appel final -------- */}
       <section className="flex flex-col items-center gap-4 rounded-[24px] border border-line bg-surface-1 px-6 py-10 text-center">
         <Djeli pose="celebrate" size={96} />
-        <h2 className="max-w-xl text-2xl font-bold tracking-tight text-fg">{t('app.pitch')}</h2>
+        <h2 className="max-w-xl text-2xl font-semibold tracking-tight text-fg">{t('app.pitch')}</h2>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button variant="hero" size="lg" loading={busy} onClick={tryDemo}>
             {t('landing.tryNow')}

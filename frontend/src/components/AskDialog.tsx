@@ -147,7 +147,7 @@ export function AskDialog() {
     <div className="rounded-[16px] border border-line bg-surface-2 p-4">
       <div className="flex items-center justify-between">
         <p className="text-[13px] font-semibold text-fg">{t('ask.qualityTitle')}</p>
-        <span className={cn('text-sm font-bold tabular', quality.score >= 80 ? 'text-success' : quality.score >= 50 ? 'text-warning' : 'text-subtle')}>{quality.score}%</span>
+        <span className={cn('text-sm font-semibold tabular', quality.score >= 80 ? 'text-success' : quality.score >= 50 ? 'text-warning' : 'text-subtle')}>{quality.score}%</span>
       </div>
       <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
         <div

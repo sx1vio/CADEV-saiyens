@@ -42,7 +42,8 @@ Questions auxquelles la plateforme doit répondre :
 | Stack technique | ✅ React 19 + Vite + TS PWA (Kotlin Multiplatform étudié et écarté) |
 | Mascotte Djeli + visuel 3D | ✅ 6 images générées (Higgsfield) |
 | Projet `frontend/` | ✅ Application complète, build OK, testée de bout en bout |
-| Design system (tokens, composants, thèmes sombre/clair) | ✅ Refondu : avatars 3D, bannières, présence, matière (06/10/2026) |
+| Design system (tokens, composants, thèmes sombre/clair) | ✅ Charte « Drivery » : clair, barre latérale noire, pilules, cartes grises, police Inter (06/10/2026) |
+| Services de l’écosystème | ✅ Fil, communautés, emplois, certifications, skills IA, vidéos, apprendre, guide « Créer avec l’IA », templates (06/10/2026, données de démo) |
 | Shell (rail, colonne repliable, onglets mobiles, Ctrl+K, visite Djeli) | ✅ |
 | Écrans (17) | ✅ Tous en place, vérifiés en captures 375 / 1440 px |
 | Hors ligne (file IndexedDB, simulateur, centre de synchro, SW) | ✅ Testé : écriture hors ligne → rechargement → synchronisation sans doublon |
@@ -63,6 +64,10 @@ Questions auxquelles la plateforme doit répondre :
 - [ ] Dette technique : 26 avertissements oxlint (règles React : pureté, setState dans effet, exports mixtes)
 - [ ] Écrire les tests Playwright du parcours dans le dépôt (aujourd'hui dans un script local) + CI
 - [ ] Phase 4 : audit du mouvement, audit d'accessibilité, revue de code
+- [ ] Redessiner dans le nouveau style : entraide (question), projets et salle, profil (façon GitHub), découvrir, classement, accueil public, connexion (GitHub, GitLab, Google)
+- [ ] Traduire les nouveaux services en anglais (i18n)
+- [ ] Définir avec le rôle 2 l'API des nouveaux services (posts, commentaires, offres, candidatures, certifications, skills, vidéos, parcours)
+- [ ] Prévenir l'équipe du pivot de périmètre (décision §11)
 
 ## Fait
 
@@ -131,7 +136,48 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 06/10/2026 (nuit) — Charte « Drivery » sur toute la plateforme
+
+- **Demande de Sylvio** — d'abord : « juste des couleurs et une grosse police, trop vibe codé » (skills apple-design et apple-design-hig) ; puis, avec une capture du design « Drivery » : « polices, design, textes, tailles, formes, couleurs : copie exactement ceci, mes pages avec leur contenu mais avec ce design ».
+- **Étape 1 (skills Apple)** : police **Inter** avec tailles optiques ; graisses limitées ; **logos officiels** (Simple Icons) pour les technos, éditeurs de certifications, outils IA (Claude, Cursor, Google/Antigravity ; icône terminal pour Codex) ; badges de certification dessinés ; vignettes vidéo en vraie capture d'éditeur avec le code du sujet ; tendances et événements dans le fil ; profil refait façon GitHub.
+- **Étape 2 (charte Drivery, copiée)** :
+  - **Thème clair par défaut** : fond blanc, cartes gris clair `#f3f3f5` sans bordure, coins de 20 px ; le sombre reste disponible dans le menu du compte.
+  - **Barre latérale noire flottante** (coins de 28 px) : logo, recherche + bouton « + Créer », entrées en pilules anthracite, **entrée active lavande `#8d6cf0`**, **badges rouges** ; en bas : Notifications, Paramètres, Se déconnecter.
+  - **Titres de page géants** (42 px, gras, approche serrée) avec actions en pilules à droite ; boutons en pilules (principal noir, secondaire blanc bordé) ; onglets en pilules noir / gris.
+  - **Cartes d'indicateurs** : la première noire avec une courbe blanche, les autres grises avec un **cube 3D coloré** (orange, violet, vert), libellés en minuscules, chiffre gras, note verte. Calculées sur les vraies données du compte (Proof XP de la semaine, questions, candidatures, badges).
+  - **Rangées de liste façon « Drivers »** (chevron, avatar, nom gras, chiffre gras + mot gris, menu « … ») : appliquées au **Classement**.
+  - Appliqué à : Accueil, Classement, Profil (indicateurs + onglets), toutes les pages de services, Découvrir, Entraide, Projets (en-têtes, champs, filtres) ; barre d'onglets mobile noire flottante.
+- **Vérifié** : typecheck, build, captures 1600 / 390 px, parcours de bout en bout (publier, postuler, certification, indicateurs mis à jour, guide, menu du compte) : tout passe, aucune erreur JS.
+
+### 06/10/2026 (soir) — Pivot : plateforme écosystème multi-services
+
+- **Décision de Sylvio** — « Oublie le cahier des charges. Fais exactement la plateforme que je décris. Je ne veux pas un Discord, mais une vraie plateforme écosystème avec multi services. Inspire-toi de Reddit, YouTube et GitHub. » Le CDC v3 n'est plus le périmètre de référence du front (voir `docs/decisions.md` §11). **À signaler à l'équipe, surtout au rôle 2 (back-end)** : les nouveaux services n'ont pas encore d'API.
+- **Shell refait (YouTube / GitHub)** : barre du haut avec logo, grande recherche centrale (Ctrl+K), bouton « Créer » (post, je suis bloqué, offre d'emploi, projet, guide IA), notifications, profil ; menu latéral par services (Accueil, Entraide, Communautés · Services · Réseau · Mes communautés · Plateforme), mini-menu replié, tiroir et onglets sur mobile. Le rail façon Discord est supprimé.
+- **Nouveaux services (12 écrans)**, avec données de démonstration marquées « démo » et état personnel gardé sur l'appareil (`src/platform/`) :
+  - **Accueil = fil façon Reddit** : actu IA & tech (rédaction), lancements, open source, discussions, emplois ; votes, tri populaire/récent, enregistrement, partage ; colonne « services DevHub », offres pour toi, communautés, vidéos.
+  - **Post** avec fil de commentaires imbriqués ; **Publier** (type, communauté, lien, dépôt GitHub, étiquettes).
+  - **Communautés** : annuaire et page de communauté (bannière, fil, règles, rejoindre).
+  - **Emplois** : recherche poste + lieu, filtres, liste et détail côte à côte, « compétences prouvées » comparées au score du profil, candidature avec le profil ; **Publier une offre** (espace entreprise, compétences à prouver).
+  - **Certifications** : gratuites DevHub avec examen en ligne, correction et badge ; payantes (éditeurs, prix indicatifs) ; **base de données** filtrable ; mes badges.
+  - **Skills & plugins IA** : skills, plugins, serveurs MCP, règles et prompts pour Claude Code, Codex, Antigravity, Cursor ; filtres, fiche avec fichiers et commande d'installation par outil.
+  - **Vidéos façon YouTube** : grille, catégories, abonnements, page de lecture (chapitres, j'aime, à suivre). Vignettes composées en CSS ; lecteur en aperçu (aucune vidéo hébergée).
+  - **Apprendre** : 6 parcours, page de parcours avec progression, leçons (cours, code, quiz), lien vers la certification.
+  - **Créer une app avec l'IA** : guide complet en 11 étapes, choix du type de projet (web, site, mobile, agent IA), pour chaque étape : objectif, actions, **points d'attention classés critique / important / conseil**, prompts à copier, checklist de sortie, ressources ; progression sauvegardée.
+  - **Templates** : 10 bases de projets avec maquette, stack, commande de démarrage, lien vers le guide.
+- Palette Ctrl+K étendue (posts, offres, skills, vidéos, parcours, certifications) ; textes de la visite guidée mis à jour ; ancien QG supprimé (remplacé par le fil).
+- **Vérifié** : typecheck, build de production, captures 1600 / 375 px en sombre et clair, parcours de bout en bout (publier + commenter, postuler, réussir une certification, valider une étape du guide et la retrouver après rechargement, quiz de leçon) : tout passe, aucune erreur JS.
+- **Limites connues** : nouveaux écrans en français seulement (pas encore d'anglais) ; données de démo locales en attendant l'API ; les écrans existants (entraide, projets, profil) n'ont pas encore été redessinés dans le nouveau style.
+
 ### 06/10/2026
+
+- **Design (refonte 2, étape 1 sur 2)** — Retour de Sylvio, avec des captures de Discord à côté des nôtres : « ce que tu as fait est plat et ultra basique », « ai slop ». Diagnostic : la police Inter était déclarée mais jamais chargée, donc l'app s'affichait en police système (Segoe UI) ; des cartes dans des cartes, des pastilles d'icônes colorées, une bannière 3D en dégradé, des ombres et de l'aurore là où Discord n'utilise que des paliers de gris. La « matière » ajoutée le matin même allait dans le mauvais sens. Fait :
+  - Police **Figtree** auto-hébergée (20 Ko, proche de gg sans de Discord).
+  - Nouveaux tokens : gris neutres en paliers (rail, colonne, contenu, surfaces), plus d'aurore, de grain, de dégradés ni de liserés lumineux ; rayons resserrés (6 / 10 / 14 px) ; boutons en aplat ; onglets façon Discord ; badge rouge à texte blanc ; étiquette « DÉMO » façon tag « BOT » de Discord.
+  - Shell : rail à icônes de 48 px avec indicateur blanc et badges découpés ; colonne de salons à bannière pleine largeur, catégories repliables, salons en lignes sobres avec marque « non lu » ; panneau utilisateur flottant à cheval sur le rail et la colonne (il ouvre le menu du compte) ; en-tête de salon (icône, nom, sujet, réseau, notifications, recherche Ctrl+K, « Je suis bloqué »).
+  - SOS Dev en salon forum : questions en posts (auteur, titre, extrait d'erreur en bloc liseré, étiquettes, réponses).
+  - QG : barre de saisie « Bloqué sur un bug ? » à la place de la bannière 3D ; colonne de droite façon Discord avec carte de profil (Proof XP, rang, compétence) puis la liste des membres.
+  - Vérifié en captures (375, 1440, 1600 px, sombre et clair). Typecheck OK.
+  - **Étape 2 (à faire après validation de Sylvio)** : appliquer le même langage aux 15 autres écrans (salle, Passport, Découvrir, question, projets, classement, réglages, accueil public, connexion, onboarding…).
 
 - **Fix** — Interface en anglais chez Sylvio : son navigateur annonçait l'anglais. Le **français est désormais la langue par défaut** ; l'anglais reste disponible dans le menu, Ctrl+K et les réglages.
 - **Design (refonte, en cours)** — Retour de Sylvio : « design plat ». Skills utilisés : ui-ux-pro-max, emil-design-eng, apple-design ; inspiration 21st.dev. Fait :

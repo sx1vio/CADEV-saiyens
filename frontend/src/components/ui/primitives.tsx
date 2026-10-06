@@ -1,6 +1,7 @@
 import { forwardRef, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn, initials, toneFor } from '@/lib/utils'
+import { BrandLogo } from '@/platform/logos'
 
 /* ---------------- Carte ---------------- */
 
@@ -31,7 +32,7 @@ export function IconChip({ children, tone = 'accent', className }: { children: R
     danger: 'bg-danger-soft text-danger',
     neutral: 'bg-surface-3 text-muted',
   }
-  return <span className={cn('grid size-9 shrink-0 place-items-center rounded-[11px] [&_svg]:size-[18px]', tones[tone], className)}>{children}</span>
+  return <span className={cn('grid size-8 shrink-0 place-items-center rounded-[8px] [&_svg]:size-[17px]', tones[tone], className)}>{children}</span>
 }
 
 /* ---------------- Badges ---------------- */
@@ -54,8 +55,8 @@ const badgeVariants = cva('inline-flex items-center gap-1 whitespace-nowrap font
       solid: 'bg-accent-strong text-on-accent',
     },
     size: {
-      sm: 'h-5 rounded-md px-1.5 text-[11px]',
-      md: 'h-6 rounded-lg px-2 text-xs',
+      sm: 'h-[18px] rounded-[4px] px-1.5 text-[11px]',
+      md: 'h-[22px] rounded-[6px] px-2 text-xs',
     },
   },
   defaultVariants: { tone: 'neutral', size: 'md' },
@@ -69,7 +70,7 @@ export function Badge({ className, tone, size, ...props }: HTMLAttributes<HTMLSp
 export function CountDot({ count, className }: { count: number; className?: string }) {
   if (!count) return null
   return (
-    <span className={cn('grid h-5 min-w-5 place-items-center rounded-full bg-badge px-1.5 text-[11px] font-bold leading-none text-badge-fg tabular', className)}>
+    <span className={cn('grid h-4 min-w-4 place-items-center rounded-full bg-badge px-1 text-[11px] font-semibold leading-none text-badge-fg tabular', className)}>
       {count > 99 ? '99+' : count}
     </span>
   )
@@ -84,12 +85,13 @@ export function TechTag({ label, className, active, onClick }: { label: string; 
       onClick={onClick}
       aria-pressed={onClick ? !!active : undefined}
       className={cn(
-        'inline-flex h-6 items-center rounded-md px-2 font-mono text-[11.5px] font-medium tracking-tight transition-colors',
-        active ? 'bg-accent-strong text-on-accent' : 'bg-surface-3 text-muted',
+        'inline-flex h-6 items-center gap-1.5 rounded-[6px] border px-2 text-[12px] font-medium transition-colors',
+        active ? 'border-transparent bg-accent-strong text-on-accent' : 'border-line bg-surface-2 text-muted',
         onClick && !active && 'hover:text-fg hover:bg-[color-mix(in_oklab,var(--surface-3),var(--text)_8%)]',
         className,
       )}
     >
+      {!active && <BrandLogo name={label} size={12} />}
       {label}
     </Comp>
   )
@@ -128,10 +130,10 @@ export function AvatarStack({ people, max = 4, size = 24 }: { people: { id: stri
 /* ---------------- Formulaires ---------------- */
 
 const fieldBase =
-  'w-full rounded-[12px] border border-line bg-inset text-fg placeholder:text-subtle shadow-inset transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)] disabled:opacity-60 aria-[invalid=true]:border-danger'
+  'w-full rounded-[14px] border border-line-strong bg-canvas text-fg placeholder:text-subtle transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-fg disabled:opacity-60 aria-[invalid=true]:border-danger'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...props }, ref) {
-  return <input ref={ref} className={cn(fieldBase, 'h-11 px-3.5 text-[15px] sm:h-10 sm:text-sm', className)} {...props} />
+  return <input ref={ref} className={cn(fieldBase, 'h-11 px-4 text-[15px] sm:h-10 sm:text-sm', className)} {...props} />
 })
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...props }, ref) {
