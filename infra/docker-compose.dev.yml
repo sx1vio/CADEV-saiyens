@@ -1,0 +1,25 @@
+# Services de développement local : PostgreSQL et capture d'e-mails.
+# Usage : docker compose -f infra/docker-compose.dev.yml up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: devhub
+      POSTGRES_PASSWORD: devhub
+      POSTGRES_DB: devhub
+    ports: ['5432:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U devhub']
+      interval: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - '8025:8025'   # interface web : http://localhost:8025
+      - '1025:1025'   # SMTP local (SMTP_HOST=localhost, SMTP_PORT=1025)
+
+volumes:
+  pgdata:

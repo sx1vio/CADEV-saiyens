@@ -1,0 +1,12 @@
+# Image Caddy qui embarque le build du front.
+# À ajuster lors de l'initialisation d'apps/web (6 octobre).
+FROM node:24-alpine AS build
+RUN corepack enable
+WORKDIR /repo
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @devhub/web... build
+
+FROM caddy:2-alpine
+COPY infra/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /repo/apps/web/dist /srv/www

@@ -1,0 +1,45 @@
+# Caddy : TLS automatique, en-têtes de sécurité, front statique, routage vers l'API.
+# Voir docs/architecture/11-infrastructure-deploiement.md et 10-securite.md.
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		# D'abord en mode rapport (48 h), puis remplacer par Content-Security-Policy avant le Jalon 5.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://avatars.githubusercontent.com; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		-Server
+	}
+
+	# Temps réel : pas de tampon, pas de compression
+	handle /api/v1/events* {
+		reverse_proxy api:3000 {
+			flush_interval -1
+		}
+	}
+
+	# API, aperçus de partage (Open Graph), Proof Cards, badges README
+	@api path /api/* /readyz /u/* /p/* /og/* /badge/*
+	handle @api {
+		reverse_proxy api:3000
+	}
+
+	# Service worker et manifeste : jamais mis en cache durablement
+	@nocache path /sw.js /manifest.webmanifest
+	header @nocache Cache-Control "no-cache"
+
+	# Fichiers avec empreinte : cache d'un an
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Front (SPA) avec repli sur index.html
+	handle {
+		root * /srv/www
+		try_files {path} /index.html
+		file_server
+	}
+}

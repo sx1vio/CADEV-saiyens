@@ -1,0 +1,58 @@
+# Production sur le VPS Systalink — voir docs/architecture/11-infrastructure-deploiement.md
+# Les images sont construites par la CI et étiquetées avec le SHA du commit (variable TAG).
+# Lancement : TAG=<sha> docker compose -f infra/docker-compose.yml --env-file /srv/devhub/.env up -d
+
+x-app: &app
+  image: ghcr.io/sx1vio/cadev-saiyens/api:${TAG:?TAG manquant}
+  env_file: /srv/devhub/.env
+  restart: unless-stopped
+  networks: [internal]
+  logging:
+    driver: json-file
+    options: { max-size: '10m', max-file: '5' }
+
+services:
+  caddy:
+    image: ghcr.io/sx1vio/cadev-saiyens/web:${TAG:?TAG manquant}   # Caddy + build du front
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?domaine public manquant}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [internal]
+
+  api:
+    <<: *app
+    environment:
+      PROCESS_ROLE: http
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/readyz']
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+  worker:
+    <<: *app
+    command: ['node', 'dist/worker.js']
+    environment:
+      PROCESS_ROLE: worker
+
+  # Si la base managée Systalink ne convient pas (voir ADR-0005), décommenter :
+  # postgres:
+  #   image: postgres:16-alpine
+  #   restart: unless-stopped
+  #   env_file: /srv/devhub/.env.postgres
+  #   volumes: [pgdata:/var/lib/postgresql/data]
+  #   networks: [internal]
+
+volumes:
+  caddy_data:
+  caddy_config:
+  # pgdata:
+
+networks:
+  internal:
