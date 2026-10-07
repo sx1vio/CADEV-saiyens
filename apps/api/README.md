@@ -22,11 +22,16 @@ pnpm --filter @devhub/api dev                          # API sur http://localhos
 pnpm --filter @devhub/api dev:worker                   # worker pg-boss
 ```
 
-| URL                   | Rôle                                    |
-| --------------------- | --------------------------------------- |
-| `GET /api/v1/healthz` | Le process répond                       |
-| `GET /readyz`         | La base répond (Docker, déploiement)    |
-| `GET /api/docs`       | Documentation OpenAPI (hors production) |
+| URL                        | Rôle                                                      |
+| -------------------------- | --------------------------------------------------------- |
+| `GET /api/v1/healthz`      | Le process répond                                         |
+| `GET /readyz`              | La base répond (Docker, déploiement)                      |
+| `GET /api/docs`            | Documentation OpenAPI (hors production)                   |
+| `GET /api/v1/auth/github`  | Connexion GitHub (redirection OAuth, `?returnTo=/chemin`) |
+| `GET /api/v1/me`           | Mon profil (session requise)                              |
+| `POST /api/v1/auth/logout` | Déconnexion (en-têtes `Origin` et `X-DevHub-Client: web`) |
+
+> **Connexion sans application GitHub** : avec `AUTH_FAKE_PROVIDER=true` (interdit en production), `GET /api/v1/auth/github?login=awa-dev` connecte directement un faux compte `awa-dev`. Pratique en local et utilisé par les tests de bout en bout.
 
 > **WSL** : sous WSL, `pnpm install` échoue souvent avec `EACCES ... rename` si le dépôt est sur le disque Windows (`/mnt/c/...`), et il est très lent. Cloner le dépôt dans le système de fichiers Linux (par exemple `~/dev/CADEV-saiyens`) règle les deux problèmes.
 

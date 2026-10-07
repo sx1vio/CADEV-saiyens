@@ -52,6 +52,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - name: Migrations sur la base de test
+        run: pnpm --filter @devhub/api exec prisma migrate deploy
       - run: pnpm test
       - run: pnpm build
 
