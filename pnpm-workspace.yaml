@@ -1,3 +1,9 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Versions corrigées imposées aux dépendances indirectes de Prisma (pnpm audit, 2026-10-07).
+# À retirer quand Prisma les mettra à jour lui-même.
+overrides:
+  deepmerge-ts: ^8.0.2 # GHSA-ggr8-5vv4-36mx
+  mysql2: ^3.22.0 # GHSA-3f6p-5ww8-9rcr
