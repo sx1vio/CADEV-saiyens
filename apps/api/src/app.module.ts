@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ConfigModule, ENV } from './infrastructure/config/config.module';
@@ -7,6 +7,7 @@ import type { Env } from './infrastructure/config/env';
 import { HealthController } from './infrastructure/http/health.controller';
 import { ProblemDetailsFilter } from './infrastructure/http/problem-details.filter';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { IdentityModule, OriginGuard } from './modules/identity';
 
 // Les modules métier (identity, sos, rooms…) s'ajoutent ici : docs/architecture/02-backend.md
 @Module({
@@ -29,11 +30,13 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
       }),
     }),
     PrismaModule,
+    IdentityModule,
   ],
   controllers: [HealthController],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_FILTER, useClass: ProblemDetailsFilter },
+    { provide: APP_GUARD, useClass: OriginGuard },
   ],
 })
 export class AppModule {}
