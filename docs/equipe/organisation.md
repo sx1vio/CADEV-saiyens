@@ -35,6 +35,28 @@ Cinq personnes, 17 jours de développement (du 6 au 22 octobre), soumission le 2
 
 Si l'équipe perd un membre actif, le cahier des charges prévoit la fusion des rôles 1 et 5, puis 4 et 2.
 
+## Réaffectations et avancement
+
+Quand une tâche change de main, on le note ici, avec la raison, et on met à jour l'issue (commentaire, assignation) et le tableau GitHub Projects.
+
+| Date   | Tâche                                                               | Prévu   | Fait par | Raison                                                            | PR       |
+| ------ | ------------------------------------------------------------------- | ------- | -------- | ----------------------------------------------------------------- | -------- |
+| 8 oct. | X3 · score GitHub résistant aux dépôts vides (#52), module `github` | Joachim | Caleb    | Bloquait PR1 et le Jalon 1                                        | #99      |
+| 8 oct. | Initialisation de `packages/core` et `packages/contracts` (#5)      | Florent | Caleb    | Bloquait le Jalon 2 (contrats, masquage des secrets, formules XP) | à ouvrir |
+
+Les propriétaires de modules ne changent pas : Joachim reste propriétaire de `github` (relecture de #99), Florent de `sos`, `matching`, `notifications` et `sync`.
+
+### Avancement au 8 octobre
+
+| Livré (sur `main` ou en revue)                                                           | État                                                                   |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Squelette de l'API, migration initiale, connexion GitHub, sessions, `/me` (#3, #14, #51) | Sur `main`                                                             |
+| Code de conduite et signaux de confiance (#69, #60)                                      | En revue : #98                                                         |
+| Import GitHub, X3, compétences proposées (#52, #17)                                      | En revue : #99                                                         |
+| `@devhub/core`, `@devhub/contracts` (#5), Proof XP et garde-fous (#39, #40)              | Prêt, PR à ouvrir (`feat/core-contracts`, `feat/reputation-xp-ledger`) |
+| Front, module `news`, design (Sylvio)                                                    | En revue : #96, #97                                                    |
+| Déploiement Systalink, application OAuth, protection de `main` (#6 à #9)                 | Pas commencé                                                           |
+
 ## Autorité de décision
 
 | Domaine                                                    | Qui tranche                           | Comment                                                               |

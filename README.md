@@ -14,7 +14,7 @@ GitHub montre ce que tu as construit. DevHub Africa montre ce que tu sais faire,
 
 ## État du projet
 
-🚧 **Phase de démarrage (6 octobre 2026).** L'architecture et la documentation sont posées ; le code applicatif commence. Gel du code le 22 octobre, soumission le 24 octobre.
+🚧 **En développement (8 octobre 2026).** API NestJS en place : connexion GitHub, sessions, profil importé depuis GitHub, compétences, Proof XP et leurs garde-fous. Le front PWA est en revue. Pas encore déployé sur Systalink. Avancement détaillé : [organisation de l'équipe](docs/equipe/organisation.md#réaffectations-et-avancement). Gel du code le 22 octobre, soumission le 24 octobre.
 
 ## Documentation
 
