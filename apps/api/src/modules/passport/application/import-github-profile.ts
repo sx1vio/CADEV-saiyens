@@ -1,5 +1,5 @@
 import type { GithubApi, GithubRepo } from '../../github';
-import { computeGithubSignals } from '../domain/github-signals';
+import { computeGithubSignals } from '@devhub/core';
 import type { GithubTokenSource, ImportSummary, SkillStore } from '../domain/ports';
 
 const MAX_REPOS_ANALYSED = 30; // les plus récemment poussés (quota GitHub, §14)

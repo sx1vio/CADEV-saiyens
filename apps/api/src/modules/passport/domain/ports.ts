@@ -1,4 +1,4 @@
-import type { TagSignal } from './github-signals';
+import type { TagSignal } from '@devhub/core';
 
 export interface GithubTokenSource {
   tokenFor(userId: string): Promise<string | null>;

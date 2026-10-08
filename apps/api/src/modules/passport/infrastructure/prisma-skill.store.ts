@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import type { TagSignal } from '../domain/github-signals';
 import type { ImportSummary, SkillStore } from '../domain/ports';
-import { skillScore } from '../domain/skill-score';
+import { type TagSignal, skillScore } from '@devhub/core';
 
 const importKey = (userId: string) => `profile-import:${userId}`;
 

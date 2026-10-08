@@ -1,5 +1,5 @@
 // Score de compétence (CDC v3 §6.3, correctif v3.1 X3) : docs/architecture/08-algorithmes.md § 3.
-// À déplacer dans @devhub/core/scoring dès que le paquet existe (#5), pour l'afficher aussi sur /regles.
+// Partagé par l'API et le front (page /regles, barre G + P du Passport).
 
 export const SCORING = {
   /** G = min(40, 5 × dépôts qualifiés) */
