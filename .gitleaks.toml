@@ -1,0 +1,9 @@
+# Configuration gitleaks (CI, job « secrets + dépendances ») : règles par défaut, plus une exception.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux secrets volontaires des tests du masquage (packages/core/src/secrets)"
+paths = [
+  '''^packages/core/src/secrets/mask\.spec\.ts$''',
+]
