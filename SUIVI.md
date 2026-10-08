@@ -145,6 +145,20 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 08/10/2026 (soir) — Barre latérale retravaillée
+
+- **Demande de Sylvio** (capture de la barre) : « améliore la barre latérale » (skills ui-ux-pro-max et ui-styling).
+- **Constat** : 17 entrées sans repère, liste coupée net en bas (« Classement » tronqué), trois lignes en pied (Notifications, Paramètres, Se déconnecter), bouton « + » blanc qui attire l’œil plus que tout le reste.
+- **Fait** (`components/shell/AppShell.tsx`) :
+  - quatre groupes titrés : (cœur) Accueil, Entraide, Communautés · **Services** · **Créer** · **Réseau** ; « Mon profil » passe dans la carte compte ;
+  - cloche des notifications à côté du logo (pastille rouge, libellé accessible avec le nombre de non lues) ;
+  - recherche plus discrète, bouton « + » lavande au lieu de blanc ;
+  - la liste défile avec un fondu en haut et en bas au lieu d’une coupe nette ;
+  - pied : **une seule carte compte** (avatar, nom, @pseudo), dont le menu porte profil, réglages, thème, langue, visite, comptes démo et déconnexion ;
+  - encart « Bloqué sur un bug ? » en dégradé (façon Retail-X), affiché seulement à partir de 1 000 px de hauteur pour ne jamais cacher la navigation ;
+  - anneaux de focus visibles ; entrées de 44 px dans le tiroir mobile.
+- **Vérifié** : captures 1440×900, 1440×760, 1920×1080, tiroir 390 px ; menu du compte complet ; aucune erreur JS ; typecheck.
+
 ### 08/10/2026 (après-midi) — Fil façon Facebook, landing et connexion épurées, matière « Retail-X »
 
 - **Demandes de Sylvio** : (1) avec une capture du tableau de bord « Retail-X » : « garde le design actuel de ma plateforme, mais utilise les polices, espacements et textures de cette image ; ma plateforme est trop plate ; aménage la landing page, les écrans de connexion et d’inscription ; je veux que ma plateforme soit la plus pro » ; (2) avec une capture de l’accueil : « un fil d’actualité style Facebook (pas les likes, réactions et autres) ; tel que c’est, c’est trop mélangé, farfelu, chargé ; pareil pour la landing et la connexion ; tu balances beaucoup trop d’infos en même temps ».

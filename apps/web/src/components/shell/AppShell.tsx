@@ -1,6 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   Bell,
+  ChevronsUpDown,
   Briefcase,
   FolderPlus,
   Keyboard,
@@ -144,11 +145,14 @@ function SideItem({
   active,
   count,
   onNavigate,
+  tall,
 }: {
   entry: NavEntry;
   active: boolean;
   count?: number;
   onNavigate?: () => void;
+  /** Tiroir mobile : cibles tactiles de 44 px */
+  tall?: boolean;
 }) {
   const Icon = entry.icon;
   return (
@@ -158,7 +162,8 @@ function SideItem({
       data-tour={entry.tour}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex h-9 items-center gap-3 rounded-[12px] pr-1.5 pl-3 text-[13px] font-medium transition-colors duration-150',
+        'flex items-center gap-3 rounded-[12px] pr-1.5 pl-3 text-[13.5px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent',
+        tall ? 'h-11' : 'h-9',
         active
           ? 'bg-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
           : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
@@ -177,55 +182,73 @@ function SideItem({
   );
 }
 
+interface NavGroup {
+  label?: string;
+  items: NavEntry[];
+}
+
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
-  const nav = useNavigate();
   const me = useSession((s) => s.user);
-  const setUser = useSession((s) => s.setUser);
   const setPalette = useUI((s) => s.setPalette);
+  const setAsk = useUI((s) => s.setAsk);
   const isActive = useIsActive();
-  const { pathname } = useLocation();
   const actions = useCreateActions();
   const { data: home } = useQuery(me ? 'home' : null, () => api.getHome());
   const help = home?.openInMyStacks.length ?? 0;
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
-  const groups: NavEntry[][] = [
-    MAIN_NAV,
-    SERVICES_NAV,
-    [
-      ...(me
-        ? [
-            {
-              to: `/u/${me.handle}`,
-              label: 'Mon profil',
-              icon: UserRound,
-              tour: 'passport',
-            } as NavEntry,
-          ]
-        : []),
-      ...NETWORK_NAV,
-      ...(me?.isAdmin ? [ADMIN_NAV] : []),
-    ],
+  const drawer = !!onNavigate;
+  // Quatre groupes titrés : on sait où chercher sans tout lire.
+  const groups: NavGroup[] = [
+    { items: MAIN_NAV },
+    { label: 'Services', items: SERVICES_NAV.filter((e) => !CREATE_PATHS.includes(e.to)) },
+    { label: 'Créer', items: SERVICES_NAV.filter((e) => CREATE_PATHS.includes(e.to)) },
+    { label: 'Réseau', items: [...NETWORK_NAV, ...(me?.isAdmin ? [ADMIN_NAV] : [])] },
   ];
-  const row =
-    'flex h-9 w-full items-center gap-3 rounded-[12px] px-3 text-[13.5px] font-medium text-white/75 transition-colors hover:bg-white/[0.07] hover:text-white';
+  const iconBtn =
+    'relative grid size-9 place-items-center rounded-full text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-2 focus-visible:outline-accent';
+
   return (
-    <div data-tour="nav" className="flex h-full flex-col dh-ink rounded-[28px] p-3">
-      <div className="flex items-center justify-between px-2 pt-2 pb-4">
-        <Logo />
-        {onNavigate && (
+    <div data-tour="nav" className="dh-ink flex h-full flex-col rounded-[28px] p-3">
+      {/* Marque et notifications */}
+      <div className="flex items-center gap-1 px-2 pt-2 pb-4">
+        <Link to="/" onClick={onNavigate} aria-label="DevHub, accueil" className="mr-auto">
+          <Logo />
+        </Link>
+        {me && (
+          <Notifications
+            trigger={(unread) => (
+              <button
+                type="button"
+                aria-label={
+                  unread > 0
+                    ? `${t('nav.notifications')} (${unread} non lues)`
+                    : t('nav.notifications')
+                }
+                className={iconBtn}
+              >
+                <Bell className="size-[18px]" />
+                {unread > 0 && (
+                  <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-badge ring-2 ring-[#18202b]" />
+                )}
+              </button>
+            )}
+          />
+        )}
+        {drawer && (
           <button
             type="button"
             onClick={onNavigate}
             aria-label="Fermer le menu"
-            className="grid size-9 place-items-center rounded-full text-white/70 hover:bg-white/[0.07]"
+            className={iconBtn}
           >
             <X className="size-5" />
           </button>
         )}
       </div>
 
-      <div className="flex gap-2 pb-3">
+      {/* Recherche et création */}
+      <div className="flex gap-2 pb-4">
         <button
           type="button"
           onClick={() => {
@@ -233,7 +256,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             setPalette(true);
           }}
           data-tour="palette"
-          className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] bg-white/[0.07] px-3 text-left text-[13px] text-white/55 transition-colors hover:text-white/80"
+          className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[12px] border border-white/[0.06] bg-white/[0.06] px-3 text-left text-[13px] text-white/50 transition-colors hover:bg-white/[0.09] hover:text-white/80"
         >
           <Search className="size-4 shrink-0" />
           <span className="flex-1 truncate" title={isMac ? '⌘K' : 'Ctrl K'}>
@@ -248,7 +271,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 aria-label="Créer"
                 data-tour="ask"
-                className="grid size-10 shrink-0 place-items-center rounded-[14px] bg-white text-black transition-colors hover:bg-white/85"
+                className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:bg-accent-hover"
               >
                 <Plus className="size-5" />
               </button>
@@ -263,68 +286,83 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </div>
 
+      {/* Navigation : défile avec un fondu en haut et en bas, jamais une coupe nette */}
       <nav
         aria-label="Navigation principale"
-        className="no-scrollbar -mx-1 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1"
+        className="no-scrollbar -mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1 pt-2 pb-3 [mask-image:linear-gradient(to_bottom,transparent,black_8px,black_calc(100%-20px),transparent)]"
       >
         {groups.map((g, i) => (
-          <div key={i} className="flex flex-col gap-1">
-            {g.map((e) => (
+          <div
+            key={g.label ?? i}
+            role="group"
+            aria-label={g.label}
+            className="flex flex-col gap-0.5"
+          >
+            {g.label && (
+              <p className="px-3 pb-1 text-[11px] font-semibold tracking-[0.08em] text-white/40 uppercase">
+                {g.label}
+              </p>
+            )}
+            {g.items.map((e) => (
               <SideItem
                 key={e.to}
                 entry={e}
-                active={e.to.startsWith('/u/') ? pathname === e.to : isActive(e)}
+                active={isActive(e)}
                 count={e.to === '/sos' ? help : undefined}
                 onNavigate={onNavigate}
+                tall={drawer}
               />
             ))}
           </div>
         ))}
       </nav>
 
-      <div className="flex flex-col gap-0.5 pt-4">
+      {/* Action clé de la plateforme, en encart (seulement s'il reste de la hauteur) */}
+      {me && (
+        <div className="dh-glow mt-3 hidden rounded-[18px] p-3.5 [@media(min-height:1000px)]:block">
+          <p className="text-[13.5px] leading-snug font-semibold">Bloqué sur un bug ?</p>
+          <p className="mt-0.5 text-[12px] leading-snug text-white/80">
+            Une piste en quelques secondes, puis un dev qui a déjà résolu le même problème.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate?.();
+              setAsk(true);
+            }}
+            className="mt-3 flex h-8 w-full items-center justify-center gap-1.5 rounded-full bg-white/95 text-[12.5px] font-semibold text-[#3b2f8f] transition-colors hover:bg-white"
+          >
+            <Zap className="size-3.5" />
+            Demander de l’aide
+          </button>
+        </div>
+      )}
+
+      {/* Compte : une seule carte, le menu porte profil, réglages, thème, langue et déconnexion */}
+      <div className="mt-3 border-t border-white/[0.07] pt-3">
         {me ? (
-          <>
-            <Notifications
-              trigger={(unread) => (
-                <button type="button" className={row}>
-                  <Bell className="size-[18px]" />
-                  <span className="flex-1 text-left">{t('nav.notifications')}</span>
-                  {unread > 0 && (
-                    <span className="grid h-6 min-w-6 place-items-center rounded-full bg-badge px-1.5 text-[11px] font-semibold text-white">
-                      {unread}
-                    </span>
-                  )}
-                </button>
-              )}
-            />
-            <UserMenu
-              trigger={
-                <button type="button" className={row}>
-                  <Settings className="size-[18px]" />
-                  <span className="flex-1 text-left">Paramètres</span>
-                  <Avatar name={me.displayName} src={me.avatarUrl} size={22} />
-                </button>
-              }
-            />
-            <button
-              type="button"
-              className={row}
-              onClick={async () => {
-                await Promise.all([api.logout(), serverLogout()]);
-                setUser(null);
-                invalidate('');
-                nav('/');
-              }}
-            >
-              <LogOut className="size-[18px]" />
-              {t('nav.logout')}
-            </button>
-          </>
+          <UserMenu
+            trigger={
+              <button
+                type="button"
+                data-tour="passport"
+                className="flex w-full items-center gap-3 rounded-[14px] p-2 text-left transition-colors hover:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-accent"
+              >
+                <Avatar name={me.displayName} src={me.avatarUrl} size={36} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13.5px] font-semibold text-white">
+                    {me.displayName}
+                  </span>
+                  <span className="block truncate text-[12px] text-white/50">@{me.handle}</span>
+                </span>
+                <ChevronsUpDown className="size-4 shrink-0 text-white/40" />
+              </button>
+            }
+          />
         ) : (
           <Link
             to="/connexion"
-            className="flex h-10 items-center justify-center rounded-[14px] bg-accent-strong text-[13.5px] font-semibold text-white"
+            className="flex h-10 items-center justify-center rounded-[12px] bg-accent-strong text-[13.5px] font-semibold text-white"
           >
             {t('nav.login')}
           </Link>
@@ -333,6 +371,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     </div>
   );
 }
+
+/** Entrées du groupe « Créer » (les autres services vont dans « Services »). */
+const CREATE_PATHS = ['/creer', '/templates', '/projets'];
 
 /** Barre du haut mobile et tablette (la barre latérale passe dans un tiroir). */
 function MobileTop({ onMenu }: { onMenu: () => void }) {

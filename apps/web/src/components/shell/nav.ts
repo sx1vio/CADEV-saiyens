@@ -65,7 +65,13 @@ export const SERVICES_NAV: NavEntry[] = [
     icon: GraduationCap,
     color: '#3ccf8e',
   },
-  { to: '/creer', label: 'Créer une app avec l’IA', short: 'Créer', icon: Wand2, color: '#6a5ae6' },
+  {
+    to: '/creer',
+    label: 'Créer une app avec l’IA',
+    short: 'Créer avec l’IA',
+    icon: Wand2,
+    color: '#6a5ae6',
+  },
   {
     to: '/templates',
     label: 'Templates',
