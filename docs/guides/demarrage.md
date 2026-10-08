@@ -42,7 +42,7 @@ Pour l'état complet du projet, voir [`context.md`](../../context.md).
 
 Systèmes : Linux, macOS, ou Windows **avec WSL2**. Sous Windows, travailler dans WSL, et cloner le dépôt **dans le système de fichiers Linux** (`~/...`), pas sous `/mnt/c/...` (voir [problèmes fréquents](#11-problèmes-fréquents)).
 
-> Node 22 permet aujourd'hui d'installer et de tester, mais ce n'est pas la version de référence ([BUG-007](../suivi/anomalies.md#bug-007)). Utilise Node 24 pour éviter les écarts avec la CI.
+> Node.js 24 est **obligatoire** : `pnpm install` refuse toute autre version (`engine-strict`).
 
 ## 3. Installation
 
@@ -56,12 +56,16 @@ pnpm install                # environ 1 minute ; installe aussi les hooks Git (H
 
 `pnpm install` affiche un encadré « Ignored build scripts » (Prisma, SWC, esbuild) : c'est attendu, rien à faire, le projet fonctionne sans.
 
-Husky, lint-staged et commitlint sont installés, mais **aucun hook n'est encore commité** dans `.husky/` ([BUG-009](../suivi/anomalies.md#bug-009)) : rien ne vérifie tes messages de commit ni ne formate tes fichiers automatiquement. En attendant, vérifie toi-même :
+`pnpm install` installe aussi les hooks Git (Husky) :
 
-```bash
-pnpm format                                       # formate le dépôt avec Prettier
-echo "docs(api): fix typo" | pnpm exec commitlint # vérifie un message de commit
-```
+| Hook         | Effet                                                                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | Prettier sur les fichiers indexés (lint-staged)                                                                                                 |
+| `commit-msg` | commitlint : refuse un message hors [Conventional Commits](../equipe/workflow-git.md#commits--conventional-commits) ou avec une portée inconnue |
+
+Un dépôt cloné **avant** l'ajout des hooks doit relancer `pnpm install` une fois pour les activer.
+
+> Le fichier `.npmrc` contient `engine-strict=true` : `pnpm install` refuse de s'exécuter avec une autre version que Node.js 24. Si tu vois `Unsupported engine`, fais `nvm use` puis `corepack enable`.
 
 ## 4. Configuration (`.env`)
 
@@ -178,7 +182,7 @@ La CI exécute exactement ces commandes ; lance-les en local avant de pousser :
 
 ```bash
 pnpm format:check   # Prettier (corriger avec : pnpm format)
-pnpm lint           # ne vérifie encore rien, voir BUG-001
+pnpm lint           # ESLint, dont les frontières entre couches et entre modules
 pnpm typecheck      # TypeScript
 pnpm test           # Vitest : unitaires + HTTP de bout en bout (base requise)
 pnpm build          # prisma generate + compilation
@@ -230,6 +234,5 @@ Le déploiement et les secrets de production relèvent d'Emmanuel (rôle 4), sup
 | `EACCES … rename` pendant `pnpm install`, installation très lente (WSL) | Dépôt cloné sous `/mnt/c/...`                                    | Recloner dans le système de fichiers Linux (`~/dev/CADEV-saiyens`)                                                                                |
 | `Can't reach database server at localhost:5432`                         | Conteneur arrêté ou pas encore prêt                              | `docker compose -f infra/docker-compose.dev.yml ps`, attendre « healthy »                                                                         |
 | Tests e2e en échec sur des tables manquantes                            | Migrations non appliquées sur la base de test                    | `prisma migrate deploy` avec le bon `DATABASE_URL` (§8)                                                                                           |
-| `pnpm exec commitlint` refuse ton message                               | Type ou portée hors liste                                        | Portées autorisées : `commitlint.config.mjs` et [workflow Git](../equipe/workflow-git.md#commits--conventional-commits)                           |
-| Fichier `AGENTS.md` non suivi apparu à la racine                        | Créé par `turbo` quand un agent IA lance une commande            | Ne pas le commiter ([BUG-008](../suivi/anomalies.md#bug-008))                                                                                     |
+| Commit refusé par commitlint                                            | Type ou portée hors liste                                        | Portées autorisées : `commitlint.config.mjs` et [workflow Git](../equipe/workflow-git.md#commits--conventional-commits)                           |
 | `GET /me` renvoie `401 auth.required` juste après la connexion          | Cookie de session non conservé (client HTTP sans « cookie jar ») | Navigateur, ou `curl -L -c jar -b jar` comme au §7                                                                                                |

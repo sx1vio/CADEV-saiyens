@@ -72,7 +72,7 @@ flowchart LR
 - `http/` et `jobs/` ne contiennent pas de logique métier. Un contrôleur fait trois choses : valider la requête, appeler un cas d'usage, mettre en forme la réponse.
 - `infrastructure/` implémente les ports. C'est le seul endroit où l'on parle Prisma ou HTTP sortant.
 
-Cette règle est vérifiée par ESLint (`import/no-restricted-paths`) dans la CI.
+Cette règle est vérifiée par ESLint (`no-restricted-imports`, preset `nestApi` de [`packages/config/eslint.config.mjs`](../../packages/config/eslint.config.mjs)) dans la CI : le domaine et l'application n'importent ni `infrastructure/`, ni `http/`, ni `jobs/`, ni Prisma ; un module n'importe un autre module que par son `index.ts`.
 
 ### Le juste niveau d'abstraction
 
