@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FakeGithubClient } from '../../github/infrastructure/fake-github.client';
-import type { TagSignal } from '../domain/github-signals';
+import type { TagSignal } from '@devhub/core';
 import type { ImportSummary, SkillStore } from '../domain/ports';
 import {
   GithubNotLinkedError,

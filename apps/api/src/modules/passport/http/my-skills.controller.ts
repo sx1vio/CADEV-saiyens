@@ -19,7 +19,7 @@ import {
   ImportGithubProfile,
   RefreshTooSoonError,
 } from '../application/import-github-profile';
-import { SCORING, skillLevel } from '../domain/skill-score';
+import { SCORING, skillLevel } from '@devhub/core';
 import { PrismaSkillStore } from '../infrastructure/prisma-skill.store';
 import { type MySkillsResponse, MySkillsResponseDto } from './skills.dto';
 

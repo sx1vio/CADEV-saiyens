@@ -67,6 +67,15 @@ describe('computeGithubSignals (X3)', () => {
     expect(signals[1]).toMatchObject({ tagId: 'py', qualifiedRepos: 1 });
   });
 
+  it('ignore un dépôt sans langage détecté', () => {
+    expect(computeGithubSignals([repo({})], tagFor, now)).toEqual([]);
+  });
+
+  it('ne qualifie pas un dépôt sans date de dernière modification', () => {
+    const [ts] = computeGithubSignals([repo({ TypeScript: 100 }, { pushedAt: null })], tagFor, now);
+    expect(ts).toMatchObject({ tagId: 'ts', qualifiedRepos: 0, githubSignal: 0 });
+  });
+
   it('ignore les langages sans étiquette connue', () => {
     expect(computeGithubSignals([repo({ Brainfuck: 100 })], tagFor, now)).toEqual([]);
   });
