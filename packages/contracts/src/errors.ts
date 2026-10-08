@@ -12,6 +12,7 @@ export const ERROR_CODES = [
   'csrf.origin_rejected',
   'database.unavailable',
   'github.not_linked',
+  'github.token_revoked',
   'github.unavailable',
 ] as const;
 
