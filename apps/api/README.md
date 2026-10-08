@@ -19,17 +19,20 @@ pnpm install
 pnpm --filter @devhub/api exec prisma migrate deploy   # applique les migrations
 pnpm --filter @devhub/api exec prisma db seed          # 52 étiquettes de référence
 pnpm --filter @devhub/api dev                          # API sur http://localhost:3000
-pnpm --filter @devhub/api dev:worker                   # worker pg-boss
+pnpm --filter @devhub/api dev:worker                   # worker pg-boss (import du profil GitHub…)
 ```
 
-| URL                        | Rôle                                                      |
-| -------------------------- | --------------------------------------------------------- |
-| `GET /api/v1/healthz`      | Le process répond                                         |
-| `GET /readyz`              | La base répond (Docker, déploiement)                      |
-| `GET /api/docs`            | Documentation OpenAPI (hors production)                   |
-| `GET /api/v1/auth/github`  | Connexion GitHub (redirection OAuth, `?returnTo=/chemin`) |
-| `GET /api/v1/me`           | Mon profil (session requise)                              |
-| `POST /api/v1/auth/logout` | Déconnexion (en-têtes `Origin` et `X-DevHub-Client: web`) |
+| URL                               | Rôle                                                      |
+| --------------------------------- | --------------------------------------------------------- |
+| `GET /api/v1/healthz`             | Le process répond                                         |
+| `GET /readyz`                     | La base répond (Docker, déploiement)                      |
+| `GET /api/docs`                   | Documentation OpenAPI (hors production)                   |
+| `GET /api/v1/auth/github`         | Connexion GitHub (redirection OAuth, `?returnTo=/chemin`) |
+| `GET /api/v1/me`                  | Mon profil (session requise)                              |
+| `POST /api/v1/auth/logout`        | Déconnexion (en-têtes `Origin` et `X-DevHub-Client: web`) |
+| `POST /api/v1/me/code-of-conduct` | Acceptation du code de conduite (M3)                      |
+| `GET /api/v1/me/skills`           | Compétences proposées depuis GitHub (PR1, X3)             |
+| `POST /api/v1/me/github/refresh`  | Réimport du profil GitHub (une fois par heure)            |
 
 > **Connexion sans application GitHub** : avec `AUTH_FAKE_PROVIDER=true` (interdit en production), `GET /api/v1/auth/github?login=awa-dev` connecte directement un faux compte `awa-dev`. Pratique en local et utilisé par les tests de bout en bout.
 
