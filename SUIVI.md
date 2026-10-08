@@ -70,7 +70,7 @@ Questions auxquelles la plateforme doit répondre :
 - [ ] Traduire les nouveaux services en anglais (i18n)
 - [ ] Définir avec le rôle 2 l'API des nouveaux services (posts, commentaires, offres, candidatures, certifications, skills, vidéos, parcours)
 - [ ] Prévenir l'équipe du pivot de périmètre (décision §11)
-- [ ] Faire relire et fusionner la PR `feat/web-platform` (Caleb pour `apps/api`, Emmanuel pour `infra/Caddyfile`)
+- [ ] Faire relire et fusionner la PR #97 vers `main` (Caleb pour `apps/api`, Emmanuel pour `infra/Caddyfile`) ; fermer #96, incluse dans #97
 - [ ] Créer l’application OAuth GitHub (avec Joachim / Emmanuel) et renseigner `.env` à la racine ; GitLab et Google après (P1 côté API)
 - [ ] Déploiement : il passe par la CI de `main` (`infra/`, rôle 4) ; le worker doit tourner pour la collecte des actualités
 - [ ] Passer les services (posts, commentaires, emplois, candidatures, certifications, progression) du stockage local à l'API
@@ -144,6 +144,13 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 08/10/2026 (nuit, fin) — Pull request vers `main`
+
+- **Demande de Sylvio** : « fais une pull request vers main ».
+- **PR #97** (`feat/web-calm-ui`) redirigée vers `main` : elle contient tout #96 (intégration, module `news`) et la refonte (systèmes de design v1 puis v2). Titre et description mis à jour, étiquettes `front`, `back`, `contrat`. Fusionnable sans conflit ; CI verte (lint, typecheck, tests, build, secrets, e2e).
+- **#96** est désormais incluse dans #97 : à fermer si l'équipe relit #97 directement.
+- `sylvio-frontend` poussée (commit `aa93f45`, backend Fastify) pour garder l'historique.
 
 ### 08/10/2026 (nuit, suite) — Écran d'erreur
 
