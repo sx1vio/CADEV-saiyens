@@ -60,13 +60,14 @@ prisma/
 
 ## Scripts
 
-| Script       | Rôle                               |
-| ------------ | ---------------------------------- |
-| `dev`        | API en mode surveillance           |
-| `dev:worker` | Worker en mode surveillance        |
-| `build`      | `prisma generate` puis compilation |
-| `typecheck`  | Vérification des types             |
-| `test`       | Tests Vitest (unitaires et HTTP)   |
+| Script       | Rôle                                                                    |
+| ------------ | ----------------------------------------------------------------------- |
+| `dev`        | API en mode surveillance                                                |
+| `dev:worker` | Worker en mode surveillance                                             |
+| `ai:try`     | Essai de la piste IA contre la vraie API Claude (`LLM_API_KEY` requise) |
+| `build`      | `prisma generate` puis compilation                                      |
+| `typecheck`  | Vérification des types                                                  |
+| `test`       | Tests Vitest (unitaires et HTTP)                                        |
 
 ## Règles pour les migrations
 

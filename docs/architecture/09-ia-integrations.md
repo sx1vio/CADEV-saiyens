@@ -74,6 +74,55 @@ Un extrait de code ou un message de salle peut contenir « ignore tes instructio
 
 Toute sortie de l'IA est rendue par le composant `AiContent` avec la mention **« Généré par IA, à vérifier »** (S2). Les traductions sont marquées « Traduit automatiquement ». Les fiches validées portent « Rédigé avec l'IA, validé par l'auteur » (S12).
 
+### Implémentation de la piste IA (S2)
+
+> État au 9 octobre 2026 : module `apps/api/src/modules/ai`, branche `feat/ai-hint`. Propriétaire : Joachim (rôle 5).
+
+| Fichier                                   | Rôle                                                                                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `domain/ports.ts`                         | `LlmPort`, `HintStore`, types `LlmRequest` / `LlmResult`                                                                                   |
+| `domain/hint-input.ts`                    | Prépare l'entrée : `maskSecrets` (O9, même si le client l'a fait), tailles plafonnées, étiquettes triées ; empreinte SHA-256 pour le cache |
+| `domain/untrusted.ts`                     | `renderUntrusted` : encadre le contenu utilisateur dans `<user_content>` et neutralise toute balise écrite par l'utilisateur (M2)          |
+| `prompts/hint.v1.ts`                      | Gabarit `hint@1`, en français et en anglais selon la langue de la question                                                                 |
+| `application/generate-hint.ts`            | Cas d'usage : cache, quota, appel, écriture du résultat                                                                                    |
+| `infrastructure/anthropic-llm.adapter.ts` | API Claude (`@anthropic-ai/sdk`), sans outil, délai `LLM_HINT_TIMEOUT_MS`, effort `low`, repli côté serveur sur refus                      |
+| `infrastructure/fake-llm.adapter.ts`      | `FakeLlmAdapter` (tests, développement sans clé, réponse marquée « Piste de démonstration ») et `DisabledLlmAdapter` (production sans clé) |
+| `infrastructure/prisma-hint.store.ts`     | Lecture de la question, quota et cache dans `ai_requests`, écriture conditionnelle de `ai_hint`                                            |
+| `jobs/ai-hint.job.ts`                     | Handler du job `ai.hint` (worker)                                                                                                          |
+| `cli.ts`                                  | `pnpm --filter @devhub/api ai:try ["titre"]` : essai contre la vraie API                                                                   |
+
+**Déclenchement** (à faire dans S1, module `sos`) : après la création d'une question, `jobs.send(JOBS.aiHint, { questionId }, questionId)`. La clé de singleton évite deux pistes pour la même question.
+
+**Déroulé du job** :
+
+```mermaid
+flowchart TD
+    A[ai.hint questionId] --> B{question en attente ?}
+    B -- non --> I[ignored : rien ne change]
+    B -- oui --> C[masquage des secrets, empreinte]
+    C --> D{piste en cache ?}
+    D -- oui --> E[ai_status = done, journal « cache »]
+    D -- non --> F{quota horaire atteint ?}
+    F -- oui --> G[ai_status = skipped, journal « quota »]
+    F -- non --> H[appel du modèle, 10 s maximum]
+    H -- réponse --> J[ai_status = done, piste écrite]
+    H -- délai, erreur, refus --> K[ai_status = failed]
+```
+
+| Cas                                               | `ai_status` | `ai_requests.status`          | Compte dans le quota |
+| ------------------------------------------------- | ----------- | ----------------------------- | -------------------- |
+| Piste générée                                     | `done`      | `ok`                          | Oui                  |
+| Même entrée déjà traitée (même version de prompt) | `done`      | `cache`                       | Non                  |
+| Quota atteint                                     | `skipped`   | `quota`                       | Non                  |
+| Délai dépassé, erreur de l'API, refus du modèle   | `failed`    | `timeout`, `error`, `refusal` | Oui                  |
+| Production sans `LLM_API_KEY`                     | `skipped`   | (aucune ligne)                | Non                  |
+
+Dans tous les cas, `ai_status` quitte `pending` : la question continue vers le matching (S2 : « ne bloque jamais la suite »). L'écriture est conditionnelle (`ai_status = pending`), donc un job rejoué ne réécrit rien.
+
+**Variables** : `LLM_API_KEY` (vide : faux modèle en développement, IA désactivée en production), `LLM_MODEL` (défaut `claude-sonnet-5-5`), `LLM_HOURLY_QUOTA_PER_USER` (10), `LLM_HINT_TIMEOUT_MS` (10 000).
+
+**Reste à faire** : notifier l'auteur par SSE (`question.ai_hint`, dépend de Y8), plafond de dépense et alerte à 80 % chez le fournisseur (#7), premier essai `ai:try` avec la vraie clé.
+
 ## 2. GitHub
 
 ### Authentification
