@@ -2,3 +2,4 @@
 export { IdentityModule } from './identity.module';
 export { type AuthenticatedUser, CurrentUser, SessionGuard } from './http/session.guard';
 export { OriginGuard } from './http/origin.guard';
+export { GithubTokenReader } from './infrastructure/github-token.reader';
