@@ -9,13 +9,11 @@ import { Button, ButtonLink } from '../ui/button';
 import { Sheet } from '../ui/overlay';
 import { NetworkIndicator, OfflineBanner } from './network';
 
+// Trois portes d'entrée seulement : le reste se découvre une fois connecté.
 const LINKS = [
   { to: '/videos', label: 'Vidéos' },
   { to: '/emplois', label: 'Emplois' },
-  { to: '/certifications', label: 'Certifications' },
   { to: '/apprendre', label: 'Apprendre' },
-  { to: '/creer', label: 'Créer avec l’IA' },
-  { to: '/sos', label: 'Entraide' },
 ];
 
 export function Logo({ className }: { className?: string }) {
@@ -75,30 +73,11 @@ export function PublicShell() {
           </nav>
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <NetworkIndicator compact />
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t('nav.theme')}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="hidden sm:inline-flex"
-            >
-              {theme === 'dark' ? (
-                <Sun className="size-[18px]" />
-              ) : (
-                <Moon className="size-[18px]" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLanguage(lang === 'fr' ? 'en' : 'fr')}
-              className="hidden uppercase sm:inline-flex"
-              icon={<Languages />}
-            >
-              {lang === 'fr' ? 'EN' : 'FR'}
-            </Button>
-            <ButtonLink to="/connexion" variant="primary" size="sm">
+            <ButtonLink to="/connexion" variant="ghost" size="sm" className="hidden sm:inline-flex">
               {t('nav.login')}
+            </ButtonLink>
+            <ButtonLink to="/inscription" variant="primary" size="sm">
+              Créer un compte
             </ButtonLink>
             <Button
               variant="ghost"
@@ -116,10 +95,26 @@ export function PublicShell() {
       <main id="main" className="flex-1">
         <Outlet />
       </main>
-      <footer className="mt-10 bg-black text-white/70">
+      <footer className="dh-ink mt-16 text-white/70">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-10 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>{t('app.madeIn')}</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <button
+              type="button"
+              onClick={() => setLanguage(lang === 'fr' ? 'en' : 'fr')}
+              className="inline-flex items-center gap-1.5 hover:text-white"
+            >
+              <Languages className="size-4" />
+              {lang === 'fr' ? 'English' : 'Français'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="inline-flex items-center gap-1.5 hover:text-white"
+            >
+              {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+              {theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+            </button>
             <Link to="/regles" className="hover:text-white">
               {t('landing.footerRules')}
             </Link>

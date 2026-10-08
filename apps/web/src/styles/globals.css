@@ -6,27 +6,28 @@
    Contrastes vérifiés WCAG AA (docs/phase0-analyse.md §7).
    ------------------------------------------------------------------ */
 
-@import '@fontsource-variable/inter/opsz.css';
+@import '@fontsource-variable/plus-jakarta-sans/wght.css';
 
 :root,
 :root[data-theme='light'] {
   color-scheme: light;
 
-  /* Charte « Drivery » : contenu blanc, cartes gris clair sans bordure, barre latérale noire. */
-  --bg-rail: #000000;
-  --bg-nav: #000000;
-  --bg-base: #ffffff;
-  --surface-1: #f3f3f5;
-  --surface-2: #ebebee;
-  --surface-3: #e4e4e8;
-  --surface-inset: #f3f3f5;
-  --border: rgba(10, 10, 12, 0.07);
-  --border-strong: rgba(10, 10, 12, 0.13);
+  /* Charte « Drivery » + matière « Retail-X » : fond gris très clair, cartes blanches à ombre douce,
+     barre latérale ardoise texturée. */
+  --bg-rail: #151b24;
+  --bg-nav: #151b24;
+  --bg-base: #f2f3f7;
+  --surface-1: #ffffff;
+  --surface-2: #f4f5f8;
+  --surface-3: #eceef3;
+  --surface-inset: #f4f5f8;
+  --border: rgba(16, 24, 40, 0.07);
+  --border-strong: rgba(16, 24, 40, 0.13);
   --highlight: rgba(255, 255, 255, 0.9);
 
-  --text: #0b0b0c;
-  --text-muted: #5b5b63;
-  --text-subtle: #6f6f78;
+  --text: #101828;
+  --text-muted: #4b5565;
+  --text-subtle: #667085;
   --text-on-accent: #ffffff;
 
   --accent: #8d6cf0;
@@ -70,13 +71,13 @@
   --scrim: rgba(10, 10, 12, 0.4);
 
   --card-top: var(--surface-1);
-  --card-edge: transparent;
+  --card-edge: rgba(16, 24, 40, 0.06);
   --glass: rgba(255, 255, 255, 0.88);
   --noise-opacity: 0;
-  --shadow-card: none;
-  --shadow-card-hover: none;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 32px -20px rgba(16, 24, 40, 0.22);
+  --shadow-card-hover: 0 1px 2px rgba(16, 24, 40, 0.05), 0 18px 40px -20px rgba(16, 24, 40, 0.3);
 
-  --code-bg: #f3f3f5;
+  --code-bg: #f4f5f8;
   --code-fg: #1d1d22;
   --code-comment: #6f6f78;
   --code-keyword: #6a4bd6;
@@ -90,8 +91,8 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg-rail: #000000;
-  --bg-nav: #000000;
+  --bg-rail: #10151c;
+  --bg-nav: #10151c;
   --bg-base: #0c0c0e;
   --surface-1: #18181b;
   --surface-2: #202024;
@@ -147,11 +148,11 @@
   --scrim: rgba(0, 0, 0, 0.65);
 
   --card-top: var(--surface-1);
-  --card-edge: transparent;
+  --card-edge: rgba(255, 255, 255, 0.06);
   --glass: rgba(12, 12, 14, 0.86);
   --noise-opacity: 0;
-  --shadow-card: none;
-  --shadow-card-hover: none;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
 
   --code-bg: #131316;
   --code-fg: #e4e4e7;
@@ -196,7 +197,7 @@
 /* Pont Tailwind v4 : les utilitaires lisent les tokens, donc suivent le thème. */
 @theme inline {
   --font-sans:
-    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono:
     'JetBrains Mono Variable', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
@@ -294,9 +295,10 @@
     font-family: var(--font-sans);
     font-size: 14px;
     line-height: 1.5;
-    letter-spacing: -0.003em;
+    letter-spacing: 0;
+    /* Plus Jakarta Sans a une espace étroite : on la desserre un peu pour la lisibilité */
+    word-spacing: 0.05em;
     font-optical-sizing: auto;
-    /* Inter : chiffres et ponctuation plus nets en interface */
     font-feature-settings: 'ss01' 0;
     min-height: 100dvh;
     overflow-x: hidden;
@@ -784,4 +786,59 @@
 /* Palette de commandes : ouverte des dizaines de fois par jour → aucune animation (Emil Kowalski) */
 .dh-instant[data-state] {
   animation: none !important;
+}
+
+/* ------------------------------------------------------------------
+   Matière « Retail-X » (08/10/2026) : cartes blanches à ombre douce,
+   surfaces sombres texturées, trait d'accent devant les titres de section.
+   ------------------------------------------------------------------ */
+@layer components {
+  .dh-card {
+    background: var(--surface-1);
+    border: 1px solid var(--card-edge);
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
+  }
+  .dh-card-hover {
+    transition: box-shadow var(--dur-base) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .dh-card-hover:hover {
+      box-shadow: var(--shadow-card-hover);
+    }
+  }
+
+  /* Surface sombre : ardoise avec un reflet en haut à gauche et un liseré intérieur */
+  .dh-ink {
+    color: #fff;
+    background:
+      radial-gradient(120% 70% at 0% 0%, rgba(255, 255, 255, 0.09), transparent 55%),
+      radial-gradient(90% 60% at 100% 100%, rgba(141, 108, 240, 0.16), transparent 60%),
+      linear-gradient(180deg, #1b2330 0%, #121821 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  /* Carte d'accent : dégradé lavande → bleu, comme la carte « Inventory Valuation » */
+  .dh-glow {
+    color: #fff;
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgba(255, 255, 255, 0.22), transparent 60%),
+      linear-gradient(135deg, #8d6cf0 0%, #5b7cfa 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 16px 32px -18px rgba(91, 124, 250, 0.7);
+  }
+
+  .dh-title-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dh-title-bar::before {
+    content: '';
+    width: 4px;
+    height: 1em;
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  }
 }

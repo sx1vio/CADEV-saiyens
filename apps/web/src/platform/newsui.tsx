@@ -61,7 +61,7 @@ function Meta({ item, className }: { item: NewsItem; className?: string }) {
 }
 
 /** Image d'article : se replie proprement si elle ne charge pas. */
-function Thumb({
+export function Thumb({
   src,
   className,
   alt = '',
@@ -376,7 +376,7 @@ export function SectionHead({
 }) {
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      <h2 className="text-[19px] font-bold tracking-[-0.03em] text-fg">{title}</h2>
+      <h2 className="dh-title-bar text-[18px] font-bold tracking-[-0.02em] text-fg">{title}</h2>
       {children}
       {action && (
         <Link

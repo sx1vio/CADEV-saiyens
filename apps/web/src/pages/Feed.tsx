@@ -1,769 +1,441 @@
-import {
-  PenSquare,
-  Hash,
-  Award,
-  Briefcase,
-  Flame,
-  GraduationCap,
-  Image as ImageIcon,
-  Link2,
-  PlaySquare,
-  Puzzle,
-  Sparkles,
-  TrendingUp,
-  Wand2,
-  Zap,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Bookmark, ExternalLink, Play, Share2, Zap, PenSquare } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { toast } from 'sonner';
 import { Avatar, Skeleton } from '@/components/ui/primitives';
+import { useQuery } from '@/lib/query';
+import { cn } from '@/lib/utils';
+import { POSTS } from '@/platform/data/feed';
 import {
+  NEWS_CATEGORIES,
+  domainOf,
   fetchHome,
   fetchNews,
-  NEWS_CATEGORIES,
+  img,
   type HomeNews,
-  type Lang,
   type NewsItem,
 } from '@/platform/news';
-import {
-  ArticleCard,
-  DevtoCard,
-  HeroNews,
-  HnRow,
-  ReleaseCard,
-  RepoRow,
-  SectionHead,
-  VideoTile,
-} from '@/platform/newsui';
-import { BrandLogo } from '@/platform/logos';
-import { COMMUNITIES, POSTS } from '@/platform/data/feed';
-import { JOBS } from '@/platform/data/jobs';
-import { VIDEOS } from '@/platform/data/videos';
+import { SourceMark } from '@/platform/newsui';
 import { usePlatform } from '@/platform/store';
-import type { Post } from '@/platform/types';
-import {
-  Ago,
-  CUBE,
-  Chips,
-  CommunityIcon,
-  CompanyLogo,
-  PostCard,
-  ServiceHeader,
-  SideCard,
-  StatCard,
-  VideoThumb,
-  companyOf,
-  compact,
-} from '@/platform/ui';
-import { Button } from '@/components/ui/button';
-import { PLATFORM_CERTS } from '@/platform/data/certs';
-import { useQuery } from '@/lib/query';
-import { api } from '@/services';
-import { person } from '@/platform/data/people';
-import { cn } from '@/lib/utils';
+import { Ago, PostCard } from '@/platform/ui';
 import { useSession, useUI } from '@/stores/app';
 
-const TRENDS = [
-  { tag: 'MCP et agents de code', count: 214, logo: 'MCP', to: '/c/ia' },
-  { tag: 'Mobile money', count: 168, logo: '', to: '/c/fintech' },
-  { tag: 'Flutter hors ligne', count: 121, logo: 'Flutter', to: '/c/mobile' },
-  { tag: 'Premier emploi', count: 97, logo: '', to: '/c/carriere' },
-  { tag: 'Claude Code', count: 88, logo: 'Claude', to: '/skills?outil=claude' },
-];
+/**
+ * Accueil : un fil unique, façon Facebook. Une publication = une source, un titre, un court
+ * extrait, une image, et trois actions (lire, enregistrer, partager). Pas de réactions.
+ * Une seule chose à lire à la fois ; le reste de la plateforme est dans le menu.
+ */
 
-const EVENTS = [
-  {
-    day: 'Live',
-    time: '●',
-    live: true,
-    kind: 'Live · Jean-Eudes Hounkpatin',
-    title: 'On code la synchro hors ligne d’une app Flutter',
-    to: '/videos/v-live-flutter',
-  },
-  {
-    day: 'Jeu.',
-    time: '19:00',
-    kind: 'Atelier · UTC',
-    title: 'Écrire et sécuriser son premier serveur MCP',
-    to: '/videos/v-mcp',
-  },
-  {
-    day: 'Sam.',
-    time: '15:00',
-    kind: 'Questions-réponses · UTC',
-    title: 'Recruter et être recruté en remote depuis l’Afrique',
-    to: '/c/carriere',
-  },
-];
-
-type FeedTab = 'pour-toi' | 'actu' | 'projets' | 'opensource' | 'discussions' | 'emplois';
+type FeedTab = 'pour-toi' | 'ia' | 'dev' | 'videos' | 'communaute';
 
 const TABS: { id: FeedTab; label: string }[] = [
   { id: 'pour-toi', label: 'Pour toi' },
-  { id: 'actu', label: 'Actu IA & Tech' },
-  { id: 'projets', label: 'Projets' },
-  { id: 'opensource', label: 'Open source' },
-  { id: 'discussions', label: 'Discussions' },
-  { id: 'emplois', label: 'Emplois' },
+  { id: 'ia', label: 'IA' },
+  { id: 'dev', label: 'Dev' },
+  { id: 'videos', label: 'Vidéos' },
+  { id: 'communaute', label: 'Communauté' },
 ];
 
-const MATCH: Record<FeedTab, (p: Post) => boolean> = {
-  'pour-toi': () => true,
-  actu: (p) => p.kind === 'news',
-  projets: (p) => p.kind === 'launch' || p.kind === 'showcase',
-  opensource: (p) => p.kind === 'opensource',
-  discussions: (p) => p.kind === 'discussion' || p.kind === 'question',
-  emplois: (p) => p.kind === 'job',
-};
-
-/** Raccourcis vers les services de l'écosystème (colonne de droite et bandeau mobile). */
-const SERVICES = [
-  {
-    to: '/emplois',
-    icon: Briefcase,
-    label: 'Emplois',
-    color: '#22a3ee',
-    stat: `${JOBS.length} offres`,
-  },
-  {
-    to: '/certifications',
-    icon: Award,
-    label: 'Certifications',
-    color: '#f0b232',
-    stat: 'Gratuites et payantes',
-  },
-  {
-    to: '/skills',
-    icon: Puzzle,
-    label: 'Skills IA',
-    color: '#8b7cf8',
-    stat: 'Claude, Codex, Antigravity',
-  },
-  { to: '/videos', icon: PlaySquare, label: 'Vidéos', color: '#e5333b', stat: '1 live en cours' },
-  {
-    to: '/apprendre',
-    icon: GraduationCap,
-    label: 'Apprendre',
-    color: '#3ccf8e',
-    stat: '6 parcours',
-  },
-  {
-    to: '/creer',
-    icon: Wand2,
-    label: 'Créer avec l’IA',
-    color: '#6a5ae6',
-    stat: 'Guide en 11 étapes',
-  },
-];
+const CATEGORY_LABEL = Object.fromEntries(NEWS_CATEGORIES.map((c) => [c.id, c.label]));
 
 export default function Feed() {
+  const [params, setParams] = useSearchParams();
+  const tab = (
+    TABS.some((t) => t.id === params.get('f')) ? params.get('f') : 'pour-toi'
+  ) as FeedTab;
+  const home = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
+
+  return (
+    <div className="dh-page mx-auto flex w-full max-w-[1080px] justify-center gap-8 px-4 py-6 sm:px-6 sm:py-8">
+      <main className="w-full max-w-[620px] min-w-0">
+        <Composer />
+        <nav
+          aria-label="Filtrer le fil"
+          className="no-scrollbar mt-5 flex gap-1 overflow-x-auto border-b border-line"
+        >
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              aria-current={tab === t.id ? 'page' : undefined}
+              onClick={() => setParams(t.id === 'pour-toi' ? {} : { f: t.id }, { replace: true })}
+              className={cn(
+                '-mb-px shrink-0 border-b-2 px-3.5 pt-1 pb-3 text-[14px] font-semibold transition-colors',
+                tab === t.id
+                  ? 'border-accent text-fg'
+                  : 'border-transparent text-subtle hover:text-fg',
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="mt-5">
+          {tab === 'communaute' ? (
+            <CommunityStream />
+          ) : (
+            <NewsStream key={tab} tab={tab} home={home.data} homeError={home.error} />
+          )}
+        </div>
+      </main>
+
+      <aside className="hidden w-[300px] shrink-0 xl:block">
+        <div className="sticky top-6">
+          <Brief home={home.data} />
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+/* ---------------- Barre de publication ---------------- */
+
+function Composer() {
   const me = useSession((s) => s.user);
   const setAsk = useUI((s) => s.setAsk);
   const nav = useNavigate();
-  const [params, setParams] = useSearchParams();
-  const tab = (params.get('f') as FeedTab) || 'pour-toi';
-  const [sort, setSort] = useState<'top' | 'new'>('top');
-  const myPosts = usePlatform((s) => s.myPosts);
-  const joined = usePlatform((s) => s.joined);
-  const toggle = usePlatform((s) => s.toggle);
-
-  const posts = useMemo(() => {
-    const all = [...myPosts, ...POSTS].filter(MATCH[tab]);
-    return sort === 'new'
-      ? all.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      : all.sort((a, b) => hot(b) - hot(a));
-  }, [myPosts, tab, sort]);
-
+  if (!me) return null;
+  const first = me.displayName.split(' ')[0];
   return (
-    <div className="dh-page mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-8 sm:py-8">
-      <ServiceHeader
-        title="Accueil"
-        subtitle="L’actu IA, tech et dev en continu, les vidéos du moment, les projets et les questions de la communauté."
-        actions={
-          me && (
-            <>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<PenSquare />}
-                onClick={() => nav('/publier')}
-              >
-                Publier
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<Zap />}
-                onClick={() => setAsk(true)}
-                data-tour="hero-ask"
-              >
-                Je suis bloqué
-              </Button>
-            </>
-          )
-        }
-      />
-      <NewsTop />
-      {me && <FeedStats />}
-      <NewsBody />
-      <SectionHead title="Communauté DevHub" />
-      <div className="flex gap-6">
-        <div className="min-w-0 flex-1">
-          {/* Services de l'écosystème, en bandeau sur petits écrans */}
-          <div className="no-scrollbar -mx-3 mb-4 flex gap-2 overflow-x-auto px-3 lg:hidden">
-            {SERVICES.map((s) => (
-              <Link
-                key={s.to}
-                to={s.to}
-                className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-line bg-surface-1 px-3.5 text-[13px] font-medium text-fg"
-              >
-                <s.icon className="size-4 text-muted" />
-                {s.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Composer */}
-          {me && (
-            <div
-              data-tour="hero"
-              className="flex items-center gap-3 rounded-[20px] bg-surface-1 p-3"
-            >
-              <Avatar name={me.displayName} src={me.avatarUrl} size={38} />
-              <button
-                type="button"
-                onClick={() => nav('/publier')}
-                className="h-11 min-w-0 flex-1 truncate rounded-full bg-canvas px-4 text-left text-[14px] text-subtle shadow-sm"
-              >
-                Partage un projet, une actu, une question…
-              </button>
-              <button
-                type="button"
-                onClick={() => nav('/publier?type=launch')}
-                aria-label="Publier un projet avec image"
-                className="hidden size-10 place-items-center rounded-[8px] text-muted hover:bg-surface-2 hover:text-fg sm:grid"
-              >
-                <ImageIcon className="size-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => nav('/publier?type=news')}
-                aria-label="Partager un lien"
-                className="hidden size-10 place-items-center rounded-[8px] text-muted hover:bg-surface-2 hover:text-fg sm:grid"
-              >
-                <Link2 className="size-5" />
-              </button>
-            </div>
-          )}
-
-          <div className="mt-6 flex items-center gap-4">
-            <h2 className="shrink-0 text-[17px] font-bold tracking-[-0.02em] text-fg">Posts</h2>
-            <Chips
-              items={TABS}
-              value={tab}
-              onChange={(v) => setParams(v === 'pour-toi' ? {} : { f: v }, { replace: true })}
-              className="min-w-0 flex-1"
-            />
-            <div
-              className="hidden shrink-0 items-center gap-1 rounded-[8px] bg-surface-1 p-0.5 sm:flex"
-              role="group"
-              aria-label="Tri"
-            >
-              {(
-                [
-                  ['top', 'Populaires', Flame],
-                  ['new', 'Récents', TrendingUp],
-                ] as const
-              ).map(([id, label, Icon]) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={sort === id}
-                  onClick={() => setSort(id)}
-                  className={cn(
-                    'inline-flex h-7 items-center gap-1.5 rounded-[6px] px-2.5 text-[13px] font-semibold',
-                    sort === id ? 'bg-surface-3 text-fg' : 'text-muted hover:text-fg',
-                  )}
-                >
-                  <Icon className="size-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="dh-stagger mt-3 flex flex-col gap-2.5">
-            {posts.map((p) => (
-              <PostCard key={p.id} post={p} />
-            ))}
-          </div>
-        </div>
-
-        {/* Colonne de droite : l'écosystème */}
-        <aside className="hidden w-[316px] shrink-0 flex-col gap-4 lg:flex">
-          <SideCard title="Les services DevHub">
-            <div className="grid grid-cols-2 gap-2">
-              {SERVICES.map((s) => (
-                <Link
-                  key={s.to}
-                  to={s.to}
-                  className="group flex flex-col gap-2.5 rounded-[14px] bg-canvas p-3 transition-colors "
-                >
-                  <s.icon className="size-[18px] text-muted group-hover:text-fg" />
-                  <span>
-                    <span className="block text-[13px] leading-tight font-semibold text-fg">
-                      {s.label}
-                    </span>
-                    <span className="mt-0.5 block text-[11.5px] leading-tight text-subtle">
-                      {s.stat}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </SideCard>
-
-          <SideCard title="Tendances de la semaine">
-            <ol className="-mx-1 flex flex-col">
-              {TRENDS.map((t, i) => (
-                <li key={t.tag}>
-                  <Link
-                    to={t.to}
-                    className="flex items-center gap-3 rounded-[6px] px-1 py-1.5 hover:bg-surface-2"
-                  >
-                    <span className="w-4 text-right text-[12px] text-subtle tabular">{i + 1}</span>
-                    <span className="grid size-7 place-items-center rounded-[6px] bg-canvas">
-                      {t.logo ? (
-                        <BrandLogo name={t.logo} size={14} />
-                      ) : (
-                        <Hash className="size-3.5 text-muted" />
-                      )}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-medium text-fg">
-                        {t.tag}
-                      </span>
-                      <span className="block text-[11.5px] text-subtle">
-                        {t.count} publications
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          </SideCard>
-
-          <SideCard title="À venir">
-            <ul className="flex flex-col gap-3">
-              {EVENTS.map((e) => (
-                <li key={e.title}>
-                  <Link to={e.to} className="group flex gap-3">
-                    <span
-                      className={cn(
-                        'flex w-11 shrink-0 flex-col items-center rounded-[6px] border py-1 text-center',
-                        e.live ? 'border-danger/50 text-danger' : 'border-line text-muted',
-                      )}
-                    >
-                      <span className="text-[10px] font-semibold uppercase">{e.day}</span>
-                      <span className="text-[13px] font-semibold text-fg tabular">{e.time}</span>
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[11.5px] font-medium text-subtle">{e.kind}</span>
-                      <span className="line-clamp-2 text-[13px] leading-snug font-medium text-fg group-hover:underline">
-                        {e.title}
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </SideCard>
-
-          <SideCard
-            title="Offres pour toi"
-            action={
-              <Link
-                to="/emplois"
-                className="text-[12.5px] font-semibold text-accent-text hover:underline"
-              >
-                Tout voir
-              </Link>
-            }
-          >
-            <ul className="-mx-2 flex flex-col">
-              {JOBS.slice(0, 3).map((j) => (
-                <li key={j.id}>
-                  <Link
-                    to={`/emplois/${j.id}`}
-                    className="flex gap-3 rounded-[8px] px-2 py-2 hover:bg-surface-2"
-                  >
-                    <CompanyLogo slug={j.company} size={36} />
-                    <span className="min-w-0">
-                      <span className="line-clamp-2 text-[13px] leading-snug font-semibold text-fg">
-                        {j.title}
-                      </span>
-                      <span className="block truncate text-[12px] text-subtle">
-                        {companyOf(j.company).name} · {j.city}
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </SideCard>
-
-          <SideCard
-            title="Communautés populaires"
-            action={
-              <Link
-                to="/communautes"
-                className="text-[12.5px] font-semibold text-accent-text hover:underline"
-              >
-                Explorer
-              </Link>
-            }
-          >
-            <ul className="flex flex-col gap-2.5">
-              {[...COMMUNITIES]
-                .sort((a, b) => b.members - a.members)
-                .slice(0, 5)
-                .map((c) => {
-                  const isIn = joined.includes(c.slug);
-                  return (
-                    <li key={c.slug} className="flex items-center gap-2.5">
-                      <CommunityIcon slug={c.slug} size={32} />
-                      <Link to={`/c/${c.slug}`} className="min-w-0 flex-1">
-                        <span className="block truncate text-[13px] font-semibold text-fg hover:underline">
-                          c/{c.slug}
-                        </span>
-                        <span className="block text-[12px] text-subtle">
-                          {compact(c.members)} membres
-                        </span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => toggle('joined', c.slug)}
-                        className={cn(
-                          'h-7 rounded-full px-3 text-[12.5px] font-semibold',
-                          isIn ? 'border border-line-strong text-muted' : 'bg-fg text-canvas',
-                        )}
-                      >
-                        {isIn ? 'Membre' : 'Rejoindre'}
-                      </button>
-                    </li>
-                  );
-                })}
-            </ul>
-          </SideCard>
-
-          <SideCard
-            title="Vidéos du moment"
-            action={
-              <Link
-                to="/videos"
-                className="text-[12.5px] font-semibold text-accent-text hover:underline"
-              >
-                Tout voir
-              </Link>
-            }
-          >
-            <div className="flex flex-col gap-3">
-              {VIDEOS.slice(1, 3).map((v) => (
-                <Link key={v.id} to={`/videos/${v.id}`} className="group flex gap-3">
-                  <VideoThumb video={v} className="w-[120px] shrink-0 rounded-[8px]" />
-                  <span className="min-w-0">
-                    <span className="line-clamp-2 text-[13px] leading-snug font-semibold text-fg group-hover:underline">
-                      {v.title}
-                    </span>
-                    <span className="mt-0.5 block truncate text-[12px] text-subtle">
-                      {person(v.channel).name}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </SideCard>
-
-          <p className="px-1 text-[12px] leading-relaxed text-subtle">
-            <Sparkles className="mr-1 inline size-3.5" />
-            Les publications marquées « démo » sont des exemples, en attendant les vrais contenus de
-            la communauté.
-          </p>
-        </aside>
+    <div data-tour="hero" className="dh-card p-4">
+      <div className="flex items-center gap-3">
+        <Avatar name={me.displayName} src={me.avatarUrl} size={40} />
+        <button
+          type="button"
+          onClick={() => nav('/publier')}
+          className="h-11 min-w-0 flex-1 truncate rounded-full bg-surface-2 px-4 text-left text-[14.5px] text-subtle transition-colors hover:bg-surface-3"
+        >
+          Quoi de neuf, {first} ?
+        </button>
+      </div>
+      <div className="mt-3 flex gap-1 border-t border-line pt-2">
+        <button
+          type="button"
+          data-tour="hero-ask"
+          onClick={() => setAsk(true)}
+          className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[10px] text-[13.5px] font-semibold text-muted hover:bg-surface-2 hover:text-fg"
+        >
+          <Zap className="size-[18px] text-warning" />
+          Je suis bloqué
+        </button>
+        <button
+          type="button"
+          onClick={() => nav('/publier?type=launch')}
+          className="flex h-9 flex-1 items-center justify-center gap-2 rounded-[10px] text-[13.5px] font-semibold text-muted hover:bg-surface-2 hover:text-fg"
+        >
+          <PenSquare className="size-[18px] text-accent-text" />
+          Partager un projet
+        </button>
       </div>
     </div>
   );
 }
 
-/** Indicateurs personnels, façon cartes « Drivery » : calculés sur les vraies données du compte. */
-function FeedStats() {
-  const me = useSession((s) => s.user)!;
-  const { data: passport } = useQuery(`passport:${me.handle}`, () => api.getPassport(me.handle));
-  const { data: home } = useQuery('home', () => api.getHome());
-  const applications = usePlatform((s) => s.applications);
-  const certResults = usePlatform((s) => s.certResults);
-  const week = Date.now() - 7 * 864e5;
-  const xpWeek =
-    passport?.proofs
-      .filter((e) => e.kind !== 'revert' && new Date(e.createdAt).getTime() > week)
-      .reduce((n, e) => n + e.points, 0) ?? 0;
-  // Entraide par semaine (10 dernières semaines), à partir du calendrier du profil
-  const weeks = passport
-    ? Array.from({ length: 10 }, (_, i) =>
-        passport.heatmap
-          .slice(-70)
-          .slice(i * 7, i * 7 + 7)
-          .reduce((n, d) => n + d.count, 0),
-      )
-    : [];
-  let acc = 0;
-  const spark = weeks.map((w) => (acc += w + 1));
-  const badges = PLATFORM_CERTS.filter((c) => certResults[c.id]?.passed).length;
+/* ---------------- Fil d'actualité ---------------- */
+
+const PAGE = 12;
+
+function firstItems(tab: FeedTab, home: HomeNews): NewsItem[] {
+  if (tab === 'videos') return home.videos;
+  if (tab === 'ia' || tab === 'dev') return home.sections[tab] ?? [];
+  // « Pour toi » : la une, puis le plus récent de chaque rubrique ; une vidéo toutes les 5 publications
+  const seen = new Set<string>();
+  const articles = [
+    ...home.hero,
+    ...Object.values(home.sections)
+      .flat()
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)),
+  ].filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
+  const out: NewsItem[] = [];
+  articles.slice(0, 20).forEach((a, i) => {
+    out.push(a);
+    const v = home.videos[(i + 1) / 5 - 1];
+    if ((i + 1) % 5 === 0 && v) out.push(v);
+  });
+  return out;
+}
+
+function NewsStream({
+  tab,
+  home,
+  homeError,
+}: {
+  tab: FeedTab;
+  home?: HomeNews;
+  homeError: unknown;
+}) {
+  const [more, setMore] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const items = useMemo(() => {
+    if (!home) return [];
+    const base = firstItems(tab, home);
+    const ids = new Set(base.map((i) => i.id));
+    return [...base, ...more.filter((m) => !ids.has(m.id))];
+  }, [home, tab, more]);
+
+  // Défilement infini : la suite se charge quand on approche du bas du fil
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !home || done) return;
+    const io = new IntersectionObserver(
+      async ([entry]) => {
+        if (!entry?.isIntersecting || loading) return;
+        const last = [...items].sort((a, b) => a.publishedAt.localeCompare(b.publishedAt))[0];
+        if (!last) return;
+        setLoading(true);
+        try {
+          const next = await fetchNews({
+            category: tab === 'ia' || tab === 'dev' ? tab : undefined,
+            kind: tab === 'videos' ? 'video' : 'article',
+            before: last.publishedAt,
+            limit: PAGE,
+          });
+          if (next.length === 0) setDone(true);
+          setMore((m) => [...m, ...next]);
+        } catch {
+          setDone(true);
+        } finally {
+          setLoading(false);
+        }
+      },
+      { rootMargin: '600px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [home, items, tab, loading, done]);
+
+  if (!home && homeError)
+    return (
+      <p className="dh-card p-6 text-[14px] text-muted">
+        L’actualité n’est pas disponible pour le moment. Le reste de la plateforme fonctionne
+        normalement.
+      </p>
+    );
+  if (!home)
+    return (
+      <div className="flex flex-col gap-4">
+        {[0, 1].map((i) => (
+          <Skeleton key={i} className="h-[420px] rounded-[20px]" />
+        ))}
+      </div>
+    );
+
   return (
-    <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
-      <StatCard
-        dark
-        label="proof xp"
-        value={passport ? passport.totalXp : '—'}
-        spark={spark.length ? spark : [1, 2, 2, 3, 3, 4, 5, 5, 6, 7]}
-        delta={`+${xpWeek}`}
-        note="cette semaine"
-        to={`/u/${me.handle}`}
-      />
-      <StatCard
-        label="questions dans tes stacks"
-        value={home?.openInMyStacks.length ?? '—'}
-        cube={CUBE.orange}
-        delta={`${home?.unanswered.length ?? 0}`}
-        note="sans réponse sur la plateforme"
-        to="/sos"
-      />
-      <StatCard
-        label="candidatures"
-        value={applications.length}
-        cube={CUBE.purple}
-        delta={`${JOBS.length}`}
-        note="offres ouvertes en ce moment"
-        to="/emplois"
-      />
-      <StatCard
-        label="badges obtenus"
-        value={badges}
-        cube={CUBE.green}
-        delta={`${PLATFORM_CERTS.length - badges}`}
-        note="certifications gratuites à passer"
-        to="/certifications"
-      />
+    <div className="flex flex-col gap-4">
+      {home.offline && (
+        <p className="rounded-[14px] bg-warning-soft px-4 py-2.5 text-[13px] text-warning">
+          Hors ligne : voici les dernières actualités enregistrées sur ton appareil.
+        </p>
+      )}
+      {items.map((it) => (
+        <FeedPost key={it.id} item={it} />
+      ))}
+      <div ref={sentinel} />
+      {loading && <Skeleton className="h-[320px] rounded-[20px]" />}
+      {done && <p className="py-6 text-center text-[13px] text-subtle">Tu es à jour.</p>}
     </div>
   );
 }
 
-/** Classement « populaire » : score pondéré par l'âge (comme Reddit). */
-function hot(p: Post) {
-  const hours = (Date.now() - new Date(p.createdAt).getTime()) / 3_600_000;
-  return (p.score + p.comments * 2) / Math.pow(hours + 2, 1.2);
-}
+function FeedPost({ item }: { item: NewsItem }) {
+  const saved = usePlatform((s) => s.saved.includes(item.id));
+  const toggle = usePlatform((s) => s.toggle);
+  const [broken, setBroken] = useState(false);
+  const video = item.kind === 'video' ? String(item.extra.videoId ?? '') : '';
+  const href = video ? `/videos/yt/${video}` : item.url;
+  const showImage = !!item.image && !broken;
 
-/* ================================================================
-   Actualités réelles (apps/api, module news) : à la une, rubriques, vidéos,
-   Hacker News, dépôts, versions, DEV Community.
-   ================================================================ */
-
-function useHome(lang: Lang) {
-  return useQuery<HomeNews>(`news:home:${lang}`, () => fetchHome(lang));
-}
-
-function NewsStatus({ data, error }: { data?: HomeNews; error: unknown }) {
-  if (error && !data)
-    return (
-      <p className="mt-6 rounded-[20px] bg-surface-1 p-5 text-[14px] text-muted">
-        Les actualités ne sont pas disponibles pour le moment (serveur injoignable). Le reste de la
-        plateforme fonctionne normalement.
-      </p>
-    );
-  if (!data) return null;
-  return (
-    <p className="mt-3 flex flex-wrap items-center gap-2 text-[12.5px] text-muted">
-      <span className={cn('size-2 rounded-full', data.offline ? 'bg-warning' : 'bg-success')} />
-      {data.offline
-        ? 'Hors ligne : dernières actualités enregistrées sur ton appareil'
-        : `${data.sources} sources suivies en continu`}
-      {data.updatedAt && (
-        <>
-          <span aria-hidden>·</span>
-          mis à jour <Ago iso={data.updatedAt} />
-        </>
-      )}
-      <Link to="/sources" className="font-medium text-fg underline-offset-2 hover:underline">
-        Voir les sources
-      </Link>
-    </p>
-  );
-}
-
-function NewsTop() {
-  const { data, error } = useHome('all');
-  return (
-    <section className="mt-7">
-      {!data && !error ? (
-        <Skeleton className="h-[380px] rounded-[24px]" />
-      ) : (
-        data && <HeroNews items={data.hero} />
-      )}
-      <NewsStatus data={data} error={error} />
-    </section>
-  );
-}
-
-function NewsBody() {
-  const [cat, setCat] = useState('all');
-  const [lang, setLang] = useState<Lang>('all');
-  const { data } = useHome(lang);
-  const [more, setMore] = useState<NewsItem[]>([]);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const { data: catItems } = useQuery<NewsItem[]>(
-    cat === 'all' ? null : `news:cat:${cat}:${lang}`,
-    () => fetchNews({ category: cat, kind: 'article', lang, limit: 24 }),
-  );
-  if (!data) return null;
-
-  // « Tout » : les rubriques mélangées par date, une même histoire une seule fois
-  const heroIds = new Set(data.hero.map((h) => h.id));
-  const all = Object.values(data.sections)
-    .flat()
-    .filter((i) => !heroIds.has(i.id))
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  const list = [
-    ...(cat === 'all' ? all.slice(0, 18) : (catItems ?? data.sections[cat] ?? [])),
-    ...more,
-  ];
-
-  const loadMore = async () => {
-    const last = list[list.length - 1];
-    if (!last) return;
-    setLoadingMore(true);
+  const share = async () => {
+    const data = { title: item.title, url: item.url };
     try {
-      const items = await fetchNews({
-        category: cat === 'all' ? undefined : cat,
-        kind: 'article',
-        lang,
-        before: last.publishedAt,
-        limit: 18,
-      });
-      setMore((m) => [...m, ...items]);
-    } finally {
-      setLoadingMore(false);
+      if (navigator.share) await navigator.share(data);
+      else {
+        await navigator.clipboard.writeText(item.url);
+        toast.success('Lien copié');
+      }
+    } catch {
+      /* partage annulé */
     }
   };
 
   return (
-    <>
-      <section className="mt-10">
-        <SectionHead title="Actualités">
-          <Chips
-            items={NEWS_CATEGORIES}
-            value={cat}
-            onChange={(v) => {
-              setCat(v);
-              setMore([]);
-            }}
-            className="min-w-0 flex-1"
-          />
-          <div
-            className="flex shrink-0 gap-1 rounded-full bg-surface-1 p-1"
-            role="group"
-            aria-label="Langue"
-          >
-            {(['all', 'fr', 'en'] as const).map((l) => (
-              <button
-                key={l}
-                type="button"
-                aria-pressed={lang === l}
-                onClick={() => {
-                  setLang(l);
-                  setMore([]);
-                }}
-                className={cn(
-                  'h-7 rounded-full px-3 text-[12.5px] font-medium',
-                  lang === l ? 'bg-fg text-canvas' : 'text-muted hover:text-fg',
-                )}
-              >
-                {l === 'all' ? 'Toutes' : l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </SectionHead>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {list.map((it) => (
-            <ArticleCard key={it.id} item={it} />
-          ))}
+    <article className="dh-card overflow-hidden">
+      <header className="flex items-center gap-3 px-5 pt-4">
+        <SourceMark item={item} size={40} />
+        <div className="min-w-0">
+          <p className="truncate text-[14.5px] font-semibold text-fg">{item.sourceName}</p>
+          <p className="text-[12.5px] text-subtle">
+            <Ago iso={item.publishedAt} />
+            {CATEGORY_LABEL[item.category] && <> · {CATEGORY_LABEL[item.category]}</>}
+            {video && <> · Vidéo</>}
+          </p>
         </div>
-        <div className="mt-4 flex justify-center">
-          <Button variant="secondary" onClick={loadMore} loading={loadingMore}>
-            Plus d’actualités
-          </Button>
-        </div>
-      </section>
+      </header>
 
-      {data.videos.length > 0 && (
-        <section className="mt-12">
-          <SectionHead
-            title="Vidéos du moment"
-            action={{ label: 'Toutes les vidéos', to: '/videos' }}
+      <Wrap internal={!!video} href={href} className="group block px-5 pt-3 pb-4">
+        <h2 className="text-[17px] leading-snug font-semibold tracking-[-0.01em] text-fg group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4">
+          {item.title}
+        </h2>
+        {item.summary && (
+          <p className="mt-1.5 line-clamp-3 text-[14.5px] leading-relaxed text-muted">
+            {item.summary}
+          </p>
+        )}
+      </Wrap>
+
+      {showImage && (
+        <Wrap internal={!!video} href={href} className="relative block bg-surface-2">
+          <img
+            src={img(item.image, 960) ?? ''}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={() => setBroken(true)}
+            className="aspect-[16/9] w-full object-cover"
           />
-          <div className="grid gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-            {data.videos.slice(0, 8).map((v) => (
-              <VideoTile key={v.id} item={v} />
-            ))}
-          </div>
-        </section>
+          {video && (
+            <span className="absolute inset-0 grid place-items-center">
+              <span className="grid size-14 place-items-center rounded-full bg-black/65 text-white backdrop-blur-sm">
+                <Play className="ml-0.5 size-6 fill-current" />
+              </span>
+            </span>
+          )}
+        </Wrap>
       )}
 
-      <div className="mt-12 grid gap-8 xl:grid-cols-2">
-        {data.hn.length > 0 && (
-          <section>
-            <SectionHead title="En tête de Hacker News" />
-            <ol className="flex flex-col gap-2">
-              {data.hn.slice(0, 10).map((it, i) => (
-                <HnRow key={it.id} item={it} rank={i + 1} />
-              ))}
-            </ol>
-          </section>
-        )}
-        {data.repos.length > 0 && (
-          <section>
-            <SectionHead title="Dépôts GitHub de la semaine" />
-            <ul className="flex flex-col gap-2">
-              {data.repos.slice(0, 10).map((it) => (
-                <RepoRow key={it.id} item={it} />
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
+      <footer className="flex items-center gap-1 px-2 py-1.5">
+        <Wrap
+          internal={!!video}
+          href={href}
+          className="flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] text-[13.5px] font-semibold text-muted hover:bg-surface-2 hover:text-fg"
+        >
+          {video ? <Play className="size-[18px]" /> : <ExternalLink className="size-[18px]" />}
+          {video ? 'Regarder' : 'Lire'}
+          {!video && (
+            <span className="hidden truncate font-normal text-subtle sm:inline">
+              sur {domainOf(item.url)}
+            </span>
+          )}
+        </Wrap>
+        <button
+          type="button"
+          aria-pressed={saved}
+          onClick={() => toggle('saved', item.id)}
+          className={cn(
+            'flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] text-[13.5px] font-semibold hover:bg-surface-2',
+            saved ? 'text-accent-text' : 'text-muted hover:text-fg',
+          )}
+        >
+          <Bookmark className={cn('size-[18px]', saved && 'fill-current')} />
+          {saved ? 'Enregistré' : 'Enregistrer'}
+        </button>
+        <button
+          type="button"
+          onClick={share}
+          className="flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] text-[13.5px] font-semibold text-muted hover:bg-surface-2 hover:text-fg"
+        >
+          <Share2 className="size-[18px]" />
+          Partager
+        </button>
+      </footer>
+    </article>
+  );
+}
 
-      {data.releases.length > 0 && (
-        <section className="mt-12">
-          <SectionHead title="Nouvelles versions" />
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {data.releases.slice(0, 12).map((it) => (
-              <ReleaseCard key={it.id} item={it} />
-            ))}
-          </div>
-        </section>
-      )}
+/** Lien d'une publication : page vidéo de DevHub, ou article chez son éditeur (nouvel onglet). */
+function Wrap({
+  internal,
+  href,
+  className,
+  children,
+}: {
+  internal: boolean;
+  href: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return internal ? (
+    <Link to={href} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+    </a>
+  );
+}
 
-      {data.devto.length > 0 && (
-        <section className="mt-12">
-          <SectionHead title="À lire sur DEV Community" />
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {data.devto.slice(0, 8).map((it) => (
-              <DevtoCard key={it.id} item={it} />
-            ))}
-          </div>
-        </section>
-      )}
-      <div className="mt-12" />
-    </>
+/* ---------------- Communauté ---------------- */
+
+function CommunityStream() {
+  const myPosts = usePlatform((s) => s.myPosts);
+  const posts = useMemo(
+    () => [...myPosts, ...POSTS].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [myPosts],
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-[13px] text-subtle">
+        Les publications marquées « démo » sont des exemples, en attendant celles de la communauté.
+      </p>
+      {posts.map((p) => (
+        <PostCard key={p.id} post={p} />
+      ))}
+    </div>
+  );
+}
+
+/* ---------------- Colonne de droite : l'essentiel en cinq titres ---------------- */
+
+function Brief({ home }: { home?: HomeNews }) {
+  if (!home) return <Skeleton className="h-[360px] rounded-[20px]" />;
+  // Hacker News si la collecte est récente, sinon les titres à la une
+  const items = (home.hn.length ? home.hn : home.hero).slice(0, 5);
+  return (
+    <section className="dh-card p-5">
+      <h2 className="dh-title-bar text-[15px] font-bold text-fg">En bref</h2>
+      <p className="mt-1 text-[12.5px] text-subtle">Ce dont les devs parlent en ce moment</p>
+      <ol className="mt-4 flex flex-col gap-3.5">
+        {items.map((it, i) => (
+          <li key={it.id}>
+            <a
+              href={String(it.extra.link ?? it.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex gap-3"
+            >
+              <span className="w-4 shrink-0 pt-0.5 text-[13px] font-semibold text-subtle tabular">
+                {i + 1}
+              </span>
+              <span className="min-w-0">
+                <span className="line-clamp-2 text-[13.5px] leading-snug font-medium text-fg group-hover:underline">
+                  {it.title}
+                </span>
+                <span className="mt-0.5 block text-[12px] text-subtle">
+                  {String(it.extra.domain ?? it.sourceName)}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-5 border-t border-line pt-4 text-[12px] text-subtle">
+        {home.sources} sources suivies
+        {home.updatedAt && (
+          <>
+            {' '}
+            · mis à jour <Ago iso={home.updatedAt} />
+          </>
+        )}{' '}
+        ·{' '}
+        <Link to="/sources" className="font-medium text-fg hover:underline">
+          Sources
+        </Link>
+      </p>
+    </section>
   );
 }

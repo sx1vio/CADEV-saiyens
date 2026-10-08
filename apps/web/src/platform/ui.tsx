@@ -794,7 +794,7 @@ export function ServiceHeader({
     <header className="flex flex-col gap-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.045em] text-fg sm:text-[42px]">
+          <h1 className="text-[28px] leading-[1.1] font-bold tracking-[-0.03em] text-fg sm:text-[32px]">
             {title}
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] text-muted">{subtitle}</p>
@@ -905,7 +905,7 @@ export function StatCard({
   );
   const cls = cn(
     'flex flex-col rounded-[20px] p-4 transition-colors sm:p-5',
-    dark ? 'bg-black text-white' : 'bg-surface-1 hover:bg-surface-2',
+    dark ? 'dh-ink' : 'dh-card dh-card-hover',
   );
   return to ? (
     <Link to={to} className={cls}>

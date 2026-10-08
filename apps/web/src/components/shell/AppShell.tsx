@@ -159,7 +159,9 @@ function SideItem({
       aria-current={active ? 'page' : undefined}
       className={cn(
         'flex h-9 items-center gap-3 rounded-[12px] pr-1.5 pl-3 text-[13px] font-medium transition-colors duration-150',
-        active ? 'bg-accent-strong text-white' : 'bg-[#1c1c1e] text-white/90 hover:bg-[#262628]',
+        active
+          ? 'bg-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
+          : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
       )}
     >
       <Icon className="size-[18px] shrink-0" />
@@ -206,9 +208,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     ],
   ];
   const row =
-    'flex h-9 w-full items-center gap-3 rounded-[12px] px-3 text-[13.5px] font-medium text-white/75 transition-colors hover:bg-[#1c1c1e] hover:text-white';
+    'flex h-9 w-full items-center gap-3 rounded-[12px] px-3 text-[13.5px] font-medium text-white/75 transition-colors hover:bg-white/[0.07] hover:text-white';
   return (
-    <div data-tour="nav" className="flex h-full flex-col rounded-[28px] bg-black p-3 text-white">
+    <div data-tour="nav" className="flex h-full flex-col dh-ink rounded-[28px] p-3">
       <div className="flex items-center justify-between px-2 pt-2 pb-4">
         <Logo />
         {onNavigate && (
@@ -216,7 +218,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             type="button"
             onClick={onNavigate}
             aria-label="Fermer le menu"
-            className="grid size-9 place-items-center rounded-full text-white/70 hover:bg-[#1c1c1e]"
+            className="grid size-9 place-items-center rounded-full text-white/70 hover:bg-white/[0.07]"
           >
             <X className="size-5" />
           </button>
@@ -231,7 +233,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             setPalette(true);
           }}
           data-tour="palette"
-          className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] bg-[#1c1c1e] px-3 text-left text-[13px] text-white/55 transition-colors hover:text-white/80"
+          className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[14px] bg-white/[0.07] px-3 text-left text-[13px] text-white/55 transition-colors hover:text-white/80"
         >
           <Search className="size-4 shrink-0" />
           <span className="flex-1 truncate" title={isMac ? '⌘K' : 'Ctrl K'}>
@@ -568,7 +570,7 @@ function TabBar({ onCreate }: { onCreate: () => void }) {
   return (
     <nav
       aria-label="Navigation"
-      className="fixed inset-x-3 bottom-3 z-40 rounded-[24px] bg-black pb-safe text-white shadow-lg sm:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 dh-ink rounded-[24px] pb-safe shadow-lg sm:hidden"
     >
       <div className="grid h-16 grid-cols-5 items-center">
         {tabs.map((tab) =>
