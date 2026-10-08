@@ -134,6 +134,17 @@ Pour livrer une grosse fonctionnalité par morceaux sans casser `main` : drapeau
 - Conditions (protection de `main`) : CI verte, 1 approbation, conversations résolues, branche à jour avec `main`.
 - C'est l'**auteur** qui fusionne, une fois approuvé, et qui vérifie ensuite le déploiement en production (smoke test vert, fonctionnalité visible sur l'URL).
 
+### PR empilées
+
+Quand une PR dépend d'une autre encore en revue, on l'ouvre avec la branche de la première pour base (« PR empilée »). Pour les fusionner sans perdre la PR du dessus ([BUG-011](../suivi/anomalies.md#bug-011)) :
+
+1. Fusionner la PR du bas en squash, **sans** supprimer sa branche.
+2. Rebaser la PR suivante sur `main` : `git rebase --onto origin/main <ancien sommet de la PR du bas> <branche>`, puis `git push --force-with-lease`.
+3. Changer la base de la PR suivante vers `main`, attendre sa CI.
+4. Seulement ensuite, supprimer la branche fusionnée.
+
+Ne pas activer « Automatically delete head branches » dans les réglages du dépôt tant que l'équipe empile des PR : la suppression automatique fermerait les PR du dessus.
+
 ## Protection de `main` (réglages GitHub)
 
 À configurer par Emmanuel, dans _Settings → Branches → Branch protection rules_ (ou _Rulesets_) :
@@ -150,7 +161,7 @@ Pour livrer une grosse fonctionnalité par morceaux sans casser `main` : drapeau
 | Allow force pushes / deletions                      | Non                                                           |
 | Do not allow bypassing the above settings           | Oui (y compris pour les administrateurs)                      |
 | Merge button : allow squash merging only            | Oui ; « Default to PR title for squash merge commits »        |
-| Automatically delete head branches                  | Oui                                                           |
+| Automatically delete head branches                  | **Non** tant que des PR sont empilées (voir « PR empilées »)  |
 
 ## Conflits
 

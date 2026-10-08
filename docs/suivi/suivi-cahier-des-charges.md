@@ -2,7 +2,7 @@
 
 Ce document suit l'avancement de chaque exigence du [cahier des charges v3](../Cahier_des_charges_v3_DevHub_Africa.pdf) (§5) et des [propositions v3.1](../CDC_v3.1_DevHub_Africa_Propositions.pdf) qui ont une issue. Il complète le tableau GitHub Projects : chaque ligne renvoie à son issue.
 
-> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **8 octobre 2026** (soir), état constaté sur `main` (`97ab8cd`) et sur les PR ouvertes #96 à #104.
+> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **8 octobre 2026, soir** (fusion de #98, #99, #101, #102 et #104).
 
 ## Sommaire
 
@@ -34,47 +34,47 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 1       | 8        | 12      | 5 %         | 43 %       |
+| P0        | 21     | 4       | 5        | 12      | 19 %        | 43 %       |
 | P1        | 14     | 0       | 0        | 14      | 0 %         | 0 %        |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **1**   | **8**    | **28**  | **3 %**     | **24 %**   |
+| **Total** | **37** | **4**   | **5**    | **28**  | **11 %**    | **24 %**   |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                   |
-| ----------------------- | --------- | ------- | -------- | ---------------------------- |
-| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait         |
-| Profil et Passport (PR) | 4         | 0       | 1        | `█░░░░░░░░░` PR1 en revue    |
-| SOS Dev (S)             | 7         | 0       | 1        | `█░░░░░░░░░` S2 en revue     |
-| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                 |
-| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                 |
-| Réputation (X)          | 2         | 0       | 2        | `█████░░░░░` X1, X2 en revue |
-| Hors ligne (O)          | 4         | 0       | 3        | `███░░░░░░░` front en revue  |
-| Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                 |
-| Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                 |
-| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` front en revue  |
+| Module                  | Exigences | Terminé | En cours | Avancement                  |
+| ----------------------- | --------- | ------- | -------- | --------------------------- |
+| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait        |
+| Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait       |
+| SOS Dev (S)             | 7         | 0       | 1        | `█░░░░░░░░░` S2 en revue    |
+| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                |
+| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 faits   |
+| Hors ligne (O)          | 4         | 0       | 3        | `███░░░░░░░` front en revue |
+| Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                |
+| Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                |
+| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` front en revue |
 
 ### Par personne (exigences v3 et setup ouverts)
 
-| Personne | En cours                                                            | Prochaine échéance du planning                                   |
-| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Caleb    | PR1, PR11, M3, X3, `core`, X1, X2 (#98, #99, #101, #102)            | Passport v0 (API), Jalon 1 : 8 oct.                              |
-| Florent  | —                                                                   | Tables questions et réponses, `POST /questions` (S1)             |
-| Joachim  | S2, M2 (#104) ; outillage (#103) ; relecture de #99 faite (BUG-010) | Salles : modèle (12 oct.), création et lien GitHub (R1, 15 oct.) |
-| Sylvio   | `apps/web`, O1-O3, I1 (#97)                                         | Connexion et Passport v0 (écran) : 8 oct.                        |
-| Emmanuel | —                                                                   | URL Systalink en ligne, revue de sécurité : 8 oct.               |
+| Personne | En cours                                                     | Prochaine échéance du planning                                   |
+| -------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Caleb    | — (#98, #99, #101, #102 fusionnées le 8 oct.)                | Passport public et « Voir les preuves » (PR2, PR3)               |
+| Florent  | —                                                            | Tables questions et réponses, `POST /questions` (S1)             |
+| Joachim  | S2, M2 (#104 fusionnée, en attente de S1) ; outillage (#103) | Salles : modèle (12 oct.), création et lien GitHub (R1, 15 oct.) |
+| Sylvio   | `apps/web`, O1-O3, I1 (#97)                                  | Connexion et Passport v0 (écran) : 8 oct.                        |
+| Emmanuel | —                                                            | URL Systalink en ligne, revue de sécurité : 8 oct.               |
 
 ## Jalons
 
-| Jalon | Date    | Critère de sortie                                                                | Statut                                                                                 |
-| ----- | ------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 1     | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne              | **À risque** : A1 fusionné ; profil en revue (#99) ; pas d'URL de production constatée |
-| 2     | 14 oct. | Question → piste IA → réponse d'un autre dev, de bout en bout ; 30+ devs invités | `À faire`                                                                              |
-| 3     | 16 oct. | Poser, lire, répondre sans réseau puis synchroniser, sur un vrai téléphone       | `À faire` (moteur hors ligne front en revue dans #97)                                  |
-| 4     | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches           | `À faire`                                                                              |
-| 5     | 22 oct. | Passport, Proof XP, découverte, Systalink et impact ; gel du code                | `À faire`                                                                              |
+| Jalon | Date    | Critère de sortie                                                                | Statut                                                                          |
+| ----- | ------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1     | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne              | **À risque** : A1 et profil (PR1) fusionnés ; pas d'URL de production constatée |
+| 2     | 14 oct. | Question → piste IA → réponse d'un autre dev, de bout en bout ; 30+ devs invités | `À faire`                                                                       |
+| 3     | 16 oct. | Poser, lire, répondre sans réseau puis synchroniser, sur un vrai téléphone       | `À faire` (moteur hors ligne front en revue dans #97)                           |
+| 4     | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches           | `À faire`                                                                       |
+| 5     | 22 oct. | Passport, Proof XP, découverte, Systalink et impact ; gel du code                | `À faire`                                                                       |
 
 ## Mise en place (setup)
 
@@ -106,12 +106,12 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Profil et Passport (PR)
 
-| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence | Commentaire                                         |
-| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | --------- | --------------------------------------------------- |
-| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `En cours` | Caleb       | PR #99    | Job `github.import-profile`, au moins 3 compétences |
-| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `À faire`  | Caleb       |           | `trustSignals()` de #98 réutilisable                |
-| PR3 | #19   | « Voir les preuves »                         | P0   | `À faire`  | Caleb       |           | `GET /me/skills` (#99) expose déjà G et P           |
-| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire`  | Caleb       |           |                                                     |
+| ID  | Issue | Exigence                                     | Prio | Statut    | Responsable | Référence       | Commentaire                                         |
+| --- | ----- | -------------------------------------------- | ---- | --------- | ----------- | --------------- | --------------------------------------------------- |
+| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé` | Caleb       | #99 (fusionnée) | Job `github.import-profile`, au moins 3 compétences |
+| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `À faire` | Caleb       |                 | `trustSignals()` de #98 réutilisable                |
+| PR3 | #19   | « Voir les preuves »                         | P0   | `À faire` | Caleb       |                 | `GET /me/skills` (#99) expose déjà G et P           |
+| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire` | Caleb       |                 |                                                     |
 
 ### SOS Dev (S)
 
@@ -148,10 +148,10 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Réputation (X)
 
-| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence | Commentaire                                                                               |
-| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | --------- | ----------------------------------------------------------------------------------------- |
-| X1  | #39   | Proof XP : journal public, règles expliquées | P0   | `En cours` | Caleb       | PR #102   | `AwardXp`, `GET /u/:handle/proofs`, `GET /rules/xp`                                       |
-| X2  | #40   | Garde-fous anti-abus                         | P0   | `En cours` | Caleb       | PR #102   | Plafond 60/jour, pas de vote pour soi, 2 validations par paire et par semaine, annulation |
+| ID  | Issue | Exigence                                     | Prio | Statut    | Responsable | Référence        | Commentaire                                                                               |
+| --- | ----- | -------------------------------------------- | ---- | --------- | ----------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| X1  | #39   | Proof XP : journal public, règles expliquées | P0   | `Terminé` | Caleb       | #102 (fusionnée) | `AwardXp`, `GET /u/:handle/proofs`, `GET /rules/xp`                                       |
+| X2  | #40   | Garde-fous anti-abus                         | P0   | `Terminé` | Caleb       | #102 (fusionnée) | Plafond 60/jour, pas de vote pour soi, 2 validations par paire et par semaine, annulation |
 
 ### Hors ligne (O)
 
@@ -184,7 +184,7 @@ Toutes sont `À trier` sauf mention contraire, en attendant la revue du périmè
 
 | ID   | Issue | Proposition                                      | Prio      | Statut     | Responsable                   | Référence                               |
 | ---- | ----- | ------------------------------------------------ | --------- | ---------- | ----------------------------- | --------------------------------------- |
-| X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `En cours` | Caleb (à la place de Joachim) | PR #99                                  |
+| X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `Terminé`  | Caleb (à la place de Joachim) | #99 (fusionnée)                         |
 | X4   | #53   | Démarrage à froid du matching                    | Correctif | `À trier`  | Florent                       |                                         |
 | Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `À trier`  | Florent                       |                                         |
 | M2   | #55   | Protection contre l'injection de prompt          | Correctif | `En cours` | Joachim, Emmanuel             | PR #104 (piste IA)                      |
@@ -192,7 +192,7 @@ Toutes sont `À trier` sauf mention contraire, en attendant la revue du périmè
 | PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À trier`  | Caleb                         |                                         |
 | PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À trier`  | Caleb                         |                                         |
 | PR7  | #59   | Barre de score bicolore G + P                    | MVP+      | `À trier`  | Sylvio                        |                                         |
-| PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `En cours` | Caleb                         | PR #98                                  |
+| PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                         |
 | S8   | #61   | Assistant de rédaction et jauge de qualité       | MVP+      | `À trier`  | Florent                       |                                         |
 | S9   | #62   | Étiquettes détectées depuis l'erreur             | MVP+      | `À trier`  | Joachim                       |                                         |
 | S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À trier`  | Joachim                       |                                         |
@@ -201,7 +201,7 @@ Toutes sont `À trier` sauf mention contraire, en attendant la revue du périmè
 | R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `À trier`  | Joachim                       |                                         |
 | X5   | #67   | Page publique « Comment marchent les Proof XP »  | MVP+      | `En cours` | Caleb                         | PR #102 (`GET /rules/xp`)               |
 | Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `À trier`  | Emmanuel                      |                                         |
-| M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `En cours` | Caleb                         | PR #98                                  |
+| M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                         |
 | T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `À trier`  | Sylvio                        | #97 a une landing publique              |
 | T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `À trier`  | Sylvio                        |                                         |
 | PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `À trier`  | Caleb                         |                                         |

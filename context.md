@@ -2,7 +2,7 @@
 
 > **Source de vérité partagée** de tous les intervenants (humains et agents IA). À lire au début de chaque session de travail, à mettre à jour avant de clôturer une action (nouvelle fonctionnalité, décision, pivot, correction majeure).
 >
-> Dernière mise à jour : **8 octobre 2026, soir** (jour du Jalon 1), par Joachim GOEH-AKUE.
+> Dernière mise à jour : **8 octobre 2026, soir** (jour du Jalon 1), par Joachim GOEH-AKUE, puis Caleb KPOSSOU après les fusions.
 
 ## Sommaire
 
@@ -59,27 +59,27 @@ Détail exigence par exigence : [suivi du cahier des charges](docs/suivi/suivi-c
 | CI GitHub Actions (format, typecheck, tests, build, sécurité), Docker Compose, Caddy, scripts de déploiement et de sauvegarde | ADR-0011, `infra/` |
 | API NestJS 11 + worker pg-boss, Prisma 7, migration initiale, 52 étiquettes de référence                                      | PR #94, issue #3   |
 | **A1** Connexion GitHub, sessions par cookie, `GET /me`, chiffrement du jeton GitHub                                          | PR #95, issue #14  |
+| **PR11, M3** Signaux de confiance, acceptation du code de conduite                                                            | PR #98             |
+| **PR1, X3** Import du profil GitHub, compétences proposées, score G résistant aux dépôts vides (BUG-010 corrigé)              | PR #99             |
+| **#5** Paquets `@devhub/core` (scores, barème XP, `maskSecrets`) et `@devhub/contracts`                                       | PR #101            |
+| **X1, X2** Proof XP : `AwardXp`, garde-fous, journal public `GET /u/:handle/proofs`, barème `GET /rules/xp`                   | PR #102            |
+| **S2, M2** Module `ai` : piste IA, quota, cache, protection contre l'injection (déclenchée quand S1 existera)                 | PR #104            |
 
-Vérifié le 8 octobre en local : `pnpm typecheck`, `pnpm test` (**53 tests, 9 fichiers, tous verts**), `pnpm build`, `pnpm format:check`.
+Vérifié le 8 octobre au soir, après les fusions : CI verte sur `main` (format, types, tests, build, gitleaks, audit).
 
 ### En cours (PR ouvertes, en attente de relecture)
 
-| PR   | Contenu                                                                                     | Auteur  | Exigences                     |
-| ---- | ------------------------------------------------------------------------------------------- | ------- | ----------------------------- |
-| #98  | Signaux de confiance, acceptation du code de conduite                                       | Caleb   | PR11, M3                      |
-| #99  | Import du profil GitHub, compétences proposées, score G résistant (empilée sur #98)         | Caleb   | PR1, X3                       |
-| #101 | Paquets `@devhub/core` (scores, XP, `maskSecrets`) et `@devhub/contracts` (empilée sur #99) | Caleb   | #5, O9 (partiel)              |
-| #102 | Proof XP : `AwardXp`, garde-fous, journal public, barème publié (empilée sur #101)          | Caleb   | X1, X2, X5 (partiel)          |
-| #103 | ESLint réellement actif, hooks Git, Node 24 imposé (empilée sur #100)                       | Joachim | BUG-001, 007, 008, 009        |
-| #104 | Module `ai` : piste IA, quota, cache, protection contre l'injection (empilée sur #101)      | Joachim | S2, M2                        |
-| #97  | `apps/web` (PWA de Sylvio) + module API `news` + design system v2. **Contient tout #96**    | Sylvio  | I1, O1-O3 (partiel), hors CDC |
-| #96  | Première version de l'intégration front, **remplacée par #97** (à fermer)                   | Sylvio  | idem                          |
+| PR   | Contenu                                                                                  | Auteur  | Exigences                     |
+| ---- | ---------------------------------------------------------------------------------------- | ------- | ----------------------------- |
+| #103 | ESLint réellement actif, hooks Git, Node 24 imposé (empilée sur #100)                    | Joachim | BUG-001, 007, 008, 009        |
+| #97  | `apps/web` (PWA de Sylvio) + module API `news` + design system v2. **Contient tout #96** | Sylvio  | I1, O1-O3 (partiel), hors CDC |
+| #96  | Première version de l'intégration front, **remplacée par #97** (à fermer)                | Sylvio  | idem                          |
 
 ### À faire (prochaines étapes du planning)
 
-- **Jalon 1 (aujourd'hui, 8 oct.)** : connexion GitHub, profil, base et **URL Systalink en ligne**. Le profil dépend de #99 ; l'URL de production dépend de #6, #7 et #9.
-- **Jalon 2 (14 oct.)** : parcours SOS Dev de bout en bout (S1 à S4), piste IA (S2, rôle 5 : en revue dans #104), 30+ devs invités. S1 (Florent) doit déclencher le job `ai.hint`.
-- `packages/core` et `packages/contracts` : initialisés dans #101 (Caleb), en revue.
+- **Jalon 1 (aujourd'hui, 8 oct.)** : connexion GitHub, profil, base et **URL Systalink en ligne**. Le profil (PR1) est fusionné ; l'URL de production dépend de #6, #7 et #9.
+- **Jalon 2 (14 oct.)** : parcours SOS Dev de bout en bout (S1 à S4), piste IA (S2, rôle 5 : fusionnée dans #104), 30+ devs invités. S1 (Florent) doit déclencher le job `ai.hint`.
+- `packages/core` et `packages/contracts` : en place depuis #101 (Caleb).
 
 ## 4. Décisions techniques et fonctionnelles
 
@@ -137,17 +137,15 @@ Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à id
 
 ## 7. Points d'attention et risques ouverts
 
-| #   | Sujet                                                                                                                                                 | Impact                                              | Qui                                     |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------- |
-| 1   | **`main` n'est pas protégée** : le dépôt est privé sur un compte gratuit, GitHub refuse la protection de branche ([BUG-003](docs/suivi/anomalies.md)) | Fusions sans relecture possibles                    | Emmanuel, Sylvio (propriétaire)         |
-| 2   | **#97 sort du périmètre** : fil d'actualité, emplois, certifications, skills IA sont listés en roadmap dans le CDC (§3)                               | Temps pris aux P0 ; risque jury                     | Caleb (rôle 1)                          |
-| 3   | **#96 et #97 font +39 000 lignes** chacune, contre 400 au maximum dans le workflow ; #97 contient #96                                                 | Relecture impossible en l'état                      | Sylvio                                  |
-| 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                                      | Emmanuel, Joachim                       |
-| 5   | L'étape `lint` de la CI n'exécutait aucune vérification : **corrigé dans #103**, à fusionner                                                          | Fausse impression de qualité                        | Emmanuel (relecture)                    |
-| 6   | **Import GitHub de #99 refusé par la vraie API GitHub** (422, [BUG-010](docs/suivi/anomalies.md)) : correctif proposé en relecture                    | Jalon 1 : le profil ne se remplit pas en production | Caleb                                   |
-| 7   | Les ADR 0001 à 0013 sont toujours « proposés » (#1) ; aucune réponse de Systalink consignée (#2)                                                      | Décisions non actées                                | Caleb                                   |
-| 8   | **Pile de PR empilées** (#98 → #99 → #101 → #102 / #104, et #100 → #103) : tant que #98 n'est pas relue, rien n'arrive sur `main`                     | Jalon 1 et 2 retardés                               | Toute l'équipe : relire #98 en priorité |
-| 9   | Aucune clé d'IA n'existe encore (#7) : S2 n'a été essayé qu'avec le faux modèle                                                                       | Démo de S2                                          | Joachim, Emmanuel                       |
+| #   | Sujet                                                                                                                                                 | Impact                           | Qui                             |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ------------------------------- |
+| 1   | **`main` n'est pas protégée** : le dépôt est privé sur un compte gratuit, GitHub refuse la protection de branche ([BUG-003](docs/suivi/anomalies.md)) | Fusions sans relecture possibles | Emmanuel, Sylvio (propriétaire) |
+| 2   | **#97 sort du périmètre** : fil d'actualité, emplois, certifications, skills IA sont listés en roadmap dans le CDC (§3)                               | Temps pris aux P0 ; risque jury  | Caleb (rôle 1)                  |
+| 3   | **#96 et #97 font +39 000 lignes** chacune, contre 400 au maximum dans le workflow ; #97 contient #96                                                 | Relecture impossible en l'état   | Sylvio                          |
+| 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                   | Emmanuel, Joachim               |
+| 5   | L'étape `lint` de la CI n'exécutait aucune vérification : **corrigé dans #103**, à fusionner                                                          | Fausse impression de qualité     | Emmanuel (relecture)            |
+| 7   | Les ADR 0001 à 0013 sont toujours « proposés » (#1) ; aucune réponse de Systalink consignée (#2)                                                      | Décisions non actées             | Caleb                           |
+| 9   | Aucune clé d'IA n'existe encore (#7) : S2 n'a été essayé qu'avec le faux modèle                                                                       | Démo de S2                       | Joachim, Emmanuel               |
 
 ## 8. Carte de la documentation
 
@@ -181,3 +179,4 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 | 2026-10-08 | PR ouvertes : front `apps/web` (#96, #97), confiance et code de conduite (#98), import GitHub (#99)                              |
 | 2026-10-08 | Création de `context.md`, du suivi du cahier des charges, du registre des anomalies et du guide de démarrage                     |
 | 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104) |
+| 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                          |
