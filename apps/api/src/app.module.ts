@@ -7,7 +7,9 @@ import type { Env } from './infrastructure/config/env';
 import { HealthController } from './infrastructure/http/health.controller';
 import { ProblemDetailsFilter } from './infrastructure/http/problem-details.filter';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { IdentityModule, OriginGuard } from './modules/identity';
+import { PassportModule } from './modules/passport';
 
 // Les modules métier (identity, sos, rooms…) s'ajoutent ici : docs/architecture/02-backend.md
 @Module({
@@ -30,7 +32,9 @@ import { IdentityModule, OriginGuard } from './modules/identity';
       }),
     }),
     PrismaModule,
+    JobsModule,
     IdentityModule,
+    PassportModule,
   ],
   controllers: [HealthController],
   providers: [
