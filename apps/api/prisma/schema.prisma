@@ -15,6 +15,7 @@
 generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
+  moduleFormat    = "cjs"
   previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
 }
 
@@ -221,6 +222,7 @@ model User {
 
   @@index([country])
   @@index([lastSeenAt])
+  @@index([canHelpTagIds], type: Gin, map: "users_can_help_idx")
   @@map("users")
 }
 
@@ -327,26 +329,28 @@ model Endorsement {
 // ─────────────────────────────── SOS Dev ───────────────────────────────
 
 model Question {
-  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authorId         String         @map("author_id") @db.Uuid
-  clientId         String         @map("client_id") @db.Uuid
-  title            String         @db.VarChar(150)
+  id               String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId         String                   @map("author_id") @db.Uuid
+  clientId         String                   @map("client_id") @db.Uuid
+  title            String                   @db.VarChar(150)
   body             String
-  codeSnippet      String?        @map("code_snippet")
-  urgency          Urgency        @default(normal)
+  codeSnippet      String?                  @map("code_snippet")
+  urgency          Urgency                  @default(normal)
   lang             Lang
-  status           QuestionStatus @default(open)
-  aiHint           String?        @map("ai_hint")
-  aiStatus         AiStatus       @default(pending) @map("ai_status")
-  acceptedAnswerId String?        @unique @map("accepted_answer_id") @db.Uuid
-  reproUrl         String?        @map("repro_url") // S14
-  roomId           String?        @map("room_id") @db.Uuid // R14
-  escalatedAt      DateTime?      @map("escalated_at") @db.Timestamptz
-  version          Int            @default(1)
-  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz
-  resolvedAt       DateTime?      @map("resolved_at") @db.Timestamptz
-  hiddenAt         DateTime?      @map("hidden_at") @db.Timestamptz
+  status           QuestionStatus           @default(open)
+  aiHint           String?                  @map("ai_hint")
+  aiStatus         AiStatus                 @default(pending) @map("ai_status")
+  acceptedAnswerId String?                  @unique @map("accepted_answer_id") @db.Uuid
+  reproUrl         String?                  @map("repro_url") // S14
+  roomId           String?                  @map("room_id") @db.Uuid // R14
+  escalatedAt      DateTime?                @map("escalated_at") @db.Timestamptz
+  version          Int                      @default(1)
+  createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+  resolvedAt       DateTime?                @map("resolved_at") @db.Timestamptz
+  hiddenAt         DateTime?                @map("hidden_at") @db.Timestamptz
+  // Colonne générée en SQL (titre + corps), voir la migration init. Lecture seule.
+  search           Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('simple'::regconfig, (COALESCE(title, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, COALESCE(body, ''::text)), 'B'::\"char\"))"))
 
   author         User          @relation(fields: [authorId], references: [id])
   room           Room?         @relation(fields: [roomId], references: [id])
@@ -359,6 +363,7 @@ model Question {
   @@unique([authorId, clientId])
   @@index([status, createdAt(sort: Desc)])
   @@index([authorId])
+  @@index([search], type: Gin, map: "questions_search_idx")
   @@map("questions")
 }
 
@@ -463,21 +468,23 @@ model Translation {
 // ─────────────────────────────── Salles de projet ───────────────────────────────
 
 model Room {
-  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ownerId        String         @map("owner_id") @db.Uuid
-  name           String         @db.VarChar(80)
+  id             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId        String                   @map("owner_id") @db.Uuid
+  name           String                   @db.VarChar(80)
   description    String
-  state          RoomState      @default(in_progress)
-  repoFullName   String?        @map("repo_full_name") // owner/repo vérifié via l'API GitHub
-  repoVerifiedAt DateTime?      @map("repo_verified_at") @db.Timestamptz
-  demoUrl        String?        @map("demo_url")
-  inviteCode     String         @unique @map("invite_code") // utilisé dans /p/:code
-  visibility     RoomVisibility @default(public)
-  stackTagIds    String[]       @default([]) @map("stack_tag_ids") @db.Uuid
-  wantedRoles    String[]       @default([]) @map("wanted_roles") // R10
-  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  lastActivityAt DateTime       @default(now()) @map("last_activity_at") @db.Timestamptz
-  hiddenAt       DateTime?      @map("hidden_at") @db.Timestamptz
+  state          RoomState                @default(in_progress)
+  repoFullName   String?                  @map("repo_full_name") // owner/repo vérifié via l'API GitHub
+  repoVerifiedAt DateTime?                @map("repo_verified_at") @db.Timestamptz
+  demoUrl        String?                  @map("demo_url")
+  inviteCode     String                   @unique @map("invite_code") // utilisé dans /p/:code
+  visibility     RoomVisibility           @default(public)
+  stackTagIds    String[]                 @default([]) @map("stack_tag_ids") @db.Uuid
+  wantedRoles    String[]                 @default([]) @map("wanted_roles") // R10
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  lastActivityAt DateTime                 @default(now()) @map("last_activity_at") @db.Timestamptz
+  hiddenAt       DateTime?                @map("hidden_at") @db.Timestamptz
+  // Colonne générée en SQL (nom + description), voir la migration init. Lecture seule.
+  search         Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('simple'::regconfig, (COALESCE(name, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, COALESCE(description, ''::text)), 'B'::\"char\"))"))
 
   owner            User              @relation(fields: [ownerId], references: [id])
   members          RoomMember[]
@@ -488,6 +495,8 @@ model Room {
   questions        Question[]
 
   @@index([visibility, lastActivityAt(sort: Desc)])
+  @@index([search], type: Gin, map: "rooms_search_idx")
+  @@index([stackTagIds], type: Gin, map: "rooms_stack_idx")
   @@map("rooms")
 }
 

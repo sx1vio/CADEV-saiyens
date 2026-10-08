@@ -17,14 +17,14 @@ Merci de lire ce guide avant votre première PR. Les détails sont dans [`docs/e
 
 ## Guides
 
-| Sujet | Document |
-|---|---|
-| Branches, commits, PR, gel du code | [Workflow Git](docs/equipe/workflow-git.md) |
-| Relire une PR | [Revue de code](docs/equipe/revue-de-code.md) |
-| Critères de fin | [Définition de « terminé »](docs/equipe/definition-of-done.md) |
-| Qui fait quoi | [Organisation](docs/equipe/organisation.md) |
-| Vocabulaire | [Glossaire](docs/equipe/glossaire.md) |
-| Architecture | [Documentation technique](docs/README.md) |
+| Sujet                              | Document                                                       |
+| ---------------------------------- | -------------------------------------------------------------- |
+| Branches, commits, PR, gel du code | [Workflow Git](docs/equipe/workflow-git.md)                    |
+| Relire une PR                      | [Revue de code](docs/equipe/revue-de-code.md)                  |
+| Critères de fin                    | [Définition de « terminé »](docs/equipe/definition-of-done.md) |
+| Qui fait quoi                      | [Organisation](docs/equipe/organisation.md)                    |
+| Vocabulaire                        | [Glossaire](docs/equipe/glossaire.md)                          |
+| Architecture                       | [Documentation technique](docs/README.md)                      |
 
 ## Skills Claude Code
 

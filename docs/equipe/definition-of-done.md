@@ -14,7 +14,7 @@ Reprise du cahier des charges (§10) : une tâche est terminée quand elle **fon
 - [ ] Les **tests** prévus par [12](../architecture/12-tests-qualite.md) existent (unitaires pour la logique, bout en bout pour le chemin de la démo).
 - [ ] La **documentation** est à jour : contrat d'API, modèle de données, ADR si besoin ; README si le jury la voit.
 - [ ] Aucune **donnée inventée** présentée comme réelle ; comptes de démo marqués.
-- [ ] L'issue est déplacée dans *Terminé* sur le tableau GitHub Projects.
+- [ ] L'issue est déplacée dans _Terminé_ sur le tableau GitHub Projects.
 
 ## Pour un jalon
 
@@ -22,14 +22,14 @@ Reprise du cahier des charges (§10) : une tâche est terminée quand elle **fon
 - [ ] Les bugs bloquants découverts sont corrigés ou ont une issue étiquetée `démo`.
 - [ ] L'étiquette de version est posée (voir le [workflow Git](workflow-git.md#jalons-et-étiquettes-de-version)).
 
-| Jalon | Date | Critère de sortie |
-|---|---|---|
-| 1 | 8 oct. | Connexion GitHub, profil, base de données et URL Systalink en ligne |
-| 2 | 14 oct. | Poser une question, recevoir une piste IA et une réponse d'un autre dev, de bout en bout ; 30+ devs invités |
-| 3 | 16 oct. | Poser, lire et répondre sans réseau, puis synchronisation au retour de la connexion, testés sur un vrai téléphone |
-| 4 | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches |
-| 5 | 22 oct. | Passport, Proof XP, découverte, écran Systalink et écran d'impact fonctionnent ; le code est gelé |
-| Soumission | 24 oct. | Démo testée par un tiers, vidéo, README et soumission envoyée |
+| Jalon      | Date    | Critère de sortie                                                                                                 |
+| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1          | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne                                               |
+| 2          | 14 oct. | Poser une question, recevoir une piste IA et une réponse d'un autre dev, de bout en bout ; 30+ devs invités       |
+| 3          | 16 oct. | Poser, lire et répondre sans réseau, puis synchronisation au retour de la connexion, testés sur un vrai téléphone |
+| 4          | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches                                            |
+| 5          | 22 oct. | Passport, Proof XP, découverte, écran Systalink et écran d'impact fonctionnent ; le code est gelé                 |
+| Soumission | 24 oct. | Démo testée par un tiers, vidéo, README et soumission envoyée                                                     |
 
 ## Pour la soumission (checklist §15 du cahier des charges)
 

@@ -4,15 +4,15 @@ C'est le chantier **le plus risqué et le plus distinctif** du projet (§10, §1
 
 ## Exigences couvertes
 
-| ID | Exigence | Section |
-|---|---|---|
-| O1 | Lire sans réseau le shell, les 100 derniers contenus et mon Passport | [Cache de lecture](#1-cache-de-lecture) |
-| O2 | Rédiger questions, réponses et messages sans réseau ; envoi au retour, sans doublon | [File d'actions](#2-file-dactions-outbox), [Idempotence](#3-idempotence-côté-serveur) |
-| O3 | État toujours visible : en ligne, hors ligne, N en attente, synchronisation, erreur | [Indicateur réseau](#6-indicateur-réseau-et-machine-à-états) |
-| O4 | Écran de conflit à deux colonnes (P1) ; plan B : dernière modification gagnante | [Conflits](#5-conflits) |
-| O5 | Simulateur de réseau (MVP+) | [Simulateur](#7-simulateur-de-réseau-o5) |
-| O8 | Centre de synchronisation (P1) | [Centre de synchronisation](#8-centre-de-synchronisation-o8) |
-| O9 | Secrets masqués avant la mise en file, cache vidé à la déconnexion | [Sécurité locale](#9-sécurité-des-données-locales-o9) |
+| ID  | Exigence                                                                            | Section                                                                               |
+| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| O1  | Lire sans réseau le shell, les 100 derniers contenus et mon Passport                | [Cache de lecture](#1-cache-de-lecture)                                               |
+| O2  | Rédiger questions, réponses et messages sans réseau ; envoi au retour, sans doublon | [File d'actions](#2-file-dactions-outbox), [Idempotence](#3-idempotence-côté-serveur) |
+| O3  | État toujours visible : en ligne, hors ligne, N en attente, synchronisation, erreur | [Indicateur réseau](#6-indicateur-réseau-et-machine-à-états)                          |
+| O4  | Écran de conflit à deux colonnes (P1) ; plan B : dernière modification gagnante     | [Conflits](#5-conflits)                                                               |
+| O5  | Simulateur de réseau (MVP+)                                                         | [Simulateur](#7-simulateur-de-réseau-o5)                                              |
+| O8  | Centre de synchronisation (P1)                                                      | [Centre de synchronisation](#8-centre-de-synchronisation-o8)                          |
+| O9  | Secrets masqués avant la mise en file, cache vidé à la déconnexion                  | [Sécurité locale](#9-sécurité-des-données-locales-o9)                                 |
 
 ## Vue d'ensemble
 
@@ -65,33 +65,33 @@ Chaque écriture, **en ligne comme hors ligne**, devient une action dans la file
 
 ```ts
 interface OutboxAction {
-  opId: string;            // UUID v4 généré à la création ; sert d'Idempotency-Key
-  type: ActionType;        // 'question.create' | 'answer.create' | 'room_message.create' | 'task.take' | ...
-  payload: unknown;        // validé par le schéma zod du contrat avant la mise en file
-  refs?: ClientRef[];      // dépendances vers des entités créées hors ligne (voir plus bas)
-  userId: string;          // la file est propre à un utilisateur
-  createdAt: string;       // ISO, horloge du client (affichage uniquement)
+  opId: string; // UUID v4 généré à la création ; sert d'Idempotency-Key
+  type: ActionType; // 'question.create' | 'answer.create' | 'room_message.create' | 'task.take' | ...
+  payload: unknown; // validé par le schéma zod du contrat avant la mise en file
+  refs?: ClientRef[]; // dépendances vers des entités créées hors ligne (voir plus bas)
+  userId: string; // la file est propre à un utilisateur
+  createdAt: string; // ISO, horloge du client (affichage uniquement)
   status: 'pending' | 'sending' | 'failed' | 'conflict' | 'done';
   attempts: number;
-  nextAttemptAt?: string;  // pour le repli exponentiel
+  nextAttemptAt?: string; // pour le repli exponentiel
   lastError?: { code: string; status?: number };
-  baseVersion?: number;    // pour les modifications de texte (détection de conflit)
+  baseVersion?: number; // pour les modifications de texte (détection de conflit)
 }
 ```
 
 ### Types d'actions du MVP
 
-| `type` | Endpoint | Payload principal | Peut créer un conflit ? |
-|---|---|---|---|
-| `question.create` | `POST /questions` | `clientId`, titre, corps, extrait, étiquettes, urgence, langue | Non (création) |
-| `question.update` | `PATCH /questions/:id` | champs modifiés + `baseVersion` | **Oui** |
-| `answer.create` | `POST /questions/:id/answers` | `clientId`, corps | Non |
-| `answer.update` | `PATCH /answers/:id` | corps + `baseVersion` | **Oui** |
-| `answer.vote` | `POST /answers/:id/vote` | — | Non (idempotent par nature) |
-| `answer.accept` | `POST /answers/:id/accept` | — | Non ; peut être refusée si déjà résolue |
-| `room_message.create` | `POST /rooms/:id/messages` | `clientId`, corps | Non (fusion par identifiant) |
-| `task.take` | `POST /tasks/:id/take` | — | Peut être refusée (« déjà prise ») |
-| `join_request.create` | `POST /rooms/:id/join` | message | Non |
+| `type`                | Endpoint                      | Payload principal                                              | Peut créer un conflit ?                 |
+| --------------------- | ----------------------------- | -------------------------------------------------------------- | --------------------------------------- |
+| `question.create`     | `POST /questions`             | `clientId`, titre, corps, extrait, étiquettes, urgence, langue | Non (création)                          |
+| `question.update`     | `PATCH /questions/:id`        | champs modifiés + `baseVersion`                                | **Oui**                                 |
+| `answer.create`       | `POST /questions/:id/answers` | `clientId`, corps                                              | Non                                     |
+| `answer.update`       | `PATCH /answers/:id`          | corps + `baseVersion`                                          | **Oui**                                 |
+| `answer.vote`         | `POST /answers/:id/vote`      | —                                                              | Non (idempotent par nature)             |
+| `answer.accept`       | `POST /answers/:id/accept`    | —                                                              | Non ; peut être refusée si déjà résolue |
+| `room_message.create` | `POST /rooms/:id/messages`    | `clientId`, corps                                              | Non (fusion par identifiant)            |
+| `task.take`           | `POST /tasks/:id/take`        | —                                                              | Peut être refusée (« déjà prise »)      |
+| `join_request.create` | `POST /rooms/:id/join`        | message                                                        | Non                                     |
 
 Les actions qui **exigent** le réseau et n'ont pas de sens hors ligne (connexion OAuth, création de salle avec vérification GitHub, appel IA explicite) ne passent pas par la file : le bouton est désactivé hors ligne avec une explication.
 
@@ -137,14 +137,14 @@ stateDiagram-v2
 
 ### Table `idempotency_keys`
 
-| Colonne | Rôle |
-|---|---|
-| `user_id`, `key` | Clé primaire composée |
-| `endpoint` | Méthode et route (`POST /questions`) |
-| `request_hash` | SHA-256 du corps normalisé |
-| `status` | `processing` ou `completed` |
+| Colonne                            | Rôle                                                       |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `user_id`, `key`                   | Clé primaire composée                                      |
+| `endpoint`                         | Méthode et route (`POST /questions`)                       |
+| `request_hash`                     | SHA-256 du corps normalisé                                 |
+| `status`                           | `processing` ou `completed`                                |
 | `response_status`, `response_body` | Réponse enregistrée, renvoyée telle quelle en cas de rejeu |
-| `created_at` | Purge après 7 jours (job quotidien) |
+| `created_at`                       | Purge après 7 jours (job quotidien)                        |
 
 ### Algorithme (intercepteur NestJS)
 
@@ -182,31 +182,41 @@ Content-Type: application/json
 ```json
 {
   "results": [
-    { "opId": "6f1c…", "status": "applied",   "httpStatus": 201, "data": { "id": "c9e0…", "clientId": "a1b2…", "version": 1 } },
-    { "opId": "7a2d…", "status": "applied",   "httpStatus": 200, "data": { "id": "c9e0…", "version": 2 } }
+    {
+      "opId": "6f1c…",
+      "status": "applied",
+      "httpStatus": 201,
+      "data": { "id": "c9e0…", "clientId": "a1b2…", "version": 1 }
+    },
+    {
+      "opId": "7a2d…",
+      "status": "applied",
+      "httpStatus": 200,
+      "data": { "id": "c9e0…", "version": 2 }
+    }
   ],
   "serverTime": "2026-10-16T10:42:07Z"
 }
 ```
 
-| `status` | Signification | Action du client |
-|---|---|---|
-| `applied` | Effectuée maintenant | `done`, réconcilier le cache |
-| `duplicate` | Déjà effectuée lors d'un envoi précédent ; `data` contient la réponse d'origine | `done`, réconcilier |
-| `conflict` | Version serveur différente de `baseVersion` ; `data.server` contient la version actuelle | `conflict`, ouvrir l'écran de conflit |
-| `rejected` | Refus définitif (`error` au format problem+json) | `failed`, afficher l'erreur |
-| `skipped` | Non traitée car une action dont elle dépend a échoué dans ce lot | Reste `pending` |
+| `status`    | Signification                                                                            | Action du client                      |
+| ----------- | ---------------------------------------------------------------------------------------- | ------------------------------------- |
+| `applied`   | Effectuée maintenant                                                                     | `done`, réconcilier le cache          |
+| `duplicate` | Déjà effectuée lors d'un envoi précédent ; `data` contient la réponse d'origine          | `done`, réconcilier                   |
+| `conflict`  | Version serveur différente de `baseVersion` ; `data.server` contient la version actuelle | `conflict`, ouvrir l'écran de conflit |
+| `rejected`  | Refus définitif (`error` au format problem+json)                                         | `failed`, afficher l'erreur           |
+| `skipped`   | Non traitée car une action dont elle dépend a échoué dans ce lot                         | Reste `pending`                       |
 
 Le lot ne s'interrompt pas sur un `conflict` ou un `rejected` : seules les actions dépendantes sont `skipped`.
 
 ## 5. Conflits
 
-| Situation | Règle |
-|---|---|
-| Création (question, réponse, message) | Pas de conflit possible : on ajoute |
-| Listes (messages d'une salle, tâches) | Fusion par identifiant ; **l'ordre est fixé par le serveur** (`created_at` serveur, puis `id`). Le message affiché « en attente » se replace à sa position définitive après synchronisation |
-| Action sur un état qui a changé (prendre une tâche déjà prise, valider une question déjà résolue) | Refus explicite (`rejected` avec un code clair) ; l'interface explique et propose une alternative |
-| Modification d'un texte déjà publié | Chaque contenu modifiable porte une colonne `version` (entier). La modification envoie `baseVersion`. Si `version` serveur ≠ `baseVersion` → `409 version_conflict` |
+| Situation                                                                                         | Règle                                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Création (question, réponse, message)                                                             | Pas de conflit possible : on ajoute                                                                                                                                                         |
+| Listes (messages d'une salle, tâches)                                                             | Fusion par identifiant ; **l'ordre est fixé par le serveur** (`created_at` serveur, puis `id`). Le message affiché « en attente » se replace à sa position définitive après synchronisation |
+| Action sur un état qui a changé (prendre une tâche déjà prise, valider une question déjà résolue) | Refus explicite (`rejected` avec un code clair) ; l'interface explique et propose une alternative                                                                                           |
+| Modification d'un texte déjà publié                                                               | Chaque contenu modifiable porte une colonne `version` (entier). La modification envoie `baseVersion`. Si `version` serveur ≠ `baseVersion` → `409 version_conflict`                         |
 
 ### Écran de conflit (O4, P1)
 
@@ -260,12 +270,12 @@ Route `/synchronisation`. Lecture directe de la table `outbox` : type, heure, ap
 
 ## 10. Tests du hors ligne
 
-| Niveau | Ce qu'on teste | Outil |
-|---|---|---|
-| Unitaire | Machine à états du moteur, repli, résolution des `refs`, rétention LRU | Vitest + `fake-indexeddb` |
-| Intégration API | Rejeu d'une même clé, clé réutilisée avec un autre corps, lot `/sync` avec dépendances et conflits, concurrence (deux requêtes simultanées avec la même clé) | Vitest + PostgreSQL de test |
-| Bout en bout | Parcours de la démo : couper le réseau (`context.setOffline(true)`), écrire une réponse, recharger, vérifier « 1 action en attente », rétablir, vérifier l'unicité côté API | Playwright, en CI |
-| Manuel | Téléphone Android d'entrée de gamme, mode avion, puis 3G réelle | Checklist du Jalon 3 (16 octobre), répétée trois fois avant le jour J |
+| Niveau          | Ce qu'on teste                                                                                                                                                              | Outil                                                                 |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Unitaire        | Machine à états du moteur, repli, résolution des `refs`, rétention LRU                                                                                                      | Vitest + `fake-indexeddb`                                             |
+| Intégration API | Rejeu d'une même clé, clé réutilisée avec un autre corps, lot `/sync` avec dépendances et conflits, concurrence (deux requêtes simultanées avec la même clé)                | Vitest + PostgreSQL de test                                           |
+| Bout en bout    | Parcours de la démo : couper le réseau (`context.setOffline(true)`), écrire une réponse, recharger, vérifier « 1 action en attente », rétablir, vérifier l'unicité côté API | Playwright, en CI                                                     |
+| Manuel          | Téléphone Android d'entrée de gamme, mode avion, puis 3G réelle                                                                                                             | Checklist du Jalon 3 (16 octobre), répétée trois fois avant le jour J |
 
 ## Version réduite (plan B du §14)
 

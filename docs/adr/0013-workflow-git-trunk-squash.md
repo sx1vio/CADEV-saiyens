@@ -11,12 +11,12 @@ Cinq personnes, un seul `main` déployé automatiquement en production, et un hi
 
 ## Options envisagées
 
-| Option | Pour | Contre |
-|---|---|---|
-| **Développement « trunk-based » avec branches courtes (< 2 jours) + squash merge** | Peu de conflits, `main` toujours déployable, historique lisible (un commit par PR) | Il faut découper le travail finement |
-| Git Flow (`develop`, `release/*`) | Structure connue | Lourd pour 20 jours et un seul environnement ; fusions tardives et conflictuelles |
-| Merge commits | Garde tout l'historique des branches | Historique de `main` illisible |
-| Rebase merge | Historique linéaire, commits conservés | Exige des commits parfaits dans chaque PR |
+| Option                                                                             | Pour                                                                               | Contre                                                                            |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Développement « trunk-based » avec branches courtes (< 2 jours) + squash merge** | Peu de conflits, `main` toujours déployable, historique lisible (un commit par PR) | Il faut découper le travail finement                                              |
+| Git Flow (`develop`, `release/*`)                                                  | Structure connue                                                                   | Lourd pour 20 jours et un seul environnement ; fusions tardives et conflictuelles |
+| Merge commits                                                                      | Garde tout l'historique des branches                                               | Historique de `main` illisible                                                    |
+| Rebase merge                                                                       | Historique linéaire, commits conservés                                             | Exige des commits parfaits dans chaque PR                                         |
 
 ## Décision
 
@@ -29,9 +29,11 @@ Cinq personnes, un seul `main` déployé automatiquement en production, et un hi
 ## Conséquences
 
 ### Positives
+
 - `main` reste déployable à tout moment ; l'historique raconte le projet (une ligne par fonctionnalité).
 
 ### Négatives
+
 - Les grosses fonctionnalités doivent être découpées (drapeaux de fonctionnalité si besoin).
 
 ## Mise en œuvre

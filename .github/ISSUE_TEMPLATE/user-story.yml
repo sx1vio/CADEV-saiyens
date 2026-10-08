@@ -1,6 +1,6 @@
 name: User story
 description: Une fonctionnalité du cahier des charges (P0, P1, P2, MVP+)
-title: "[ID] Titre court"
+title: '[ID] Titre court'
 labels: []
 body:
   - type: input
@@ -22,7 +22,7 @@ body:
     id: story
     attributes:
       label: User story
-      placeholder: "En tant que dev bloqué, je pose une question avec titre, étiquettes, extrait et urgence…"
+      placeholder: 'En tant que dev bloqué, je pose une question avec titre, étiquettes, extrait et urgence…'
     validations:
       required: true
   - type: textarea
@@ -30,7 +30,7 @@ body:
     attributes:
       label: Critères d'acceptation
       description: Repris du cahier des charges, testables par une personne extérieure en moins de 2 minutes
-      placeholder: "- Publiée en moins de 30 secondes de saisie"
+      placeholder: '- Publiée en moins de 30 secondes de saisie'
     validations:
       required: true
   - type: textarea

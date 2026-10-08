@@ -4,19 +4,19 @@
 
 ## Pile technique
 
-| Besoin | Choix | Pourquoi |
-|---|---|---|
-| Framework | React 19 + TypeScript | Imposé par le cahier des charges (§8), connu de l'équipe |
-| Build | Vite | Rapide, découpage du code natif, plugin PWA |
-| Routage | React Router (mode « data ») | Chargement paresseux par route, gestion des erreurs par route |
-| Données serveur | TanStack Query | Cache, revalidation (« stale while revalidate »), états de chargement ; persisté dans IndexedDB |
-| Stockage local | Dexie (IndexedDB) | File d'actions, cache de contenus, brouillons ; API simple et typée |
-| Service worker | Workbox via `vite-plugin-pwa` (mode `injectManifest`) | Précache du shell, stratégies de cache, Background Sync |
-| i18n | i18next + react-i18next | Bascule sans rechargement (I1), fichiers de traduction chargés à la demande |
-| Formulaires | React Hook Form + résolveur zod | Réutilise les schémas de `@devhub/contracts` |
-| Styles | Tailwind CSS + variables CSS | CSS généré minimal, thème sombre (T4) par variables |
-| Rendu Markdown | `marked` + `DOMPurify` | Rendu assaini (§9) ; coloration du code chargée à la demande |
-| Tests | Vitest + Testing Library ; Playwright pour le bout en bout | Même outil de test unitaire que le back |
+| Besoin          | Choix                                                      | Pourquoi                                                                                        |
+| --------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Framework       | React 19 + TypeScript                                      | Imposé par le cahier des charges (§8), connu de l'équipe                                        |
+| Build           | Vite                                                       | Rapide, découpage du code natif, plugin PWA                                                     |
+| Routage         | React Router (mode « data »)                               | Chargement paresseux par route, gestion des erreurs par route                                   |
+| Données serveur | TanStack Query                                             | Cache, revalidation (« stale while revalidate »), états de chargement ; persisté dans IndexedDB |
+| Stockage local  | Dexie (IndexedDB)                                          | File d'actions, cache de contenus, brouillons ; API simple et typée                             |
+| Service worker  | Workbox via `vite-plugin-pwa` (mode `injectManifest`)      | Précache du shell, stratégies de cache, Background Sync                                         |
+| i18n            | i18next + react-i18next                                    | Bascule sans rechargement (I1), fichiers de traduction chargés à la demande                     |
+| Formulaires     | React Hook Form + résolveur zod                            | Réutilise les schémas de `@devhub/contracts`                                                    |
+| Styles          | Tailwind CSS + variables CSS                               | CSS généré minimal, thème sombre (T4) par variables                                             |
+| Rendu Markdown  | `marked` + `DOMPurify`                                     | Rendu assaini (§9) ; coloration du code chargée à la demande                                    |
+| Tests           | Vitest + Testing Library ; Playwright pour le bout en bout | Même outil de test unitaire que le back                                                         |
 
 Les bibliothèques de composants lourdes (MUI, Ant Design…) sont **exclues** : elles cassent le budget de 300 Ko.
 
@@ -47,13 +47,13 @@ src/
 
 ### Règles d'import
 
-| De → vers | Autorisé ? |
-|---|---|
-| `features/x` → `shared/*`, `offline/*`, `@devhub/*` | Oui |
-| `features/x` → `features/y/index.ts` | Oui, seulement l'index public |
-| `features/x` → `features/y/components/...` | **Non** : passer par l'index, ou remonter le composant dans `shared/ui` |
-| `shared/*` → `features/*` | **Non** |
-| `offline/*` → `features/*` | **Non** : le moteur hors ligne ne connaît que des actions génériques |
+| De → vers                                           | Autorisé ?                                                              |
+| --------------------------------------------------- | ----------------------------------------------------------------------- |
+| `features/x` → `shared/*`, `offline/*`, `@devhub/*` | Oui                                                                     |
+| `features/x` → `features/y/index.ts`                | Oui, seulement l'index public                                           |
+| `features/x` → `features/y/components/...`          | **Non** : passer par l'index, ou remonter le composant dans `shared/ui` |
+| `shared/*` → `features/*`                           | **Non**                                                                 |
+| `offline/*` → `features/*`                          | **Non** : le moteur hors ligne ne connaît que des actions génériques    |
 
 Ces règles sont vérifiées par ESLint. Elles permettent à plusieurs personnes de travailler sur des fonctionnalités différentes sans se gêner.
 
@@ -61,37 +61,37 @@ Ces règles sont vérifiées par ESLint. Elles permettent à plusieurs personnes
 
 Elles reprennent le §4 du cahier des charges, plus les ajouts v3.1 retenus.
 
-| Route | Écran | Accès | Chargement |
-|---|---|---|---|
-| `/` | Accueil public « en direct » (T1) si non connecté, accueil personnel sinon (« Je suis bloqué », questions de mes stacks, salles recommandées, « Personne n'a encore répondu » S16, « Devs à rencontrer » D6) | Public | Inclus dans le bundle initial |
-| `/sos` | Liste et recherche de questions, base de connaissance | Public en lecture | Paresseux |
-| `/sos/nouvelle` | Formulaire guidé (S1, S8, S9, S7) | Connecté | Paresseux |
-| `/sos/:id` | Question, piste IA, aidants suggérés, réponses, votes, validation, pair programming | Public en lecture | Paresseux |
-| `/projets` | Liste des salles, création | Public en lecture | Paresseux |
-| `/p/:code` | Fiche de salle : tâches (liste ou Kanban R11), membres, discussion, demandes | Public en lecture | Paresseux |
-| `/decouvrir` | Recherche de devs et de salles (D1) | Public | Paresseux |
-| `/classement` | Classement par pays, carte d'Afrique (D2, D4) | Public | Paresseux |
-| `/u/:handle` | Developer Passport (PR2, PR3, PR7, PR8) | Public sans compte | Paresseux, mis en cache hors ligne |
-| `/u/:handle/preuves` | Chronologie complète des preuves | Public | Paresseux |
-| `/moi/reglages` | Profil, disponibilités, langues, confidentialité (PR14), notifications | Connecté | Paresseux |
-| `/systalink` | État des services, dernière sauvegarde (Y1, Y5) | Public | Paresseux |
-| `/impact` | Chiffres réels (Y2, Y9) | Public | Paresseux |
-| `/regles` | Comment marchent les Proof XP (X5) | Public | Paresseux |
-| `/synchronisation` | Centre de synchronisation (O8) | Connecté | Paresseux |
-| `/admin` | Signalements, retrait, comptes de démo | Administrateur | Paresseux, exclu du précache |
+| Route                | Écran                                                                                                                                                                                                        | Accès              | Chargement                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ | ---------------------------------- |
+| `/`                  | Accueil public « en direct » (T1) si non connecté, accueil personnel sinon (« Je suis bloqué », questions de mes stacks, salles recommandées, « Personne n'a encore répondu » S16, « Devs à rencontrer » D6) | Public             | Inclus dans le bundle initial      |
+| `/sos`               | Liste et recherche de questions, base de connaissance                                                                                                                                                        | Public en lecture  | Paresseux                          |
+| `/sos/nouvelle`      | Formulaire guidé (S1, S8, S9, S7)                                                                                                                                                                            | Connecté           | Paresseux                          |
+| `/sos/:id`           | Question, piste IA, aidants suggérés, réponses, votes, validation, pair programming                                                                                                                          | Public en lecture  | Paresseux                          |
+| `/projets`           | Liste des salles, création                                                                                                                                                                                   | Public en lecture  | Paresseux                          |
+| `/p/:code`           | Fiche de salle : tâches (liste ou Kanban R11), membres, discussion, demandes                                                                                                                                 | Public en lecture  | Paresseux                          |
+| `/decouvrir`         | Recherche de devs et de salles (D1)                                                                                                                                                                          | Public             | Paresseux                          |
+| `/classement`        | Classement par pays, carte d'Afrique (D2, D4)                                                                                                                                                                | Public             | Paresseux                          |
+| `/u/:handle`         | Developer Passport (PR2, PR3, PR7, PR8)                                                                                                                                                                      | Public sans compte | Paresseux, mis en cache hors ligne |
+| `/u/:handle/preuves` | Chronologie complète des preuves                                                                                                                                                                             | Public             | Paresseux                          |
+| `/moi/reglages`      | Profil, disponibilités, langues, confidentialité (PR14), notifications                                                                                                                                       | Connecté           | Paresseux                          |
+| `/systalink`         | État des services, dernière sauvegarde (Y1, Y5)                                                                                                                                                              | Public             | Paresseux                          |
+| `/impact`            | Chiffres réels (Y2, Y9)                                                                                                                                                                                      | Public             | Paresseux                          |
+| `/regles`            | Comment marchent les Proof XP (X5)                                                                                                                                                                           | Public             | Paresseux                          |
+| `/synchronisation`   | Centre de synchronisation (O8)                                                                                                                                                                               | Connecté           | Paresseux                          |
+| `/admin`             | Signalements, retrait, comptes de démo                                                                                                                                                                       | Administrateur     | Paresseux, exclu du précache       |
 
 ## Gestion de l'état
 
 Il n'y a pas de store global (Redux, Zustand). L'état se répartit ainsi :
 
-| Type d'état | Où il vit |
-|---|---|
-| Données serveur (questions, salles, Passport) | Cache TanStack Query, persisté dans IndexedDB |
-| Actions en attente d'envoi | File Dexie (`outbox`), exposée par `useOutbox()` |
+| Type d'état                                                         | Où il vit                                                             |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Données serveur (questions, salles, Passport)                       | Cache TanStack Query, persisté dans IndexedDB                         |
+| Actions en attente d'envoi                                          | File Dexie (`outbox`), exposée par `useOutbox()`                      |
 | État réseau (en ligne, hors ligne, simulé, synchronisation, erreur) | Contexte `NetworkProvider`, alimenté par le moteur de synchronisation |
-| Session (utilisateur courant) | Requête `GET /me` dans TanStack Query |
-| Brouillons de formulaires | Dexie (`drafts`), sauvegardés à chaque frappe (avec temporisation) |
-| État d'interface local | `useState` dans le composant |
+| Session (utilisateur courant)                                       | Requête `GET /me` dans TanStack Query                                 |
+| Brouillons de formulaires                                           | Dexie (`drafts`), sauvegardés à chaque frappe (avec temporisation)    |
+| État d'interface local                                              | `useState` dans le composant                                          |
 
 ### Lecture et écriture : le même chemin en ligne et hors ligne
 
@@ -121,12 +121,12 @@ Le hook `useRealtime()` ouvre une connexion `EventSource` vers `/api/v1/events` 
 
 ## Performance : budgets vérifiés en CI
 
-| Métrique | Budget | Comment on le tient |
-|---|---|---|
-| Accueil, transfert total (gzip) | < 300 Ko | Routes paresseuses, polices système, icônes SVG en ligne, pas d'image lourde |
-| JS initial | < 150 Ko gzip | React + routeur + shell ; tout le reste par route |
-| Largest Contentful Paint (Moto G4, 3G simulée) | < 2,5 s | Shell précaché, squelettes, aucune requête bloquante au démarrage |
-| Lighthouse PWA / performance | ≥ 90 | Mesuré par `lhci` en CI sur l'URL de prévisualisation |
+| Métrique                                       | Budget        | Comment on le tient                                                          |
+| ---------------------------------------------- | ------------- | ---------------------------------------------------------------------------- |
+| Accueil, transfert total (gzip)                | < 300 Ko      | Routes paresseuses, polices système, icônes SVG en ligne, pas d'image lourde |
+| JS initial                                     | < 150 Ko gzip | React + routeur + shell ; tout le reste par route                            |
+| Largest Contentful Paint (Moto G4, 3G simulée) | < 2,5 s       | Shell précaché, squelettes, aucune requête bloquante au démarrage            |
+| Lighthouse PWA / performance                   | ≥ 90          | Mesuré par `lhci` en CI sur l'URL de prévisualisation                        |
 
 Un dépassement de budget fait échouer la CI. On ajoute une dépendance seulement après avoir vérifié son poids (`pnpm why`, bundlephobia).
 

@@ -18,15 +18,15 @@ Décision : [ADR-0013](../adr/0013-workflow-git-trunk-squash.md). Ce document es
 <type>/<module>-<sujet-court>
 ```
 
-| Exemple | Usage |
-|---|---|
-| `feat/sos-ask-question` | Nouvelle fonctionnalité |
-| `fix/sync-duplicate-answer` | Correction de bug |
+| Exemple                           | Usage                                   |
+| --------------------------------- | --------------------------------------- |
+| `feat/sos-ask-question`           | Nouvelle fonctionnalité                 |
+| `fix/sync-duplicate-answer`       | Correction de bug                       |
 | `refactor/matching-extract-score` | Refonte sans changement de comportement |
-| `test/rooms-take-task` | Tests uniquement |
-| `docs/adr-0014-search` | Documentation, ADR |
-| `chore/deps-update-prisma` | Outillage, dépendances, configuration |
-| `ci/add-lighthouse` | CI/CD |
+| `test/rooms-take-task`            | Tests uniquement                        |
+| `docs/adr-0014-search`            | Documentation, ADR                      |
+| `chore/deps-update-prisma`        | Outillage, dépendances, configuration   |
+| `ci/add-lighthouse`               | CI/CD                                   |
 
 Le type reprend les types de Conventional Commits ; le module, le nom du module back-end ou de la fonctionnalité front (`sos`, `rooms`, `passport`, `offline`, `infra`…).
 
@@ -75,17 +75,17 @@ git branch -d feat/sos-ask-question
 <pied : Refs #12, Closes #34, BREAKING CHANGE: …>
 ```
 
-| Type | Quand |
-|---|---|
-| `feat` | Fonctionnalité visible par l'utilisateur |
-| `fix` | Correction de bug |
+| Type       | Quand                                              |
+| ---------- | -------------------------------------------------- |
+| `feat`     | Fonctionnalité visible par l'utilisateur           |
+| `fix`      | Correction de bug                                  |
 | `refactor` | Changement de code sans changement de comportement |
-| `perf` | Amélioration de performance |
-| `test` | Ajout ou modification de tests |
-| `docs` | Documentation |
-| `style` | Formatage seul (rare : Prettier s'en charge) |
-| `chore` | Outillage, dépendances, configuration |
-| `ci` | Pipeline CI/CD |
+| `perf`     | Amélioration de performance                        |
+| `test`     | Ajout ou modification de tests                     |
+| `docs`     | Documentation                                      |
+| `style`    | Formatage seul (rare : Prettier s'en charge)       |
+| `chore`    | Outillage, dépendances, configuration              |
+| `ci`       | Pipeline CI/CD                                     |
 
 **Portées** autorisées : `api`, `web`, `core`, `contracts`, `infra`, `docs`, `adr`, et les modules `identity`, `passport`, `reputation`, `sync`, `sos`, `matching`, `notifications`, `discovery`, `rooms`, `github`, `ai`, `moderation`, `platform`, `offline`, `i18n`, `ui`. Elles sont vérifiées par commitlint.
 
@@ -107,11 +107,11 @@ docs(adr): propose 0014 semantic search with pgvector
 
 ### Taille
 
-| Taille | Lignes modifiées (hors fichiers générés et migrations) | Conseil |
-|---|---|---|
-| Idéale | 50 à 300 | Relue en 15 minutes |
-| Acceptable | 300 à 400 | Prévenir le relecteur |
-| Trop grosse | Plus de 400 | **Découper** : d'abord le contrat et le domaine, puis l'API, puis le front |
+| Taille      | Lignes modifiées (hors fichiers générés et migrations) | Conseil                                                                    |
+| ----------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Idéale      | 50 à 300                                               | Relue en 15 minutes                                                        |
+| Acceptable  | 300 à 400                                              | Prévenir le relecteur                                                      |
+| Trop grosse | Plus de 400                                            | **Découper** : d'abord le contrat et le domaine, puis l'API, puis le front |
 
 Pour livrer une grosse fonctionnalité par morceaux sans casser `main` : drapeau de fonctionnalité (`FEATURE_ROOMS_AI=false`) ou route non encore liée dans le menu.
 
@@ -136,21 +136,21 @@ Pour livrer une grosse fonctionnalité par morceaux sans casser `main` : drapeau
 
 ## Protection de `main` (réglages GitHub)
 
-À configurer par Emmanuel, dans *Settings → Branches → Branch protection rules* (ou *Rulesets*) :
+À configurer par Emmanuel, dans _Settings → Branches → Branch protection rules_ (ou _Rulesets_) :
 
-| Réglage | Valeur |
-|---|---|
-| Require a pull request before merging | Oui, **1** approbation |
-| Dismiss stale approvals when new commits are pushed | Oui |
-| Require review from Code Owners | Oui |
-| Require status checks to pass | Oui : `lint`, `typecheck`, `test`, `build`, `e2e`, `security` |
-| Require branches to be up to date before merging | Oui |
-| Require conversation resolution | Oui |
-| Require linear history | Oui |
-| Allow force pushes / deletions | Non |
-| Do not allow bypassing the above settings | Oui (y compris pour les administrateurs) |
-| Merge button : allow squash merging only | Oui ; « Default to PR title for squash merge commits » |
-| Automatically delete head branches | Oui |
+| Réglage                                             | Valeur                                                        |
+| --------------------------------------------------- | ------------------------------------------------------------- |
+| Require a pull request before merging               | Oui, **1** approbation                                        |
+| Dismiss stale approvals when new commits are pushed | Oui                                                           |
+| Require review from Code Owners                     | Oui                                                           |
+| Require status checks to pass                       | Oui : `lint`, `typecheck`, `test`, `build`, `e2e`, `security` |
+| Require branches to be up to date before merging    | Oui                                                           |
+| Require conversation resolution                     | Oui                                                           |
+| Require linear history                              | Oui                                                           |
+| Allow force pushes / deletions                      | Non                                                           |
+| Do not allow bypassing the above settings           | Oui (y compris pour les administrateurs)                      |
+| Merge button : allow squash merging only            | Oui ; « Default to PR title for squash merge commits »        |
+| Automatically delete head branches                  | Oui                                                           |
 
 ## Conflits
 
@@ -163,14 +163,14 @@ Pour livrer une grosse fonctionnalité par morceaux sans casser `main` : drapeau
 
 À chaque jalon tenu, Emmanuel pose une étiquette sur `main` :
 
-| Étiquette | Date | Jalon |
-|---|---|---|
-| `v0.1.0` | 8 oct. | Connexion, profil, base, URL Systalink |
-| `v0.2.0` | 14 oct. | Parcours SOS Dev de bout en bout |
-| `v0.3.0` | 16 oct. | Hors ligne sur vrai téléphone |
-| `v0.4.0` | 18 oct. | Salles de projet |
-| `v1.0.0-rc` | 22 oct. | Gel du code |
-| `v1.0.0` | 24 oct. | Version soumise |
+| Étiquette   | Date    | Jalon                                  |
+| ----------- | ------- | -------------------------------------- |
+| `v0.1.0`    | 8 oct.  | Connexion, profil, base, URL Systalink |
+| `v0.2.0`    | 14 oct. | Parcours SOS Dev de bout en bout       |
+| `v0.3.0`    | 16 oct. | Hors ligne sur vrai téléphone          |
+| `v0.4.0`    | 18 oct. | Salles de projet                       |
+| `v1.0.0-rc` | 22 oct. | Gel du code                            |
+| `v1.0.0`    | 24 oct. | Version soumise                        |
 
 ```bash
 git tag -a v0.2.0 -m "Jalon 2 : parcours SOS Dev de bout en bout"

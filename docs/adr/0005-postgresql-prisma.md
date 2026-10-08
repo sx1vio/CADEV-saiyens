@@ -19,14 +19,17 @@ Le cahier des charges demande la base de données Systalink, **PostgreSQL de pr�
 ## Options envisagées (ORM)
 
 ### Prisma
+
 - **Pour** : schéma déclaratif lisible (sert aussi de documentation), types générés, migrations SQL relisibles, équipe débutante productive vite.
 - **Contre** : index GIN et colonnes générées à écrire en SQL brut dans les migrations ; transactions interactives un peu plus lentes.
 
 ### Drizzle
+
 - **Pour** : proche du SQL, très léger, bon support de PostgreSQL.
 - **Contre** : moins connu de l'équipe ; écosystème de migrations plus jeune.
 
 ### TypeORM
+
 - **Pour** : intégration NestJS historique.
 - **Contre** : maintenance irrégulière, types moins sûrs, pièges connus avec les relations.
 
@@ -37,12 +40,15 @@ Le cahier des charges demande la base de données Systalink, **PostgreSQL de pr�
 ## Conséquences
 
 ### Positives
+
 - Une seule base pour les données, la file, le temps réel et la recherche : une seule chose à sauvegarder.
 - Le schéma Prisma sert de documentation vivante.
 
 ### Négatives
+
 - Dépendance aux fonctions spécifiques de PostgreSQL (`LISTEN/NOTIFY`, `tsvector`, `citext`, `NULLS NOT DISTINCT` en version 15 ou plus).
 
 ### Risques et parades
+
 - Risque : la base Systalink n'est pas PostgreSQL, ou elle est trop ancienne, ou elle bloque les extensions → Parade : PostgreSQL dans Docker sur le VPS, avec la sauvegarde cloud Systalink. Décision au plus tard le 7 octobre.
 - Risque : plein texte « simple » moins pertinent en français → Parade : acceptable pour le MVP ; la recherche sémantique (D3, P2) passera par `pgvector` dans la même base.

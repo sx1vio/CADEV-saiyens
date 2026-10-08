@@ -4,13 +4,13 @@ Le cahier des charges impose qu'**aucune PR ne soit fusionnée sans relecture pa
 
 ## Ce que la revue doit attraper (et ce qu'elle laisse aux outils)
 
-| La revue humaine | Les outils (CI) |
-|---|---|
-| Le code fait-il ce que dit la user story et ses critères d'acceptation ? | Formatage (Prettier) |
-| Cas limites, erreurs, comportement hors ligne | Lint, imports interdits entre couches (ESLint) |
-| Sécurité : autorisations, validation, secrets, injection | Types (TypeScript) |
-| Respect de l'architecture (couches, frontières de modules) | Secrets commités (gitleaks) |
-| Lisibilité, nommage, tests pertinents | Vulnérabilités (pnpm audit), budget de taille |
+| La revue humaine                                                         | Les outils (CI)                                |
+| ------------------------------------------------------------------------ | ---------------------------------------------- |
+| Le code fait-il ce que dit la user story et ses critères d'acceptation ? | Formatage (Prettier)                           |
+| Cas limites, erreurs, comportement hors ligne                            | Lint, imports interdits entre couches (ESLint) |
+| Sécurité : autorisations, validation, secrets, injection                 | Types (TypeScript)                             |
+| Respect de l'architecture (couches, frontières de modules)               | Secrets commités (gitleaks)                    |
+| Lisibilité, nommage, tests pertinents                                    | Vulnérabilités (pnpm audit), budget de taille  |
 
 **On ne discute pas en revue de ce qu'un outil peut vérifier.** Si une règle de style revient souvent, on l'ajoute à ESLint.
 
@@ -25,23 +25,23 @@ Le cahier des charges impose qu'**aucune PR ne soit fusionnée sans relecture pa
 
 Chaque commentaire commence par une étiquette, pour que l'auteur sache ce qui bloque :
 
-| Étiquette | Sens | L'auteur doit… |
-|---|---|---|
-| 🔴 `[bloquant]` | Bug, faille, perte de données, règle du cahier des charges non respectée | Corriger avant fusion |
-| 🟡 `[important]` | Problème réel mais discutable | Corriger ou expliquer pourquoi non |
-| 🟢 `[détail]` | Amélioration mineure | Libre de l'ignorer |
-| 💡 `[suggestion]` | Autre approche possible | Libre |
-| ❓ `[question]` | Le relecteur veut comprendre | Répondre |
-| 🎉 `[bravo]` | Quelque chose de bien fait | Rien, apprécier |
+| Étiquette         | Sens                                                                     | L'auteur doit…                     |
+| ----------------- | ------------------------------------------------------------------------ | ---------------------------------- |
+| 🔴 `[bloquant]`   | Bug, faille, perte de données, règle du cahier des charges non respectée | Corriger avant fusion              |
+| 🟡 `[important]`  | Problème réel mais discutable                                            | Corriger ou expliquer pourquoi non |
+| 🟢 `[détail]`     | Amélioration mineure                                                     | Libre de l'ignorer                 |
+| 💡 `[suggestion]` | Autre approche possible                                                  | Libre                              |
+| ❓ `[question]`   | Le relecteur veut comprendre                                             | Répondre                           |
+| 🎉 `[bravo]`      | Quelque chose de bien fait                                               | Rien, apprécier                    |
 
 ## Bien formuler
 
-| Éviter | Préférer |
-|---|---|
-| « C'est faux. » | « 🔴 [bloquant] Si deux onglets envoient la même action en même temps, on crée deux réponses : l'insertion de la clé d'idempotence n'est pas dans la transaction. Peux-tu la déplacer dans `uow.run` ? » |
-| « Pourquoi tu n'as pas utilisé X ? » | « 💡 [suggestion] Un port `Clock` rendrait le bonus de 15 minutes testable sans attendre. Exemple dans `sos/application/accept-answer.spec.ts`. » |
-| « Renomme ça. » | « 🟢 [détail] `helperIds` serait plus parlant que `ids`. Pas bloquant. » |
-| « Il manque la gestion d'erreur. » | « ❓ [question] Que voit l'utilisateur si GitHub répond 503 ici ? » |
+| Éviter                               | Préférer                                                                                                                                                                                                 |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| « C'est faux. »                      | « 🔴 [bloquant] Si deux onglets envoient la même action en même temps, on crée deux réponses : l'insertion de la clé d'idempotence n'est pas dans la transaction. Peux-tu la déplacer dans `uow.run` ? » |
+| « Pourquoi tu n'as pas utilisé X ? » | « 💡 [suggestion] Un port `Clock` rendrait le bonus de 15 minutes testable sans attendre. Exemple dans `sos/application/accept-answer.spec.ts`. »                                                        |
+| « Renomme ça. »                      | « 🟢 [détail] `helperIds` serait plus parlant que `ids`. Pas bloquant. »                                                                                                                                 |
+| « Il manque la gestion d'erreur. »   | « ❓ [question] Que voit l'utilisateur si GitHub répond 503 ici ? »                                                                                                                                      |
 
 On commente **le code, pas la personne**. On souligne aussi ce qui est bien fait.
 
@@ -97,21 +97,27 @@ On commente **le code, pas la personne**. On souligne aussi ce qui est bien fait
 
 ```markdown
 ## Synthèse
+
 Ce que j'ai relu, et le résultat global.
 
 ## Points forts
+
 - …
 
 ## À corriger avant fusion
+
 🔴 …
 
 ## Suggestions
+
 💡 …
 
 ## Questions
+
 ❓ …
 
 ## Verdict
+
 ✅ Approuvé une fois les points bloquants corrigés
 ```
 

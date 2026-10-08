@@ -52,6 +52,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - name: Migrations sur la base de test
+        run: pnpm --filter @devhub/api exec prisma migrate deploy
       - run: pnpm test
       - run: pnpm build
 
@@ -100,6 +102,9 @@ jobs:
   security:
     name: secrets + dépendances
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read # gitleaks lit la liste des commits de la PR
     steps:
       - uses: actions/checkout@v4
         with:

@@ -6,13 +6,13 @@ Cinq personnes, 17 jours de développement (du 6 au 22 octobre), soumission le 2
 
 ## Membres et rôles
 
-| Membre | Rôle principal (CDC §10) | Rôle complémentaire proposé | Modules back-end possédés | Écrans front pris en charge après le Jalon 2 |
-|---|---|---|---|---|
-| **Caleb KPOSSOU** | 2 · Back-end | **1 · Produit et pitch** (arbitrage du périmètre, contact Systalink, README, deck) | `identity`, `passport`, `reputation`, `discovery` | Passport, Découvrir, classement |
-| **AMAMION Florent** | 2 · Back-end | Back-end « temps réel et synchronisation » | `sos`, `matching`, `notifications`, `sync` | — (appui ponctuel sur SOS Dev) |
-| **Joachim GOEH-AKUE** | 2 · Back-end | **5 · IA et intégrations** (auteur des propositions v3.1) | `ai`, `github`, `rooms` | Salles de projet |
-| **Sylvio CHALLA** | 3 · Front-end et hors ligne | Propriétaire de l'interface et du design | — | Shell, système de design, moteur hors ligne, SOS Dev, accueil, relecture de tous les écrans |
-| **Emmanuel OKORIE** | 4 · DevOps et sécurité | Dernier mot sur ce qui part en production | `moderation`, `platform` | `/systalink`, `/impact`, `/admin` |
+| Membre                | Rôle principal (CDC §10)    | Rôle complémentaire proposé                                                        | Modules back-end possédés                         | Écrans front pris en charge après le Jalon 2                                                |
+| --------------------- | --------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Caleb KPOSSOU**     | 2 · Back-end                | **1 · Produit et pitch** (arbitrage du périmètre, contact Systalink, README, deck) | `identity`, `passport`, `reputation`, `discovery` | Passport, Découvrir, classement                                                             |
+| **AMAMION Florent**   | 2 · Back-end                | Back-end « temps réel et synchronisation »                                         | `sos`, `matching`, `notifications`, `sync`        | — (appui ponctuel sur SOS Dev)                                                              |
+| **Joachim GOEH-AKUE** | 2 · Back-end                | **5 · IA et intégrations** (auteur des propositions v3.1)                          | `ai`, `github`, `rooms`                           | Salles de projet                                                                            |
+| **Sylvio CHALLA**     | 3 · Front-end et hors ligne | Propriétaire de l'interface et du design                                           | —                                                 | Shell, système de design, moteur hors ligne, SOS Dev, accueil, relecture de tous les écrans |
+| **Emmanuel OKORIE**   | 4 · DevOps et sécurité      | Dernier mot sur ce qui part en production                                          | `moderation`, `platform`                          | `/systalink`, `/impact`, `/admin`                                                           |
 
 ### Pourquoi cette répartition
 
@@ -24,86 +24,86 @@ Cinq personnes, 17 jours de développement (du 6 au 22 octobre), soumission le 2
 
 ### Règle « aucune connaissance détenue par une seule personne » (§10)
 
-| Sujet | Titulaire | Suppléant (sait reprendre) |
-|---|---|---|
-| Déploiement, VPS, secrets | Emmanuel | Caleb |
-| Moteur hors ligne (front) | Sylvio | Florent |
-| Idempotence et `/sync` | Florent | Caleb |
-| Matching et XP (`packages/core/scoring`) | Florent, Caleb | Joachim |
-| IA et GitHub | Joachim | Florent |
-| Contact Systalink, soumission | Caleb | Emmanuel |
+| Sujet                                    | Titulaire      | Suppléant (sait reprendre) |
+| ---------------------------------------- | -------------- | -------------------------- |
+| Déploiement, VPS, secrets                | Emmanuel       | Caleb                      |
+| Moteur hors ligne (front)                | Sylvio         | Florent                    |
+| Idempotence et `/sync`                   | Florent        | Caleb                      |
+| Matching et XP (`packages/core/scoring`) | Florent, Caleb | Joachim                    |
+| IA et GitHub                             | Joachim        | Florent                    |
+| Contact Systalink, soumission            | Caleb          | Emmanuel                   |
 
 Si l'équipe perd un membre actif, le cahier des charges prévoit la fusion des rôles 1 et 5, puis 4 et 2.
 
 ## Autorité de décision
 
-| Domaine | Qui tranche | Comment |
-|---|---|---|
-| Périmètre (ce qui entre, ce qui sort, P2 gelés le 15 oct.) | Rôle 1 (Caleb) | Après avis de l'équipe ; règle : on coupe avant de repousser une date |
-| Ce qui part en production, sécurité | Rôle 4 (Emmanuel) | Peut bloquer une PR ou un déploiement |
-| Architecture d'un module | Son propriétaire | ADR si la décision touche d'autres modules |
-| Contrat d'API, hors ligne | Un back-end **et** Sylvio | Approbation des deux dans la PR |
-| Interface, design | Sylvio | — |
-| Désaccord persistant | Vote à la majorité au point quotidien | Décision consignée (ADR ou issue) |
+| Domaine                                                    | Qui tranche                           | Comment                                                               |
+| ---------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------- |
+| Périmètre (ce qui entre, ce qui sort, P2 gelés le 15 oct.) | Rôle 1 (Caleb)                        | Après avis de l'équipe ; règle : on coupe avant de repousser une date |
+| Ce qui part en production, sécurité                        | Rôle 4 (Emmanuel)                     | Peut bloquer une PR ou un déploiement                                 |
+| Architecture d'un module                                   | Son propriétaire                      | ADR si la décision touche d'autres modules                            |
+| Contrat d'API, hors ligne                                  | Un back-end **et** Sylvio             | Approbation des deux dans la PR                                       |
+| Interface, design                                          | Sylvio                                | —                                                                     |
+| Désaccord persistant                                       | Vote à la majorité au point quotidien | Décision consignée (ADR ou issue)                                     |
 
 ## Rituels
 
-| Rituel | Quand | Durée | Contenu |
-|---|---|---|---|
-| **Point quotidien** | Chaque jour à heure fixe (à choisir : par exemple 9 h 00 UTC) | 10 min | Pour chacun : fait hier, prévu aujourd'hui, blocages. Aucun débat technique : on le planifie après |
-| **Revue de jalon** | Les 8, 14, 16, 18 et 22 octobre | 30 min | Le critère de sortie est-il tenu, sur l'URL de production ? Sinon : on coupe quoi ? |
-| **Revue du périmètre** | Les 9 et 15 octobre | 20 min | Tri des propositions v3.1, gel des P2 le 15 |
-| **Répétition de démo** | Les 21, 23 et 24 octobre | 30 min | Le script de 4 minutes, sur la production |
+| Rituel                 | Quand                                                         | Durée  | Contenu                                                                                            |
+| ---------------------- | ------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
+| **Point quotidien**    | Chaque jour à heure fixe (à choisir : par exemple 9 h 00 UTC) | 10 min | Pour chacun : fait hier, prévu aujourd'hui, blocages. Aucun débat technique : on le planifie après |
+| **Revue de jalon**     | Les 8, 14, 16, 18 et 22 octobre                               | 30 min | Le critère de sortie est-il tenu, sur l'URL de production ? Sinon : on coupe quoi ?                |
+| **Revue du périmètre** | Les 9 et 15 octobre                                           | 20 min | Tri des propositions v3.1, gel des P2 le 15                                                        |
+| **Répétition de démo** | Les 21, 23 et 24 octobre                                      | 30 min | Le script de 4 minutes, sur la production                                                          |
 
 Le point quotidien est asynchrone si quelqu'un ne peut pas être présent : il écrit ses trois lignes sur le canal de l'équipe avant l'heure.
 
 ## Outils
 
-| Besoin | Outil |
-|---|---|
-| Code, revues, CI | GitHub : dépôt `sx1vio/CADEV-saiyens` |
-| Backlog | **GitHub Projects** (tableau Kanban : *À faire*, *En cours*, *En revue*, *Terminé*), une issue par user story (identifiant du cahier des charges dans le titre : `[S1] Poser une question`) |
-| Communication | Canal de l'équipe (WhatsApp ou Discord) ; décisions recopiées dans une issue ou un ADR |
-| Documentation | Ce dossier `docs/`, versionné avec le code |
-| Secrets partagés | Secrets GitHub Actions + gestionnaire de mots de passe partagé. **Jamais** dans le chat |
+| Besoin           | Outil                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code, revues, CI | GitHub : dépôt `sx1vio/CADEV-saiyens`                                                                                                                                                       |
+| Backlog          | **GitHub Projects** (tableau Kanban : _À faire_, _En cours_, _En revue_, _Terminé_), une issue par user story (identifiant du cahier des charges dans le titre : `[S1] Poser une question`) |
+| Communication    | Canal de l'équipe (WhatsApp ou Discord) ; décisions recopiées dans une issue ou un ADR                                                                                                      |
+| Documentation    | Ce dossier `docs/`, versionné avec le code                                                                                                                                                  |
+| Secrets partagés | Secrets GitHub Actions + gestionnaire de mots de passe partagé. **Jamais** dans le chat                                                                                                     |
 
 ### Étiquettes GitHub
 
-| Étiquette | Usage |
-|---|---|
-| `P0`, `P1`, `P2`, `MVP+`, `correctif` | Priorité (cahier des charges et v3.1) |
-| `front`, `back`, `infra`, `ia`, `docs` | Domaine |
-| `sos`, `rooms`, `passport`, `offline`, `xp`, `systalink` | Pilier ou module |
-| `bloqué` | En attente d'une décision ou d'une autre tâche |
-| `contrat` | Touche le contrat d'API ou le hors ligne (deux approbations) |
-| `démo` | Sur le chemin critique de la démo |
+| Étiquette                                                | Usage                                                        |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| `P0`, `P1`, `P2`, `MVP+`, `correctif`                    | Priorité (cahier des charges et v3.1)                        |
+| `front`, `back`, `infra`, `ia`, `docs`                   | Domaine                                                      |
+| `sos`, `rooms`, `passport`, `offline`, `xp`, `systalink` | Pilier ou module                                             |
+| `bloqué`                                                 | En attente d'une décision ou d'une autre tâche               |
+| `contrat`                                                | Touche le contrat d'API ou le hors ligne (deux approbations) |
+| `démo`                                                   | Sur le chemin critique de la démo                            |
 
 ## Planning par personne
 
 Le planning du cahier des charges (§11), avec les noms. Les ajouts v3.1 retenus seront insérés après la revue du périmètre du 9 octobre, selon le §13 de la v3.1.
 
-| Date | Caleb | Florent | Joachim | Sylvio | Emmanuel |
-|---|---|---|---|---|---|
-| **Lun 5** (passé) | Nom, message à Systalink, stack | Contrat hors ligne avec Sylvio | — | Contrat hors ligne | « Hello world » sur le VPS |
-| **Mar 6** | Validation des ADR ; squelette `apps/api` ; schéma v1 et migrations | Squelette `sync` + intercepteur d'idempotence | Application OAuth GitHub (avec Emmanuel) ; clé IA | Shell PWA, routeur, i18n FR/EN, système de design de base | CI, `docker-compose`, Caddy, déploiement auto |
-| **Mer 7** | OAuth GitHub, sessions, `GET /me` | Tables questions et réponses, `POST /questions` | Import du profil GitHub (X3) ; budget et quota IA | Maquettes SOS Dev ; Passport v0 | Sauvegarde quotidienne ; décision « PostgreSQL managé ou Docker » |
-| **Jeu 8 · Jalon 1** | Passport v0 (API) | Revue | Revue | Connexion et Passport v0 (écran) | Revue de sécurité de base |
-| **Ven 9** | `reputation` : journal et barème | Liste, fiche, étiquettes | Prompts IA (M2) ; `ai.hint` | Formulaire de question, file IndexedDB v0, service worker | Limitation du débit, en-têtes |
-| **Sam 10** | Validation → XP | Réponses, votes, validation | Piste IA asynchrone | Fiche question, réponses, votes | CSP en mode rapport |
-| **Dim 11** | Scores de compétence | Matching v1, SSE (Y8) | Détection d'étiquettes (S9) | Indicateur réseau, temps réel | E-mails SMTP Systalink |
-| **Lun 12** | Liste de 30+ invités, préparation de l'amorçage | Escalade 15 min, `/sync` idempotent | Modèle des salles | Synchronisation côté client | Comptes admin et démo |
-| **Mar 13** | Vague d'invitations | Tests de bout en bout SOS Dev | Pont bilingue (S10) | Synchronisation hors ligne des questions et réponses | CI Playwright |
-| **Mer 14 · Jalon 2** | Tous : poser une question → piste IA → réponse d'un autre dev | | | | |
-| **Jeu 15** | Gel des P2 | Appui hors ligne | Création de salle + lien GitHub | Indicateur d'état, écran de conflit, simulateur (O5) | Modération (M1) |
-| **Ven 16 · Jalon 3** | Test sur téléphone | Demandes pour rejoindre (API) | Rejoindre une salle (écran) | Hors ligne testé sur vrai téléphone | Test sur téléphone |
-| **Sam 17** | Passport public et « Voir les preuves » (écran) | Appui salles | Tâches, import des issues, vérification PR (R9) | Relectures, Passport | — |
-| **Dim 18 · Jalon 4** | Tous : créer une salle, lier un dépôt, rejoindre, tâches | | IA de projet (R5, P1) | | |
-| **Lun 19** | Découverte, classement par pays | Aperçus Open Graph, Proof Card | — | Accueil public (T1), essai sans compte (T2) | — |
-| **Mar 20** | — | — | — | — | Écrans Systalink et Impact ; **restauration de sauvegarde testée** |
-| **Mer 21** | Tous : performance (< 300 Ko), sécurité, bout en bout complet, première répétition | | | | |
-| **Jeu 22 · Jalon 5** | **Gel du code**, corrections critiques seulement | | | | |
-| **Ven 23** | README, deck, vidéo | Corrections | Corrections | Corrections, captures | Compte et vidéo de secours, test extérieur |
-| **Sam 24** | **Soumission avant midi** | | | | |
+| Date                 | Caleb                                                                              | Florent                                         | Joachim                                           | Sylvio                                                    | Emmanuel                                                           |
+| -------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Lun 5** (passé)    | Nom, message à Systalink, stack                                                    | Contrat hors ligne avec Sylvio                  | —                                                 | Contrat hors ligne                                        | « Hello world » sur le VPS                                         |
+| **Mar 6**            | Validation des ADR ; squelette `apps/api` ; schéma v1 et migrations                | Squelette `sync` + intercepteur d'idempotence   | Application OAuth GitHub (avec Emmanuel) ; clé IA | Shell PWA, routeur, i18n FR/EN, système de design de base | CI, `docker-compose`, Caddy, déploiement auto                      |
+| **Mer 7**            | OAuth GitHub, sessions, `GET /me`                                                  | Tables questions et réponses, `POST /questions` | Import du profil GitHub (X3) ; budget et quota IA | Maquettes SOS Dev ; Passport v0                           | Sauvegarde quotidienne ; décision « PostgreSQL managé ou Docker »  |
+| **Jeu 8 · Jalon 1**  | Passport v0 (API)                                                                  | Revue                                           | Revue                                             | Connexion et Passport v0 (écran)                          | Revue de sécurité de base                                          |
+| **Ven 9**            | `reputation` : journal et barème                                                   | Liste, fiche, étiquettes                        | Prompts IA (M2) ; `ai.hint`                       | Formulaire de question, file IndexedDB v0, service worker | Limitation du débit, en-têtes                                      |
+| **Sam 10**           | Validation → XP                                                                    | Réponses, votes, validation                     | Piste IA asynchrone                               | Fiche question, réponses, votes                           | CSP en mode rapport                                                |
+| **Dim 11**           | Scores de compétence                                                               | Matching v1, SSE (Y8)                           | Détection d'étiquettes (S9)                       | Indicateur réseau, temps réel                             | E-mails SMTP Systalink                                             |
+| **Lun 12**           | Liste de 30+ invités, préparation de l'amorçage                                    | Escalade 15 min, `/sync` idempotent             | Modèle des salles                                 | Synchronisation côté client                               | Comptes admin et démo                                              |
+| **Mar 13**           | Vague d'invitations                                                                | Tests de bout en bout SOS Dev                   | Pont bilingue (S10)                               | Synchronisation hors ligne des questions et réponses      | CI Playwright                                                      |
+| **Mer 14 · Jalon 2** | Tous : poser une question → piste IA → réponse d'un autre dev                      |                                                 |                                                   |                                                           |                                                                    |
+| **Jeu 15**           | Gel des P2                                                                         | Appui hors ligne                                | Création de salle + lien GitHub                   | Indicateur d'état, écran de conflit, simulateur (O5)      | Modération (M1)                                                    |
+| **Ven 16 · Jalon 3** | Test sur téléphone                                                                 | Demandes pour rejoindre (API)                   | Rejoindre une salle (écran)                       | Hors ligne testé sur vrai téléphone                       | Test sur téléphone                                                 |
+| **Sam 17**           | Passport public et « Voir les preuves » (écran)                                    | Appui salles                                    | Tâches, import des issues, vérification PR (R9)   | Relectures, Passport                                      | —                                                                  |
+| **Dim 18 · Jalon 4** | Tous : créer une salle, lier un dépôt, rejoindre, tâches                           |                                                 | IA de projet (R5, P1)                             |                                                           |                                                                    |
+| **Lun 19**           | Découverte, classement par pays                                                    | Aperçus Open Graph, Proof Card                  | —                                                 | Accueil public (T1), essai sans compte (T2)               | —                                                                  |
+| **Mar 20**           | —                                                                                  | —                                               | —                                                 | —                                                         | Écrans Systalink et Impact ; **restauration de sauvegarde testée** |
+| **Mer 21**           | Tous : performance (< 300 Ko), sécurité, bout en bout complet, première répétition |                                                 |                                                   |                                                           |                                                                    |
+| **Jeu 22 · Jalon 5** | **Gel du code**, corrections critiques seulement                                   |                                                 |                                                   |                                                           |                                                                    |
+| **Ven 23**           | README, deck, vidéo                                                                | Corrections                                     | Corrections                                       | Corrections, captures                                     | Compte et vidéo de secours, test extérieur                         |
+| **Sam 24**           | **Soumission avant midi**                                                          |                                                 |                                                   |                                                           |                                                                    |
 
 ## Communication avec Systalink et le challenge
 

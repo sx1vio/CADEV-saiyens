@@ -11,13 +11,13 @@ L'API doit être documentée en OpenAPI, chaque endpoint doit valider ses entré
 
 ## Options envisagées
 
-| Option | Pour | Contre |
-|---|---|---|
-| **Schémas zod dans `@devhub/contracts` → validation NestJS (`nestjs-zod`) + OpenAPI généré + types front** | Une seule source ; compile-time des deux côtés ; validation et documentation alignées par construction | Dépendance à l'intégration zod/NestJS |
-| OpenAPI écrit à la main, types générés | Standard | Spécification qui dérive du code |
-| Classes DTO NestJS (`class-validator`) + Swagger | Idiomatique NestJS | Types non partagés avec le front (décorateurs côté serveur) ; double travail |
-| tRPC | Types de bout en bout sans effort | Pas REST, pas OpenAPI (contraire au cahier des charges), URL moins adaptées au cache hors ligne |
-| GraphQL | Requêtes flexibles | Pas demandé ; cache hors ligne et idempotence plus complexes |
+| Option                                                                                                     | Pour                                                                                                   | Contre                                                                                          |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| **Schémas zod dans `@devhub/contracts` → validation NestJS (`nestjs-zod`) + OpenAPI généré + types front** | Une seule source ; compile-time des deux côtés ; validation et documentation alignées par construction | Dépendance à l'intégration zod/NestJS                                                           |
+| OpenAPI écrit à la main, types générés                                                                     | Standard                                                                                               | Spécification qui dérive du code                                                                |
+| Classes DTO NestJS (`class-validator`) + Swagger                                                           | Idiomatique NestJS                                                                                     | Types non partagés avec le front (décorateurs côté serveur) ; double travail                    |
+| tRPC                                                                                                       | Types de bout en bout sans effort                                                                      | Pas REST, pas OpenAPI (contraire au cahier des charges), URL moins adaptées au cache hors ligne |
+| GraphQL                                                                                                    | Requêtes flexibles                                                                                     | Pas demandé ; cache hors ligne et idempotence plus complexes                                    |
 
 ## Décision
 
@@ -26,8 +26,10 @@ L'API doit être documentée en OpenAPI, chaque endpoint doit valider ses entré
 ## Conséquences
 
 ### Positives
+
 - Un champ renommé casse la compilation des deux côtés dans la même PR.
 - La documentation OpenAPI est toujours exacte.
 
 ### Négatives
+
 - Il faut accepter quelques URL d'action (`/answers/:id/accept`), justifiées dans le document d'API.

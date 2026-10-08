@@ -6,11 +6,11 @@
 
 GitHub montre ce que tu as construit. DevHub Africa montre ce que tu sais faire, parce que tu l'as **prouvé** en aidant d'autres développeurs et en construisant avec eux, même avec une connexion instable.
 
-| Pilier | Ce que fait le développeur |
-|---|---|
-| **SOS Dev** (aider) | Il est bloqué : piste IA en quelques secondes, puis l'aide d'un pair qui a déjà résolu des problèmes similaires |
+| Pilier                            | Ce que fait le développeur                                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **SOS Dev** (aider)               | Il est bloqué : piste IA en quelques secondes, puis l'aide d'un pair qui a déjà résolu des problèmes similaires                   |
 | **Salles de projet** (construire) | Il ouvre une salle liée à son dépôt GitHub, publie des tâches, d'autres contribuent ; les contributions sont vérifiées par GitHub |
-| **Developer Passport** (prouver) | Chaque action utile alimente une page publique où chaque score renvoie à ses preuves |
+| **Developer Passport** (prouver)  | Chaque action utile alimente une page publique où chaque score renvoie à ses preuves                                              |
 
 ## État du projet
 
@@ -27,24 +27,24 @@ Tout est dans [`docs/`](docs/README.md) :
 
 ## Stack
 
-| Couche | Technologies |
-|---|---|
-| Front-end | PWA React + Vite, Workbox, IndexedDB (Dexie), TanStack Query, i18next (FR/EN), Tailwind |
-| Back-end | NestJS (API + worker), Prisma, pg-boss, Server-Sent Events |
-| Données | PostgreSQL (Systalink) |
-| Partagé | `@devhub/contracts` (schémas zod), `@devhub/core` (règles pures : scores, secrets, étiquettes) |
-| Infrastructure | VPS Systalink, Docker Compose, Caddy, GitHub Actions |
-| Services externes | OAuth et API GitHub, API Claude (côté serveur) |
+| Couche            | Technologies                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| Front-end         | PWA React + Vite, Workbox, IndexedDB (Dexie), TanStack Query, i18next (FR/EN), Tailwind        |
+| Back-end          | NestJS (API + worker), Prisma, pg-boss, Server-Sent Events                                     |
+| Données           | PostgreSQL (Systalink)                                                                         |
+| Partagé           | `@devhub/contracts` (schémas zod), `@devhub/core` (règles pures : scores, secrets, étiquettes) |
+| Infrastructure    | VPS Systalink, Docker Compose, Caddy, GitHub Actions                                           |
+| Services externes | OAuth et API GitHub, API Claude (côté serveur)                                                 |
 
 ## Produits Systalink utilisés
 
-| Produit | Usage |
-|---|---|
-| VPS | Héberge l'application, l'API et les tâches de fond |
-| Base de données | Profils, questions, salles, Proof XP, file de tâches |
+| Produit          | Usage                                                                         |
+| ---------------- | ----------------------------------------------------------------------------- |
+| VPS              | Héberge l'application, l'API et les tâches de fond                            |
+| Base de données  | Profils, questions, salles, Proof XP, file de tâches                          |
 | Sauvegarde cloud | Sauvegarde quotidienne, restauration testée, date affichée dans l'application |
-| Messagerie pro | E-mails de notification (SMTP) |
-| Stockage objet | Avatars et captures, si le produit est accepté par le règlement |
+| Messagerie pro   | E-mails de notification (SMTP)                                                |
+| Stockage objet   | Avatars et captures, si le produit est accepté par le règlement               |
 
 ## Démarrer en local
 
@@ -72,12 +72,12 @@ Lire [`CONTRIBUTING.md`](CONTRIBUTING.md). En bref : une branche courte par fonc
 
 ## Équipe
 
-| Membre | Rôle |
-|---|---|
-| Caleb KPOSSOU | Back-end · Produit et pitch |
-| AMAMION Florent | Back-end |
+| Membre            | Rôle                          |
+| ----------------- | ----------------------------- |
+| Caleb KPOSSOU     | Back-end · Produit et pitch   |
+| AMAMION Florent   | Back-end                      |
 | Joachim GOEH-AKUE | Back-end · IA et intégrations |
-| Sylvio CHALLA | Front-end et hors ligne |
-| Emmanuel OKORIE | DevOps et sécurité |
+| Sylvio CHALLA     | Front-end et hors ligne       |
+| Emmanuel OKORIE   | DevOps et sécurité            |
 
-*Construit en Afrique. Hébergé en Afrique. Pour les développeurs africains.*
+_Construit en Afrique. Hébergé en Afrique. Pour les développeurs africains._

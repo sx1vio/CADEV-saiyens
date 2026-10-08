@@ -12,21 +12,21 @@ Le cahier des charges décrit des contextes métier nets : SOS Dev, salles, Pass
 
 ## Les modules métier (contextes délimités)
 
-| Module | Responsabilité | Tables possédées | User stories | Propriétaire |
-|---|---|---|---|---|
-| `identity` | OAuth GitHub, GitLab et Google, sessions, compte, suppression (A3), code de conduite (M3), confidentialité (PR14) | `users`, `oauth_accounts`, `sessions` | A1–A3, M3, PR14, T3 | Caleb |
-| `passport` | Profil, import GitHub, compétences, page publique, preuves, Proof Card (PR5), badge README (PR6), recommandations (PR9) | `tags`, `user_skills`, `endorsements` | PR1–PR11 | Caleb |
-| `reputation` | Journal `xp_events`, barème, plafonds, annulations, recalcul des scores | `xp_events` | X1–X4, X6, X7 | Caleb |
-| `sync` | Idempotence, endpoint `/sync` par lot, résolution des `client_id` | `idempotency_keys` | O2, O4 | Florent |
-| `sos` | Questions, réponses, votes, validation, pair programming, base de connaissance, traductions affichées | `questions`, `question_tags`, `answers`, `votes`, `pair_sessions`, `translations` | S1–S16 | Florent |
-| `matching` | Éligibilité, score, sélection des 3 aidants, « Je m'en occupe », escalade à 15 minutes | `match_events` | S3, S11, X4 | Florent |
-| `notifications` | Notifications dans l'application, e-mails SMTP, flux SSE, Telegram et Web Push (P1) | `notifications`, `push_subscriptions` | S3, Y3, Y7, Y8 | Florent |
-| `discovery` | Recherche de devs et de salles, classement par pays, communautés (D5) | `communities` | D1–D7 | Caleb |
-| `rooms` | Salles, membres, demandes, tâches, discussion, demandes de retour | `rooms`, `room_members`, `join_requests`, `tasks`, `room_messages`, `feedback_requests` | R1–R14 | Joachim |
-| `github` | Adaptateur API GitHub : profil, langages, dépôts, issues, PR, cache, quota | `github_cache` | PR1, R1, R9, R12, X3 | Joachim |
-| `ai` | Adaptateur modèle de langage : piste, tâches de salle, traduction, fiche de résolution ; quotas, cache, gabarits de prompts | `ai_requests` | S2, S10, S12, R5, R12, PR12 | Joachim |
-| `moderation` | Signalements, retrait, journal d'audit, limitation du débit | `reports`, `admin_actions` | M1, M2, M4, X8 | Emmanuel |
-| `platform` | Écran Systalink (sondes réelles), page de statut, écran d'impact | `status_checks` | Y1, Y2, Y5, Y6, Y9 | Emmanuel |
+| Module          | Responsabilité                                                                                                              | Tables possédées                                                                        | User stories                | Propriétaire |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------- | ------------ |
+| `identity`      | OAuth GitHub, GitLab et Google, sessions, compte, suppression (A3), code de conduite (M3), confidentialité (PR14)           | `users`, `oauth_accounts`, `sessions`                                                   | A1–A3, M3, PR14, T3         | Caleb        |
+| `passport`      | Profil, import GitHub, compétences, page publique, preuves, Proof Card (PR5), badge README (PR6), recommandations (PR9)     | `tags`, `user_skills`, `endorsements`                                                   | PR1–PR11                    | Caleb        |
+| `reputation`    | Journal `xp_events`, barème, plafonds, annulations, recalcul des scores                                                     | `xp_events`                                                                             | X1–X4, X6, X7               | Caleb        |
+| `sync`          | Idempotence, endpoint `/sync` par lot, résolution des `client_id`                                                           | `idempotency_keys`                                                                      | O2, O4                      | Florent      |
+| `sos`           | Questions, réponses, votes, validation, pair programming, base de connaissance, traductions affichées                       | `questions`, `question_tags`, `answers`, `votes`, `pair_sessions`, `translations`       | S1–S16                      | Florent      |
+| `matching`      | Éligibilité, score, sélection des 3 aidants, « Je m'en occupe », escalade à 15 minutes                                      | `match_events`                                                                          | S3, S11, X4                 | Florent      |
+| `notifications` | Notifications dans l'application, e-mails SMTP, flux SSE, Telegram et Web Push (P1)                                         | `notifications`, `push_subscriptions`                                                   | S3, Y3, Y7, Y8              | Florent      |
+| `discovery`     | Recherche de devs et de salles, classement par pays, communautés (D5)                                                       | `communities`                                                                           | D1–D7                       | Caleb        |
+| `rooms`         | Salles, membres, demandes, tâches, discussion, demandes de retour                                                           | `rooms`, `room_members`, `join_requests`, `tasks`, `room_messages`, `feedback_requests` | R1–R14                      | Joachim      |
+| `github`        | Adaptateur API GitHub : profil, langages, dépôts, issues, PR, cache, quota                                                  | `github_cache`                                                                          | PR1, R1, R9, R12, X3        | Joachim      |
+| `ai`            | Adaptateur modèle de langage : piste, tâches de salle, traduction, fiche de résolution ; quotas, cache, gabarits de prompts | `ai_requests`                                                                           | S2, S10, S12, R5, R12, PR12 | Joachim      |
+| `moderation`    | Signalements, retrait, journal d'audit, limitation du débit                                                                 | `reports`, `admin_actions`                                                              | M1, M2, M4, X8              | Emmanuel     |
+| `platform`      | Écran Systalink (sondes réelles), page de statut, écran d'impact                                                            | `status_checks`                                                                         | Y1, Y2, Y5, Y6, Y9          | Emmanuel     |
 
 La colonne « Propriétaire » est une proposition à valider (voir [organisation](../equipe/organisation.md)). Propriétaire ne veut pas dire « seul à coder » : cela veut dire « relit les PR qui touchent le module et connaît ses invariants ».
 
@@ -78,12 +78,12 @@ Cette règle est vérifiée par ESLint (`import/no-restricted-paths`) dans la CI
 
 L'hexagonal pur sur 13 modules en 17 jours serait trop coûteux. Règle pragmatique :
 
-| Type de module | Niveau d'architecture |
-|---|---|
-| **Logique riche et risquée** : `sos`, `matching`, `reputation`, `sync`, `rooms` | Hexagonal complet : domaine, ports, cas d'usage, tests en mémoire |
-| **Adaptateurs de services externes** : `github`, `ai`, `notifications` | Un port (`GithubPort`, `LlmPort`, `MailerPort`) et un adaptateur. Un faux adaptateur pour les tests et la démo hors ligne |
-| **Lecture et agrégation** : `discovery`, `platform`, la lecture du Passport | Requêtes directes dans un service de lecture, sans entité de domaine. C'est du CQRS léger : on ne modélise pas ce qu'on ne fait que lire |
-| **CRUD simple** : `moderation`, réglages du profil | Service NestJS + Prisma, sans couche de domaine |
+| Type de module                                                                  | Niveau d'architecture                                                                                                                    |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Logique riche et risquée** : `sos`, `matching`, `reputation`, `sync`, `rooms` | Hexagonal complet : domaine, ports, cas d'usage, tests en mémoire                                                                        |
+| **Adaptateurs de services externes** : `github`, `ai`, `notifications`          | Un port (`GithubPort`, `LlmPort`, `MailerPort`) et un adaptateur. Un faux adaptateur pour les tests et la démo hors ligne                |
+| **Lecture et agrégation** : `discovery`, `platform`, la lecture du Passport     | Requêtes directes dans un service de lecture, sans entité de domaine. C'est du CQRS léger : on ne modélise pas ce qu'on ne fait que lire |
+| **CRUD simple** : `moderation`, réglages du profil                              | Service NestJS + Prisma, sans couche de domaine                                                                                          |
 
 ## Exemple complet : valider une réponse (S4)
 
@@ -93,7 +93,8 @@ export interface QuestionRepository {
   findById(id: QuestionId, tx?: Tx): Promise<Question | null>;
   save(question: Question, tx?: Tx): Promise<void>;
 }
-export interface ReputationPort {               // implémenté par le module reputation
+export interface ReputationPort {
+  // implémenté par le module reputation
   awardForAcceptedAnswer(input: AcceptedAnswerAward, tx: Tx): Promise<XpAwardResult>;
 }
 export interface UnitOfWork {
@@ -123,8 +124,13 @@ export class AcceptAnswer {
 
       // XP dans la même transaction : jamais de validation sans XP, ni l'inverse.
       const award = await this.reputation.awardForAcceptedAnswer(
-        { answerId: accepted.answerId, helperId: accepted.helperId, authorId: question.authorId,
-          tagIds: question.tagIds, minutesToAccept: accepted.minutesSinceQuestion },
+        {
+          answerId: accepted.answerId,
+          helperId: accepted.helperId,
+          authorId: question.authorId,
+          tagIds: question.tagIds,
+          minutesToAccept: accepted.minutesSinceQuestion,
+        },
         tx,
       );
 
@@ -158,30 +164,30 @@ Quand l'effet peut arriver **quelques secondes plus tard** et ne doit pas faire 
 - Le `DomainEventPublisher` l'écrit comme job pg-boss **dans la même transaction** (boîte d'envoi transactionnelle) : si la transaction échoue, aucun job n'existe ; si elle réussit, le job sera forcément traité.
 - Le worker consomme le job et appelle le cas d'usage du module concerné.
 
-| Événement | Émis par | Jobs déclenchés |
-|---|---|---|
-| `QuestionAsked` | sos | `ai.hint`, `matching.run`, `notifications.fanout` |
-| `AnswerPosted` | sos | `notifications.fanout`, `matching.mark-answered` |
-| `AnswerAccepted` | sos | `notifications.fanout`, `ai.resolution-sheet` (S12), `sos.still-resolved-check` (S15, +24 h) |
-| `MatchCreated` | matching | `notifications.fanout`, `matching.escalate` (+15 min) |
-| `RoomCreated` | rooms | `github.verify-repo` si l'API était lente à la création |
-| `TaskCompleted` | rooms | `github.verify-pr` (R9), `notifications.fanout` |
-| `UserSignedUp` | identity | `github.import-profile`, `passport.recompute-skills` |
-| `ContentReported` | moderation | `notifications.admin` |
+| Événement         | Émis par   | Jobs déclenchés                                                                              |
+| ----------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| `QuestionAsked`   | sos        | `ai.hint`, `matching.run`, `notifications.fanout`                                            |
+| `AnswerPosted`    | sos        | `notifications.fanout`, `matching.mark-answered`                                             |
+| `AnswerAccepted`  | sos        | `notifications.fanout`, `ai.resolution-sheet` (S12), `sos.still-resolved-check` (S15, +24 h) |
+| `MatchCreated`    | matching   | `notifications.fanout`, `matching.escalate` (+15 min)                                        |
+| `RoomCreated`     | rooms      | `github.verify-repo` si l'API était lente à la création                                      |
+| `TaskCompleted`   | rooms      | `github.verify-pr` (R9), `notifications.fanout`                                              |
+| `UserSignedUp`    | identity   | `github.import-profile`, `passport.recompute-skills`                                         |
+| `ContentReported` | moderation | `notifications.admin`                                                                        |
 
 **Interdit** : qu'un module lise ou écrive directement les tables d'un autre module. Exception tolérée et documentée : les **requêtes de lecture** de `discovery` et `platform` peuvent joindre plusieurs tables (elles ne modifient rien).
 
 ## Infrastructure transverse (`src/infrastructure/`)
 
-| Dossier | Contenu |
-|---|---|
-| `config/` | Chargement et validation zod des variables d'environnement au démarrage. L'application refuse de démarrer si une variable manque |
-| `prisma/` | `PrismaService`, implémentation du `UnitOfWork`, extension de journalisation des requêtes lentes |
-| `jobs/` | Client pg-boss, `DomainEventPublisher`, enregistrement des handlers dans `worker.ts` |
-| `realtime/` | Connexion `LISTEN`, registre des connexions SSE, `RealtimePublisher` (voir [07](07-taches-fond-temps-reel.md)) |
-| `http/` | Filtre d'exceptions (format `problem+json`), intercepteur d'idempotence, garde de session, en-têtes |
-| `security/` | Limitation du débit, CSRF (vérification de l'origine), chiffrement des jetons OAuth |
-| `observability/` | Logs JSON (pino) avec identifiant de requête, endpoint `/healthz` et `/readyz` |
+| Dossier          | Contenu                                                                                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `config/`        | Chargement et validation zod des variables d'environnement au démarrage. L'application refuse de démarrer si une variable manque |
+| `prisma/`        | `PrismaService`, implémentation du `UnitOfWork`, extension de journalisation des requêtes lentes                                 |
+| `jobs/`          | Client pg-boss, `DomainEventPublisher`, enregistrement des handlers dans `worker.ts`                                             |
+| `realtime/`      | Connexion `LISTEN`, registre des connexions SSE, `RealtimePublisher` (voir [07](07-taches-fond-temps-reel.md))                   |
+| `http/`          | Filtre d'exceptions (format `problem+json`), intercepteur d'idempotence, garde de session, en-têtes                              |
+| `security/`      | Limitation du débit, CSRF (vérification de l'origine), chiffrement des jetons OAuth                                              |
+| `observability/` | Logs JSON (pino) avec identifiant de requête, endpoint `/healthz` et `/readyz`                                                   |
 
 ## Gestion des erreurs
 
@@ -194,16 +200,16 @@ Quand l'effet peut arriver **quelques secondes plus tard** et ne doit pas faire 
 
 Toutes les variables sont listées dans [`.env.example`](../../.env.example) et validées au démarrage. Les plus importantes :
 
-| Variable | Usage |
-|---|---|
-| `DATABASE_URL` | PostgreSQL Systalink |
-| `APP_URL`, `API_URL` | URL publiques (OAuth, liens d'e-mails, aperçus) |
-| `SESSION_SECRET` | Signature du cookie de session |
-| `TOKEN_ENCRYPTION_KEY` | Chiffrement AES-256-GCM des jetons OAuth au repos |
-| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | OAuth GitHub (scopes `read:user user:email`) |
-| `LLM_API_KEY`, `LLM_MODEL`, `LLM_HOURLY_QUOTA_PER_USER` | IA côté serveur (10 par défaut) |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM` | Messagerie pro Systalink |
-| `PROCESS_ROLE` | `http` ou `worker` |
+| Variable                                                            | Usage                                             |
+| ------------------------------------------------------------------- | ------------------------------------------------- |
+| `DATABASE_URL`                                                      | PostgreSQL Systalink                              |
+| `APP_URL`, `API_URL`                                                | URL publiques (OAuth, liens d'e-mails, aperçus)   |
+| `SESSION_SECRET`                                                    | Signature du cookie de session                    |
+| `TOKEN_ENCRYPTION_KEY`                                              | Chiffrement AES-256-GCM des jetons OAuth au repos |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`                          | OAuth GitHub (scopes `read:user user:email`)      |
+| `LLM_API_KEY`, `LLM_MODEL`, `LLM_HOURLY_QUOTA_PER_USER`             | IA côté serveur (10 par défaut)                   |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM` | Messagerie pro Systalink                          |
+| `PROCESS_ROLE`                                                      | `http` ou `worker`                                |
 
 ## Conventions de code back-end
 

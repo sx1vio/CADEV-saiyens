@@ -18,14 +18,17 @@ Cinq personnes livrent en 17 jours un front PWA et une API qui partagent beaucou
 ## Options envisagées
 
 ### Option A : deux dépôts (front, back)
+
 - **Pour** : séparation nette, droits d'accès distincts.
 - **Contre** : contrat dupliqué ou publié comme paquet, PR coordonnées, désynchronisations découvertes tard.
 
 ### Option B : monorepo pnpm + Turborepo
+
 - **Pour** : paquets partagés locaux (`workspace:*`), une PR atomique, cache de build, filtres « paquets touchés » en CI. Recommandé par le skill `monorepo-management`.
 - **Contre** : configuration initiale (une demi-journée), un outil de plus à comprendre.
 
 ### Option C : monorepo Nx
+
 - **Pour** : très complet (générateurs, graphe, règles de dépendance intégrées).
 - **Contre** : courbe d'apprentissage plus forte, plus de configuration ; surdimensionné pour deux applications et trois paquets.
 
@@ -36,15 +39,18 @@ Cinq personnes livrent en 17 jours un front PWA et une API qui partagent beaucou
 ## Conséquences
 
 ### Positives
+
 - Un changement de schéma casse la compilation du front et de l'API en même temps : on ne découvre pas l'incompatibilité en démo.
 - `@devhub/core` garantit le même masquage des secrets et les mêmes formules partout.
 - Un seul jeu de règles ESLint, Prettier et TypeScript.
 
 ### Négatives
+
 - Tout le monde doit utiliser pnpm (Corepack) et Node 24.
 - Le front et l'API partagent une CI : une CI cassée bloque tout le monde.
 
 ### Risques et parades
+
 - Risque : CI lente → Parade : cache Turborepo, `--filter=...[origin/main]`, jobs en parallèle.
 - Risque : `packages/core` attire du code qui n'a rien à y faire → Parade : règle « zéro dépendance, fonctions pures », vérifiée en revue.
 
