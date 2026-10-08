@@ -70,7 +70,7 @@ export default function Landing() {
       {/* Promesse */}
       <section className="grid items-center gap-12 pt-10 pb-16 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pt-20">
         <div>
-          <h1 className="text-[40px] leading-[1.08] font-bold tracking-[-0.035em] text-fg sm:text-[56px]">
+          <h1 className="text-[40px] leading-[1.08] font-bold tracking-[-0.02em] text-fg sm:text-[56px]">
             Le fil des développeurs.
           </h1>
           <p className="mt-5 max-w-md text-[17px] leading-relaxed text-muted">
@@ -94,7 +94,7 @@ export default function Landing() {
         <div className="relative mx-auto w-full max-w-[460px]">
           <div
             aria-hidden
-            className="dh-glow absolute -top-4 right-0 left-10 h-[85%] rotate-[3deg] rounded-[28px] opacity-90 sm:-top-5 sm:-right-4"
+            className="dh-glow absolute -top-4 right-0 left-10 h-[85%] rotate-[3deg] rounded-[10px] opacity-90 sm:-top-5 sm:-right-4"
           />
           {story ? (
             <article className="dh-card relative overflow-hidden">
@@ -131,7 +131,7 @@ export default function Landing() {
               </footer>
             </article>
           ) : (
-            <Skeleton className="relative h-[400px] rounded-[20px]" />
+            <Skeleton className="relative h-[400px] rounded-[10px]" />
           )}
         </div>
       </section>
@@ -140,7 +140,7 @@ export default function Landing() {
       <section className="grid gap-4 sm:grid-cols-3">
         {PILLARS.map((p) => (
           <div key={p.title} className="dh-card p-6">
-            <span className="grid size-11 place-items-center rounded-[14px] bg-accent-soft text-accent-text">
+            <span className="grid size-11 place-items-center rounded-[10px] bg-accent-soft text-accent-text">
               <p.icon className="size-5" />
             </span>
             <h2 className="mt-5 text-[17px] font-bold tracking-[-0.02em] text-fg">{p.title}</h2>
@@ -150,9 +150,9 @@ export default function Landing() {
       </section>
 
       {/* Appel final */}
-      <section className="dh-ink mt-16 flex flex-col items-start gap-6 rounded-[28px] p-8 sm:flex-row sm:items-center sm:p-10">
+      <section className="dh-ink mt-16 flex flex-col items-start gap-6 rounded-[10px] p-8 sm:flex-row sm:items-center sm:p-10">
         <div className="flex-1">
-          <h2 className="text-[26px] leading-tight font-bold tracking-[-0.03em] sm:text-[32px]">
+          <h2 className="text-[26px] leading-tight font-bold tracking-[-0.02em] sm:text-[32px]">
             Rejoins la communauté.
           </h2>
           <p className="mt-2 max-w-lg text-[15px] text-white/65">

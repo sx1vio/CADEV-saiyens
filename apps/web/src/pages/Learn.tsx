@@ -113,7 +113,7 @@ function ResumeCard({ path }: { path: LearnPath }) {
   return (
     <Link
       to={nextLesson ? `/apprendre/${path.id}/${nextLesson.id}` : `/apprendre/${path.id}`}
-      className="flex items-center gap-4 rounded-[20px] bg-surface-1 p-4 "
+      className="flex items-center gap-4 rounded-[10px] bg-surface-1 p-4 "
     >
       <StackLogos stack={path.stack.slice(0, 1)} size={22} />
       <div className="min-w-0 flex-1">
@@ -137,7 +137,7 @@ function PathCard({ path }: { path: LearnPath }) {
   return (
     <Link
       to={`/apprendre/${path.id}`}
-      className="group flex flex-col gap-3 rounded-[20px] bg-surface-1 p-4 transition-colors "
+      className="group flex flex-col gap-3 rounded-[10px] bg-surface-1 p-4 transition-colors "
     >
       <div className="flex items-center justify-between">
         <StackLogos stack={path.stack} />
@@ -268,7 +268,7 @@ function PathView({
           <h2 className="text-[16px] font-semibold text-fg">Programme</h2>
           <div className="mt-3 flex flex-col gap-3">
             {path.modules.map((m, mi) => (
-              <section key={m.id} className="overflow-hidden rounded-[20px] bg-surface-1">
+              <section key={m.id} className="overflow-hidden rounded-[10px] bg-surface-1">
                 <h3 className="border-b border-line px-4 py-3 text-[14px] font-semibold text-fg">
                   <span className="mr-2 text-subtle">Module {mi + 1}</span>
                   {m.title}
@@ -305,7 +305,7 @@ function PathView({
           </div>
         </div>
         <aside className="flex flex-col gap-4 self-start">
-          <section className="rounded-[20px] bg-surface-1 p-4">
+          <section className="rounded-[10px] bg-surface-1 p-4">
             <h2 className="text-[14px] font-semibold text-fg">Tu sauras</h2>
             <ul className="mt-2 flex flex-col gap-2 text-[14px] text-muted">
               {path.outcomes.map((o) => (
@@ -319,7 +319,7 @@ function PathView({
           {cert && (
             <Link
               to={`/certifications/${cert.id}`}
-              className="flex items-center gap-3 rounded-[20px] bg-surface-1 p-4 "
+              className="flex items-center gap-3 rounded-[10px] bg-surface-1 p-4 "
             >
               <CertBadge color={cert.color} logo={cert.logo} size={40} />
               <span>
@@ -362,7 +362,7 @@ export function LessonPage() {
 
   return (
     <div className="dh-page mx-auto flex w-full max-w-[1200px] gap-6 px-4 py-6 sm:px-6">
-      <aside className="sticky top-[72px] hidden max-h-[calc(100dvh-88px)] w-[280px] shrink-0 self-start overflow-y-auto rounded-[20px] bg-surface-1 lg:block">
+      <aside className="sticky top-[72px] hidden max-h-[calc(100dvh-88px)] w-[280px] shrink-0 self-start overflow-y-auto rounded-[10px] bg-surface-1 lg:block">
         <Link
           to={`/apprendre/${path.id}`}
           className="block border-b border-line p-4 font-semibold text-fg hover:underline"
@@ -418,7 +418,7 @@ export function LessonPage() {
           />
         )}
         {(lesson.kind === 'exercice' || lesson.kind === 'projet') && (
-          <div className="mt-6 flex gap-3 rounded-[20px] bg-surface-1 p-4">
+          <div className="mt-6 flex gap-3 rounded-[10px] bg-surface-1 p-4">
             <FlaskConical className="mt-0.5 size-5 shrink-0 text-success" />
             <p className="text-[13.5px] text-muted">
               Bloqué ? Pose ta question sur{' '}
@@ -469,7 +469,7 @@ function LessonQuiz({ lesson }: { lesson: Lesson }) {
       {lesson.quiz!.map((q, i) => {
         const p = picked[i];
         return (
-          <div key={q.q} className="rounded-[20px] bg-surface-1 p-4">
+          <div key={q.q} className="rounded-[10px] bg-surface-1 p-4">
             <p className="font-semibold text-fg">{q.q}</p>
             <div className="mt-3 flex flex-col gap-2">
               {q.choices.map((c, k) => {

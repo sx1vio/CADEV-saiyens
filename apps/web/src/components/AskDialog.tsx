@@ -171,7 +171,7 @@ export function AskDialog() {
   };
 
   const gauge = (
-    <div className="rounded-[16px] border border-line bg-surface-2 p-4">
+    <div className="rounded-[10px] border border-line bg-surface-2 p-4">
       <div className="flex items-center justify-between">
         <p className="text-[13px] font-semibold text-fg">{t('ask.qualityTitle')}</p>
         <span
@@ -261,7 +261,7 @@ export function AskDialog() {
       <div className="grid gap-6 sm:grid-cols-[1fr_220px]">
         <div className="flex min-w-0 flex-col gap-5">
           {!online && (
-            <p className="rounded-[12px] bg-warning-soft px-3 py-2.5 text-[13px] text-fg">
+            <p className="rounded-[8px] bg-warning-soft px-3 py-2.5 text-[13px] text-fg">
               {t('ask.offlineNote')}
             </p>
           )}
@@ -307,7 +307,7 @@ export function AskDialog() {
                 </div>
               </Field>
               {secrets.length > 0 && (
-                <p className="flex items-start gap-2 rounded-[12px] bg-success-soft px-3 py-2.5 text-[13px] text-fg">
+                <p className="flex items-start gap-2 rounded-[8px] bg-success-soft px-3 py-2.5 text-[13px] text-fg">
                   <ShieldAlert className="mt-0.5 size-4 shrink-0 text-success" />
                   {t('ask.secretsMasked', { list: secrets.join(', ') })}
                 </p>
@@ -340,7 +340,7 @@ export function AskDialog() {
                 />
               </Field>
               {!ignoreSimilar && !!similar?.length && (
-                <div className="rounded-[16px] border border-accent/40 bg-accent-soft p-4">
+                <div className="rounded-[10px] border border-accent/40 bg-accent-soft p-4">
                   <p className="text-[13px] font-semibold text-fg">{t('ask.similarTitle')}</p>
                   <ul className="mt-2 flex flex-col gap-1">
                     {similar.map((s) => (

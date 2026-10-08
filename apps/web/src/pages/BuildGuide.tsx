@@ -79,7 +79,7 @@ export default function BuildGuide() {
                 ))}
                 <SquareTerminal className="size-3.5" aria-label="Codex" />
               </p>
-              <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.045em] text-fg sm:text-[42px]">
+              <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.02em] text-fg sm:text-[42px]">
                 Créer une app avec l’IA
               </h1>
               <p className="mt-1 max-w-3xl text-[14px] text-muted">
@@ -89,7 +89,7 @@ export default function BuildGuide() {
               </p>
             </div>
           </div>
-          <div className="mt-5 flex gap-3 rounded-[20px] bg-surface-1 p-4">
+          <div className="mt-5 flex gap-3 rounded-[10px] bg-surface-1 p-4">
             <Scale className="mt-0.5 size-5 shrink-0 text-accent-text" />
             <p className="text-[13.5px] text-fg">
               <b>La règle d’or :</b> l’IA écrit vite, mais c’est toi qui décides, qui vérifies et
@@ -110,17 +110,19 @@ export default function BuildGuide() {
                   aria-pressed={on}
                   onClick={() => setTrack(t.id)}
                   className={cn(
-                    'flex gap-3 rounded-[20px] p-4 text-left transition-colors',
-                    on ? 'bg-black text-white' : 'bg-surface-1 hover:bg-surface-2',
+                    'flex gap-3 rounded-[10px] border p-3 text-left transition-colors',
+                    on
+                      ? 'border-accent bg-accent-soft'
+                      : 'border-line hover:border-line-strong hover:bg-surface-1',
                   )}
                 >
                   <span
                     className={cn(
-                      'grid size-10 shrink-0 place-items-center rounded-[10px]',
-                      on ? 'bg-accent-strong text-white' : 'bg-surface-3 text-muted',
+                      'grid size-8 shrink-0 place-items-center rounded-[8px]',
+                      on ? 'bg-accent text-white' : 'bg-surface-1 text-muted',
                     )}
                   >
-                    <Icon className="size-5" />
+                    <Icon className="size-4" />
                   </span>
                   <span>
                     <span className="block text-[13.5px] font-semibold text-fg">{t.title}</span>
@@ -169,15 +171,6 @@ export default function BuildGuide() {
               const crit = s.pitfalls.filter((p) => p.severity === 'critique').length;
               return (
                 <li key={s.id} className="relative">
-                  {i < GUIDE.length - 1 && (
-                    <span
-                      aria-hidden
-                      className={cn(
-                        'absolute top-9 bottom-0 left-[15px] w-0.5',
-                        done ? 'bg-success/60' : 'bg-line-strong',
-                      )}
-                    />
-                  )}
                   <button
                     type="button"
                     onClick={() => go(i)}
@@ -288,7 +281,7 @@ function StepView({
       <p className="text-[13px] font-semibold text-accent-text">
         Étape {index + 1} sur {total}
       </p>
-      <h2 className="mt-1 text-[28px] leading-tight font-bold tracking-[-0.035em] text-fg">
+      <h2 className="mt-1 text-[28px] leading-tight font-bold tracking-[-0.02em] text-fg">
         {step.title}
       </h2>
       <div className="mt-3 flex flex-wrap gap-2 text-[13px]">
@@ -308,7 +301,7 @@ function StepView({
           {step.actions.map((a, i) => (
             <li
               key={a}
-              className="flex gap-3 rounded-[20px] bg-surface-1 px-4 py-3 text-[14px] text-fg"
+              className="flex gap-3 rounded-[10px] bg-surface-1 px-4 py-3 text-[14px] text-fg"
             >
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-surface-3 text-[12px] font-semibold text-muted">
                 {i + 1}
@@ -339,7 +332,7 @@ function StepView({
           {pitfalls.map((p) => {
             const s = SEVERITY[p.severity];
             return (
-              <div key={p.title} className={cn('flex gap-3 rounded-[12px] border p-4', s.cls)}>
+              <div key={p.title} className={cn('flex gap-3 rounded-[8px] border p-4', s.cls)}>
                 <s.icon className={cn('mt-0.5 size-5 shrink-0', s.text)} />
                 <div>
                   <p className="flex flex-wrap items-center gap-2 text-[14px] font-semibold text-fg">
@@ -369,7 +362,7 @@ function StepView({
         </p>
         <div className="mt-3 flex flex-col gap-2.5">
           {step.prompts.map((p) => (
-            <div key={p.label} className="overflow-hidden rounded-[20px] bg-surface-1">
+            <div key={p.label} className="overflow-hidden rounded-[10px] bg-surface-1">
               <div className="flex items-center justify-between border-b border-line px-4 py-2">
                 <span className="text-[13px] font-semibold text-fg">{p.label}</span>
                 <button
@@ -391,7 +384,7 @@ function StepView({
         </div>
       </section>
 
-      <section className="mt-8 rounded-[20px] bg-surface-1 p-4">
+      <section className="mt-8 rounded-[10px] bg-surface-1 p-4">
         <h3 className="flex items-center justify-between gap-2 text-[15px] font-semibold text-fg">
           Avant de passer à la suite
           {allChecked && (

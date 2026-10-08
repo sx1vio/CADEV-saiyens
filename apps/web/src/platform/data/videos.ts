@@ -66,7 +66,7 @@ export const VIDEOS: Video[] = [
       { at: '26:15', title: 'Tests et déploiement' },
     ],
     thumb: {
-      bg: 'linear-gradient(135deg,#2a1b5c,#6a5ae6)',
+      bg: 'linear-gradient(135deg,#2a1b5c,#1f3fc4)',
       fg: '#ffffff',
       kicker: 'AGENT IA',
       big: 'Zéro → app en ligne',
@@ -219,12 +219,12 @@ export const VIDEOS: Video[] = [
       { at: '12:20', title: 'Brancher l’agent' },
     ],
     thumb: {
-      bg: 'linear-gradient(135deg,#312e81,#8b7cf8)',
+      bg: 'linear-gradient(135deg,#312e81,#3b5bdb)',
       fg: '#ffffff',
       kicker: 'MCP',
       big: '1er serveur MCP',
       code: 'server.tool("query")',
-      accent: '#8b7cf8',
+      accent: '#3b5bdb',
       logo: 'MCP',
       file: 'server.ts',
       editor:

@@ -31,68 +31,38 @@ export interface NavEntry {
   short?: string;
 }
 
-/** Le cœur : fil, entraide, communautés. */
+/** L'essentiel : le fil, l'entraide, les communautés, les emplois. */
 export const MAIN_NAV: NavEntry[] = [
-  {
-    to: '/',
-    label: 'Accueil',
-    short: 'Accueil',
-    icon: Home,
-    end: true,
-    tour: 'home',
-    color: '#ff6b3d',
-  },
-  { to: '/sos', label: 'Entraide', short: 'Entraide', icon: LifeBuoy, color: '#f2575a' },
-  { to: '/communautes', label: 'Communautés', short: 'Communautés', icon: Users, color: '#fb923c' },
+  { to: '/', label: 'Accueil', short: 'Accueil', icon: Home, end: true, tour: 'home' },
+  { to: '/sos', label: 'Entraide', short: 'Entraide', icon: LifeBuoy },
+  { to: '/communautes', label: 'Communautés', short: 'Communautés', icon: Users },
+  { to: '/emplois', label: 'Emplois', short: 'Emplois', icon: Briefcase },
 ];
 
-/** Les services de l'écosystème. */
-export const SERVICES_NAV: NavEntry[] = [
-  { to: '/emplois', label: 'Emplois', short: 'Emplois', icon: Briefcase, color: '#22a3ee' },
-  {
-    to: '/certifications',
-    label: 'Certifications',
-    short: 'Certifs',
-    icon: Award,
-    color: '#f0b232',
-  },
-  { to: '/skills', label: 'Skills & plugins IA', short: 'Skills', icon: Puzzle, color: '#8b7cf8' },
-  { to: '/videos', label: 'Vidéos', short: 'Vidéos', icon: PlaySquare, color: '#e5333b' },
-  {
-    to: '/apprendre',
-    label: 'Apprendre',
-    short: 'Apprendre',
-    icon: GraduationCap,
-    color: '#3ccf8e',
-  },
-  {
-    to: '/creer',
-    label: 'Créer une app avec l’IA',
-    short: 'Créer avec l’IA',
-    icon: Wand2,
-    color: '#6a5ae6',
-  },
-  {
-    to: '/templates',
-    label: 'Templates',
-    short: 'Templates',
-    icon: LayoutTemplate,
-    color: '#e879f9',
-  },
-  {
-    to: '/projets',
-    label: 'Projets',
-    short: 'Projets',
-    icon: FolderGit2,
-    tour: 'projects',
-    color: '#4f7cff',
-  },
+/** Explorer : ce qu'on consulte. */
+export const EXPLORE_NAV: NavEntry[] = [
+  { to: '/projets', label: 'Projets', short: 'Projets', icon: FolderGit2, tour: 'projects' },
+  { to: '/videos', label: 'Vidéos', short: 'Vidéos', icon: PlaySquare },
+  { to: '/apprendre', label: 'Apprendre', short: 'Apprendre', icon: GraduationCap },
+  { to: '/certifications', label: 'Certifications', short: 'Certifs', icon: Award },
+  { to: '/skills', label: 'Outils IA', short: 'Outils IA', icon: Puzzle },
+  { to: '/decouvrir', label: 'Développeurs', short: 'Devs', icon: Compass },
 ];
 
+/** Créer : ce qu'on fabrique. */
+export const CREATE_NAV: NavEntry[] = [
+  { to: '/creer', label: 'Guide « app avec l’IA »', short: 'Guide IA', icon: Wand2 },
+  { to: '/templates', label: 'Templates', short: 'Templates', icon: LayoutTemplate },
+];
+
+/** Hors barre latérale, accessibles par la recherche (Ctrl K) et depuis « Développeurs ». */
 export const NETWORK_NAV: NavEntry[] = [
   { to: '/decouvrir', label: 'Trouver des devs', icon: Compass },
   { to: '/classement', label: 'Classement', icon: Trophy },
 ];
+
+/** Compatibilité : les services, dans l'ordre d'avant (palette, barre d'onglets). */
+export const SERVICES_NAV: NavEntry[] = [MAIN_NAV[3]!, ...EXPLORE_NAV.slice(0, 5), ...CREATE_NAV];
 
 export const PLATFORM_NAV: NavEntry[] = [
   { to: '/systalink', label: 'Systalink', icon: ServerCog },
@@ -102,4 +72,11 @@ export const PLATFORM_NAV: NavEntry[] = [
 
 export const ADMIN_NAV: NavEntry = { to: '/admin', label: 'Modération', icon: ShieldCheck };
 
-export const ALL_NAV = [...MAIN_NAV, ...SERVICES_NAV, ...NETWORK_NAV, ...PLATFORM_NAV, ADMIN_NAV];
+export const ALL_NAV = [
+  ...MAIN_NAV,
+  ...EXPLORE_NAV,
+  ...CREATE_NAV,
+  NETWORK_NAV[1]!,
+  ...PLATFORM_NAV,
+  ADMIN_NAV,
+];

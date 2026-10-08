@@ -90,7 +90,7 @@ export const COMPANIES: Company[] = [
   {
     slug: 'teranga',
     name: 'Teranga EdTech',
-    logoColor: '#8b7cf8',
+    logoColor: '#3b5bdb',
     logoText: 'T',
     sector: 'Éducation',
     size: '50-200',

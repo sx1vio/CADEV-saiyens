@@ -59,7 +59,7 @@ export function Segmented<T extends string>({
               className={cn(
                 'relative isolate inline-flex shrink-0 items-center gap-1.5 rounded-full font-medium transition-colors duration-150',
                 size === 'sm' ? 'h-8 px-3.5 text-[12.5px]' : 'h-9 px-4 text-[13px]',
-                active ? 'text-canvas' : 'bg-surface-1 text-fg hover:bg-surface-2',
+                active ? 'text-canvas' : 'lg-clear text-fg',
                 '[&_svg]:size-4',
               )}
             >

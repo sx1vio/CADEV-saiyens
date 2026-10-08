@@ -97,7 +97,7 @@ export function CommandPalette() {
         <DialogPrimitive.Overlay className="dh-instant fixed inset-0 z-50 bg-[var(--scrim)] backdrop-blur-[2px]" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="dh-instant fixed top-[12dvh] left-1/2 z-50 w-[calc(100%-24px)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-[14px] bg-surface-1 shadow-lg focus:outline-none"
+          className="dh-instant fixed top-[12dvh] left-1/2 z-50 w-[calc(100%-24px)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-[10px] bg-surface-1 shadow-lg focus:outline-none"
         >
           <DialogPrimitive.Title className="sr-only">
             {t('nav.searchPlaceholder')}

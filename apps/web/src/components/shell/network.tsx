@@ -168,7 +168,7 @@ export function SyncCenter() {
       size="sm"
     >
       <div className="flex flex-col gap-6">
-        <section className="flex flex-col gap-3 rounded-[16px] border border-line bg-surface-2 p-4">
+        <section className="flex flex-col gap-3 rounded-[10px] border border-line bg-surface-2 p-4">
           <div className="flex items-center gap-2">
             {online ? (
               <Wifi className="size-4 text-success" />
@@ -202,7 +202,7 @@ export function SyncCenter() {
             )}
           </div>
           {queue.length === 0 ? (
-            <p className="rounded-[14px] border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
+            <p className="rounded-[10px] border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
               {t('network.centerEmpty')}
             </p>
           ) : (
@@ -212,7 +212,7 @@ export function SyncCenter() {
                 return (
                   <li
                     key={item.id}
-                    className="flex items-start gap-3 rounded-[14px] border border-line bg-surface-2 p-3"
+                    className="flex items-start gap-3 rounded-[10px] border border-line bg-surface-2 p-3"
                   >
                     <span
                       className={cn(

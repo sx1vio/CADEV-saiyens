@@ -210,8 +210,8 @@ export default function QuestionPage() {
         </div>
 
         {resolved && accepted && (
-          <div className="flex items-center gap-4 rounded-[20px] bg-black p-5 text-white">
-            <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-[#1c1c1e]">
+          <div className="flex items-center gap-4 rounded-[10px] bg-black p-5 text-white">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[8px] bg-[#1c1c1e]">
               <Cube color={CUBE.green} size={20} />
             </span>
             <div>
@@ -295,7 +295,7 @@ export default function QuestionPage() {
             {t('question.answersTitle', { count: q.answers.length })}
           </h2>
           {q.answers.length === 0 && pendingAnswers.length === 0 && (
-            <p className="rounded-[16px] border border-dashed border-line-strong p-5 text-center text-sm text-muted">
+            <p className="rounded-[10px] border border-dashed border-line-strong p-5 text-center text-sm text-muted">
               {t('question.noAnswers')}
             </p>
           )}
@@ -316,7 +316,7 @@ export default function QuestionPage() {
               p.type === 'answer' ? (
                 <li
                   key={p.id}
-                  className="flex gap-3 rounded-[18px] border border-dashed border-warning/50 bg-warning-soft/40 p-4"
+                  className="flex gap-3 rounded-[10px] border border-dashed border-warning/50 bg-warning-soft/40 p-4"
                 >
                   <Avatar name={me?.displayName ?? ''} src={me?.avatarUrl} size={34} />
                   <div className="min-w-0 flex-1">
@@ -381,10 +381,10 @@ function HintCard({ q }: { q: QuestionDetail }) {
   const online = useNetwork((s) => s.browserOnline && s.sim !== 'offline');
   const status = !online && q.aiStatus === 'pending' ? 'waiting-network' : q.aiStatus;
   return (
-    <section className="glow-border relative overflow-hidden rounded-[20px] bg-surface-1 p-5">
+    <section className="glow-border relative overflow-hidden rounded-[10px] bg-surface-1 p-5">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[var(--gradient-glow)]" />
       <div className="relative flex items-center gap-3">
-        <span className="grid size-9 place-items-center rounded-[11px] bg-black text-white">
+        <span className="grid size-9 place-items-center rounded-[8px] bg-black text-white">
           <Sparkles className="size-[18px]" />
         </span>
         <div className="min-w-0 flex-1">
@@ -439,7 +439,7 @@ function AnswerItem({
   return (
     <li
       className={cn(
-        'relative flex gap-3 rounded-[20px] p-4 sm:p-5',
+        'relative flex gap-3 rounded-[10px] p-4 sm:p-5',
         a.isAccepted ? 'bg-surface-1 ring-2 ring-success/50' : 'bg-surface-1',
       )}
     >
@@ -528,7 +528,7 @@ function AnswerItem({
           </>
         }
       >
-        <div className="flex items-center gap-3 rounded-[14px] bg-surface-2 p-3">
+        <div className="flex items-center gap-3 rounded-[10px] bg-surface-2 p-3">
           <Avatar name={a.author.displayName} src={a.author.avatarUrl} size={36} />
           <p className="text-sm text-fg">
             <span className="font-semibold">{a.author.displayName}</span> · +10 Proof XP
@@ -547,7 +547,7 @@ function AnswerForm({ q }: { q: QuestionDetail }) {
   const [busy, setBusy] = useState(false);
   if (!me)
     return (
-      <div className="flex items-center justify-between gap-3 rounded-[16px] border border-line bg-surface-1 p-4">
+      <div className="flex items-center justify-between gap-3 rounded-[10px] border border-line bg-surface-1 p-4">
         <p className="text-sm text-muted">{t('question.loginToAnswer')}</p>
         <ButtonLink to={`/connexion?next=/sos/${q.id}`} variant="primary" size="sm">
           {t('nav.login')}
@@ -573,7 +573,7 @@ function AnswerForm({ q }: { q: QuestionDetail }) {
     }
   };
   return (
-    <div className="flex gap-3 rounded-[18px] border border-line bg-surface-1 p-3 sm:p-4">
+    <div className="flex gap-3 rounded-[10px] border border-line bg-surface-1 p-3 sm:p-4">
       <Avatar name={me.displayName} src={me.avatarUrl} size={34} className="hidden sm:grid" />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <label htmlFor="answer" className="sr-only">
@@ -683,7 +683,7 @@ function PairCard({ q }: { q: QuestionDetail }) {
       <CardHeader icon={<Video />} title={t('question.pairTitle')} />
       <ul className="mt-3 flex flex-col gap-2">
         {q.pairSessions.map((p) => (
-          <li key={p.id} className="rounded-[12px] bg-surface-3 p-3 text-sm">
+          <li key={p.id} className="rounded-[8px] bg-surface-3 p-3 text-sm">
             <p className="flex items-center gap-1.5 font-medium text-fg">
               <CalendarClock className="size-4 text-accent-text" />
               {formatDate(p.startsAt, lang, {
@@ -845,12 +845,12 @@ function QuestionSkeleton() {
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-9 w-4/5" />
         <Skeleton className="h-4 w-60" />
-        <Skeleton className="mt-2 h-64 rounded-[20px]" />
-        <Skeleton className="h-36 rounded-[20px]" />
+        <Skeleton className="mt-2 h-64 rounded-[10px]" />
+        <Skeleton className="h-36 rounded-[10px]" />
       </div>
       <div className="hidden w-[var(--panel-w)] flex-col gap-4 xl:flex">
-        <Skeleton className="h-72 rounded-[16px]" />
-        <Skeleton className="h-28 rounded-[16px]" />
+        <Skeleton className="h-72 rounded-[10px]" />
+        <Skeleton className="h-28 rounded-[10px]" />
       </div>
     </div>
   );

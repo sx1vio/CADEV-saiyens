@@ -116,11 +116,11 @@ export default function Login() {
   return (
     <div className="flex min-h-dvh gap-3 bg-canvas p-3">
       {/* Panneau de marque : une phrase, une illustration. Rien d'autre à lire. */}
-      <aside className="dh-ink relative hidden w-[42%] max-w-[560px] flex-col overflow-hidden rounded-[28px] p-10 lg:flex">
+      <aside className="dh-ink relative hidden w-[42%] max-w-[560px] flex-col overflow-hidden rounded-[10px] p-10 lg:flex">
         <Link to="/" aria-label="DevHub, accueil" className="w-fit [&_span]:text-white">
           <Logo />
         </Link>
-        <p className="mt-auto max-w-sm text-[30px] leading-[1.15] font-bold tracking-[-0.03em]">
+        <p className="mt-auto max-w-sm text-[30px] leading-[1.15] font-bold tracking-[-0.02em]">
           Le fil des développeurs.
         </p>
         <p className="mt-3 max-w-sm text-[15px] text-white/60">
@@ -148,7 +148,7 @@ export default function Login() {
         </div>
 
         <div className="dh-page mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-10">
-          <h1 className="text-[32px] leading-[1.1] font-bold tracking-[-0.03em] text-fg">
+          <h1 className="text-[32px] leading-[1.1] font-bold tracking-[-0.02em] text-fg">
             {copy.title}
           </h1>
           <p className="mt-2 text-[15px] leading-relaxed text-muted">{copy.text}</p>

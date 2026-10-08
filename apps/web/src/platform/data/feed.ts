@@ -7,7 +7,7 @@ export const COMMUNITIES: Community[] = [
     name: 'Intelligence artificielle',
     description:
       'Agents de code, modèles, prompts, MCP, skills : ce qui marche vraiment en production.',
-    color: '#8b7cf8',
+    color: '#3b5bdb',
     icon: 'sparkles',
     members: 18420,
     online: 612,

@@ -127,7 +127,7 @@ export default function Passport() {
               />
             </div>
             <div className="min-w-0 lg:mt-4">
-              <h1 className="flex flex-wrap items-center gap-2 text-[28px] leading-tight font-bold tracking-[-0.04em] text-fg">
+              <h1 className="flex flex-wrap items-center gap-2 text-[28px] leading-tight font-bold tracking-[-0.02em] text-fg">
                 {u.displayName}
                 {u.isDemo && <DemoBadge />}
               </h1>
@@ -255,7 +255,7 @@ export default function Passport() {
                 aria-current={tab === k ? 'page' : undefined}
                 className={cn(
                   'inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-4 text-[13px] font-medium transition-colors',
-                  tab === k ? 'bg-fg text-canvas' : 'bg-surface-1 text-fg hover:bg-surface-2',
+                  tab === k ? 'lg-tint' : 'lg-clear text-fg',
                 )}
               >
                 {label}
@@ -324,7 +324,7 @@ export default function Passport() {
 
               <section>
                 <h2 className="mb-2 text-[14px] font-medium text-fg">{t('passport.heatmap')}</h2>
-                <div className="rounded-[20px] bg-surface-1 p-4">
+                <div className="rounded-[10px] bg-surface-1 p-4">
                   <Heatmap days={p.heatmap} />
                 </div>
               </section>
@@ -333,7 +333,7 @@ export default function Passport() {
 
               <section>
                 <h2 className="mb-2 text-[14px] font-medium text-fg">{t('passport.timeline')}</h2>
-                <div className="rounded-[20px] bg-surface-1 p-4">
+                <div className="rounded-[10px] bg-surface-1 p-4">
                   {proofs.length === 0 ? (
                     <p className="text-sm text-muted">{t('passport.noTimeline')}</p>
                   ) : (
@@ -348,7 +348,7 @@ export default function Passport() {
             <div className="mt-5 flex flex-col gap-6">
               <SkillsCard p={p} onProofs={setProofSkill} />
               {isMe && p.skills[0] && (
-                <section className="rounded-[20px] bg-surface-1 p-4">
+                <section className="rounded-[10px] bg-surface-1 p-4">
                   <h2 className="text-[14px] font-medium text-fg">{t('passport.badge')}</h2>
                   <p className="text-[13px] text-muted">{t('passport.badgeHint')}</p>
                   <CodeBlock
@@ -372,7 +372,7 @@ export default function Passport() {
           )}
 
           {tab === 'activity' && (
-            <div className="mt-5 rounded-[20px] bg-surface-1 p-4">
+            <div className="mt-5 rounded-[10px] bg-surface-1 p-4">
               {proofs.length === 0 ? (
                 <p className="text-sm text-muted">{t('passport.noTimeline')}</p>
               ) : (
@@ -407,7 +407,7 @@ export default function Passport() {
       >
         {proofSkill && (
           <div className="flex flex-col gap-5">
-            <div className="flex items-center justify-between rounded-[16px] bg-surface-2 p-4">
+            <div className="flex items-center justify-between rounded-[10px] bg-surface-2 p-4">
               <LevelBadge level={proofSkill.level} score={proofSkill.score} />
               <span className="text-sm text-subtle">/ 100</span>
             </div>
@@ -477,7 +477,7 @@ function SkillsCard({
           {t('passport.howScore')}
         </Link>
       </div>
-      <div className="rounded-[20px] bg-surface-1 p-4">
+      <div className="rounded-[10px] bg-surface-1 p-4">
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-subtle">
           <span className="inline-flex items-center gap-1.5">
             <span className="size-2.5 rounded-sm bg-score-g" /> {t('passport.legendG')}
@@ -524,7 +524,7 @@ function PinnedProject({ room }: { room: PassportT['rooms'][number] }) {
   return (
     <Link
       to={`/p/${room.inviteCode}`}
-      className="flex flex-col gap-2 rounded-[20px] bg-surface-1 p-4 transition-colors "
+      className="flex flex-col gap-2 rounded-[10px] bg-surface-1 p-4 transition-colors "
     >
       <span className="flex items-center gap-2">
         <FolderGit2 className="size-4 text-subtle" />
@@ -612,7 +612,7 @@ function ProofTimeline({ proofs }: { proofs: XPEvent[] }) {
             {e.sourceHref ? (
               <Link
                 to={e.sourceHref}
-                className="flex items-start gap-3 rounded-[12px] transition-colors hover:bg-surface-3/50"
+                className="flex items-start gap-3 rounded-[8px] transition-colors hover:bg-surface-3/50"
               >
                 {body}
               </Link>
@@ -629,15 +629,15 @@ function ProofTimeline({ proofs }: { proofs: XPEvent[] }) {
 function PassportSkeleton() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-      <Skeleton className="h-52 rounded-[28px]" />
+      <Skeleton className="h-52 rounded-[10px]" />
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-20 rounded-[16px]" />
+          <Skeleton key={i} className="h-20 rounded-[10px]" />
         ))}
       </div>
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
-        <Skeleton className="h-96 rounded-[16px] xl:col-span-2" />
-        <Skeleton className="h-96 rounded-[16px]" />
+        <Skeleton className="h-96 rounded-[10px] xl:col-span-2" />
+        <Skeleton className="h-96 rounded-[10px]" />
       </div>
     </div>
   );

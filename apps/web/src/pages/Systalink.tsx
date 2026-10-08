@@ -59,7 +59,7 @@ export default function Systalink() {
       ) : !data ? (
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-[18px]" />
+            <Skeleton key={i} className="h-32 rounded-[10px]" />
           ))}
         </div>
       ) : (
@@ -88,7 +88,7 @@ export default function Systalink() {
           </div>
 
           {data.source === 'local' && (
-            <p className="mt-4 flex items-start gap-2 rounded-[14px] bg-surface-1 p-3.5 text-[13px] text-muted">
+            <p className="mt-4 flex items-start gap-2 rounded-[10px] bg-surface-1 p-3.5 text-[13px] text-muted">
               <Info className="mt-0.5 size-4 shrink-0" />
               {t('systalink.localNote')}
             </p>

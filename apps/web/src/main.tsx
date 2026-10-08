@@ -22,7 +22,7 @@ function Toasts() {
       mobileOffset={{ bottom: 'calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px)' }}
       toastOptions={{
         classNames: {
-          toast: '!rounded-[14px] !border !border-line !bg-surface-3 !text-fg !shadow-lg',
+          toast: '!rounded-[10px] !border !border-line !bg-surface-3 !text-fg !shadow-lg',
           description: '!text-muted',
         },
       }}

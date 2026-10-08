@@ -96,7 +96,7 @@ export default function Videos() {
               onClick={() => setLang(l)}
               className={cn(
                 'h-7 rounded-full px-3 text-[12.5px] font-medium',
-                lang === l ? 'bg-fg text-canvas' : 'text-muted hover:text-fg',
+                lang === l ? 'lg-tint' : 'text-muted hover:text-fg',
               )}
             >
               {l === 'all' ? 'Toutes' : l.toUpperCase()}
@@ -105,13 +105,13 @@ export default function Videos() {
         </div>
       </div>
       {error && !data ? (
-        <p className="mt-6 rounded-[20px] bg-surface-1 p-5 text-[14px] text-muted">
+        <p className="mt-6 rounded-[10px] bg-surface-1 p-5 text-[14px] text-muted">
           Les vidéos ne sont pas disponibles pour le moment (serveur injoignable).
         </p>
       ) : !data ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-video rounded-[16px]" />
+            <Skeleton key={i} className="aspect-video rounded-[10px]" />
           ))}
         </div>
       ) : (
@@ -168,7 +168,7 @@ export function YtWatch() {
       className="dh-page mx-auto flex w-full max-w-[1700px] flex-col gap-6 px-0 py-0 sm:px-8 sm:py-8 xl:flex-row"
     >
       <div className="min-w-0 flex-1">
-        <div className="relative aspect-video overflow-hidden bg-black sm:rounded-[20px]">
+        <div className="relative aspect-video overflow-hidden bg-black sm:rounded-[10px]">
           {play ? (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0`}
@@ -219,7 +219,7 @@ export function YtWatch() {
                 </a>
               </div>
               {item.summary && (
-                <p className="mt-4 rounded-[20px] bg-surface-1 p-4 text-[14px] whitespace-pre-line text-fg">
+                <p className="mt-4 rounded-[10px] bg-surface-1 p-4 text-[14px] whitespace-pre-line text-fg">
                   {item.summary}
                 </p>
               )}
@@ -240,7 +240,7 @@ export function YtWatch() {
               src={img(v.image, 320) ?? ''}
               alt=""
               loading="lazy"
-              className="aspect-video w-[168px] shrink-0 rounded-[12px] object-cover"
+              className="aspect-video w-[168px] shrink-0 rounded-[8px] object-cover"
             />
             <span className="min-w-0 py-0.5">
               <span className="line-clamp-2 text-[13.5px] leading-snug font-semibold text-fg group-hover:underline">
@@ -328,7 +328,7 @@ function WatchView({ id }: { id: string }) {
     <div className="dh-page mx-auto flex w-full max-w-[1700px] flex-col gap-6 px-0 py-0 sm:px-6 sm:py-6 xl:flex-row">
       <div className="min-w-0 flex-1">
         {/* Lecteur (aperçu : les vidéos de démonstration ne sont pas hébergées) */}
-        <div className="group relative overflow-hidden bg-black sm:rounded-[12px]">
+        <div className="group relative overflow-hidden bg-black sm:rounded-[8px]">
           <VideoThumb video={video} big className="rounded-none" />
           {!playing && (
             <button
@@ -417,7 +417,7 @@ function WatchView({ id }: { id: string }) {
                 onClick={() => toggle('subscriptions', video.channel)}
                 className={cn(
                   'ml-2 inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-[14px] font-semibold',
-                  subscribed ? 'bg-surface-2 text-fg' : 'bg-fg text-canvas',
+                  subscribed ? 'bg-surface-2 text-fg' : 'lg-tint',
                 )}
               >
                 {subscribed && <Bell className="size-4" />}
@@ -471,7 +471,7 @@ function WatchView({ id }: { id: string }) {
             </div>
           </div>
 
-          <div className="mt-4 rounded-[12px] bg-surface-1 p-3.5 text-[14px]">
+          <div className="mt-4 rounded-[8px] bg-surface-1 p-3.5 text-[14px]">
             <p className="flex flex-wrap items-center gap-2 font-semibold text-fg">
               {video.live ? `${compact(video.views)} spectateurs` : `${compact(video.views)} vues`}
               <span className="text-subtle">·</span>

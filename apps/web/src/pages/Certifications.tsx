@@ -99,7 +99,7 @@ function FreeView() {
             text: 'Le badge apparaît sur ton profil, avec un lien public, et il est joint à tes candidatures.',
           },
         ].map((s, i) => (
-          <li key={s.title} className="flex gap-3 rounded-[20px] bg-surface-1 p-4">
+          <li key={s.title} className="flex gap-3 rounded-[10px] bg-surface-1 p-4">
             <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line-strong text-[12px] font-semibold text-muted tabular">
               {i + 1}
             </span>
@@ -142,7 +142,7 @@ function FreeView() {
 function PaidView() {
   return (
     <>
-      <div className="rounded-[20px] bg-surface-1 p-4 text-[14px] text-muted">
+      <div className="rounded-[10px] bg-surface-1 p-4 text-[14px] text-muted">
         <b className="text-fg">Préparation gratuite, examen payant chez l’éditeur.</b> Les prix sont
         indicatifs et varient selon le pays : vérifie toujours sur le site officiel avant de
         t’inscrire.
@@ -168,7 +168,7 @@ function PlatformCertCard({
   return (
     <Link
       to={`/certifications/${cert.id}`}
-      className="group flex flex-col gap-3 rounded-[20px] bg-surface-1 p-4 transition-colors "
+      className="group flex flex-col gap-3 rounded-[10px] bg-surface-1 p-4 transition-colors "
     >
       <div className="flex items-start gap-3.5">
         <CertBadge color={cert.color} logo={cert.logo} size={48} />
@@ -218,7 +218,7 @@ function MarketCertCard({ cert }: { cert: MarketCert }) {
   const saved = usePlatform((s) => s.savedCerts.includes(cert.id));
   const toggle = usePlatform((s) => s.toggle);
   return (
-    <article className="flex flex-col gap-2 rounded-[20px] bg-surface-1 p-4">
+    <article className="flex flex-col gap-2 rounded-[10px] bg-surface-1 p-4">
       <div className="flex items-center gap-2.5">
         <ProviderMark name={cert.provider} size={34} />
         <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-muted">
@@ -376,7 +376,7 @@ function Database() {
       <p className="mt-3 text-[13px] text-subtle">
         {rows.length} certifications · prix indicatifs, à vérifier chez l’éditeur
       </p>
-      <div className="mt-2 overflow-x-auto rounded-[12px] border border-line">
+      <div className="mt-2 overflow-x-auto rounded-[8px] border border-line">
         <table className="w-full min-w-[720px] text-left text-[13px]">
           <thead className="bg-surface-1 text-[12px] font-semibold tracking-wide text-subtle uppercase">
             <tr>
@@ -436,7 +436,7 @@ function MyBadges({ certs }: { certs: PlatformCert[] }) {
   const results = usePlatform((s) => s.certResults);
   if (!certs.length)
     return (
-      <div className="rounded-[20px] bg-surface-1 p-10 text-center">
+      <div className="rounded-[10px] bg-surface-1 p-10 text-center">
         <Award className="mx-auto size-10 text-subtle" />
         <p className="mt-3 font-semibold text-fg">Pas encore de badge</p>
         <p className="mt-1 text-sm text-muted">
@@ -452,7 +452,7 @@ function MyBadges({ certs }: { certs: PlatformCert[] }) {
       {certs.map((c) => (
         <div
           key={c.id}
-          className="flex flex-col items-center gap-3 rounded-[20px] bg-surface-1 p-6 text-center"
+          className="flex flex-col items-center gap-3 rounded-[10px] bg-surface-1 p-6 text-center"
         >
           <CertBadge color={c.color} logo={c.logo} size={80} />
           <div>

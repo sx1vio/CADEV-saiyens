@@ -106,7 +106,7 @@ export function TagPicker({
             autoComplete="off"
           />
           {matches.length > 0 && (
-            <div className="absolute inset-x-0 top-full z-20 mt-1.5 flex flex-wrap gap-1.5 rounded-[14px] border border-line bg-surface-2 p-2 shadow-lg">
+            <div className="absolute inset-x-0 top-full z-20 mt-1.5 flex flex-wrap gap-1.5 rounded-[10px] border border-line bg-surface-2 p-2 shadow-lg">
               {matches.map((tag, i) => (
                 <button
                   key={tag.id}

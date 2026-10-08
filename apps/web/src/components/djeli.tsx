@@ -71,7 +71,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-[20px] border border-dashed border-line-strong px-6 text-center',
+        'flex flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-line-strong px-6 text-center',
         compact ? 'py-6' : 'py-10',
         className,
       )}
@@ -103,7 +103,7 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center gap-3 rounded-[20px] border border-line bg-danger-soft/40 px-6 py-8 text-center',
+        'flex flex-col items-center gap-3 rounded-[10px] border border-line bg-danger-soft/40 px-6 py-8 text-center',
         className,
       )}
     >

@@ -128,7 +128,7 @@ export const TEMPLATES: Template[] = [
     uses: 610,
     stars: 129,
     free: true,
-    preview: { bg: '#1e1b4b', accent: '#a78bfa', layout: 'mobile' },
+    preview: { bg: '#1e1b4b', accent: '#5b7cf0', layout: 'mobile' },
   },
   {
     id: 'portfolio-dev',
@@ -195,6 +195,6 @@ export const TEMPLATES: Template[] = [
     uses: 720,
     stars: 198,
     free: false,
-    preview: { bg: '#1e1b4b', accent: '#8b7cf8', layout: 'docs' },
+    preview: { bg: '#1e1b4b', accent: '#3b5bdb', layout: 'docs' },
   },
 ];

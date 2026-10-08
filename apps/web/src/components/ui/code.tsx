@@ -59,7 +59,7 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-[14px] border border-line bg-[var(--code-bg)]',
+        'group relative overflow-hidden rounded-[10px] border border-line bg-[var(--code-bg)]',
         className,
       )}
     >

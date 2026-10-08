@@ -300,7 +300,7 @@ function LinkPreview({ post }: { post: Post }) {
     </>
   );
   const cls =
-    'relative z-10 mt-2.5 flex items-center gap-3 rounded-[14px] bg-canvas p-2 pr-3 transition-colors ';
+    'relative z-10 mt-2.5 flex items-center gap-3 rounded-[10px] bg-canvas p-2 pr-3 transition-colors ';
   return external ? (
     <a
       href={link.url}
@@ -324,7 +324,7 @@ export function PostCard({ post, compactView }: { post: Post; compactView?: bool
   const c = communityOf(post.community);
   const author = person(post.author);
   return (
-    <article className="group relative flex gap-1.5 rounded-[20px] bg-surface-1 py-2 pr-4 pl-1.5 transition-colors ">
+    <article className="group relative flex gap-1.5 rounded-[10px] bg-surface-1 py-2 pr-4 pl-1.5 transition-colors ">
       <Link
         to={`/post/${post.id}`}
         className="absolute inset-0 rounded-[10px]"
@@ -391,7 +391,7 @@ export function PostCard({ post, compactView }: { post: Post; compactView?: bool
             target="_blank"
             rel="noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="relative z-10 mt-2.5 flex items-center gap-2.5 rounded-[14px] bg-canvas px-3 py-2 text-[12.5px] transition-colors "
+            className="relative z-10 mt-2.5 flex items-center gap-2.5 rounded-[10px] bg-canvas px-3 py-2 text-[12.5px] transition-colors "
           >
             <BrandLogo name="GitHub" size={15} />
             <span className="truncate font-mono font-medium text-fg">{post.repo.name}</span>
@@ -507,7 +507,7 @@ function tokenize(line: string) {
         : /^\d+$/.test(t)
           ? '#fdba74'
           : KW.test(t)
-            ? '#c4b5fd'
+            ? '#a9bcf5'
             : /^[A-Z]/.test(t)
               ? '#93c5fd'
               : '#e5e7eb',
@@ -528,7 +528,7 @@ export function VideoThumb({
   big?: boolean;
 }) {
   const t = video.thumb;
-  const accent = t.accent ?? '#8b7cf8';
+  const accent = t.accent ?? '#3b5bdb';
   const lines = (t.editor ?? t.code ?? '').split('\n').slice(0, 7);
   return (
     <div
@@ -576,7 +576,7 @@ export function VideoThumb({
             <BrandLogo name={t.logo} size={0} className="size-[4.6cqw]" />
           </span>
         )}
-        <span className="text-[max(10px,6.4cqw)] leading-[1.04] font-semibold tracking-[-0.03em] text-white">
+        <span className="text-[max(10px,6.4cqw)] leading-[1.04] font-semibold tracking-[-0.02em] text-white">
           {t.big}
         </span>
         <span
@@ -766,7 +766,7 @@ export function Chips<T extends string>({
           onClick={() => onChange(it.id)}
           className={cn(
             'h-9 shrink-0 rounded-full px-4 text-[13px] font-medium transition-colors',
-            value === it.id ? 'bg-fg text-canvas' : 'bg-surface-1 text-fg hover:bg-surface-2',
+            value === it.id ? 'lg-tint' : 'lg-clear text-fg',
           )}
         >
           {it.label}
@@ -794,7 +794,7 @@ export function ServiceHeader({
     <header className="flex flex-col gap-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[28px] leading-[1.1] font-bold tracking-[-0.03em] text-fg sm:text-[32px]">
+          <h1 className="text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-fg sm:text-[32px]">
             {title}
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] text-muted">{subtitle}</p>
@@ -849,14 +849,15 @@ export function Sparkline({ values, className }: { values: number[]; className?:
 }
 
 /** Carte d'indicateur : libellé en minuscules, grand chiffre gras, variation verte. */
+/**
+ * Chiffre clé, compact et sans décor : libellé, valeur, note. Les anciennes options
+ * (carte sombre, cube, courbe) sont acceptées mais ignorées (docs/front/design-system.md).
+ */
 export function StatCard({
   label,
   value,
   delta,
   note,
-  dark,
-  cube,
-  spark,
   to,
 }: {
   label: string;
@@ -870,42 +871,21 @@ export function StatCard({
 }) {
   const body = (
     <>
-      <div className="flex items-start justify-between gap-2">
-        <span className={cn('text-[12px] sm:text-[13px]', dark ? 'text-white/60' : 'text-muted')}>
-          {label}
-        </span>
-        {cube && (
-          <span className="grid size-8 place-items-center rounded-[10px] bg-canvas shadow-sm">
-            <Cube color={cube} />
-          </span>
-        )}
-      </div>
-      <div className="mt-2 flex items-end justify-between gap-2">
-        <span
-          className={cn(
-            'text-[26px] leading-none font-bold tracking-[-0.04em] tabular sm:text-[34px]',
-            dark ? 'text-white' : 'text-fg',
-          )}
-        >
-          {value}
-        </span>
-        {spark && <Sparkline values={spark} className="hidden h-10 w-[45%] sm:block" />}
-      </div>
+      <span className="truncate text-[12.5px] text-muted first-letter:uppercase">{label}</span>
+      <span className="mt-0.5 text-[22px] leading-tight font-semibold tracking-[-0.01em] text-fg tabular">
+        {value}
+      </span>
       {(delta || note) && (
-        <p className={cn('mt-3 text-[11.5px] sm:text-[12px]', dark ? 'text-white/75' : 'text-fg')}>
-          {delta && (
-            <span className={cn('font-semibold', dark ? 'text-[#4ade80]' : 'text-success')}>
-              {delta}{' '}
-            </span>
-          )}
+        <span className="mt-0.5 truncate text-[12px] text-subtle">
+          {delta && <span className="font-medium text-success">{delta} </span>}
           {note}
-        </p>
+        </span>
       )}
     </>
   );
   const cls = cn(
-    'flex flex-col rounded-[20px] p-4 transition-colors sm:p-5',
-    dark ? 'dh-ink' : 'dh-card dh-card-hover',
+    'flex min-w-0 flex-col rounded-[10px] border border-line px-4 py-3 transition-colors',
+    to && 'hover:bg-surface-1',
   );
   return to ? (
     <Link to={to} className={cls}>
@@ -918,7 +898,7 @@ export function StatCard({
 
 export const CUBE = {
   orange: '#ff9f1a',
-  purple: '#8d6cf0',
+  purple: '#2348d6',
   green: '#22c55e',
   blue: '#3b82f6',
   pink: '#ec4899',
@@ -937,7 +917,7 @@ export function SideCard({
   className?: string;
 }) {
   return (
-    <section className={cn('rounded-[20px] bg-surface-1 p-5', className)}>
+    <section className={cn('rounded-[10px] bg-surface-1 p-5', className)}>
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="text-[15px] font-bold tracking-[-0.02em] text-fg">{title}</h2>
         {action}
@@ -960,10 +940,10 @@ export const SERVICE_COLORS = {
   help: '#f2575a',
   jobs: '#22a3ee',
   certs: '#f0b232',
-  skills: '#8b7cf8',
+  skills: '#3b5bdb',
   videos: '#e5333b',
   learn: '#3ccf8e',
-  build: '#6a5ae6',
+  build: '#1f3fc4',
   templates: '#e879f9',
   projects: '#4f7cff',
   communities: '#fb923c',

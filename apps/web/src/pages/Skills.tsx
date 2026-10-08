@@ -209,9 +209,7 @@ export default function Skills() {
                 onClick={() => set('outil', tool === t ? null : t)}
                 className={cn(
                   'h-8 shrink-0 rounded-full border px-3 text-[13px] font-semibold',
-                  tool === t
-                    ? 'border-transparent bg-fg text-canvas'
-                    : 'border-line-strong text-fg',
+                  tool === t ? 'lg-tint border-transparent' : 'border-line-strong text-fg',
                 )}
               >
                 {TOOL_LABEL[t]}
@@ -250,7 +248,7 @@ function SkillCard({ skill, installed }: { skill: AgentSkill; installed: boolean
   return (
     <Link
       to={`/skills/${skill.id}`}
-      className="group flex flex-col gap-2.5 rounded-[20px] bg-surface-1 p-4 transition-colors "
+      className="group flex flex-col gap-2.5 rounded-[10px] bg-surface-1 p-4 transition-colors "
     >
       <div className="flex items-start gap-3">
         <SkillIcon kind={skill.kind} />
@@ -388,10 +386,8 @@ export function SkillDetail() {
                 aria-selected={tab === k}
                 onClick={() => setTab(k)}
                 className={cn(
-                  '-mb-px border-b-2 px-3 py-2.5 text-[14px] font-semibold',
-                  tab === k
-                    ? 'border-accent text-fg'
-                    : 'border-transparent text-muted hover:text-fg',
+                  'rounded-full px-4 py-2 text-[14px] font-semibold',
+                  tab === k ? 'lg-tint' : 'lg-ghost text-muted',
                 )}
               >
                 {label}
@@ -407,7 +403,7 @@ export function SkillDetail() {
                   <ToolBadge key={t} tool={t} />
                 ))}
               </div>
-              <div className="mt-6 flex gap-2.5 rounded-[20px] bg-surface-1 p-4 text-[13px] text-muted">
+              <div className="mt-6 flex gap-2.5 rounded-[10px] bg-surface-1 p-4 text-[13px] text-muted">
                 <Info className="mt-0.5 size-4 shrink-0 text-accent-text" />
                 <p>
                   Avant d’installer : lis les fichiers, vérifie les commandes qu’ils exécutent et
@@ -432,7 +428,7 @@ export function SkillDetail() {
           )}
         </div>
 
-        <aside className="flex flex-col gap-3 self-start rounded-[20px] bg-surface-1 p-4">
+        <aside className="flex flex-col gap-3 self-start rounded-[10px] bg-surface-1 p-4">
           <h2 className="text-[14px] font-semibold text-fg">Installation</h2>
           <div className="flex flex-wrap gap-1.5">
             {skill.tools.map((t) => (

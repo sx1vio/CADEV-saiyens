@@ -55,9 +55,9 @@ export function Sheet({
             'dh-sheet fixed z-50 flex max-h-[92dvh] flex-col border border-line bg-surface-1 shadow-lg focus:outline-none',
             'inset-x-0 bottom-0 rounded-t-[24px] pb-safe',
             side === 'right'
-              ? 'sm:inset-y-2 sm:right-2 sm:left-auto sm:bottom-2 sm:max-h-none sm:w-[420px] sm:rounded-[24px]'
+              ? 'sm:inset-y-2 sm:right-2 sm:left-auto sm:bottom-2 sm:max-h-none sm:w-[420px] sm:rounded-[10px]'
               : cn(
-                  'sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[24px]',
+                  'sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[10px]',
                   widths[size],
                 ),
           )}

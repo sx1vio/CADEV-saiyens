@@ -131,7 +131,7 @@ export default function CertExam() {
     const passed = score >= cert.passScore;
     return (
       <div className="dh-page mx-auto w-full max-w-[760px] px-4 py-8">
-        <div className="flex flex-col items-center rounded-[16px] border border-line bg-surface-1 p-8 text-center">
+        <div className="flex flex-col items-center rounded-[10px] border border-line bg-surface-1 p-8 text-center">
           {passed ? (
             <CertBadge color={cert.color} logo={cert.logo} size={76} />
           ) : (
@@ -174,7 +174,7 @@ export default function CertExam() {
           {cert.quiz.map((qq, k) => {
             const ok = answers[k] === qq.answer;
             return (
-              <li key={qq.q} className="rounded-[20px] bg-surface-1 p-4">
+              <li key={qq.q} className="rounded-[10px] bg-surface-1 p-4">
                 <p className="flex gap-2 font-semibold text-fg">
                   {ok ? (
                     <Check className="mt-0.5 size-4 shrink-0 text-success" />
@@ -249,7 +249,7 @@ export default function CertExam() {
             {cert.syllabus.map((s, k) => (
               <li
                 key={s}
-                className="flex items-center gap-3 rounded-[20px] bg-surface-1 px-4 py-3 text-[13.5px] text-fg"
+                className="flex items-center gap-3 rounded-[10px] bg-surface-1 px-4 py-3 text-[13.5px] text-fg"
               >
                 <span className="grid size-7 place-items-center rounded-full bg-surface-3 text-[12px] font-semibold text-muted">
                   {k + 1}
@@ -270,7 +270,7 @@ export default function CertExam() {
             ))}
           </div>
         </div>
-        <aside className="flex flex-col gap-4 self-start rounded-[20px] bg-surface-1 p-5">
+        <aside className="flex flex-col gap-4 self-start rounded-[10px] bg-surface-1 p-5">
           {result?.passed ? (
             <p className="flex items-center gap-2 rounded-[8px] bg-success-soft p-3 text-[14px] font-semibold text-success">
               <BadgeCheck className="size-5" />

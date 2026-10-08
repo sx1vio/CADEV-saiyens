@@ -147,7 +147,7 @@ export function Tour() {
       {rect ? (
         <div
           aria-hidden
-          className="pointer-events-none fixed rounded-[16px] ring-2 ring-accent transition-[top,left,width,height] duration-300 ease-out"
+          className="pointer-events-none fixed rounded-[10px] ring-2 ring-accent transition-[top,left,width,height] duration-300 ease-out"
           style={{
             ...rect,
             boxShadow:
@@ -160,7 +160,7 @@ export function Tour() {
       <div className="fixed inset-0" onClick={finish} aria-hidden />
 
       <div key={current.key} className="dh-pop fixed z-10" style={cardStyle} data-state="open">
-        <div className="relative rounded-[22px] border border-line-strong bg-surface-2 p-5 pt-6 shadow-lg">
+        <div className="relative rounded-[10px] border border-line-strong bg-surface-2 p-5 pt-6 shadow-lg">
           <div
             className={cn('absolute -top-[84px] left-4', isMobile && 'left-1/2 -translate-x-1/2')}
           >

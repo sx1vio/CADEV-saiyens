@@ -31,9 +31,9 @@ export default function Publish() {
   const joined = usePlatform((s) => s.joined);
   const [kind, setKind] = useState<PostKind>((params.get('type') as PostKind) || 'discussion');
   const [community, setCommunity] = useState(params.get('c') || joined[0] || 'showcase');
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(params.get('title') ?? '');
   const [body, setBody] = useState('');
-  const [link, setLink] = useState('');
+  const [link, setLink] = useState(params.get('url') ?? '');
   const [repo, setRepo] = useState('');
   const [tags, setTags] = useState('');
   const linkOk = !link || /^https?:\/\/\S+\.\S+/.test(link);
@@ -66,7 +66,7 @@ export default function Publish() {
         Ton post apparaît dans le fil et dans la communauté choisie.
       </p>
 
-      <div className="mt-6 flex flex-col gap-5 rounded-[20px] bg-surface-1 p-4 sm:p-5">
+      <div className="mt-6 flex flex-col gap-5 rounded-[10px] bg-surface-1 p-4 sm:p-5">
         <Field label="Type de post">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {KINDS.map((k) => (

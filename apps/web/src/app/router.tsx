@@ -4,7 +4,6 @@ import {
   Outlet,
   ScrollRestoration,
   useLocation,
-  useNavigation,
 } from 'react-router';
 import { lazy as reactLazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { PageSkeleton } from '@/pages/_skeleton';
@@ -56,7 +55,6 @@ function Overlays() {
 import { PublicShell } from '@/components/shell/PublicShell';
 import { useGlobalShortcuts } from '@/components/shell/shortcuts';
 import { useSession, useUI } from '@/stores/app';
-import { cn } from '@/lib/utils';
 
 /* Pages chargées à la demande, puis préchargées en arrière-plan (navigation instantanée). */
 const pages = {
@@ -118,21 +116,6 @@ export function preloadCorePages() {
   else setTimeout(run, 4000);
 }
 
-/** Fine barre de progression pendant le chargement d'une page (jamais d'écran blanc). */
-function NavProgress() {
-  const navigation = useNavigation();
-  const loading = navigation.state === 'loading';
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        'pointer-events-none fixed inset-x-0 top-0 z-[90] h-0.5 origin-left bg-hero transition-[transform,opacity] duration-300',
-        loading ? 'scale-x-75 opacity-100' : 'scale-x-100 opacity-0',
-      )}
-    />
-  );
-}
-
 /** Choisit le shell selon la session ; redirige vers l'onboarding si le profil n'est pas terminé. */
 function Root() {
   const user = useSession((s) => s.user);
@@ -145,7 +128,6 @@ function Root() {
     return <Navigate to="/bienvenue" replace />;
   return (
     <>
-      <NavProgress />
       <ScrollRestoration />
       {['/bienvenue', '/connexion', '/inscription'].includes(location.pathname) ? (
         <Outlet />

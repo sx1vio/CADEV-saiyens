@@ -123,7 +123,7 @@ export default function Onboarding() {
           <div className="flex items-end gap-4">
             <Djeli pose={poses[step]} size={84} float />
             <div className="min-w-0 pb-2">
-              <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em] text-fg sm:text-[30px]">
+              <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-fg sm:text-[30px]">
                 {t(`onboarding.${titles[step]}`)}
               </h1>
               <p className="mt-1 text-[15px] text-muted">{t(`onboarding.${texts[step]}`)}</p>
@@ -143,7 +143,7 @@ export default function Onboarding() {
                         const c = COUNTRIES.find((x) => x.code === e.target.value);
                         if (c) setTimezone(c.tz);
                       }}
-                      className="h-11 rounded-[12px] border border-line bg-inset px-3 text-[15px] text-fg shadow-inset sm:h-10 sm:text-sm"
+                      className="h-11 rounded-[8px] border border-line bg-inset px-3 text-[15px] text-fg shadow-inset sm:h-10 sm:text-sm"
                     >
                       {COUNTRIES.map((c) => (
                         <option key={c.code} value={c.code}>
@@ -231,7 +231,7 @@ export default function Onboarding() {
                         aria-pressed={on}
                         onClick={() => setIntent(key)}
                         className={cn(
-                          'flex items-start gap-3 rounded-[18px] border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[0.98]',
+                          'flex items-start gap-3 rounded-[10px] border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[0.98]',
                           on
                             ? 'border-accent bg-accent-soft'
                             : 'border-line bg-surface-2 hover:border-line-strong',
@@ -239,7 +239,7 @@ export default function Onboarding() {
                       >
                         <span
                           className={cn(
-                            'grid size-10 shrink-0 place-items-center rounded-[12px]',
+                            'grid size-10 shrink-0 place-items-center rounded-[8px]',
                             on ? 'bg-accent-strong text-on-accent' : 'bg-surface-3 text-muted',
                           )}
                         >
@@ -297,7 +297,7 @@ export default function Onboarding() {
                     placeholder={t('onboarding.slotsPlaceholder')}
                   />
                 </Field>
-                <label className="flex cursor-pointer items-start gap-3 rounded-[16px] border border-line bg-surface-2 p-4">
+                <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-line bg-surface-2 p-4">
                   <input
                     type="checkbox"
                     checked={mission}
@@ -320,7 +320,7 @@ export default function Onboarding() {
                   {[1, 2, 3, 4].map((n) => (
                     <li
                       key={n}
-                      className="flex items-start gap-3 rounded-[16px] border border-line bg-surface-2 p-4"
+                      className="flex items-start gap-3 rounded-[10px] border border-line bg-surface-2 p-4"
                     >
                       <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent-text">
                         {n}
@@ -331,7 +331,7 @@ export default function Onboarding() {
                     </li>
                   ))}
                 </ol>
-                <label className="flex cursor-pointer items-center gap-3 rounded-[16px] border border-line-strong p-4">
+                <label className="flex cursor-pointer items-center gap-3 rounded-[10px] border border-line-strong p-4">
                   <input
                     type="checkbox"
                     checked={accepted}
@@ -392,7 +392,7 @@ function ChoiceChip({
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-[14px] border font-medium transition-[border-color,background-color,transform] duration-150 active:scale-[0.97]',
+        'inline-flex items-center justify-center gap-2 rounded-[10px] border font-medium transition-[border-color,background-color,transform] duration-150 active:scale-[0.97]',
         large ? 'h-14 px-4 text-[15px]' : 'h-11 px-4 text-sm',
         on
           ? 'border-accent bg-accent-soft text-fg'

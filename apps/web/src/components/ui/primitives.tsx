@@ -238,7 +238,7 @@ export function AvatarStack({
 /* ---------------- Formulaires ---------------- */
 
 const fieldBase =
-  'w-full rounded-[14px] border border-line-strong bg-canvas text-fg placeholder:text-subtle transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-fg disabled:opacity-60 aria-[invalid=true]:border-danger';
+  'w-full rounded-[10px] border border-line-strong bg-canvas text-fg placeholder:text-subtle transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-fg disabled:opacity-60 aria-[invalid=true]:border-danger';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className, ...props }, ref) {

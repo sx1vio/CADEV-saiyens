@@ -313,7 +313,7 @@ export const PLATFORM_CERTS: PlatformCert[] = [
     minutes: 20,
     passScore: 75,
     skills: ['Agents IA', 'Revue de code'],
-    color: '#8b7cf8',
+    color: '#3b5bdb',
     holders: 2260,
     description:
       'Cadrer un agent de code (Claude Code, Codex, Antigravity), relire ses changements et protéger tes secrets.',

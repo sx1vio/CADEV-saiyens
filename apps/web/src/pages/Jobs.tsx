@@ -124,7 +124,7 @@ export default function Jobs() {
       >
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="flex flex-col overflow-hidden rounded-[22px] border border-line-strong bg-canvas sm:flex-row sm:rounded-full"
+          className="flex flex-col overflow-hidden rounded-[10px] border border-line-strong bg-canvas sm:flex-row sm:rounded-full"
         >
           <label className="flex flex-1 items-center gap-2.5 px-4">
             <Search className="size-4 shrink-0 text-subtle" />
@@ -156,9 +156,7 @@ export default function Jobs() {
               onClick={() => toggleFilter(f.id)}
               className={cn(
                 'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-medium transition-colors',
-                active.includes(f.id)
-                  ? 'bg-fg text-canvas'
-                  : 'bg-surface-1 text-fg hover:bg-surface-2',
+                active.includes(f.id) ? 'lg-tint' : 'lg-clear text-fg',
               )}
             >
               {active.includes(f.id) && <Check className="size-3.5" />}
@@ -179,13 +177,13 @@ export default function Jobs() {
             </li>
           ))}
           {list.length === 0 && (
-            <li className="rounded-[20px] bg-surface-1 p-8 text-center text-muted">
+            <li className="rounded-[10px] bg-surface-1 p-8 text-center text-muted">
               Aucune offre ne correspond. Retire un filtre.
             </li>
           )}
         </ul>
         {wide && selected && (
-          <div className="sticky top-[72px] max-h-[calc(100dvh-88px)] min-w-0 flex-1 self-start overflow-y-auto rounded-[20px] bg-surface-1">
+          <div className="sticky top-[72px] max-h-[calc(100dvh-88px)] min-w-0 flex-1 self-start overflow-y-auto rounded-[10px] bg-surface-1">
             <JobDetail job={selected} />
           </div>
         )}
@@ -203,7 +201,7 @@ function JobRow({ job, active }: { job: Job; active: boolean }) {
     <Link
       to={`/emplois/${job.id}`}
       className={cn(
-        'group relative flex gap-3 rounded-[20px] border-2 p-4 transition-colors',
+        'group relative flex gap-3 rounded-[10px] border-2 p-4 transition-colors',
         active ? 'border-fg bg-surface-1' : 'border-transparent bg-surface-1 hover:bg-surface-2',
       )}
     >
@@ -363,7 +361,7 @@ function JobDetail({ job }: { job: Job }) {
       <p className="mt-6 text-[14px] leading-relaxed text-fg">{job.summary}</p>
 
       {(job.provenSkills || job.certs) && (
-        <section className="mt-6 rounded-[12px] bg-canvas p-4">
+        <section className="mt-6 rounded-[8px] bg-canvas p-4">
           <h3 className="flex items-center gap-2 text-[14px] font-semibold text-fg">
             <ShieldCheck className="size-4 text-accent-text" />
             Ce que l’entreprise veut voir prouvé
@@ -439,7 +437,7 @@ function JobDetail({ job }: { job: Job }) {
         </div>
       </section>
 
-      <section className="mt-6 flex gap-3 rounded-[12px] border border-line p-4">
+      <section className="mt-6 flex gap-3 rounded-[8px] border border-line p-4">
         <CompanyLogo slug={job.company} size={44} />
         <div>
           <h3 className="text-[14px] font-semibold text-fg">À propos de {c.name}</h3>

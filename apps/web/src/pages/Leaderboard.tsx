@@ -33,7 +33,7 @@ export default function Leaderboard() {
       ) : !data ? (
         <div className="mt-6 flex flex-col gap-2">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 rounded-[16px]" />
+            <Skeleton key={i} className="h-14 rounded-[10px]" />
           ))}
         </div>
       ) : (
@@ -74,7 +74,7 @@ export default function Leaderboard() {
           <ul className="mt-4 flex flex-col gap-2">
             {data.map((r, i) => (
               <li key={r.country}>
-                <div className="grid grid-cols-[20px_minmax(0,1fr)_auto_36px] items-center gap-3 rounded-[16px] bg-surface-1 py-2.5 pr-2 pl-4 transition-colors hover:bg-surface-2 sm:grid-cols-[20px_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto_36px]">
+                <div className="grid grid-cols-[20px_minmax(0,1fr)_auto_36px] items-center gap-3 rounded-[10px] bg-surface-1 py-2.5 pr-2 pl-4 transition-colors hover:bg-surface-2 sm:grid-cols-[20px_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto_36px]">
                   <ChevronRight className="size-4 text-fg" />
                   <span className="flex min-w-0 items-center gap-3">
                     {r.topDev ? (

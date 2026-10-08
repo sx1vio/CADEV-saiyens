@@ -56,7 +56,7 @@ export default function Discover() {
       />
 
       <section
-        className="mt-6 flex flex-col gap-3 rounded-[20px] bg-surface-1 p-3 sm:p-4"
+        className="mt-6 flex flex-col gap-3 rounded-[10px] bg-surface-1 p-3 sm:p-4"
         aria-label={t('common.search')}
       >
         <div className="flex flex-col gap-3 md:flex-row">
@@ -158,7 +158,7 @@ export default function Discover() {
         ) : !data ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-60 rounded-[20px]" />
+              <Skeleton key={i} className="h-60 rounded-[10px]" />
             ))}
           </div>
         ) : data.length === 0 ? (

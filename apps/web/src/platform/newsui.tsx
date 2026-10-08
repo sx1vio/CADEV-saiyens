@@ -6,38 +6,39 @@ import { BrandLogo, logoFor } from './logos';
 import { RELEASE_LOGO, domainOf, img, type NewsItem } from './news';
 import { Ago, LANG_COLOR, compact } from './ui';
 
-const CAT_COLOR: Record<string, string> = {
-  ia: '#8d6cf0',
-  tech: '#0b0b0c',
-  apple: '#6b7280',
-  google: '#3b82f6',
-  samsung: '#1428a0',
-  mobile: '#22c55e',
-  dev: '#ff9f1a',
-  cloud: '#f97316',
-  afrique: '#16a34a',
-  securite: '#ef4444',
-};
-
-/** Pastille de source : initiales, couleur de la rubrique. */
+/** Logo de la source : le favicon du site (via le proxy d'images) ; à défaut, ses initiales. */
 export function SourceMark({ item, size = 18 }: { item: NewsItem; size?: number }) {
-  const initials = item.sourceName
-    .replace(/^The /, '')
-    .split(/[\s·.-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
+  const [broken, setBroken] = useState(false);
+  const domain = domainOf(item.url);
+  if (domain && !broken)
+    return (
+      <img
+        src={img(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`, 160) ?? ''}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        onError={() => setBroken(true)}
+        className="shrink-0 rounded-[6px] bg-surface-1 object-contain"
+        style={{ width: size, height: size }}
+      />
+    );
+  // Initiales sans chiffres (« 01net » → « N ») : un chiffre seul ressemble à une donnée cassée
+  const initials =
+    item.sourceName
+      .replace(/^The /, '')
+      .replace(/[^A-Za-zÀ-ÿ\s]/g, '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase() || '·';
   return (
     <span
-      className="grid shrink-0 place-items-center rounded-full font-bold text-white"
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.42,
-        background: CAT_COLOR[item.category] ?? '#0b0b0c',
-      }}
+      aria-hidden
+      className="grid shrink-0 place-items-center rounded-[6px] bg-surface-2 font-semibold text-muted"
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {initials}
     </span>
@@ -98,7 +99,7 @@ export function HeroNews({ items }: { items: NewsItem[] }) {
       <a
         href={main.url}
         {...ext}
-        className="group relative overflow-hidden rounded-[24px] bg-black text-white"
+        className="group relative overflow-hidden rounded-[10px] bg-black text-white"
       >
         <Thumb
           src={main.image}
@@ -110,7 +111,7 @@ export function HeroNews({ items }: { items: NewsItem[] }) {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11.5px] font-semibold backdrop-blur-md">
             À la une · {main.sourceName}
           </span>
-          <h2 className="mt-3 text-[22px] leading-[1.15] font-bold tracking-[-0.03em] sm:text-[30px]">
+          <h2 className="mt-3 text-[22px] leading-[1.15] font-bold tracking-[-0.02em] sm:text-[30px]">
             {main.title}
           </h2>
           <p className="mt-2 line-clamp-2 max-w-2xl text-[14px] text-white/75">{main.summary}</p>
@@ -125,12 +126,12 @@ export function HeroNews({ items }: { items: NewsItem[] }) {
             <a
               href={it.url}
               {...ext}
-              className="group flex gap-3 rounded-[20px] bg-surface-1 p-3 transition-colors hover:bg-surface-2"
+              className="group flex gap-3 rounded-[10px] bg-surface-1 p-3 transition-colors hover:bg-surface-2"
             >
               <Thumb
                 src={it.image}
                 w={320}
-                className="aspect-[4/3] w-28 shrink-0 rounded-[14px] sm:w-32"
+                className="aspect-[4/3] w-28 shrink-0 rounded-[10px] sm:w-32"
               />
               <span className="flex min-w-0 flex-col justify-between py-0.5">
                 <span className="line-clamp-3 text-[14px] leading-snug font-semibold text-fg group-hover:underline">
@@ -152,7 +153,7 @@ export function ArticleCard({ item }: { item: NewsItem }) {
     <a
       href={item.url}
       {...ext}
-      className="group flex flex-col overflow-hidden rounded-[20px] bg-surface-1 transition-colors hover:bg-surface-2"
+      className="group flex flex-col overflow-hidden rounded-[10px] bg-surface-1 transition-colors hover:bg-surface-2"
     >
       <Thumb src={item.image} className="aspect-[16/9] w-full" />
       <div className="flex flex-1 flex-col gap-2 p-4">
@@ -179,7 +180,7 @@ export function VideoTile({ item, className }: { item: NewsItem; className?: str
       state={{ item }}
       className={cn('group flex flex-col gap-2.5', className)}
     >
-      <div className="relative overflow-hidden rounded-[16px] bg-black">
+      <div className="relative overflow-hidden rounded-[10px] bg-black">
         <Thumb
           src={item.image}
           w={480}
@@ -213,7 +214,7 @@ export function VideoTile({ item, className }: { item: NewsItem; className?: str
 export function HnRow({ item, rank }: { item: NewsItem; rank: number }) {
   const link = (item.extra.link as string) ?? item.url;
   return (
-    <li className="grid grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-3 rounded-[16px] bg-surface-1 py-2.5 pr-3 pl-4 transition-colors hover:bg-surface-2">
+    <li className="grid grid-cols-[22px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] bg-surface-1 py-2.5 pr-3 pl-4 transition-colors hover:bg-surface-2">
       <span className="text-[12px] text-subtle tabular">{rank}</span>
       <span className="min-w-0">
         <a
@@ -254,7 +255,7 @@ export function RepoRow({ item }: { item: NewsItem }) {
       <a
         href={item.url}
         {...ext}
-        className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 rounded-[16px] bg-surface-1 py-2.5 pr-3 pl-3 transition-colors hover:bg-surface-2"
+        className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] bg-surface-1 py-2.5 pr-3 pl-3 transition-colors hover:bg-surface-2"
       >
         <Thumb src={item.image} w={160} className="size-8 rounded-[10px]" />
         <span className="min-w-0">
@@ -293,9 +294,9 @@ export function ReleaseCard({ item }: { item: NewsItem }) {
     <a
       href={item.url}
       {...ext}
-      className="group flex items-center gap-3 rounded-[16px] bg-surface-1 p-3 transition-colors hover:bg-surface-2"
+      className="group flex items-center gap-3 rounded-[10px] bg-surface-1 p-3 transition-colors hover:bg-surface-2"
     >
-      <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-[12px] bg-canvas shadow-sm">
+      <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-canvas shadow-sm">
         {logo && logoFor(logo) ? (
           <BrandLogo name={logo} size={20} />
         ) : (
@@ -324,7 +325,7 @@ export function DevtoCard({ item }: { item: NewsItem }) {
     <a
       href={item.url}
       {...ext}
-      className="group flex flex-col overflow-hidden rounded-[20px] bg-surface-1 transition-colors hover:bg-surface-2"
+      className="group flex flex-col overflow-hidden rounded-[10px] bg-surface-1 transition-colors hover:bg-surface-2"
     >
       <Thumb src={item.image} className="aspect-[2/1] w-full" />
       <div className="flex flex-1 flex-col gap-2 p-4">

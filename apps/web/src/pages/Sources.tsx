@@ -64,7 +64,7 @@ export default function Sources() {
         </div>
       )}
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <h2 className="text-[19px] font-bold tracking-[-0.03em] text-fg">Toutes les sources</h2>
+        <h2 className="text-[19px] font-bold tracking-[-0.02em] text-fg">Toutes les sources</h2>
         <Chips
           items={[
             { id: 'all', label: 'Toutes' },
@@ -77,13 +77,13 @@ export default function Sources() {
         />
       </div>
       {error && !data ? (
-        <p className="mt-4 rounded-[20px] bg-surface-1 p-5 text-[14px] text-muted">
+        <p className="mt-4 rounded-[10px] bg-surface-1 p-5 text-[14px] text-muted">
           Serveur injoignable.
         </p>
       ) : !data ? (
         <div className="mt-4 flex flex-col gap-2">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 rounded-[16px]" />
+            <Skeleton key={i} className="h-14 rounded-[10px]" />
           ))}
         </div>
       ) : (
@@ -94,7 +94,7 @@ export default function Sources() {
                 href={s.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="grid grid-cols-[32px_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[16px] bg-surface-1 py-2.5 pr-3 pl-3 transition-colors hover:bg-surface-2 sm:grid-cols-[32px_minmax(0,1.3fr)_minmax(0,1fr)_auto_auto]"
+                className="grid grid-cols-[32px_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[10px] bg-surface-1 py-2.5 pr-3 pl-3 transition-colors hover:bg-surface-2 sm:grid-cols-[32px_minmax(0,1.3fr)_minmax(0,1fr)_auto_auto]"
               >
                 <span className="grid size-8 place-items-center rounded-[10px] bg-canvas text-muted shadow-sm">
                   <Rss className="size-4" />

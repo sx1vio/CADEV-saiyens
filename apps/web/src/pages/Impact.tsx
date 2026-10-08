@@ -73,7 +73,7 @@ export default function Impact() {
       ) : !data ? (
         <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-[18px]" />
+            <Skeleton key={i} className="h-32 rounded-[10px]" />
           ))}
         </div>
       ) : (

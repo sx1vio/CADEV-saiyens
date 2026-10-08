@@ -16,28 +16,16 @@ const LINKS = [
   { to: '/apprendre', label: 'Apprendre' },
 ];
 
+/** Logo : un mot en monospace, sans décor. */
 export function Logo({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2.5 text-[19px] font-bold tracking-[-0.03em] text-fg',
+        'inline-flex items-baseline font-mono text-[18px] font-bold tracking-[-0.04em] text-fg',
         className,
       )}
     >
-      <span className="grid size-8 place-items-center rounded-[10px] bg-accent-strong text-white">
-        <svg viewBox="0 0 64 64" className="size-[22px]" aria-hidden>
-          <path
-            d="M24 20 14 32l10 12M40 20l10 12-10 12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx="32" cy="32" r="5" fill="currentColor" />
-        </svg>
-      </span>
-      DevHub
+      devhub
     </span>
   );
 }
@@ -63,7 +51,7 @@ export function PublicShell() {
                 className={({ isActive }) =>
                   cn(
                     'rounded-full px-3.5 py-2 text-[13.5px] font-medium transition-colors',
-                    isActive ? 'bg-fg text-canvas' : 'text-fg hover:bg-surface-1',
+                    isActive ? 'lg-tint' : 'text-fg hover:bg-surface-1',
                   )
                 }
               >
@@ -136,7 +124,7 @@ export function PublicShell() {
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  'flex h-12 items-center rounded-[12px] px-3 text-[15px] font-medium',
+                  'flex h-12 items-center rounded-[8px] px-3 text-[15px] font-medium',
                   isActive ? 'bg-surface-3 text-fg' : 'text-muted',
                 )
               }

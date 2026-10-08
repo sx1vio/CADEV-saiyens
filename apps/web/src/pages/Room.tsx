@@ -119,7 +119,7 @@ export default function Room() {
             {room.wantedRoles.map((r) => (
               <li
                 key={r}
-                className="flex items-center justify-between gap-2 rounded-[12px] bg-surface-3 px-3 py-2 text-sm text-fg"
+                className="flex items-center justify-between gap-2 rounded-[8px] bg-surface-3 px-3 py-2 text-sm text-fg"
               >
                 {r}
                 {me && !isMember && room.myMembership !== 'pending' && (
@@ -171,7 +171,7 @@ export default function Room() {
   return (
     <WithPanel panel={panel} panelTitle={t('room.about')}>
       <header className="flex flex-col gap-5">
-        <div className="surface-card relative overflow-hidden !rounded-[24px]">
+        <div className="surface-card relative overflow-hidden !rounded-[10px]">
           <div className="relative h-36 sm:h-48">
             {room.coverUrl ? (
               <img src={room.coverUrl} alt="" className="size-full object-cover" />
@@ -189,7 +189,7 @@ export default function Room() {
           <div className="relative -mt-12 flex flex-col gap-3 px-5 pb-5 sm:-mt-14 sm:flex-row sm:items-end sm:px-6">
             <RoomIcon room={room} size={88} className="ring-[5px] ring-surface-2 shadow-lg" />
             <div className="min-w-0 flex-1 sm:pb-1">
-              <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em] text-fg sm:text-[32px]">
+              <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-fg sm:text-[32px]">
                 {room.name}
               </h1>
               <p className="mt-1 text-[15px] text-muted">{room.tagline}</p>
@@ -241,11 +241,11 @@ export default function Room() {
               {t('room.join')}
             </Button>
           ) : room.myMembership === 'pending' ? (
-            <Badge tone="warning" className="h-10 rounded-[12px] px-3 text-sm">
+            <Badge tone="warning" className="h-10 rounded-[8px] px-3 text-sm">
               {t('room.pending')}
             </Badge>
           ) : (
-            <Badge tone="success" className="h-10 rounded-[12px] px-3 text-sm">
+            <Badge tone="success" className="h-10 rounded-[8px] px-3 text-sm">
               <CheckCircle2 />
               {isOwner ? t('room.owner') : t('room.member')}
             </Badge>
@@ -365,14 +365,14 @@ function Kanban({ room }: { room: RoomDetail }) {
             return (
               <section
                 key={col}
-                className="flex w-[82vw] shrink-0 snap-start flex-col gap-2.5 rounded-[18px] bg-surface-1 p-3 sm:w-[300px] md:w-auto"
+                className="flex w-[82vw] shrink-0 snap-start flex-col gap-2.5 rounded-[10px] bg-surface-1 p-3 sm:w-[300px] md:w-auto"
               >
                 <header className="flex items-center justify-between px-1.5 pt-1">
                   <h3 className="text-[13px] font-semibold text-fg">{t(`room.columns.${col}`)}</h3>
                   <span className="text-xs font-semibold tabular text-subtle">{tasks.length}</span>
                 </header>
                 {tasks.length === 0 && (
-                  <p className="rounded-[12px] border border-dashed border-line px-3 py-5 text-center text-xs text-subtle">
+                  <p className="rounded-[8px] border border-dashed border-line px-3 py-5 text-center text-xs text-subtle">
                     {t('room.emptyColumn')}
                   </p>
                 )}
@@ -381,7 +381,7 @@ function Kanban({ room }: { room: RoomDetail }) {
                   return (
                     <article
                       key={task.id}
-                      className="flex flex-col gap-2.5 rounded-[14px] border border-line bg-surface-2 p-3.5"
+                      className="flex flex-col gap-2.5 rounded-[10px] border border-line bg-surface-2 p-3.5"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-semibold leading-snug text-fg">{task.title}</h4>
@@ -623,7 +623,7 @@ function CompleteSheet({
     >
       {task && (
         <div className="flex flex-col gap-4">
-          <div className="rounded-[14px] bg-surface-2 p-3">
+          <div className="rounded-[10px] bg-surface-2 p-3">
             <p className="text-sm font-semibold text-fg">{task.title}</p>
             {task.assignee && (
               <p className="mt-1 flex items-center gap-2 text-xs text-muted">
@@ -693,7 +693,7 @@ function Discussion({ room }: { room: RoomDetail }) {
             <li
               key={m.id}
               className={cn(
-                'flex gap-3 rounded-[14px] px-3 py-2.5 transition-colors hover:bg-surface-1',
+                'flex gap-3 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-surface-1',
                 m.kind === 'standup' && 'border border-line bg-surface-1',
               )}
             >
@@ -717,7 +717,7 @@ function Discussion({ room }: { room: RoomDetail }) {
           ))}
           {pending.map((p) =>
             p.type === 'message' ? (
-              <li key={p.id} className="flex gap-3 rounded-[14px] px-3 py-2.5 opacity-75">
+              <li key={p.id} className="flex gap-3 rounded-[10px] px-3 py-2.5 opacity-75">
                 <Avatar name={me?.displayName ?? ''} src={me?.avatarUrl} size={34} />
                 <div className="min-w-0 flex-1">
                   <Badge tone="warning" size="sm">
@@ -733,7 +733,7 @@ function Discussion({ room }: { room: RoomDetail }) {
       )}
 
       {isMember ? (
-        <div className="sticky bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+8px)] flex flex-col gap-2 rounded-[18px] border border-line bg-surface-1 p-2.5 shadow-md sm:bottom-4">
+        <div className="sticky bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+8px)] flex flex-col gap-2 rounded-[10px] border border-line bg-surface-1 p-2.5 shadow-md sm:bottom-4">
           <div className="flex items-end gap-2">
             <label htmlFor="room-msg" className="sr-only">
               {t('room.messagePlaceholder')}
@@ -777,7 +777,7 @@ function Discussion({ room }: { room: RoomDetail }) {
           </Button>
         </div>
       ) : (
-        <p className="rounded-[14px] bg-surface-1 p-4 text-center text-sm text-muted">
+        <p className="rounded-[10px] bg-surface-1 p-4 text-center text-sm text-muted">
           {t('room.membersOnly')}
         </p>
       )}
@@ -860,7 +860,7 @@ function Members({ room }: { room: RoomDetail }) {
       {room.members.map((m) => (
         <li
           key={m.id}
-          className="flex items-center justify-between gap-3 rounded-[16px] border border-line bg-surface-2 p-3"
+          className="flex items-center justify-between gap-3 rounded-[10px] border border-line bg-surface-2 p-3"
         >
           <UserLink user={m} size={36} />
           <Badge tone={m.id === room.ownerId ? 'accent' : 'neutral'} size="sm">
@@ -881,7 +881,7 @@ function Requests({ room }: { room: RoomDetail }) {
       {room.requests.map((r) => (
         <li
           key={r.id}
-          className="flex flex-col gap-3 rounded-[16px] border border-line bg-surface-2 p-4 sm:flex-row sm:items-center"
+          className="flex flex-col gap-3 rounded-[10px] border border-line bg-surface-2 p-4 sm:flex-row sm:items-center"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -988,7 +988,7 @@ function RoomSkeleton() {
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6">
       <div className="flex gap-4">
-        <Skeleton className="size-16 rounded-[20px]" />
+        <Skeleton className="size-16 rounded-[10px]" />
         <div className="flex-1">
           <Skeleton className="h-8 w-60" />
           <Skeleton className="mt-2 h-4 w-80 max-w-full" />
@@ -996,7 +996,7 @@ function RoomSkeleton() {
       </div>
       <div className="mt-8 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-72 rounded-[18px]" />
+          <Skeleton key={i} className="h-72 rounded-[10px]" />
         ))}
       </div>
     </div>

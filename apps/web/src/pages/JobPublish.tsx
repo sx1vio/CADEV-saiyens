@@ -80,7 +80,7 @@ export default function JobPublish() {
         subtitle="Décris le poste et les compétences à prouver : les candidats voient tout de suite où ils en sont."
       />
 
-      <div className="mt-6 flex flex-col gap-6 rounded-[20px] bg-surface-1 p-4 sm:p-6">
+      <div className="mt-6 flex flex-col gap-6 rounded-[10px] bg-surface-1 p-4 sm:p-6">
         <Field label="Entreprise" hint="Comptes entreprise de démonstration.">
           <div className="flex flex-wrap gap-2">
             {COMPANIES.map((x) => (
@@ -224,7 +224,7 @@ export default function JobPublish() {
           </Field>
         </div>
 
-        <section className="rounded-[12px] bg-canvas p-4">
+        <section className="rounded-[8px] bg-canvas p-4">
           <h2 className="flex items-center gap-2 text-[14px] font-semibold text-fg">
             <ShieldCheck className="size-4 text-accent-text" />
             Compétences à prouver

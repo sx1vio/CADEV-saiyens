@@ -127,7 +127,7 @@ export function QuestionCard({
       onMouseEnter={() => preload.question(q.id)}
       onFocus={() => preload.question(q.id)}
       className={cn(
-        'group block rounded-[20px] bg-surface-1 px-4 pt-3 pb-3.5 transition-colors duration-100  hover:bg-surface-2',
+        'group block rounded-[10px] bg-surface-1 px-4 pt-3 pb-3.5 transition-colors duration-100  hover:bg-surface-2',
         className,
       )}
     >
@@ -167,8 +167,7 @@ export function QuestionCard({
       {snippet && (
         <pre
           className={cn(
-            'mt-2 overflow-hidden rounded-[10px] border-l-[3px] bg-canvas px-3 py-2 font-mono text-[12.5px] leading-relaxed whitespace-pre-wrap text-muted',
-            resolved ? 'border-success/70' : urgent ? 'border-danger/80' : 'border-accent/70',
+            'mt-2 overflow-hidden rounded-[8px] bg-surface-1 px-3 py-2 font-mono text-[12.5px] leading-relaxed whitespace-pre-wrap text-muted',
           )}
         >
           <span className="line-clamp-2">{snippet}</span>
@@ -232,7 +231,7 @@ export function RoomCard({ room, className }: { room: RoomListItem; className?: 
           <RoomIcon
             room={room}
             size={52}
-            className="rounded-[14px] ring-4 ring-surface-1 group-hover:ring-surface-2"
+            className="rounded-[10px] ring-4 ring-surface-1 group-hover:ring-surface-2"
           />
           <h3 className="truncate pb-1 text-[16px] font-semibold tracking-tight text-fg">
             {room.name}
@@ -490,7 +489,7 @@ export function PageHeader({
     >
       <div className="min-w-0">
         {eyebrow && <p className="mb-1 text-[14px] font-medium text-muted">{eyebrow}</p>}
-        <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.045em] text-fg sm:text-[42px]">
+        <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.02em] text-fg sm:text-[42px]">
           {title}
         </h1>
         {subtitle && <p className="mt-2 max-w-2xl text-[14px] text-muted">{subtitle}</p>}

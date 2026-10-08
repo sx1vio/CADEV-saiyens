@@ -54,7 +54,7 @@ export default function PostPage() {
         </button>
         <PostCard post={post} />
 
-        <section className="mt-4 rounded-[20px] bg-surface-1 p-4">
+        <section className="mt-4 rounded-[10px] bg-surface-1 p-4">
           {me ? (
             <form
               onSubmit={(e) => {
@@ -106,7 +106,7 @@ export default function PostPage() {
       </div>
 
       <aside className="hidden w-[316px] shrink-0 flex-col gap-4 lg:flex">
-        <section className="overflow-hidden rounded-[20px] bg-surface-1">
+        <section className="overflow-hidden rounded-[10px] bg-surface-1">
           <div className="h-12" style={{ background: c.color }} />
           <div className="p-4">
             <div className="-mt-9 mb-2">
@@ -159,7 +159,7 @@ function Thread({ comment, all, depth }: { comment: Comment; all: Comment[]; dep
   const children = all.filter((c) => c.parentId === comment.id);
   const p = person(comment.author);
   return (
-    <li className={cn('relative', depth > 0 && 'ml-4 border-l-2 border-line pl-3 sm:ml-6')}>
+    <li className={cn('relative', depth > 0 && 'ml-6 sm:ml-9')}>
       <div className="flex gap-2.5 pt-3">
         <PersonAvatar handle={comment.author} size={28} />
         <div className="min-w-0 flex-1">

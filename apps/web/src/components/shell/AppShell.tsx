@@ -32,36 +32,21 @@ import { useSession, useUI } from '@/stores/app';
 import { serverLogout } from '@/platform/auth';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
-import { ADMIN_NAV, MAIN_NAV, NETWORK_NAV, SERVICES_NAV, type NavEntry } from './nav';
+import { ADMIN_NAV, CREATE_NAV, EXPLORE_NAV, MAIN_NAV, type NavEntry } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
+import { Logo as Wordmark } from './PublicShell';
 import * as Popover from '@radix-ui/react-popover';
 
 /* ================================================================
-   Charte « Drivery » : barre latérale noire flottante, entrées en pilules
-   gris anthracite, entrée active lavande, badges rouges.
+   Shell connecté (docs/front/design-system.md) : barre latérale à plat,
+   sans rayon ; entrée active en encre ; l’accent reste rare.
    ================================================================ */
 
-function Logo({ dark = true }: { dark?: boolean }) {
+/** Logo cliquable vers l’accueil. */
+function Logo() {
   return (
-    <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="DevHub Africa, accueil">
-      <span className="grid size-8 place-items-center rounded-[10px] bg-accent-strong text-white">
-        <svg viewBox="0 0 64 64" className="size-[22px]" aria-hidden>
-          <path
-            d="M24 20 14 32l10 12M40 20l10 12-10 12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx="32" cy="32" r="5" fill="currentColor" />
-        </svg>
-      </span>
-      <span
-        className={cn('text-[19px] font-bold tracking-[-0.03em]', dark ? 'text-white' : 'text-fg')}
-      >
-        DevHub
-      </span>
+    <Link to="/" className="flex shrink-0 items-center" aria-label="DevHub, accueil">
+      <Wordmark />
     </Link>
   );
 }
@@ -117,7 +102,7 @@ function CreateSheet({
               onOpenChange(false);
               a.run();
             }}
-            className="flex items-center gap-3 rounded-[16px] bg-surface-1 px-3 py-3 text-left hover:bg-surface-2"
+            className="flex items-center gap-3 rounded-[10px] bg-surface-1 px-3 py-3 text-left hover:bg-surface-2"
           >
             <span className="grid size-10 place-items-center rounded-full bg-canvas text-fg">
               <a.icon className="size-5" />
@@ -162,11 +147,9 @@ function SideItem({
       data-tour={entry.tour}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex items-center gap-3 rounded-[12px] pr-1.5 pl-3 text-[13.5px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent',
+        'flex items-center gap-3 rounded-[8px] pr-1.5 pl-3 text-[13.5px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent',
         tall ? 'h-11' : 'h-9',
-        active
-          ? 'bg-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
-          : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+        active ? 'lg-tint' : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
       )}
     >
       <Icon className="size-[18px] shrink-0" />
@@ -198,22 +181,21 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const help = home?.openInMyStacks.length ?? 0;
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   const drawer = !!onNavigate;
-  // Quatre groupes titrés : on sait où chercher sans tout lire.
+  // Trois groupes : l'essentiel, puis Explorer et Créer.
   const groups: NavGroup[] = [
     { items: MAIN_NAV },
-    { label: 'Services', items: SERVICES_NAV.filter((e) => !CREATE_PATHS.includes(e.to)) },
-    { label: 'Créer', items: SERVICES_NAV.filter((e) => CREATE_PATHS.includes(e.to)) },
-    { label: 'Réseau', items: [...NETWORK_NAV, ...(me?.isAdmin ? [ADMIN_NAV] : [])] },
+    { label: 'Explorer', items: EXPLORE_NAV },
+    { label: 'Créer', items: [...CREATE_NAV, ...(me?.isAdmin ? [ADMIN_NAV] : [])] },
   ];
   const iconBtn =
     'relative grid size-9 place-items-center rounded-full text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-2 focus-visible:outline-accent';
 
   return (
-    <div data-tour="nav" className="dh-ink flex h-full flex-col rounded-[28px] p-3">
+    <div data-tour="nav" className="dh-ink flex h-full flex-col rounded-[10px] p-3">
       {/* Marque et notifications */}
       <div className="flex items-center gap-1 px-2 pt-2 pb-4">
         <Link to="/" onClick={onNavigate} aria-label="DevHub, accueil" className="mr-auto">
-          <Logo />
+          <Wordmark className="text-white" />
         </Link>
         {me && (
           <Notifications
@@ -256,7 +238,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             setPalette(true);
           }}
           data-tour="palette"
-          className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[12px] border border-white/[0.06] bg-white/[0.06] px-3 text-left text-[13px] text-white/50 transition-colors hover:bg-white/[0.09] hover:text-white/80"
+          className="lg-clear flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-3.5 text-left text-[13px] !text-white/60"
         >
           <Search className="size-4 shrink-0" />
           <span className="flex-1 truncate" title={isMac ? '⌘K' : 'Ctrl K'}>
@@ -271,7 +253,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 aria-label="Créer"
                 data-tour="ask"
-                className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-accent-strong text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:bg-accent-hover"
+                className="lg-tint grid size-10 shrink-0 place-items-center rounded-full"
               >
                 <Plus className="size-5" />
               </button>
@@ -299,9 +281,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             className="flex flex-col gap-0.5"
           >
             {g.label && (
-              <p className="px-3 pb-1 text-[11px] font-semibold tracking-[0.08em] text-white/40 uppercase">
-                {g.label}
-              </p>
+              <p className="px-3 pb-1 text-[12px] font-medium text-white/45">{g.label}</p>
             )}
             {g.items.map((e) => (
               <SideItem
@@ -319,7 +299,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Action clé de la plateforme, en encart (seulement s'il reste de la hauteur) */}
       {me && (
-        <div className="dh-glow mt-3 hidden rounded-[18px] p-3.5 [@media(min-height:1000px)]:block">
+        <div className="dh-glow mt-3 hidden rounded-[10px] p-3.5 [@media(min-height:1000px)]:block">
           <p className="text-[13.5px] leading-snug font-semibold">Bloqué sur un bug ?</p>
           <p className="mt-0.5 text-[12px] leading-snug text-white/80">
             Une piste en quelques secondes, puis un dev qui a déjà résolu le même problème.
@@ -330,7 +310,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               onNavigate?.();
               setAsk(true);
             }}
-            className="mt-3 flex h-8 w-full items-center justify-center gap-1.5 rounded-full bg-white/95 text-[12.5px] font-semibold text-[#3b2f8f] transition-colors hover:bg-white"
+            className="lg-clear mt-3 flex h-8 w-full items-center justify-center gap-1.5 rounded-full text-[12.5px] font-semibold"
           >
             <Zap className="size-3.5" />
             Demander de l’aide
@@ -346,7 +326,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               <button
                 type="button"
                 data-tour="passport"
-                className="flex w-full items-center gap-3 rounded-[14px] p-2 text-left transition-colors hover:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-accent"
+                className="flex w-full items-center gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-accent"
               >
                 <Avatar name={me.displayName} src={me.avatarUrl} size={36} />
                 <span className="min-w-0 flex-1">
@@ -362,7 +342,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ) : (
           <Link
             to="/connexion"
-            className="flex h-10 items-center justify-center rounded-[12px] bg-accent-strong text-[13.5px] font-semibold text-white"
+            className="flex h-10 items-center justify-center rounded-[8px] bg-accent-strong text-[13.5px] font-semibold text-white"
           >
             {t('nav.login')}
           </Link>
@@ -371,9 +351,6 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     </div>
   );
 }
-
-/** Entrées du groupe « Créer » (les autres services vont dans « Services »). */
-const CREATE_PATHS = ['/creer', '/templates', '/projets'];
 
 /** Barre du haut mobile et tablette (la barre latérale passe dans un tiroir). */
 function MobileTop({ onMenu }: { onMenu: () => void }) {
@@ -390,7 +367,7 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
         >
           <Menu className="size-5" />
         </button>
-        <Logo dark={false} />
+        <Logo />
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
@@ -446,7 +423,7 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
           align="end"
           side="right"
           sideOffset={12}
-          className="dh-pop z-[60] w-[min(380px,calc(100vw-24px))] rounded-[20px] bg-canvas shadow-lg"
+          className="dh-pop z-[60] w-[min(380px,calc(100vw-24px))] rounded-[10px] bg-canvas shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="text-sm font-semibold text-fg">{t('nav.notifications')}</p>
@@ -461,7 +438,7 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
                   <button
                     type="button"
                     onClick={() => nav(href(n.payload))}
-                    className="flex w-full items-start gap-3 rounded-[14px] px-3 py-2.5 text-left transition-colors hover:bg-surface-1"
+                    className="flex w-full items-start gap-3 rounded-[10px] px-3 py-2.5 text-left transition-colors hover:bg-surface-1"
                   >
                     <span
                       className={cn(
@@ -607,11 +584,11 @@ function DemoSwitcher() {
    ================================================================ */
 
 function TabBar({ onCreate }: { onCreate: () => void }) {
-  const tabs = [MAIN_NAV[0], SERVICES_NAV[0], null, SERVICES_NAV[4], SERVICES_NAV[3]];
+  const tabs = [MAIN_NAV[0], MAIN_NAV[3], null, EXPLORE_NAV[2], EXPLORE_NAV[1]];
   return (
     <nav
       aria-label="Navigation"
-      className="fixed inset-x-3 bottom-3 z-40 dh-ink rounded-[24px] pb-safe shadow-lg sm:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 dh-ink rounded-[10px] pb-safe shadow-lg sm:hidden"
     >
       <div className="grid h-16 grid-cols-5 items-center">
         {tabs.map((tab) =>

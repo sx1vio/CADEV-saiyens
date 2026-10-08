@@ -32,7 +32,7 @@ export function CommunityList() {
           return (
             <div
               key={c.slug}
-              className="flex gap-3 rounded-[20px] bg-surface-1 p-4 transition-colors "
+              className="flex gap-3 rounded-[10px] bg-surface-1 p-4 transition-colors "
             >
               <CommunityIcon slug={c.slug} size={48} />
               <div className="min-w-0 flex-1">
@@ -106,7 +106,7 @@ export default function CommunityPage() {
             {posts.length ? (
               posts.map((p) => <PostCard key={p.id} post={p} />)
             ) : (
-              <p className="rounded-[20px] bg-surface-1 p-8 text-center text-muted">
+              <p className="rounded-[10px] bg-surface-1 p-8 text-center text-muted">
                 Pas encore de post ici. Sois le premier.
               </p>
             )}

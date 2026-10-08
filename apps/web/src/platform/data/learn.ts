@@ -142,7 +142,7 @@ export const PATHS: LearnPath[] = [
     tagline: 'Cadrer un agent de code, relire ses changements et livrer sans dette.',
     level: 'intermediaire',
     hours: 12,
-    color: '#8b7cf8',
+    color: '#3b5bdb',
     icon: 'sparkles',
     learners: 11230,
     certId: 'dev-avec-ia',
