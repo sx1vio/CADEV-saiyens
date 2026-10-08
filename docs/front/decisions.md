@@ -293,3 +293,15 @@ Leviers appliqués :
 4. **Matière « Retail-X »** appliquée par les tokens, donc à toute la plateforme : police **Plus Jakarta Sans** (27 Ko, remplace Inter), fond gris très clair `#f2f3f7`, **cartes blanches** à ombre douce (`.dh-card`), surfaces sombres en **ardoise texturée** (`.dh-ink` : reflet et liseré) au lieu du noir plat, carte d’accent en dégradé lavande → bleu (`.dh-glow`), **trait d’accent** devant les titres de section (`.dh-title-bar`), titres de page ramenés de 42 à 32 px. La barre latérale ne met plus une pilule grise derrière chaque entrée : seule l’entrée active est colorée.
 
 5. **Barre latérale** (08/10/2026, soir) : quatre groupes titrés au lieu de 17 entrées à plat ; notifications en icône à côté du logo ; une seule carte compte en bas (son menu porte profil, réglages, thème, langue et déconnexion) ; fondu au lieu de la coupe nette quand la liste défile ; encart d’aide affiché seulement si la hauteur le permet (≥ 1 000 px).
+
+## 16. Système de design v2 : éditorial, bleu, verre sur les boutons (08/10/2026)
+
+> Sylvio colle une critique : « trop de cartes, trop de violet, trop arrondi, ressemble à un dashboard SaaS généré par IA ; viser un réseau social éditorial pour développeurs, avec la précision d’un outil ». Puis : « bleu nuit – bleu roi partout au lieu du violet » ; « jamais cette mini bande, nulle part, jamais » ; « tous les boutons du site en glassmorphisme (Liquid Glass d’Apple), toujours en bleu » ; « cartes trop grandes, slop » ; « on ne lit pas les trucs avec la carte comme ça ».
+
+1. **Un système avant les écrans** : `docs/front/design-system.md` fixe couleurs, typographie, espacements, rayons, ombres, composants, états et responsive.
+2. **Fil éditorial** : publications séparées par des lignes, plus de cartes ; favicon réel de la source (le « 0 » de 01net ressemblait à une donnée cassée) ; titre 19 px ; image au ratio 2:1 ; actions **Discuter** (lance une discussion DevHub préremplie) · Enregistrer · Partager. La critique proposait des « J’aime » : écartés, Sylvio avait demandé « pas les likes, réactions ».
+3. **Bleu nuit / bleu roi** à la place du violet, jusqu’aux icônes de l’application.
+4. **Aucune petite bande** : barre de progression en haut de page, liserés, traits devant les titres, soulignements d’onglets et tiret du logo supprimés ; règle inscrite dans le système.
+5. **Liquid Glass sur les boutons** (seule exception au « plat ») : verre teinté bleu roi pour l’action principale, verre clair pour les autres, en capsule comme les commandes d’Apple ; repli en aplat si l’utilisateur réduit la transparence.
+6. **Rayons plafonnés à 12 px** (sauf capsules et avatars), police **Inter** + **JetBrains Mono** pour les métadonnées techniques, logo `devhub` en monospace.
+7. **Chiffres clés compacts** et **sélections lisibles** (fond bleu léger et contour bleu roi au lieu d’un fond noir sous un texte sombre).

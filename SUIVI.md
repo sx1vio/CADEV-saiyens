@@ -145,6 +145,20 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 08/10/2026 (nuit) — Système de design v2 : éditorial, bleu nuit / bleu roi, Liquid Glass sur les boutons
+
+- **Demandes de Sylvio** : une critique collée (« trop de cartes, trop de violet, trop arrondi, look dashboard SaaS IA ; viser un réseau social éditorial ») ; « bleu nuit – bleu roi partout au lieu du violet » ; « jamais cette mini bande, nulle part, jamais » ; « tous les boutons en glassmorphisme (Liquid Glass d’Apple), toujours en bleu » ; « cartes trop grandes, slop » ; « on ne lit pas les trucs avec la carte comme ça » (carte sélectionnée du guide IA).
+- **Système** écrit avant le code : `docs/front/design-system.md` ; décision 16.
+- **Couleurs** : tokens bleu nuit / bleu roi (clair et sombre), violets en dur remplacés, icônes PWA et favicon redessinés (chevron blanc sur bleu nuit).
+- **Mini bandes supprimées** : barre de progression en haut de page, liseré des extraits de code et des citations, trait devant les titres, soulignements d’onglets, filets des fils de commentaires et du guide, tiret du logo ; code mort des « coins inversés » retiré.
+- **Liquid Glass** : classes `.lg-tint`, `.lg-clear`, `.lg-ghost` ; composant Bouton, pastilles, onglets, barre latérale, actions du fil ; replis d’accessibilité (transparence réduite, contraste élevé, mouvement réduit).
+- **Formes** : rayons plafonnés à 12 px dans tout le code (capsules et avatars exceptés) ; boutons en capsule ; police Inter + JetBrains Mono ; logo `devhub` en monospace.
+- **Navigation** : trois groupes (l’essentiel : Accueil, Entraide, Communautés, Emplois · Explorer · Créer) ; Classement accessible depuis Développeurs et Ctrl K.
+- **Accueil** : fil sans cartes, favicon réel des sources, actions Discuter (formulaire prérempli) · Enregistrer · Partager, recherche par sujet (`/?q=`), rail Tendances (comptées sur les vrais titres) · Ça discute (Hacker News) · Emplois.
+- **Chiffres clés** compacts partout ; **guide IA** : sélection lisible.
+- **Vérifié** : captures accueil, emplois, classement, guide, connexion ; aucune erreur JS ; typecheck, lint, build.
+- **Pas encore vérifié** : thème sombre ; les autres écrans gardent des blocs teintés (à revoir écran par écran avec le système).
+
 ### 08/10/2026 (soir) — Barre latérale retravaillée
 
 - **Demande de Sylvio** (capture de la barre) : « améliore la barre latérale » (skills ui-ux-pro-max et ui-styling).
