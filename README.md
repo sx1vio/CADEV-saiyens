@@ -14,12 +14,14 @@ GitHub montre ce que tu as construit. DevHub Africa montre ce que tu sais faire,
 
 ## État du projet
 
-🚧 **En développement (8 octobre 2026).** API NestJS en place : connexion GitHub, sessions, profil importé depuis GitHub, compétences, Proof XP et leurs garde-fous. Le front PWA est en revue. Pas encore déployé sur Systalink. Avancement détaillé : [organisation de l'équipe](docs/equipe/organisation.md#réaffectations-et-avancement). Gel du code le 22 octobre, soumission le 24 octobre.
+🚧 **En développement (8 octobre 2026, Jalon 1).** API NestJS en place : connexion GitHub, sessions, profil importé depuis GitHub, compétences, Proof XP et leurs garde-fous, piste IA (S2). Le front PWA est en revue. Pas encore déployé sur Systalink. État détaillé : [`context.md`](context.md), [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md) et [avancement par personne](docs/equipe/organisation.md#réaffectations-et-avancement). Gel du code le 22 octobre, soumission le 24 octobre.
 
 ## Documentation
 
 Tout est dans [`docs/`](docs/README.md) :
 
+- [`context.md`](context.md) : la source de vérité partagée, à lire en premier
+- [Guide de démarrage](docs/guides/demarrage.md)
 - [Vue d'ensemble de l'architecture](docs/architecture/00-vue-ensemble.md)
 - [Décisions d'architecture (ADR)](docs/adr/README.md)
 - [Organisation de l'équipe](docs/equipe/organisation.md) et [workflow Git](docs/equipe/workflow-git.md)
@@ -53,18 +55,20 @@ Prérequis : **Node.js 24**, **pnpm 10** (`corepack enable`), **Docker**.
 ```bash
 git clone git@github.com:sx1vio/CADEV-saiyens.git
 cd CADEV-saiyens
-cp .env.example .env            # puis remplir les valeurs de développement
+cp .env.example .env            # puis SESSION_SECRET, TOKEN_ENCRYPTION_KEY, AUTH_FAKE_PROVIDER=true
 pnpm install
-docker compose -f infra/docker-compose.dev.yml up -d   # PostgreSQL local
-pnpm db:migrate
+docker compose -f infra/docker-compose.dev.yml up -d   # PostgreSQL et Mailpit
+pnpm --filter @devhub/api exec prisma migrate deploy
 pnpm db:seed
-pnpm dev                         # API, worker et front
+pnpm --filter @devhub/api dev                          # API
+pnpm --filter @devhub/api dev:worker                   # worker (autre terminal)
 ```
 
-- Front : http://localhost:5173
 - API : http://localhost:3000/api/v1, documentation OpenAPI sur `/api/docs`
+- Connexion sans application GitHub : http://localhost:3000/api/v1/auth/github?login=awa-dev
+- Front : http://localhost:5173, une fois `apps/web` fusionné (PR #97)
 
-> Les commandes `pnpm dev`, `db:migrate` et `db:seed` fonctionneront dès que les applications seront initialisées (6 et 7 octobre).
+Chaque étape est détaillée, avec les problèmes fréquents, dans le [guide de démarrage](docs/guides/demarrage.md).
 
 ## Contribuer
 
