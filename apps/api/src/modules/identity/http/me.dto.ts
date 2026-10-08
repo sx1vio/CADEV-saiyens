@@ -21,6 +21,18 @@ export const MeResponse = z.object({
   isAdmin: z.boolean(),
   isDemo: z.boolean(),
   createdAt: z.iso.datetime(),
+  /** PR11 : signaux de confiance, dérivés de données vérifiables. */
+  trust: z.object({
+    githubLinked: z.boolean(),
+    githubAccountYears: z.number().int().nonnegative().nullable(),
+    emailVerified: z.boolean(),
+    demo: z.boolean(),
+    founder: z.boolean(),
+  }),
 });
 export type MeResponse = z.infer<typeof MeResponse>;
 export class MeResponseDto extends createZodDto(MeResponse) {}
+
+export const CodeOfConductResponse = z.object({ codeOfConductAcceptedAt: z.iso.datetime() });
+export type CodeOfConductResponse = z.infer<typeof CodeOfConductResponse>;
+export class CodeOfConductResponseDto extends createZodDto(CodeOfConductResponse) {}
