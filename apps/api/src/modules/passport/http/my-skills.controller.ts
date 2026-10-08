@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { GithubApiError } from '../../github';
 import { type AuthenticatedUser, CurrentUser, SessionGuard } from '../../identity';
 import {
   GithubNotLinkedError,
@@ -74,6 +75,16 @@ export class MySkillsController {
           code: 'github.not_linked',
           title: 'No GitHub account linked',
         });
+      }
+      if (err instanceof GithubApiError && err.tokenRevoked) {
+        throw new UnprocessableEntityException({
+          code: 'github.token_revoked',
+          title: 'GitHub access revoked, sign in again',
+        });
+      }
+      if (err instanceof GithubApiError && err.rateLimitResetAt) {
+        const seconds = Math.ceil((err.rateLimitResetAt.getTime() - Date.now()) / 1000);
+        res.setHeader('Retry-After', String(Math.max(1, seconds)));
       }
       throw new ServiceUnavailableException({
         code: 'github.unavailable',

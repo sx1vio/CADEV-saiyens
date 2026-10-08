@@ -8,8 +8,19 @@ export class GithubApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    /** Fin de la fenêtre de quota si GitHub l'a épuisée (403 ou 429 avec X-RateLimit-Remaining: 0). */
+    readonly rateLimitResetAt: Date | null = null,
   ) {
     super(message);
+  }
+
+  /** Jeton révoqué ou expiré : réessayer ne sert à rien, l'utilisateur doit se reconnecter. */
+  get tokenRevoked(): boolean {
+    return this.status === 401;
+  }
+
+  get rateLimited(): boolean {
+    return this.rateLimitResetAt !== null;
   }
 }
 
@@ -29,7 +40,8 @@ export class GithubHttpClient implements GithubApi {
     for (let page = 1; page <= MAX_PAGES; page++) {
       const batch = await this.get<RawRepo[]>(
         token,
-        `/user/repos?type=owner&visibility=public&sort=pushed&direction=desc&per_page=100&page=${page}`,
+        // `type` est incompatible avec `visibility` (GitHub répond 422) : on filtre par `affiliation`.
+        `/user/repos?affiliation=owner&visibility=public&sort=pushed&direction=desc&per_page=100&page=${page}`,
       );
       repos.push(
         ...batch.map((r) => ({
@@ -60,9 +72,14 @@ export class GithubHttpClient implements GithubApi {
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!response.ok) {
+      const exhausted =
+        (response.status === 403 || response.status === 429) &&
+        response.headers.get('x-ratelimit-remaining') === '0';
+      const reset = Number(response.headers.get('x-ratelimit-reset'));
       throw new GithubApiError(
         `GitHub a répondu ${response.status} sur ${path.split('?')[0]}`,
         response.status,
+        exhausted && reset > 0 ? new Date(reset * 1000) : null,
       );
     }
     return (await response.json()) as T;
