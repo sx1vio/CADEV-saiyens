@@ -29,6 +29,12 @@ export const EnvSchema = z
       .enum(['true', 'false'])
       .default('false')
       .transform((v) => v === 'true'),
+    // IA (docs/architecture/09-ia-integrations.md). Sans clé : faux modèle en développement,
+    // IA désactivée en production (ai_status = skipped).
+    LLM_API_KEY: optional(z.string()),
+    LLM_MODEL: z.string().min(1).default('claude-sonnet-5-5'),
+    LLM_HOURLY_QUOTA_PER_USER: z.coerce.number().int().nonnegative().default(10),
+    LLM_HINT_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   })
   .refine((env) => !(env.NODE_ENV === 'production' && env.AUTH_FAKE_PROVIDER), {
     message: 'AUTH_FAKE_PROVIDER est interdit en production',
