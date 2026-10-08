@@ -76,7 +76,7 @@ Toute sortie de l'IA est rendue par le composant `AiContent` avec la mention **�
 
 ### Implémentation de la piste IA (S2)
 
-> État au 9 octobre 2026 : module `apps/api/src/modules/ai`, branche `feat/ai-hint`. Propriétaire : Joachim (rôle 5).
+> État au 8 octobre 2026 : module `apps/api/src/modules/ai`, branche `feat/ai-hint`. Propriétaire : Joachim (rôle 5).
 
 | Fichier                                   | Rôle                                                                                                                                       |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
