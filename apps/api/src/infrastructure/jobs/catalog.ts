@@ -9,6 +9,12 @@ export const JOBS = {
     payload: z.object({ userId: z.uuid() }),
     options: { retryLimit: 3, retryDelay: 30, retryBackoff: true, expireInSeconds: 120 },
   },
+  /** S2 : piste IA d'une question. Envoyé par S1 après la création ; 10 s puis ai_status = failed. */
+  aiHint: {
+    name: 'ai.hint',
+    payload: z.object({ questionId: z.uuid() }),
+    options: { retryLimit: 1, retryDelay: 5, expireInSeconds: 30 },
+  },
 } as const;
 
 export type JobName = (typeof JOBS)[keyof typeof JOBS]['name'];

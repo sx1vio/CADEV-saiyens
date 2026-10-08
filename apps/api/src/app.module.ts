@@ -10,6 +10,7 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
+import { AiModule } from './modules/ai';
 import { ReputationModule } from './modules/reputation';
 
 // Les modules métier (identity, sos, rooms…) s'ajoutent ici : docs/architecture/02-backend.md
@@ -37,6 +38,7 @@ import { ReputationModule } from './modules/reputation';
     IdentityModule,
     PassportModule,
     ReputationModule,
+    AiModule,
   ],
   controllers: [HealthController],
   providers: [
