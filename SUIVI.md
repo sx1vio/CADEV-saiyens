@@ -65,7 +65,8 @@ Questions auxquelles la plateforme doit répondre :
 - [ ] Dette technique : 26 avertissements oxlint (règles React : pureté, setState dans effet, exports mixtes)
 - [ ] Écrire les tests Playwright du parcours dans le dépôt (aujourd'hui dans un script local) + CI
 - [ ] Phase 4 : audit du mouvement, audit d'accessibilité, revue de code
-- [ ] Redessiner dans le nouveau style : entraide (question), projets et salle, profil (façon GitHub), découvrir, classement, accueil public, connexion (GitHub, GitLab, Google)
+- [ ] Vérifier le thème sombre avec la matière « Retail-X » (08/10/2026)
+- [ ] Redessiner dans le nouveau style : entraide (question), projets et salle, découvrir, classement
 - [ ] Traduire les nouveaux services en anglais (i18n)
 - [ ] Définir avec le rôle 2 l'API des nouveaux services (posts, commentaires, offres, candidatures, certifications, skills, vidéos, parcours)
 - [ ] Prévenir l'équipe du pivot de périmètre (décision §11)
@@ -76,6 +77,7 @@ Questions auxquelles la plateforme doit répondre :
 
 ## Fait
 
+- [x] Accueil en fil unique façon Facebook, landing et connexion/inscription épurées, matière « Retail-X » sur toute la plateforme (08/10/2026)
 - [x] Front déplacé dans `apps/web` du monorepo, branché sur l’API NestJS ; backend Fastify porté en module `news` (08/10/2026)
 - [x] Premier commit et push de `sylvio-frontend` (06/10/2026)
 - [x] Suppression des fichiers `*:Zone.Identifier` + `.gitignore` racine (06/10/2026)
@@ -142,6 +144,17 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 08/10/2026 (après-midi) — Fil façon Facebook, landing et connexion épurées, matière « Retail-X »
+
+- **Demandes de Sylvio** : (1) avec une capture du tableau de bord « Retail-X » : « garde le design actuel de ma plateforme, mais utilise les polices, espacements et textures de cette image ; ma plateforme est trop plate ; aménage la landing page, les écrans de connexion et d’inscription ; je veux que ma plateforme soit la plus pro » ; (2) avec une capture de l’accueil : « un fil d’actualité style Facebook (pas les likes, réactions et autres) ; tel que c’est, c’est trop mélangé, farfelu, chargé ; pareil pour la landing et la connexion ; tu balances beaucoup trop d’infos en même temps ».
+- **Branche** `feat/web-calm-ui`, partie de `feat/web-platform` (PR #96).
+- **Accueil** réécrit (`pages/Feed.tsx`) : fil unique en une colonne, publication au format unique (source, titre, extrait, image, Lire · Enregistrer · Partager), sans réactions, cinq onglets, défilement infini, carte « En bref » à droite. Barre « Quoi de neuf ? » avec « Je suis bloqué » et « Partager un projet ».
+- **Landing** réécrite : promesse, un vrai article en aperçu, deux boutons, trois idées, appel final. En-tête public : trois liens, « Se connecter », « Créer un compte » ; langue et thème déplacés dans le pied de page.
+- **Connexion / inscription** : nouvelle route `/inscription` ; un titre, une phrase, GitHub, « Visiter sans compte », « Autres méthodes » replié ; plus d’en-tête public sur ces écrans.
+- **Matière « Retail-X »** (tokens, donc toutes les pages) : Plus Jakarta Sans, fond gris clair, cartes blanches à ombre douce, ardoise texturée pour les surfaces sombres, dégradé lavande → bleu, trait d’accent devant les titres, titres de page plus petits, barre latérale allégée. Détails : `docs/front/decisions.md` §15.
+- **Vérifié** : captures 1440 et 390 px (landing, connexion, inscription, accueil, emplois, entraide, profil), aucune erreur JS ; format, lint (0 erreur), typecheck, build.
+- **Pas encore vérifié** : le thème sombre avec les nouveaux tokens.
 
 ### 08/10/2026 — Intégration à `main` : front dans le monorepo, actualités dans l’API NestJS
 
