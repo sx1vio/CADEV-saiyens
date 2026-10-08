@@ -1,7 +1,13 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { MeResponseDto, type MeResponse } from './me.dto';
+import { trustSignals } from '../domain/trust';
+import {
+  type CodeOfConductResponse,
+  CodeOfConductResponseDto,
+  MeResponseDto,
+  type MeResponse,
+} from './me.dto';
 import { type AuthenticatedUser, CurrentUser, SessionGuard } from './session.guard';
 
 @Controller('api/v1/me')
@@ -32,6 +38,28 @@ export class MeController {
       isAdmin: u.isAdmin,
       isDemo: u.isDemo,
       createdAt: u.createdAt.toISOString(),
+      trust: trustSignals(u, new Date()),
     };
+  }
+
+  /**
+   * M3 : acceptation du code de conduite à la première connexion. Idempotent :
+   * la date de la première acceptation est conservée.
+   */
+  @Post('code-of-conduct')
+  @HttpCode(200)
+  @ApiOkResponse({ type: CodeOfConductResponseDto })
+  async acceptCodeOfConduct(
+    @CurrentUser() auth: AuthenticatedUser,
+  ): Promise<CodeOfConductResponse> {
+    await this.prisma.user.updateMany({
+      where: { id: auth.userId, cocAcceptedAt: null },
+      data: { cocAcceptedAt: new Date() },
+    });
+    const u = await this.prisma.user.findUniqueOrThrow({
+      where: { id: auth.userId },
+      select: { cocAcceptedAt: true },
+    });
+    return { codeOfConductAcceptedAt: u.cocAcceptedAt!.toISOString() };
   }
 }
