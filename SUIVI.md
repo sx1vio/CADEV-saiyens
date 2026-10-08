@@ -145,6 +145,11 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 08/10/2026 (nuit, suite) — Écran d'erreur
+
+- **Signalé par Sylvio** (capture) : « Unexpected Application Error » — le module `newsui.tsx` servi vide par Vite (cache du rechargement à chaud pris pendant une réécriture du fichier). Pas un bug du code : serveur de dev redémarré avec son cache vidé, pages revérifiées sans erreur.
+- **Amélioration** : écran d'erreur de route propre (« Cette page n’a pas pu s’afficher », boutons Recharger et Accueil, détail technique seulement en développement) à la place de l'écran brut de React Router. Utile aussi en production quand une nouvelle version est déployée pendant une session.
+
 ### 08/10/2026 (nuit) — Système de design v2 : éditorial, bleu nuit / bleu roi, Liquid Glass sur les boutons
 
 - **Demandes de Sylvio** : une critique collée (« trop de cartes, trop de violet, trop arrondi, look dashboard SaaS IA ; viser un réseau social éditorial ») ; « bleu nuit – bleu roi partout au lieu du violet » ; « jamais cette mini bande, nulle part, jamais » ; « tous les boutons en glassmorphisme (Liquid Glass d’Apple), toujours en bleu » ; « cartes trop grandes, slop » ; « on ne lit pas les trucs avec la carte comme ça » (carte sélectionnée du guide IA).

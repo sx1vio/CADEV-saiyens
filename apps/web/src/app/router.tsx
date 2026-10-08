@@ -1,4 +1,5 @@
 import {
+  useRouteError,
   createBrowserRouter,
   Navigate,
   Outlet,
@@ -169,9 +170,53 @@ const LandingRoute = () => (
   </Suspense>
 );
 
+/**
+ * Écran d'erreur de route : jamais l'écran brut du routeur. Un module mis à jour pendant
+ * une session (nouvelle version déployée) se règle par un rechargement.
+ */
+function RouteError() {
+  const error = useRouteError();
+  const message = error instanceof Error ? error.message : '';
+  return (
+    <div className="grid min-h-dvh place-items-center bg-canvas px-6">
+      <div className="max-w-md text-center">
+        <p className="font-mono text-[13px] text-subtle">erreur</p>
+        <h1 className="mt-2 text-[24px] font-semibold tracking-[-0.011em] text-fg">
+          Cette page n’a pas pu s’afficher.
+        </h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">
+          Une nouvelle version de DevHub est peut-être disponible. Recharge la page ; si le problème
+          continue, reviens à l’accueil.
+        </p>
+        <div className="mt-6 flex justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="lg-tint h-10 rounded-full px-5 text-[14px] font-semibold"
+          >
+            Recharger
+          </button>
+          <a
+            href="/"
+            className="lg-clear inline-flex h-10 items-center rounded-full px-5 text-[14px] font-semibold"
+          >
+            Accueil
+          </a>
+        </div>
+        {import.meta.env.DEV && message && (
+          <pre className="mt-6 overflow-auto rounded-[8px] bg-surface-1 p-3 text-left font-mono text-[12px] text-muted">
+            {message}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export const router = createBrowserRouter([
   {
     element: <Root />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <IndexSwitch /> },
       { path: 'connexion', lazy: lazy('login') },
