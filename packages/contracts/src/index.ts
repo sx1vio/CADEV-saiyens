@@ -2,3 +2,4 @@
 export * from './errors';
 export * from './me';
 export * from './skills';
+export * from './xp';

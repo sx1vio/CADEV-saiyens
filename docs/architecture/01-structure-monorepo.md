@@ -72,10 +72,11 @@ CADEV-saiyens/
 │   │   └── src/{common,sos,rooms,passport,sync,...}.ts
 │   ├── core/                     # @devhub/core — logique pure partagée, zéro dépendance
 │   │   └── src/
-│   │       ├── secrets/          # motifs de détection et masquage (O9, §6.1)
-│   │       ├── tags/             # dictionnaire erreur → étiquettes (S9)
-│   │       ├── scoring/          # formules matching, XP, scores (testées à 100 %)
-│   │       └── quality/          # jauge de qualité d'une question (S8)
+│   │       ├── secrets/          # maskSecrets() : détection et masquage (O9, §6.1)
+│   │       ├── scoring/          # score de compétence, signaux GitHub (X3)
+│   │       ├── xp/               # barème et garde-fous des Proof XP (X1, X2)
+│   │       ├── tags/             # à venir : dictionnaire erreur → étiquettes (S9)
+│   │       └── quality/          # à venir : jauge de qualité d'une question (S8)
 │   └── config/                   # @devhub/config — tsconfig, eslint, prettier partagés
 │
 ├── infra/
@@ -134,7 +135,11 @@ export type CreateQuestionBody = z.infer<typeof CreateQuestionBody>;
   - `detectTags(errorText)` : suggestions d'étiquettes hors ligne (S9).
   - `questionQuality(draft)` : la jauge de complétude (S8), qui marche hors ligne.
   - `matchScore(...)`, `skillScore(...)`, `xpForEvent(...)` : formules du §6 et des correctifs X3 et X4, pour qu'on puisse les tester unitairement et les afficher sur `/regles`.
-- C'est le paquet le plus testé du projet (objectif : 100 % des branches).
+- C'est le paquet le plus testé du projet : 100 % des branches, fonctions et lignes, seuil bloquant dans sa configuration Vitest.
+
+### Construction des paquets partagés
+
+`@devhub/core` et `@devhub/contracts` sont construits par `tsup` en **double format** : ESM pour le front (Vite) et CommonJS pour l'API (NestJS), avec leurs déclarations de types (`.d.ts` et `.d.cts`). Turborepo les construit avant les applications (`dependsOn: ["^build"]`). En développement, `pnpm --filter @devhub/core dev` reconstruit à chaque modification.
 
 ### `@devhub/config`
 

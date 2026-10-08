@@ -601,27 +601,30 @@ model FeedbackRequest {
 // Une annulation = un nouvel événement kind = revert avec points négatifs et revertsId.
 // reverted_at est la seule colonne modifiable, pour marquer l'événement d'origine.
 model XpEvent {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
-  kind       XpKind
-  points     Int
-  tagId      String?   @map("tag_id") @db.Uuid
-  sourceType String    @map("source_type") // answer | task | feedback_request | room | question
-  sourceId   String    @map("source_id") @db.Uuid
-  revertsId  String?   @unique @map("reverts_id") @db.Uuid
-  revertedAt DateTime? @map("reverted_at") @db.Timestamptz
-  reason     String? // pour les annulations
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  kind          XpKind
+  points        Int
+  tagId         String?   @map("tag_id") @db.Uuid
+  sourceType    String    @map("source_type") // answer | task | feedback_request | room | question
+  sourceId      String    @map("source_id") @db.Uuid
+  /// Autre personne concernée : auteur de la question pour une validation, votant pour un vote (X2, X8).
+  counterpartId String?   @map("counterpart_id") @db.Uuid
+  revertsId     String?   @unique @map("reverts_id") @db.Uuid
+  revertedAt    DateTime? @map("reverted_at") @db.Timestamptz
+  reason        String? // pour les annulations
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
   user    User     @relation(fields: [userId], references: [id])
   tag     Tag?     @relation(fields: [tagId], references: [id])
   reverts XpEvent? @relation("xp_revert", fields: [revertsId], references: [id])
   revert  XpEvent? @relation("xp_revert")
 
-  // Empêche d'attribuer deux fois le même gain pour la même source et la même étiquette.
-  @@unique([userId, kind, sourceType, sourceId, tagId])
+  // Un gain est unique par source, étiquette et contrepartie (index partiel NULLS NOT DISTINCT en SQL).
+  @@unique([userId, kind, sourceType, sourceId, tagId, counterpartId], map: "xp_events_unique_gain")
   @@index([userId, createdAt(sort: Desc)])
   @@index([createdAt])
+  @@index([userId, counterpartId, kind, createdAt])
   @@map("xp_events")
 }
 

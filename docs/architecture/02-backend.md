@@ -93,9 +93,19 @@ export interface QuestionRepository {
   findById(id: QuestionId, tx?: Tx): Promise<Question | null>;
   save(question: Question, tx?: Tx): Promise<void>;
 }
+// Implémenté par AwardXp, exporté par modules/reputation (index.ts).
 export interface ReputationPort {
-  // implémenté par le module reputation
-  awardForAcceptedAnswer(input: AcceptedAnswerAward, tx: Tx): Promise<XpAwardResult>;
+  acceptedAnswer(
+    input: {
+      answerId: string;
+      questionId: string;
+      helperId: string;
+      authorId: string;
+      tagIds: string[];
+      minutesToAccept: number;
+    },
+    tx?: unknown,
+  ): Promise<AwardResult>;
 }
 export interface UnitOfWork {
   run<T>(work: (tx: Tx) => Promise<T>): Promise<T>;
@@ -123,9 +133,10 @@ export class AcceptAnswer {
       await this.questions.save(question, tx);
 
       // XP dans la même transaction : jamais de validation sans XP, ni l'inverse.
-      const award = await this.reputation.awardForAcceptedAnswer(
+      const award = await this.reputation.acceptedAnswer(
         {
           answerId: accepted.answerId,
+          questionId: question.id,
           helperId: accepted.helperId,
           authorId: question.authorId,
           tagIds: question.tagIds,
@@ -143,6 +154,10 @@ export class AcceptAnswer {
 ```
 
 Le test unitaire de ce cas d'usage tourne avec un `InMemoryQuestionRepository`, un faux `ReputationPort` et une horloge fixe, sans base de données.
+
+### API publique du module `reputation` (disponible depuis le 8 octobre)
+
+`AwardXp` (exporté par `modules/reputation`) : `acceptedAnswer`, `helpfulVote`, `taskCompleted`, `codeReviewGiven`, `projectDemoShared`, `revert`. Chaque méthode accepte la transaction Prisma de l'appelant (`tx`) et renvoie `{ events, withheld }`, où `withheld` explique ce qui n'a pas été attribué (`self`, `already_awarded`, `daily_cap`, `pair_weekly_limit`, `voter_too_new`, `vote_cap`). `helpfulVote` rejette `SelfVoteError` (`403 xp.self_vote`).
 
 ## Communication entre modules
 
