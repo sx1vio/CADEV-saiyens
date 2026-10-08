@@ -197,6 +197,19 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `POST /admin/reports/:id/action` | Adm, Id | Masquer, restaurer, annuler des XP, rejeter (journalisé)                                                  | M1, M4  |
 | `GET /admin/audit`               | Adm     | Journal d'audit                                                                                           | M4 (P1) |
 
+### Actualités (`news`)
+
+Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source toujours affichée. Routes publiques en lecture seule, mises en cache par le navigateur et le service worker.
+
+| Méthode et chemin           | Accès | Rôle                                                                                          |
+| --------------------------- | ----- | --------------------------------------------------------------------------------------------- |
+| `GET /news/home?lang=`      | Pub   | Accueil en un appel : à la une, 9 rubriques, vidéos, Hacker News, DEV, dépôts, versions       |
+| `GET /news?category=&kind=` | Pub   | Liste filtrée (`lang`, `q`, `before` pour paginer, `limit` ≤ 100)                             |
+| `GET /videos`               | Pub   | Vidéos YouTube des chaînes suivies (mêmes filtres)                                            |
+| `GET /news/sources`         | Pub   | Sources suivies, nombre d'éléments, dernière publication                                      |
+| `GET /news/status`          | Pub   | Volume indexé et dernière collecte                                                            |
+| `GET /img?u=&w=`            | Pub   | Image d'article redimensionnée en WebP, mise en cache ; adresses privées refusées (anti-SSRF) |
+
 ### Santé (non versionnée)
 
 | Chemin                | Rôle                                                                                      |
