@@ -1,5 +1,5 @@
 import { XP_LIMITS, type XpKind, startOfUtcDay } from '@devhub/core';
-import { type GainRequest, type XpSourceType, planGain } from '../domain/award-plan';
+import { type GainRequest, planGain } from '../domain/award-plan';
 import { SelfVoteError, type WithheldReason, XpEventNotRevertableError } from '../domain/errors';
 import type { LedgerUnitOfWork, StoredXpEvent, XpLedger } from '../domain/ports';
 

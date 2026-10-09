@@ -160,7 +160,7 @@ flowchart LR
 
 | Règle                                              | Pourquoi                                            | Contrôle                                                |
 | -------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
-| `apps/*` ne s'importent jamais entre elles         | Le front et l'API se parlent par HTTP, rien d'autre | ESLint `import/no-restricted-paths`                     |
+| `apps/*` ne s'importent jamais entre elles         | Le front et l'API se parlent par HTTP, rien d'autre | Revue (chaque application a son propre `package.json`)  |
 | `packages/core` n'importe rien d'autre du dépôt    | Reste pur et portable                               | ESLint + absence de dépendances dans son `package.json` |
 | `packages/contracts` n'importe que `core` et `zod` | Pas de code serveur ou navigateur dans le contrat   | Revue + ESLint                                          |
 | Pas de dépendance fantôme                          | Chaque paquet déclare ce qu'il utilise              | pnpm (mode strict par défaut)                           |
