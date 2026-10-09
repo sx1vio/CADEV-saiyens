@@ -1,6 +1,6 @@
 # ADR-0005 : PostgreSQL et Prisma
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1), conforme au code fusionné sur `main`.
 - **Date** : 2026-10-06
 - **Décideurs** : back-end, DevOps
 - **Exigences concernées** : §7, §8, S6, D1, X1

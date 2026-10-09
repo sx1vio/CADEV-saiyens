@@ -16,13 +16,14 @@ Ce document suit l'avancement de chaque exigence du [cahier des charges v3](../C
 
 ## Légende
 
-| Statut     | Sens                                                                      |
-| ---------- | ------------------------------------------------------------------------- |
-| `Terminé`  | Fusionné sur `main`, critère d'acceptation tenu (au moins en local et CI) |
-| `En cours` | Code en cours ou PR ouverte                                               |
-| `À faire`  | Rien de commencé                                                          |
-| `Bloqué`   | Attend une décision ou une autre tâche                                    |
-| `À trier`  | Proposition v3.1 pas encore retenue en revue du périmètre (9 et 15 oct.)  |
+| Statut     | Sens                                                                                                                                            |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Terminé`  | Fusionné sur `main`, critère d'acceptation tenu (au moins en local et CI)                                                                       |
+| `En cours` | Code en cours ou PR ouverte                                                                                                                     |
+| `À faire`  | Rien de commencé                                                                                                                                |
+| `Bloqué`   | Attend une décision ou une autre tâche                                                                                                          |
+| `P2`       | Proposition v3.1 gardée en bonus : seulement si les jalons sont tenus ; gelée le 15 oct. ([ADR-0017](../adr/0017-tri-des-propositions-v3-1.md)) |
+| `Écarté`   | Proposition v3.1 laissée en roadmap : présentée au jury, pas codée ([ADR-0017](../adr/0017-tri-des-propositions-v3-1.md))                       |
 
 Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · **P2** bonus · **MVP+** ajout v3.1 proposé au MVP · **Correctif** correction v3.1 d'une règle du v3.
 
@@ -180,52 +181,52 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ## Propositions v3.1
 
-Toutes sont `À trier` sauf mention contraire, en attendant la revue du périmètre. Les propositions P2 et roadmap de la v3.1 n'ont pas d'issue et ne sont pas suivies ici.
+Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions-v3-1.md) : `À faire` (retenue, avec jalon et responsable), `P2` ou `Écarté`. Les propositions P2 et roadmap de la v3.1 n'ont pas d'issue et ne sont pas suivies ici.
 
 | ID   | Issue | Proposition                                      | Prio      | Statut     | Responsable                   | Référence                               |
 | ---- | ----- | ------------------------------------------------ | --------- | ---------- | ----------------------------- | --------------------------------------- |
 | X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `Terminé`  | Caleb (à la place de Joachim) | #99 (fusionnée)                         |
-| X4   | #53   | Démarrage à froid du matching                    | Correctif | `À trier`  | Florent                       |                                         |
-| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `À trier`  | Florent                       |                                         |
+| X4   | #53   | Démarrage à froid du matching                    | Correctif | `À faire`  | Florent                       |                                         |
+| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `À faire`  | Florent                       |                                         |
 | M2   | #55   | Protection contre l'injection de prompt          | Correctif | `En cours` | Joachim, Emmanuel             | PR #104 (piste IA)                      |
 | O9   | #56   | Masquage des secrets avant la mise en file       | Correctif | `En cours` | Sylvio, Emmanuel              | PR #101 (`maskSecrets`), #104 (côté IA) |
-| PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À trier`  | Caleb                         |                                         |
-| PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À trier`  | Caleb                         |                                         |
-| PR7  | #59   | Barre de score bicolore G + P                    | MVP+      | `À trier`  | Sylvio                        |                                         |
+| PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À faire`  | Caleb                         |                                         |
+| PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À faire`  | Caleb                         |                                         |
+| PR7  | #59   | Barre de score bicolore G + P                    | MVP+      | `À faire`  | Sylvio                        |                                         |
 | PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                         |
-| S8   | #61   | Assistant de rédaction et jauge de qualité       | MVP+      | `À trier`  | Florent                       |                                         |
-| S9   | #62   | Étiquettes détectées depuis l'erreur             | MVP+      | `À trier`  | Joachim                       |                                         |
-| S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À trier`  | Joachim                       |                                         |
-| S11  | #64   | Statut « Je m'en occupe »                        | MVP+      | `À trier`  | Florent                       |                                         |
+| S8   | #61   | Assistant de rédaction et jauge de qualité       | MVP+      | `À faire`  | Sylvio                        |                                         |
+| S9   | #62   | Étiquettes détectées depuis l'erreur             | MVP+      | `À faire`  | Joachim                       |                                         |
+| S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À faire`  | Joachim                       |                                         |
+| S11  | #64   | Statut « Je m'en occupe »                        | MVP+      | `À faire`  | Florent                       |                                         |
 | O5   | #65   | Simulateur de réseau intégré                     | MVP+      | `En cours` | Sylvio                        | PR #97 (`?net=offline\|2g`)             |
-| R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `À trier`  | Joachim                       |                                         |
+| R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `À faire`  | Joachim                       |                                         |
 | X5   | #67   | Page publique « Comment marchent les Proof XP »  | MVP+      | `En cours` | Caleb                         | PR #102 (`GET /rules/xp`)               |
-| Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `À trier`  | Emmanuel                      |                                         |
+| Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `À faire`  | Sylvio                        |                                         |
 | M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                         |
-| T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `À trier`  | Sylvio                        | #97 a une landing publique              |
-| T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `À trier`  | Sylvio                        |                                         |
-| PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `À trier`  | Caleb                         |                                         |
-| PR9  | #73   | Recommandations adossées à une preuve            | P1        | `À trier`  | Caleb                         |                                         |
-| PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `À trier`  | Caleb                         |                                         |
-| PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `À trier`  | Caleb, Sylvio                 |                                         |
-| S12  | #76   | Fiche de résolution générée                      | P1        | `À trier`  | Joachim                       |                                         |
-| S14  | #77   | Lien de reproduction                             | P1        | `À trier`  | Sylvio                        |                                         |
-| S16  | #78   | File « Personne n'a encore répondu »             | P1        | `À trier`  | Sylvio                        |                                         |
-| O6   | #79   | Mode économie de données                         | P1        | `À trier`  | Sylvio                        |                                         |
-| O8   | #80   | Centre de synchronisation                        | P1        | `À trier`  | Sylvio                        |                                         |
-| R10  | #81   | Rôles recherchés                                 | P1        | `À trier`  | Joachim                       |                                         |
-| R11  | #82   | Vue Kanban et santé du projet                    | P1        | `À trier`  | Sylvio                        |                                         |
-| R12  | #83   | Salle créée à partir du README                   | P1        | `À trier`  | Joachim                       |                                         |
-| R14  | #84   | Stand-up asynchrone relié à SOS Dev              | P1        | `À trier`  | Joachim                       |                                         |
-| D4   | #85   | Carte interactive de l'Afrique                   | P1        | `À trier`  | Caleb                         |                                         |
-| D5   | #86   | Classements par école, ville et communauté       | P1        | `À trier`  | Caleb                         |                                         |
-| D6   | #87   | « Devs à rencontrer » sur l'accueil              | P1        | `À trier`  | Caleb                         |                                         |
-| Y5   | #88   | Page de statut avec historique                   | P1        | `À trier`  | Emmanuel                      |                                         |
-| Y7   | #89   | Notifications Telegram et Web Push               | P1        | `À trier`  | Joachim                       |                                         |
-| Y9   | #90   | Écran d'impact enrichi                           | P1        | `À trier`  | Emmanuel                      |                                         |
-| M4   | #91   | Journal d'audit de la modération                 | P1        | `À trier`  | Emmanuel                      |                                         |
-| T3   | #92   | Accueil personnalisé en une question             | P1        | `À trier`  | Sylvio                        |                                         |
-| T4   | #93   | Thème sombre                                     | P1        | `À trier`  | Sylvio                        |                                         |
+| T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `À faire`  | Sylvio                        | #97 a une landing publique              |
+| T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `À faire`  | Sylvio, Emmanuel              |                                         |
+| PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `P2`       | Sylvio                        |                                         |
+| PR9  | #73   | Recommandations adossées à une preuve            | P1        | `Écarté`   | —                             |                                         |
+| PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `À faire`  | Caleb                         |                                         |
+| PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `À faire`  | Caleb                         |                                         |
+| S12  | #76   | Fiche de résolution générée                      | P1        | `P2`       | Joachim                       |                                         |
+| S14  | #77   | Lien de reproduction                             | P1        | `À faire`  | Florent                       |                                         |
+| S16  | #78   | File « Personne n'a encore répondu »             | P1        | `À faire`  | Florent                       |                                         |
+| O6   | #79   | Mode économie de données                         | P1        | `P2`       | Sylvio                        |                                         |
+| O8   | #80   | Centre de synchronisation                        | P1        | `À faire`  | Sylvio                        |                                         |
+| R10  | #81   | Rôles recherchés                                 | P1        | `P2`       | Joachim                       |                                         |
+| R11  | #82   | Vue Kanban et santé du projet                    | P1        | `À faire`  | Sylvio                        |                                         |
+| R12  | #83   | Salle créée à partir du README                   | P1        | `P2`       | Joachim                       |                                         |
+| R14  | #84   | Stand-up asynchrone relié à SOS Dev              | P1        | `Écarté`   | —                             |                                         |
+| D4   | #85   | Carte interactive de l'Afrique                   | P1        | `À faire`  | Sylvio                        |                                         |
+| D5   | #86   | Classements par école, ville et communauté       | P1        | `P2`       | Caleb                         |                                         |
+| D6   | #87   | « Devs à rencontrer » sur l'accueil              | P1        | `P2`       | Caleb                         |                                         |
+| Y5   | #88   | Page de statut avec historique                   | P1        | `À faire`  | Emmanuel                      |                                         |
+| Y7   | #89   | Notifications Telegram et Web Push               | P1        | `P2`       | Joachim                       |                                         |
+| Y9   | #90   | Écran d'impact enrichi                           | P1        | `À faire`  | Caleb                         |                                         |
+| M4   | #91   | Journal d'audit de la modération                 | P1        | `À faire`  | Emmanuel                      |                                         |
+| T3   | #92   | Accueil personnalisé en une question             | P1        | `P2`       | Sylvio                        |                                         |
+| T4   | #93   | Thème sombre                                     | P1        | `À faire`  | Sylvio                        |                                         |
 
 ## Travail réalisé hors cahier des charges
 

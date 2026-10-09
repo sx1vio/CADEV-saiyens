@@ -1,6 +1,6 @@
 # ADR-0006 : File de tâches dans PostgreSQL avec pg-boss
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1), conforme au code fusionné sur `main`.
 - **Date** : 2026-10-06
 - **Décideurs** : back-end
 - **Exigences concernées** : §8 (« File dans PostgreSQL, pas de service supplémentaire »), S2, S3, §6.1 (escalade à 15 minutes), Y3
