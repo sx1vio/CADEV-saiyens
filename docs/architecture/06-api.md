@@ -205,6 +205,17 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `GET /api/v1/healthz` | Le processus répond (utilisé par le front pour confirmer « en ligne »)                    |
 | `GET /readyz`         | La base répond et les migrations sont à jour (utilisé par Docker et la CI de déploiement) |
 
+## État d'implémentation
+
+| Endpoint                                                  | État | PR                           |
+| --------------------------------------------------------- | ---- | ---------------------------- |
+| Authentification, `GET /me`, code de conduite             | Fait | #95, #98                     |
+| `GET /me/skills`, `POST /me/github/refresh`               | Fait | #99                          |
+| `GET /u/:handle/proofs`, `GET /rules/xp`                  | Fait | #102                         |
+| `POST /questions`, `GET /questions`, `GET /questions/:id` | Fait | S1 (`feat/sos-ask-question`) |
+
+L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructure/idempotency`) : chaque écriture appelle `idempotency.run(...)` avec la transaction de la requête, et lit la clé avec le décorateur `@IdempotencyKey()`. Les effets hors transaction (jobs) passent par `afterCommit` et ne sont jamais rejoués.
+
 ## Exemple complet : poser une question
 
 ```http
