@@ -187,7 +187,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | ---- | ----- | ------------------------------------------------ | --------- | ---------- | ----------------------------- | -------------------------------------------------- |
 | X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `Terminé`  | Caleb (à la place de Joachim) | #99 (fusionnée)                                    |
 | X4   | #53   | Démarrage à froid du matching                    | Correctif | `En cours` | Florent                       | `feat/matching` (régime froid, « Je m'en occupe ») |
-| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `À faire`  | Florent                       |                                                    |
+| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `En cours` | Florent                       | `feat/realtime-sse` (`GET /events`, LISTEN/NOTIFY) |
 | M2   | #55   | Protection contre l'injection de prompt          | Correctif | `En cours` | Joachim, Emmanuel             | PR #104 (piste IA)                                 |
 | O9   | #56   | Masquage des secrets avant la mise en file       | Correctif | `En cours` | Sylvio, Emmanuel              | PR #101 (`maskSecrets`), #104 (côté IA)            |
 | PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À faire`  | Caleb                         |                                                    |
