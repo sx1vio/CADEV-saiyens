@@ -37,7 +37,7 @@ import type {
   UpdateMeRequest,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
-import { clearApiReadCache } from '@/offline/api-cache';
+import { claimApiReadCache, clearApiReadCache } from '@/offline/api-cache';
 import * as m from './http-mappers';
 import { DomainError, type User } from './types';
 
@@ -109,6 +109,8 @@ async function session(): Promise<User | null> {
     throw e;
   });
   if (!me) return null;
+  // Un autre compte sur le même appareil ne relit pas le cache du précédent.
+  await claimApiReadCache(me.handle);
   const passport = await get<PassportResponse>(`/u/${me.handle}`).catch(() => null);
   return m.user(me, passport);
 }
@@ -149,8 +151,13 @@ export const httpApi: DevHubApi = {
   loginDemo: async () => unavailable(),
   listDemoAccounts: async () => [],
   logout: async () => {
-    await post('/auth/logout');
-    await clearApiReadCache(); // O1 : rien de ce compte ne reste lisible sur l'appareil
+    try {
+      await post('/auth/logout');
+    } finally {
+      // O1 : même si la déconnexion n'a pas joint le serveur (hors ligne), rien de ce compte
+      // ne reste lisible sur l'appareil.
+      await clearApiReadCache();
+    }
   },
   updateMe: async (input) => {
     const body: UpdateMeRequest = {};
