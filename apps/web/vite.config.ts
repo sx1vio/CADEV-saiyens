@@ -90,6 +90,8 @@ export default defineConfig(({ command, mode }) => {
     ],
     build: {
       target: 'es2022',
+      // Lu par scripts/check-budget.mjs (budget de l'accueil, 03-frontend.md).
+      manifest: true,
     },
     // En développement, l'API (apps/api, NestJS) tourne sur le port 3000 et est servie sous /api
     server: {

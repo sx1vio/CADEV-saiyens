@@ -25,7 +25,7 @@ Un ADR (_Architecture Decision Record_) garde la trace d'une décision technique
 | [0017](0017-tri-des-propositions-v3-1.md)                | Tri des propositions du CDC v3.1                                    | Accepté                                    | 2026-10-09 | Caleb (rôle 1)      |
 | [0018](0018-pile-front-reelle.md)                        | Pile front réellement retenue (amende 0003)                         | Accepté                                    | 2026-10-09 | Sylvio, Caleb       |
 | [0019](0019-gouvernance-du-depot.md)                     | Gouvernance du dépôt sans protection de branche                     | Accepté                                    | 2026-10-09 | Caleb, Emmanuel     |
-| [0020](0020-services-ecosysteme-conserves.md)            | Services « écosystème » conservés, signalés comme aperçus           | Accepté (validation du rôle 1 à confirmer) | 2026-10-16 | Équipe, Joachim     |
+| [0020](0020-services-ecosysteme-conserves.md)            | Services « écosystème » conservés, signalés comme aperçus           | Accepté (validation du rôle 1 à confirmer) | 2026-10-14 | Équipe, Joachim     |
 
 Les ADR 0001 à 0013 ont été **acceptés le 9 octobre 2026** par le rôle 1, après vérification de leur conformité au code fusionné ; ceux qui ne sont pas encore implémentés le signalent dans leur statut. Les ADR 0014 à 0019 tranchent les décisions restées ouvertes.
 

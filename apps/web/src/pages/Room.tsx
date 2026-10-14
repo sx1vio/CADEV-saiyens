@@ -39,6 +39,7 @@ import {
 import { Segmented } from '@/components/ui/segmented';
 import { relativeTime, useLang } from '@/i18n';
 import { invalidate, useQuery } from '@/lib/query';
+import { useTopic } from '@/services/realtime';
 import { cn, uuid } from '@/lib/utils';
 import { enqueue, requireNetwork, useNetwork } from '@/offline/network';
 import { api, type RoomDetail, type TaskLevel, type TaskStatus } from '@/services';
@@ -66,6 +67,17 @@ export default function Room() {
     error,
     refresh,
   } = useQuery<RoomDetail>(`room:${code}`, () => api.getRoom(code));
+  // Y8 : tâches et discussion en direct. Une salle non listée n'est suivie que par ses membres
+  // (l'API refuse le sujet aux autres, et le refus fermerait aussi le flux des notifications).
+  useTopic(
+    room &&
+      (room.visibility === 'public' ||
+        room.myMembership === 'owner' ||
+        room.myMembership === 'member')
+      ? `room:${room.id}`
+      : null,
+    `room:${code}`,
+  );
   const [joinOpen, setJoinOpen] = useState(false);
 
   if (error)

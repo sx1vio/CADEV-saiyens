@@ -32,12 +32,13 @@ import type {
   QuestionDetail as ApiQuestionDetail,
   RoomDetail as ApiRoomDetail,
   StatusResponse,
+  SyncResponse,
   TaskView,
   UpdateMeRequest,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
 import * as m from './http-mappers';
-import { DomainError, type NewQuestionInput, type User } from './types';
+import { DomainError, type User } from './types';
 
 const BASE = `${(import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''}/api/v1`;
 
@@ -91,16 +92,6 @@ const unavailable = (): never => {
 const search = (q?: string) => (q && q.trim().length >= 2 ? q.trim().slice(0, 200) : undefined);
 
 const uiLang = (): 'fr' | 'en' => (document.documentElement.lang === 'en' ? 'en' : 'fr');
-
-/** Gabarit guidé (S8) : les rubriques facultatives rejoignent le corps de la question. */
-function questionBody(i: NewQuestionInput): string {
-  const parts = [i.body.trim()];
-  if (i.tried?.trim()) parts.push(`**Ce que j'ai essayé**\n\n${i.tried.trim()}`);
-  if (i.expected?.trim()) parts.push(`**Ce que j'attendais**\n\n${i.expected.trim()}`);
-  if (i.environment?.trim()) parts.push(`**Environnement**\n\n${i.environment.trim()}`);
-  if (i.reproUrl?.trim()) parts.push(`Reproduction : ${i.reproUrl.trim()}`);
-  return parts.join('\n\n');
-}
 
 const QUESTION_TAB: Record<QuestionTab, Query> = {
   'for-me': { status: 'open' },
@@ -225,22 +216,14 @@ export const httpApi: DevHubApi = {
   createQuestion: async (input, clientId) => {
     const res = await post<AskQuestionResponse>(
       '/questions',
-      {
-        clientId,
-        title: input.title,
-        body: questionBody(input),
-        codeSnippet: input.codeSnippet || null,
-        tagSlugs: input.tagIds,
-        urgency: input.urgency,
-        lang: uiLang(),
-      },
+      m.askQuestion(input, clientId, uiLang()),
       clientId,
     );
     return {
       id: res.id,
       authorId: res.author.handle,
       title: input.title,
-      body: questionBody(input),
+      body: m.questionBody(input),
       codeSnippet: input.codeSnippet,
       codeLang: input.codeLang,
       urgency: input.urgency,
@@ -432,6 +415,13 @@ export const httpApi: DevHubApi = {
       action: remove ? 'hide' : 'dismiss',
       reason: remove ? 'Retiré par la modération' : 'Signalement rejeté',
     });
+  },
+
+  sync: async (items) => {
+    const res = await post<SyncResponse>('/sync', {
+      actions: items.map((i) => m.syncAction(i.opId, i.action, uiLang())),
+    });
+    return res.results.map(m.syncOutcome);
   },
 
   getStatus: async () => m.status(await get<StatusResponse>('/status')),

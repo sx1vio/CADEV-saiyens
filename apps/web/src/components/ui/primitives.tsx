@@ -1,5 +1,7 @@
 import {
   forwardRef,
+  lazy,
+  Suspense,
   type HTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -7,7 +9,9 @@ import {
 } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn, initials, toneFor } from '@/lib/utils';
-import { BrandLogo } from '@/platform/logos';
+
+/** Logos de technos (simple-icons) chargés à la demande : hors du JS initial (budget §9). */
+const BrandLogo = lazy(() => import('@/platform/logos').then((m) => ({ default: m.BrandLogo })));
 
 /* ---------------- Carte ---------------- */
 
@@ -154,7 +158,11 @@ export function TechTag({
         className,
       )}
     >
-      {!active && <BrandLogo name={label} size={12} />}
+      {!active && (
+        <Suspense fallback={null}>
+          <BrandLogo name={label} size={12} />
+        </Suspense>
+      )}
       {label}
     </Comp>
   );

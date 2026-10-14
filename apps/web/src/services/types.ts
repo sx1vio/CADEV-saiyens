@@ -494,6 +494,28 @@ export interface ProfileInput {
   codeOfConductAcceptedAt?: ISODate;
 }
 
+/* ---------- File hors ligne (O2) ---------- */
+
+/** Action rédigée hors ligne, rejouée au retour du réseau. */
+export type OfflineAction =
+  | { type: 'question'; payload: NewQuestionInput }
+  | { type: 'answer'; payload: { questionId: string; body: string; questionTitle: string } }
+  | {
+      type: 'message';
+      payload: { roomId: string; body: string; kind: RoomMessage['kind']; roomName: string };
+    }
+  | { type: 'take-task'; payload: { taskId: string; taskTitle: string } };
+
+/**
+ * Résultat d'une action rejouée par lot (POST /sync) : `done` = appliquée ou déjà appliquée,
+ * `retry` = échec passager (réseau, 5xx, 429), `error` = refus définitif ou conflit de version.
+ */
+export interface SyncOutcome {
+  opId: ID;
+  outcome: 'done' | 'retry' | 'error';
+  code?: string;
+}
+
 /** Erreurs métier lisibles (garde-fous X2, etc.) */
 export class DomainError extends Error {
   code: string;

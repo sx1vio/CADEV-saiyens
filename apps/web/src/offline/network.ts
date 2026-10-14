@@ -10,18 +10,11 @@ import { maskSecrets } from '@/lib/detect';
 import { refreshAll, invalidate } from '@/lib/query';
 import { sleep, storageGet, storageSet } from '@/lib/utils';
 import { api } from '@/services';
-import type { NewQuestionInput, RoomMessage } from '@/services';
+import type { OfflineAction } from '@/services';
 
 export type SimMode = 'off' | 'offline' | '2g';
 
-export type QueuedAction =
-  | { type: 'question'; payload: NewQuestionInput }
-  | { type: 'answer'; payload: { questionId: string; body: string; questionTitle: string } }
-  | {
-      type: 'message';
-      payload: { roomId: string; body: string; kind: RoomMessage['kind']; roomName: string };
-    }
-  | { type: 'take-task'; payload: { taskId: string; taskTitle: string } };
+export type QueuedAction = OfflineAction;
 
 export type QueueItem = QueuedAction & {
   id: string; // = client_id = Idempotency-Key
@@ -175,14 +168,8 @@ async function flushOne(item: QueueItem) {
   }
 }
 
-let flushing = false;
-/** Rejoue la file dans l'ordre ; s'arrête à la première coupure ; reprise progressive (1 s, 2 s, 4 s…). */
-export async function flush() {
-  if (flushing || !isOnline()) return;
-  const pending = useNetwork.getState().queue.filter((q) => q.status !== 'syncing');
-  if (!pending.length) return;
-  flushing = true;
-  useNetwork.setState({ syncing: true });
+/** Serveur simulé : rejeu action par action, arrêt à la première coupure. */
+async function flushEach(pending: QueueItem[]) {
   let sent = 0;
   let failed = 0;
   for (const item of pending) {
@@ -195,6 +182,74 @@ export async function flush() {
       failed++;
     }
   }
+  return { sent, failed };
+}
+
+const BATCH = 50; // SYNC_LIMITS.actionsPerBatch
+
+/**
+ * API réelle : POST /sync par lots de 50, dans l'ordre (04-hors-ligne-sync.md). Le serveur
+ * applique chaque action avec son opId (= clientId) comme clé d'idempotence : rien n'est doublé,
+ * même si une action était déjà partie seule avant la coupure.
+ */
+async function flushBatches(pending: QueueItem[]) {
+  let sent = 0;
+  let failed = 0;
+  for (let i = 0; i < pending.length && isOnline(); i += BATCH) {
+    const batch = pending.slice(i, i + BATCH);
+    const ids = new Set(batch.map((b) => b.id));
+    useNetwork.setState((s) => ({
+      queue: s.queue.map((q) => (ids.has(q.id) ? { ...q, status: 'syncing' } : q)),
+    }));
+    await networkDelay();
+    let outcomes;
+    try {
+      outcomes = await api.sync!(batch.map((item) => ({ opId: item.id, action: item })));
+    } catch (err) {
+      // Coupure ou refus du lot entier (429…) : tout reste en attente, reprise progressive.
+      const code = (err as { code?: string }).code;
+      for (const item of batch) {
+        const next: QueueItem = { ...item, attempts: item.attempts + 1, status: 'pending' };
+        await save(next);
+        useNetwork.setState((s) => ({ queue: s.queue.map((q) => (q.id === item.id ? next : q)) }));
+      }
+      if (code === 'network.offline' || !isOnline()) break;
+      failed += batch.length;
+      break;
+    }
+    for (const o of outcomes) {
+      const item = batch.find((b) => b.id === o.opId);
+      if (!item) continue;
+      if (o.outcome === 'done') {
+        await remove(item.id);
+        useNetwork.setState((s) => ({ queue: s.queue.filter((q) => q.id !== item.id) }));
+        sent++;
+        continue;
+      }
+      const next: QueueItem = {
+        ...item,
+        attempts: item.attempts + 1,
+        status: o.outcome === 'retry' ? 'pending' : 'error',
+        error: o.outcome === 'retry' ? undefined : o.code,
+      };
+      await save(next);
+      useNetwork.setState((s) => ({ queue: s.queue.map((q) => (q.id === item.id ? next : q)) }));
+      if (o.outcome === 'error') failed++;
+    }
+  }
+  if (sent) invalidate('');
+  return { sent, failed };
+}
+
+let flushing = false;
+/** Rejoue la file dans l'ordre ; s'arrête à la première coupure ; reprise progressive (1 s, 2 s, 4 s…). */
+export async function flush() {
+  if (flushing || !isOnline()) return;
+  const pending = useNetwork.getState().queue.filter((q) => q.status !== 'syncing');
+  if (!pending.length) return;
+  flushing = true;
+  useNetwork.setState({ syncing: true });
+  const { sent, failed } = api.sync ? await flushBatches(pending) : await flushEach(pending);
   flushing = false;
   useNetwork.setState({ syncing: false, lastSync: { at: new Date().toISOString(), sent, failed } });
   window.dispatchEvent(new CustomEvent('devhub:synced', { detail: { sent, failed } }));

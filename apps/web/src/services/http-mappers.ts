@@ -26,6 +26,8 @@ import type {
   RoomDetail as ApiRoomDetail,
   RoomSummary,
   StatusResponse,
+  SyncAction,
+  SyncResult,
   TaskView,
 } from '@devhub/contracts';
 import type {
@@ -40,6 +42,8 @@ import type {
   LookingFor,
   MatchReason,
   MatchView,
+  NewQuestionInput,
+  OfflineAction,
   NotificationType,
   Passport,
   QuestionDetail,
@@ -51,6 +55,7 @@ import type {
   RoomState,
   ServiceStatus,
   SkillView,
+  SyncOutcome,
   SystemStatus,
   Tag,
   Task,
@@ -633,3 +638,58 @@ export const report = (r: AdminReportView): Report & { reporter: UserSummary } =
   createdAt: r.createdAt,
   reporter: summary(r.reporter),
 });
+
+/** Gabarit guidé (S8) : les rubriques facultatives rejoignent le corps de la question. */
+export function questionBody(i: NewQuestionInput): string {
+  const parts = [i.body.trim()];
+  if (i.tried?.trim()) parts.push(`**Ce que j'ai essayé**\n\n${i.tried.trim()}`);
+  if (i.expected?.trim()) parts.push(`**Ce que j'attendais**\n\n${i.expected.trim()}`);
+  if (i.environment?.trim()) parts.push(`**Environnement**\n\n${i.environment.trim()}`);
+  if (i.reproUrl?.trim()) parts.push(`Reproduction : ${i.reproUrl.trim()}`);
+  return parts.join('\n\n');
+}
+
+/** Corps de POST /questions : le même en direct et dans /sync (même empreinte d'idempotence). */
+export const askQuestion = (i: NewQuestionInput, clientId: string, lang: 'fr' | 'en') => ({
+  clientId,
+  title: i.title,
+  body: questionBody(i),
+  codeSnippet: i.codeSnippet || null,
+  tagSlugs: i.tagIds,
+  urgency: i.urgency,
+  lang,
+});
+
+/** Action de la file hors ligne → action de POST /sync. L'opId est le clientId de l'action. */
+export function syncAction(opId: string, a: OfflineAction, lang: 'fr' | 'en'): SyncAction {
+  switch (a.type) {
+    case 'question':
+      return { opId, type: 'question.create', payload: askQuestion(a.payload, opId, lang) };
+    case 'answer':
+      return {
+        opId,
+        type: 'answer.create',
+        payload: { questionId: a.payload.questionId, clientId: opId, body: a.payload.body },
+      };
+    case 'message':
+      return {
+        opId,
+        type: 'room_message.create',
+        payload: {
+          roomId: a.payload.roomId,
+          clientId: opId,
+          body: a.payload.body,
+          kind: a.payload.kind === 'standup' ? 'standup' : 'text',
+        },
+      };
+    case 'take-task':
+      return { opId, type: 'task.take', payload: { taskId: a.payload.taskId } };
+  }
+}
+
+export const syncOutcome = (r: SyncResult): SyncOutcome =>
+  r.status === 'applied' || r.status === 'duplicate'
+    ? { opId: r.opId, outcome: 'done' }
+    : r.status === 'skipped'
+      ? { opId: r.opId, outcome: 'retry', code: r.error?.code }
+      : { opId: r.opId, outcome: 'error', code: r.error?.code ?? r.status };

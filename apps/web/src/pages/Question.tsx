@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/primitives';
 import { duration, formatDate, relativeTime, useLang } from '@/i18n';
 import { invalidate, useQuery } from '@/lib/query';
+import { useTopic } from '@/services/realtime';
 import { cn, minutesBetween, uuid } from '@/lib/utils';
 import { enqueue, requireNetwork, useNetwork } from '@/offline/network';
 import { api, type AnswerView, type QuestionDetail } from '@/services';
@@ -55,6 +56,8 @@ export default function QuestionPage() {
     error,
     refresh,
   } = useQuery<QuestionDetail>(`question:${id}`, () => api.getQuestion(id));
+  // Y8 : réponses, piste IA, sollicitations et masquage arrivent sans recharger la page.
+  useTopic(q ? `question:${q.id}` : null, `question:${id}`);
   const queue = useNetwork((s) => s.queue);
   const [celebrate, setCelebrate] = useState<{
     name: string;
