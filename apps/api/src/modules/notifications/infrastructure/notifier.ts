@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { NotificationType } from '@devhub/contracts';
 import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { publishToUsers } from '../../../infrastructure/realtime/realtime.publisher';
 
 export interface NewNotification {
   userId: string;
@@ -28,5 +29,10 @@ export class Notifier {
         payload: n.payload as Prisma.InputJsonValue,
       })),
     });
+    // Y8 : NOTIFY délivré au COMMIT de la même transaction.
+    await publishToUsers(
+      db,
+      notifications.map((n) => n.userId),
+    );
   }
 }
