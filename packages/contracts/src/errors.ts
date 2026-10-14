@@ -14,6 +14,17 @@ export const ERROR_CODES = [
   'github.not_linked',
   'github.token_revoked',
   'github.unavailable',
+  // Idempotence (docs/architecture/04-hors-ligne-sync.md#3-idempotence-côté-serveur)
+  'idempotency_key.missing',
+  'idempotency_key.reused',
+  'idempotency_key.in_progress',
+  // SOS Dev
+  'question.tags_unknown',
+  'question.already_resolved',
+  'question.not_open',
+  'answer.not_found',
+  'answer.own_question',
+  'xp.self_vote',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
