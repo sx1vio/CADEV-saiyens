@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { Logger, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigModule } from './infrastructure/config/config.module';
+import { ActionsModule } from './infrastructure/actions/action-registry';
 import { IdempotencyModule } from './infrastructure/idempotency/idempotency.module';
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
@@ -17,6 +18,7 @@ import { PassportModule } from './modules/passport';
     PrismaModule,
     JobsModule,
     IdempotencyModule,
+    ActionsModule,
     PassportModule,
     AiModule,
     MatchingModule,
