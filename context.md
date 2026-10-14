@@ -89,7 +89,7 @@ Mandat du 14 octobre : Joachim avance **toutes** les tâches restantes (les sien
 | 8     | Écrans Systalink et impact, modération                            | Y1, Y2, M1         | PR #115                               |
 | 9     | Front : intégration des écrans du MVP sur l'API réelle            | I1, O1-O4          | En cours (`feat/web-api-integration`) |
 
-Décision d'équipe en attente (16 octobre) : #97 a été fusionnée avec un fil d'actualités en accueil et des écrans (communautés, emplois, vidéos, apprendre, certifications, outils IA, guide, templates) que l'ADR-0016 exclut des menus. Soit on applique l'ADR (navigation du MVP, accueil « QG »), soit on la révise par une nouvelle ADR.
+Décision du 16 octobre ([ADR-0020](docs/adr/0020-services-ecosysteme-conserves.md)) : on garde #97 (fil d'actualités en accueil, services de l'écosystème dans les menus) ; les écrans sans serveur affichent un bandeau « Aperçu ». Validation du rôle 1 (Caleb) à confirmer.
 
 Bloquants hors code, qui demandent une personne de l'équipe : URL de production et VPS (#6, Emmanuel), application OAuth GitHub et clé IA (#7), base Systalink (#9, ADR-0015), invitations (#10, Caleb).
 
