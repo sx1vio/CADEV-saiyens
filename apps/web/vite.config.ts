@@ -110,9 +110,16 @@ export default defineConfig(({ command, mode }) => {
       // Lu par scripts/check-budget.mjs (budget de l'accueil, 03-frontend.md).
       manifest: true,
     },
-    // En développement, l'API (apps/api, NestJS) tourne sur le port 3000 et est servie sous /api
+    // En développement, l'API (apps/api, NestJS) tourne sur le port 3000 et est servie sous /api.
+    // DEVHUB_API_PROXY vise une autre API locale (sessions parallèles, tests e2e) ; vite preview
+    // reprend ce proxy.
     server: {
-      proxy: { '/api': { target: 'http://127.0.0.1:3000', changeOrigin: false } },
+      proxy: {
+        '/api': {
+          target: process.env.DEVHUB_API_PROXY ?? 'http://127.0.0.1:3000',
+          changeOrigin: false,
+        },
+      },
     },
   };
 });

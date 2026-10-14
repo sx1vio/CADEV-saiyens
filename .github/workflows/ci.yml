@@ -82,27 +82,23 @@ jobs:
       AUTH_FAKE_PROVIDER: 'true'
     steps:
       - uses: actions/checkout@v4
-      # Les tests e2e n'existent qu'à partir de l'initialisation d'apps/web.
-      - id: check
-        run: echo "has_e2e=$([ -d apps/web/e2e ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@v4
-        if: steps.check.outputs.has_e2e == 'true'
       - uses: actions/setup-node@v4
-        if: steps.check.outputs.has_e2e == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - if: steps.check.outputs.has_e2e == 'true'
-        run: pnpm install --frozen-lockfile
-      - if: steps.check.outputs.has_e2e == 'true'
-        run: pnpm --filter @devhub/web exec playwright install --with-deps chromium
-      - if: steps.check.outputs.has_e2e == 'true'
-        run: pnpm test:e2e
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @devhub/web exec playwright install --with-deps chromium
+      # Construit l'API et le web, applique migrations et étiquettes, puis lance apps/web/e2e
+      # (playwright.config.ts) : parcours SOS, hors ligne et connexion.
+      - run: pnpm test:e2e
       - uses: actions/upload-artifact@v4
-        if: failure() && steps.check.outputs.has_e2e == 'true'
+        if: failure()
         with:
           name: playwright-report
-          path: apps/web/playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
 
   security:
     name: secrets + dépendances
