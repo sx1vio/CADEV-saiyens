@@ -73,6 +73,17 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
     await app.close();
   });
 
+  /** Ouvre un flux SSE, lit seulement le statut, puis le ferme. */
+  const fetchHead = async (path: string) => {
+    const server = app.getHttpServer();
+    if (!server.listening) await new Promise<void>((r) => server.listen(0, r));
+    const { port } = server.address() as { port: number };
+    const controller = new AbortController();
+    const res = await fetch(`http://127.0.0.1:${port}${path}`, { signal: controller.signal });
+    controller.abort();
+    return res.status;
+  };
+
   it('créer une tâche : membres seulement', async () => {
     const res = await post('awa', `/api/v1/rooms/${roomId}/tasks`, {
       title: 'Ajouter Orange Money',
@@ -164,6 +175,23 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
       prUrl: `https://github.com/${repo}/pull/${pr + 1}`,
     }).expect(200);
     expect(done.body.task).toMatchObject({ status: 'done', verification: 'declared' });
+  });
+
+  it('salle non listée : tâches et temps réel réservés aux membres', async () => {
+    const hidden = await post('awa', '/api/v1/rooms', {
+      name: `Privée ${suffix}`,
+      description: 'Projet en préparation, non listé.',
+      visibility: 'unlisted',
+      stackTagSlugs: ['nodejs'],
+    }).expect(201);
+    await get(`/api/v1/rooms/${hidden.body.id}/tasks`).expect(404);
+    await get(`/api/v1/rooms/${hidden.body.id}/tasks`, 'kwame').expect(404);
+    await get(`/api/v1/rooms/${hidden.body.id}/tasks`, 'awa').expect(200);
+    await get(`/api/v1/events?topics=room:${hidden.body.id}`).expect(403);
+    await get(`/api/v1/events?topics=room:${hidden.body.id}`, 'kwame').expect(403);
+    // Salle publique : le sujet est ouvert à tous (le flux reste ouvert, on ne lit que l'en-tête).
+    const res = await fetchHead(`/api/v1/events?topics=room:${roomId}`);
+    expect(res).toBe(200);
   });
 
   it('discussion : membres seulement, ordre fixé par le serveur, aussi hors ligne', async () => {

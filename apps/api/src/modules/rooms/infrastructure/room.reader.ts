@@ -206,7 +206,7 @@ export class RoomReader {
   async roomRepo(roomId: string) {
     return this.prisma.room.findUnique({
       where: { id: roomId },
-      select: { id: true, repoFullName: true, hiddenAt: true },
+      select: { id: true, repoFullName: true, hiddenAt: true, visibility: true },
     });
   }
 

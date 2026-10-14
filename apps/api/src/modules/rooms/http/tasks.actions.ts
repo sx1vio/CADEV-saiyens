@@ -80,6 +80,7 @@ const CompletePayloadSchema = Complete.extend({
   pull: pullRef,
   verification: z.custom<Verification>(),
   unavailable: z.boolean(),
+  checked: z.object({ prUrl: z.string().nullable(), assigneeId: z.string().nullable() }),
 });
 export type CompletePayload = z.infer<typeof CompletePayloadSchema>;
 
@@ -204,16 +205,22 @@ export class TasksActions implements OnModuleInit {
           prUrl: p.prUrl ?? null,
           pull: p.pull,
           verification: p.verification,
+          checked: p.checked,
         });
         await publishToTopic(tx, `room:${out.roomId}`, 'task.updated', task(p.taskId, out.roomId));
         return {
           status: HttpStatus.OK,
           body: { id: p.taskId, points: out.points, withheld: out.withheld },
           // GitHub ne répondait pas : la contribution reste « déclarée » jusqu'au nouvel essai (R9).
-          afterCommit: p.unavailable
-            ? () =>
-                this.jobs.send(JOBS.githubVerifyPr, { taskId: p.taskId, actorId: userId }, p.taskId)
-            : undefined,
+          afterCommit:
+            p.unavailable || out.recheck
+              ? () =>
+                  this.jobs.send(
+                    JOBS.githubVerifyPr,
+                    { taskId: p.taskId, actorId: userId },
+                    p.taskId,
+                  )
+              : undefined,
         };
       } catch (err) {
         return toHttp(err);

@@ -136,11 +136,15 @@ export class Tasks {
       prUrl: string | null;
       pull: PullRef | null;
       verification: Verification;
+      /** PR et assigné réellement vérifiés hors transaction (pour écarter un état changé entre-temps). */
+      checked: { prUrl: string | null; assigneeId: string | null };
     },
   ): Promise<{
     roomId: string;
     points: number;
     withheld: Array<{ kind: string; reason: string }>;
+    /** La vérification ne portait plus sur l'état final : à refaire en tâche de fond. */
+    recheck: boolean;
   }> {
     const task = await writer.lockTask(input.taskId);
     if (!task) throw new TaskNotFoundError();
@@ -149,8 +153,12 @@ export class Tasks {
     const prUrl = input.prUrl ?? task.prUrl;
     if (input.prUrl) assertPrInRepo(input.pull, room.repoFullName);
 
+    // Entre la lecture GitHub et le verrou, la PR ou l'assigné ont pu changer : on ne garde
+    // « Vérifié par GitHub » que si la vérification porte exactement sur l'état enregistré.
+    const stale = prUrl !== input.checked.prUrl || task.assigneeId !== input.checked.assigneeId;
+    const verification = stale ? 'declared' : input.verification;
     const now = this.now();
-    await writer.complete(task.id, prUrl, input.verification, now);
+    await writer.complete(task.id, prUrl, verification, now);
     await writer.touch(room.id, now);
     const xp = await this.reputation.taskCompleted(
       {
@@ -170,7 +178,7 @@ export class Tasks {
           {
             userId: task.assigneeId!,
             type: 'task.completed',
-            payload: { roomId: room.id, taskId: task.id, points, verification: input.verification },
+            payload: { roomId: room.id, taskId: task.id, points, verification },
           },
         ],
         tx,
@@ -180,6 +188,7 @@ export class Tasks {
       roomId: room.id,
       points,
       withheld: xp.withheld.map((w) => ({ kind: w.kind, reason: w.reason })),
+      recheck: stale && prUrl !== null,
     };
   }
 }

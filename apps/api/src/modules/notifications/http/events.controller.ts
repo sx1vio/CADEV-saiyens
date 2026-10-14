@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Controller,
+  ForbiddenException,
   Get,
   Query,
   Req,
@@ -39,6 +40,23 @@ export class EventsController {
     private readonly sessions: PrismaSessionStore,
   ) {}
 
+  private async canFollow(topic: string, viewerId: string | null): Promise<boolean> {
+    const [kind, id] = topic.split(':') as ['question' | 'room', string];
+    if (kind === 'question') {
+      return (await this.prisma.question.count({ where: { id, hiddenAt: null } })) > 0;
+    }
+    const room = await this.prisma.room.findUnique({
+      where: { id },
+      select: { visibility: true, hiddenAt: true },
+    });
+    if (!room || room.hiddenAt) return false;
+    if (room.visibility === 'public') return true;
+    return (
+      viewerId !== null &&
+      (await this.prisma.roomMember.count({ where: { roomId: id, userId: viewerId } })) > 0
+    );
+  }
+
   @Get()
   @UseGuards(OptionalSessionGuard)
   @ApiProduces('text/event-stream')
@@ -60,6 +78,16 @@ export class EventsController {
     }
     if (!viewer && topics.size === 0) {
       throw new UnauthorizedException({ code: 'auth.required', title: 'Authentication required' });
+    }
+    // Un sujet n'est suivi que si son contenu est visible du visiteur : question non masquée,
+    // salle publique, ou salle non listée dont il est membre.
+    for (const topic of topics) {
+      if (!(await this.canFollow(topic, viewer?.userId ?? null))) {
+        throw new ForbiddenException({
+          code: 'forbidden',
+          title: 'This topic is not visible to you',
+        });
+      }
     }
 
     const userId = viewer?.userId ?? null;

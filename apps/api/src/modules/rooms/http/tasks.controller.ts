@@ -33,7 +33,13 @@ import { runAction } from '../../../infrastructure/actions/action-registry';
 import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-key.decorator';
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
 import { parsePullUrl } from '../../github';
-import { type AuthenticatedUser, CurrentUser, SessionGuard } from '../../identity';
+import {
+  type AuthenticatedUser,
+  CurrentUser,
+  OptionalSessionGuard,
+  OptionalUser,
+  SessionGuard,
+} from '../../identity';
 import { GithubPrVerifier } from '../infrastructure/github-pr.verifier';
 import { RoomReader } from '../infrastructure/room.reader';
 import { TasksActions, toHttp } from './tasks.actions';
@@ -76,10 +82,21 @@ export class TasksController {
 
   /** R2 : tâches d'une salle, publiques comme la salle. */
   @Get('rooms/:id/tasks')
+  @UseGuards(OptionalSessionGuard)
   @ApiOkResponse({ type: ListTasksResponseDto })
-  async list(@Param('id', ParseUUIDPipe) roomId: string): Promise<ListTasksResponse> {
+  async list(
+    @Param('id', ParseUUIDPipe) roomId: string,
+    @OptionalUser() viewer: AuthenticatedUser | null,
+  ): Promise<ListTasksResponse> {
     const room = await this.reader.roomRepo(roomId);
     if (!room || room.hiddenAt) throw notFound();
+    // Salle non listée : visible des seuls membres (le code d'invitation passe par /rooms/:code).
+    if (
+      room.visibility !== 'public' &&
+      !(viewer && (await this.reader.roleOf(roomId, viewer.userId)))
+    ) {
+      throw notFound();
+    }
     return { data: await this.reader.tasks(roomId) };
   }
 
@@ -189,17 +206,16 @@ export class TasksController {
     const current = await this.taskOr404(taskId);
     const ref = await this.reader.roomOfTask(taskId);
     // Lecture de la PR sur GitHub hors transaction (jusqu'à 10 s).
-    const check = await this.github.check(
-      auth.userId,
-      body.prUrl ?? current.prUrl,
-      ref?.assigneeId ?? null,
-    );
+    const checkedPrUrl = body.prUrl ?? current.prUrl;
+    const checkedAssigneeId = ref?.assigneeId ?? null;
+    const check = await this.github.check(auth.userId, checkedPrUrl, checkedAssigneeId);
     const outcome = await runAction(this.idempotency, this.actions.taskComplete, auth.userId, key, {
       taskId,
       prUrl: body.prUrl ?? null,
       pull: body.prUrl ? parsePullUrl(body.prUrl) : null,
       verification: check.verification,
       unavailable: check.unavailable,
+      checked: { prUrl: checkedPrUrl, assigneeId: checkedAssigneeId },
     });
     this.replayed(res, outcome);
     const result = outcome.body as {
