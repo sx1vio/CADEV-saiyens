@@ -207,12 +207,14 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 ## État d'implémentation
 
-| Endpoint                                                  | État | PR                           |
-| --------------------------------------------------------- | ---- | ---------------------------- |
-| Authentification, `GET /me`, code de conduite             | Fait | #95, #98                     |
-| `GET /me/skills`, `POST /me/github/refresh`               | Fait | #99                          |
-| `GET /u/:handle/proofs`, `GET /rules/xp`                  | Fait | #102                         |
-| `POST /questions`, `GET /questions`, `GET /questions/:id` | Fait | S1 (`feat/sos-ask-question`) |
+| Endpoint                                                                            | État | PR                      |
+| ----------------------------------------------------------------------------------- | ---- | ----------------------- |
+| Authentification, `GET /me`, code de conduite                                       | Fait | #95, #98                |
+| `GET /me/skills`, `POST /me/github/refresh`                                         | Fait | #99                     |
+| `GET /u/:handle/proofs`, `GET /rules/xp`                                            | Fait | #102                    |
+| `POST /questions`, `GET /questions`, `GET /questions/:id`                           | Fait | #106 (S1)               |
+| `POST /questions/:id/answers`, `POST /answers/:id/vote`, `POST /answers/:id/accept` | Fait | S4 (`feat/sos-answers`) |
+| `GET /notifications`, `POST /notifications/read`                                    | Fait | S4 (`feat/sos-answers`) |
 
 L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructure/idempotency`) : chaque écriture appelle `idempotency.run(...)` avec la transaction de la requête, et lit la clé avec le décorateur `@IdempotencyKey()`. Les effets hors transaction (jobs) passent par `afterCommit` et ne sont jamais rejoués.
 
