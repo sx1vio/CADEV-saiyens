@@ -17,9 +17,14 @@ export async function publishToUsers(db: Db, userIds: string[]): Promise<void> {
 }
 
 export type PublicEvent =
-  'question.ai_hint' | 'question.matched' | 'answer.created' | 'answer.accepted';
+  | 'question.ai_hint'
+  | 'question.matched'
+  | 'answer.created'
+  | 'answer.accepted'
+  | 'task.updated'
+  | 'room_message.created';
 
-/** Événement public sur un sujet (« question:<id> ») : les pages ouvertes se rafraîchissent. */
+/** Événement public sur un sujet (« question:<id> », « room:<id> ») : les pages ouvertes se rafraîchissent. */
 export async function publishToTopic(
   db: Db,
   topic: string,
