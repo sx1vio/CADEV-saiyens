@@ -49,6 +49,13 @@ export const JOBS = {
     queue: { policy: 'exclusive' },
     cron: '5 * * * *',
   },
+  /** Y1, Y5 : sonde chaque service Systalink toutes les 5 minutes ; écrit status_checks. */
+  statusCheck: {
+    name: 'status.check',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 30 },
+    cron: '*/5 * * * *',
+  },
 } as const;
 
 export type JobName = (typeof JOBS)[keyof typeof JOBS]['name'];

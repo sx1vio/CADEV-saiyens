@@ -41,6 +41,11 @@ export const EnvSchema = z
     LLM_MODEL: z.string().min(1).default('claude-sonnet-5-5'),
     LLM_HOURLY_QUOTA_PER_USER: z.coerce.number().int().nonnegative().default(10),
     LLM_HINT_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+    // Sondes Systalink (Y1). Vide = service « non branché », affiché comme tel.
+    // BACKUP_STATUS_URL : chemin du fichier d'état écrit par backup.sh, ou URL qui le sert.
+    BACKUP_STATUS_URL: optional(z.string()),
+    SMTP_HOST: optional(z.string()),
+    SMTP_PORT: z.coerce.number().int().positive().default(587),
   })
   .refine((env) => !(env.NODE_ENV === 'production' && env.AUTH_FAKE_PROVIDER), {
     message: 'AUTH_FAKE_PROVIDER est interdit en production',
