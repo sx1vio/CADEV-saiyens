@@ -25,6 +25,8 @@ export const ERROR_CODES = [
   'answer.not_found',
   'answer.own_question',
   'xp.self_vote',
+  'version_conflict',
+  'sync.dependency_failed',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

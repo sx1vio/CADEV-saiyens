@@ -45,3 +45,18 @@ export const AcceptAnswerResponse = z.object({
   xp: XpOutcome,
 });
 export type AcceptAnswerResponse = z.infer<typeof AcceptAnswerResponse>;
+
+/** PATCH /api/v1/answers/:id (O4). */
+export const UpdateAnswerRequest = z.object({
+  body: z.string().trim().min(1).max(ANSWER_LIMITS.bodyMax),
+  baseVersion: z.number().int().min(1),
+});
+export type UpdateAnswerRequest = z.infer<typeof UpdateAnswerRequest>;
+
+export const UpdateAnswerResponse = z.object({
+  id: z.uuid(),
+  version: z.number().int(),
+  body: z.string(),
+  secretsMasked: z.number().int(),
+});
+export type UpdateAnswerResponse = z.infer<typeof UpdateAnswerResponse>;
