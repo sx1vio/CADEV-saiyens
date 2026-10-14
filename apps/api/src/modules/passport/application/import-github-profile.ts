@@ -18,7 +18,8 @@ export class RefreshTooSoonError extends Error {
 export class ImportGithubProfile {
   constructor(
     private readonly tokens: GithubTokenSource,
-    private readonly github: GithubApi,
+    // Seules les deux lectures du profil sont nécessaires ici.
+    private readonly github: Pick<GithubApi, 'listOwnedRepos' | 'repoLanguages'>,
     private readonly skills: SkillStore,
     private readonly now: () => Date = () => new Date(),
   ) {}

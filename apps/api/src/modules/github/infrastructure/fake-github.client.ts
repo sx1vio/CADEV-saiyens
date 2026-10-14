@@ -1,4 +1,20 @@
-import type { GithubApi, GithubRepo, RepoLanguages } from '../domain/ports';
+import { createHash } from 'node:crypto';
+import type {
+  GithubApi,
+  GithubIssue,
+  GithubPull,
+  GithubRepo,
+  GithubRepoInfo,
+  RepoLanguages,
+} from '../domain/ports';
+
+/** Même dérivation que le faux fournisseur OAuth : identifiant GitHub stable d'un login. */
+export function fakeGithubId(login: string): bigint {
+  return (
+    9_000_000_000_000n +
+    BigInt(`0x${createHash('sha256').update(login).digest('hex').slice(0, 10)}`)
+  );
+}
 
 // Faux client GitHub, associé au faux fournisseur OAuth (AUTH_FAKE_PROVIDER, interdit en production).
 // Profil déterministe qui exerce toutes les règles de X3 : dépôt récent, ancien, forké et vide.
@@ -49,5 +65,43 @@ export class FakeGithubClient implements GithubApi {
       'forked-lib': { Go: 100_000 },
     };
     return languages[fullName.split('/')[1] ?? ''] ?? {};
+  }
+
+  /**
+   * Dépôts : tout « owner/nom » existe et est public, sauf un nom qui commence par « missing »
+   * (introuvable) ou par « private » (privé).
+   */
+  async getRepo(_token: string, fullName: string): Promise<GithubRepoInfo | null> {
+    const name = fullName.split('/')[1] ?? '';
+    if (name.startsWith('missing')) return null;
+    return {
+      fullName,
+      private: name.startsWith('private'),
+      archived: false,
+      description: 'Dépôt de démonstration',
+      htmlUrl: `https://github.com/${fullName}`,
+    };
+  }
+
+  /** PR n° N : fusionnée si N est pair, auteur « pr-author-N » (identifiant dérivé comme ci-dessus). */
+  async getPullRequest(
+    _token: string,
+    _fullName: string,
+    number: number,
+  ): Promise<GithubPull | null> {
+    if (number >= 900_000) return null;
+    const login = `pr-author-${number}`;
+    return { number, merged: number % 2 === 0, authorId: fakeGithubId(login), authorLogin: login };
+  }
+
+  async listOpenIssues(_token: string, fullName: string): Promise<GithubIssue[]> {
+    const base = Number(
+      BigInt(`0x${createHash('sha256').update(fullName).digest('hex').slice(0, 8)}`),
+    );
+    return [
+      { number: 1, title: 'Ajouter le mode sombre', labels: ['good first issue'] },
+      { number: 2, title: 'Corriger le timeout de connexion', labels: ['bug'] },
+      { number: 3, title: 'Documenter le déploiement', labels: ['documentation'] },
+    ].map((i) => ({ ...i, id: BigInt(base + i.number), body: null }));
   }
 }
