@@ -28,6 +28,8 @@ export const loadApi = () =>
 export const api = new Proxy({} as DevHubApi, {
   get(_, key: keyof DevHubApi) {
     if (key === 'mode') return MODE;
+    // Le serveur simulé n'a pas de rejeu par lot : la file rejoue alors action par action.
+    if (key === 'sync' && MODE === 'local') return undefined;
     return (...args: unknown[]) =>
       loadApi().then((a) => (a[key] as (...x: unknown[]) => unknown)(...args));
   },

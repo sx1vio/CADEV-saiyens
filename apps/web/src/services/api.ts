@@ -34,6 +34,8 @@ import type {
   UserSummary,
   Answer,
   FeedbackRequest,
+  OfflineAction,
+  SyncOutcome,
 } from './types';
 
 export type QuestionTab = 'for-me' | 'unanswered' | 'resolved' | 'all' | 'mine';
@@ -127,6 +129,13 @@ export interface DevHubApi {
   ): Promise<void>;
   listReports(): Promise<(Report & { reporter: UserSummary })[]>;
   handleReport(id: ID, remove: boolean): Promise<void>;
+
+  /**
+   * O2 — POST /sync : rejoue un lot d'actions hors ligne (50 au plus, dans l'ordre). L'`opId`
+   * sert de clé d'idempotence : une action déjà envoyée seule n'est pas appliquée deux fois.
+   * Absent du serveur simulé, qui rejoue les actions une par une.
+   */
+  sync?(items: { opId: ID; action: OfflineAction }[]): Promise<SyncOutcome[]>;
 
   /* Systalink et impact — /status, /impact */
   getStatus(): Promise<SystemStatus>;
