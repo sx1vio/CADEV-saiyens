@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type {
   JoinRequestView,
+  ListMessagesQuery,
+  ListMessagesResponse,
+  MessageView,
+  TaskView,
   ListRoomsQuery,
   ListRoomsResponse,
   RoomDetail,
@@ -123,6 +127,89 @@ export class RoomReader {
     return m?.role ?? null;
   }
 
+  /** Tâches d'une salle : ouvertes d'abord, puis prises, en revue, terminées. */
+  async tasks(roomId: string): Promise<TaskView[]> {
+    const rows = await this.prisma.task.findMany({
+      where: { roomId },
+      include: { assignee: author },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+    const order = { open: 0, taken: 1, in_review: 2, done: 3 } as const;
+    return rows.sort((a, b) => order[a.status] - order[b.status]).map(taskView);
+  }
+
+  async task(taskId: string): Promise<(TaskView & { roomHidden: boolean }) | null> {
+    const t = await this.prisma.task.findUnique({
+      where: { id: taskId },
+      include: { assignee: author, room: { select: { hiddenAt: true } } },
+    });
+    return t ? { ...taskView(t), roomHidden: t.room.hiddenAt !== null } : null;
+  }
+
+  /** R4 : messages, du plus récent au plus ancien ; ordre fixé par le serveur (created_at, id). */
+  async messages(roomId: string, query: ListMessagesQuery): Promise<ListMessagesResponse> {
+    const rows = await this.prisma.roomMessage.findMany({
+      where: { roomId, hiddenAt: null, ...afterCursor(decodeCursor(query.cursor)) },
+      include: { author },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: query.limit + 1,
+    });
+    const page = rows.slice(0, query.limit);
+    const last = page.at(-1);
+    const hasMore = rows.length > query.limit;
+    return {
+      data: page.map((m): MessageView => ({
+        id: m.id,
+        clientId: m.clientId,
+        roomId: m.roomId,
+        author: m.author,
+        kind: m.kind,
+        body: m.body,
+        createdAt: m.createdAt.toISOString(),
+      })),
+      page: {
+        hasMore,
+        nextCursor:
+          hasMore && last ? encodeCursor({ at: last.createdAt.toISOString(), id: last.id }) : null,
+      },
+    };
+  }
+
+  async message(messageId: string): Promise<MessageView | null> {
+    const m = await this.prisma.roomMessage.findUnique({
+      where: { id: messageId },
+      include: { author },
+    });
+    return m
+      ? {
+          id: m.id,
+          clientId: m.clientId,
+          roomId: m.roomId,
+          author: m.author,
+          kind: m.kind,
+          body: m.body,
+          createdAt: m.createdAt.toISOString(),
+        }
+      : null;
+  }
+
+  async roomOfTask(taskId: string) {
+    const t = await this.prisma.task.findUnique({
+      where: { id: taskId },
+      select: { assigneeId: true, room: { select: { id: true, repoFullName: true } } },
+    });
+    return t
+      ? { roomId: t.room.id, repoFullName: t.room.repoFullName, assigneeId: t.assigneeId }
+      : null;
+  }
+
+  async roomRepo(roomId: string) {
+    return this.prisma.room.findUnique({
+      where: { id: roomId },
+      select: { id: true, repoFullName: true, hiddenAt: true },
+    });
+  }
+
   private summary(r: RoomRow, tags: Map<string, { slug: string; label: string }>): RoomSummary {
     return {
       id: r.id,
@@ -166,4 +253,25 @@ export class RoomReader {
       LIMIT ${SEARCH_LIMIT}`;
     return rows.map((r) => r.id);
   }
+}
+
+type TaskRow = Prisma.TaskGetPayload<{ include: { assignee: typeof author } }>;
+
+function taskView(t: TaskRow): TaskView {
+  return {
+    id: t.id,
+    roomId: t.roomId,
+    title: t.title,
+    description: t.description,
+    level: t.level,
+    status: t.status,
+    assignee: t.assignee,
+    prUrl: t.prUrl,
+    verification: t.verification,
+    fromGithubIssue: t.githubIssueId !== null,
+    version: t.version,
+    createdAt: t.createdAt.toISOString(),
+    takenAt: t.takenAt?.toISOString() ?? null,
+    completedAt: t.completedAt?.toISOString() ?? null,
+  };
 }
