@@ -8,6 +8,7 @@ import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { AiModule } from './modules/ai';
 import { MatchingModule } from './modules/matching';
+import { NewsJobsModule } from './modules/news';
 import { RoomsModule } from './modules/rooms';
 import { PassportModule } from './modules/passport';
 
@@ -23,6 +24,7 @@ import { PassportModule } from './modules/passport';
     PassportModule,
     AiModule,
     MatchingModule,
+    NewsJobsModule,
     RoomsModule,
   ],
 })

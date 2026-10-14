@@ -33,6 +33,22 @@ export const JOBS = {
     payload: z.object({ taskId: z.uuid(), actorId: z.uuid() }),
     options: { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
   },
+  /** Actualités : flux RSS, YouTube, Hacker News, DEV. Cron toutes les 15 min, et au démarrage du worker. */
+  newsIngest: {
+    name: 'news.ingest',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 300 },
+    queue: { policy: 'exclusive' },
+    cron: '*/15 * * * *',
+  },
+  /** Actualités GitHub (dépôts, versions) : une fois par heure, limite de 60 requêtes/heure sans jeton. */
+  newsIngestGithub: {
+    name: 'news.ingest-github',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 120 },
+    queue: { policy: 'exclusive' },
+    cron: '5 * * * *',
+  },
 } as const;
 
 export type JobName = (typeof JOBS)[keyof typeof JOBS]['name'];

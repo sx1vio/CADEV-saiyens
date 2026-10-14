@@ -1,4 +1,5 @@
-import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { config } from 'dotenv';
 import { z } from 'zod';
 
@@ -25,6 +26,11 @@ export const EnvSchema = z
     TOKEN_ENCRYPTION_KEY: base64Key32,
     GITHUB_CLIENT_ID: optional(z.string()),
     GITHUB_CLIENT_SECRET: optional(z.string()),
+    // Cache disque du proxy d'images des actualités (module news) ; il peut être vidé à tout moment.
+    NEWS_IMAGE_CACHE_DIR: z.preprocess(
+      (v) => (v === '' ? undefined : v),
+      z.string().default(join(tmpdir(), 'devhub-news-img')),
+    ),
     AUTH_FAKE_PROVIDER: z
       .enum(['true', 'false'])
       .default('false')

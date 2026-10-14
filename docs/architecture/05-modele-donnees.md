@@ -129,6 +129,8 @@ Format de `match_events.reasons` (jamais de pourcentage sans méthode, §6.2) :
 | `idempotency_keys`   | Idempotence des écritures                | Purge au-delà de 7 jours (voir [04](04-hors-ligne-sync.md#3-idempotence-côté-serveur))                         |
 | `ai_requests`        | Journal et cache des appels IA           | Quota horaire par utilisateur ; cache par `(kind, input_hash, prompt_ver)`                                     |
 | `github_cache`       | Cache des réponses GitHub avec `ETag`    | Les requêtes conditionnelles avec `ETag` ne décomptent pas le quota quand la réponse est `304`                 |
+| `news_items`         | Actualités agrégées (module `news`)      | Identifiant = SHA-1 du lien, `url` unique ; purge au-delà de 45 jours sauf les versions (`kind = release`)     |
+| `news_ingest_runs`   | Journal des collectes                    | Sources en échec dans `errors` ; sert à la date « mis à jour » de l'accueil                                    |
 | `content_revisions`  | Anciennes versions (plan B des conflits) | Écrite seulement en mode « dernière modification gagnante »                                                    |
 
 ## Index

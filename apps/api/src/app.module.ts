@@ -16,6 +16,7 @@ import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
 import { DiscoveryModule } from './modules/discovery';
 import { MatchingModule } from './modules/matching';
+import { NewsModule } from './modules/news';
 import { NotificationsModule } from './modules/notifications';
 import { RoomsModule } from './modules/rooms';
 import { SosModule } from './modules/sos';
@@ -57,6 +58,7 @@ import { ReputationModule } from './modules/reputation';
     SyncModule,
     RoomsModule,
     DiscoveryModule,
+    NewsModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -19,7 +19,8 @@ pnpm install
 pnpm --filter @devhub/api exec prisma migrate deploy   # applique les migrations
 pnpm --filter @devhub/api exec prisma db seed          # 52 étiquettes de référence
 pnpm --filter @devhub/api dev                          # API sur http://localhost:3000
-pnpm --filter @devhub/api dev:worker                   # worker pg-boss (import du profil GitHub…)
+pnpm --filter @devhub/api dev:worker                   # worker pg-boss (import du profil GitHub, actualités…)
+pnpm --filter @devhub/api news:ingest                  # collecte des actualités à la main (le worker le fait toutes les 15 min)
 ```
 
 | URL                               | Rôle                                                      |
@@ -33,6 +34,11 @@ pnpm --filter @devhub/api dev:worker                   # worker pg-boss (import 
 | `POST /api/v1/me/code-of-conduct` | Acceptation du code de conduite (M3)                      |
 | `GET /api/v1/me/skills`           | Compétences proposées depuis GitHub (PR1, X3)             |
 | `POST /api/v1/me/github/refresh`  | Réimport du profil GitHub (une fois par heure)            |
+| `GET /api/v1/news/home`           | Accueil : à la une, rubriques, vidéos, HN, DEV, GitHub    |
+| `GET /api/v1/news`                | Actualités filtrées (`category`, `kind`, `lang`, `q`…)    |
+| `GET /api/v1/videos`              | Vidéos YouTube des chaînes suivies                        |
+| `GET /api/v1/news/sources`        | Sources suivies, volume et fraîcheur                      |
+| `GET /api/v1/img`                 | Image d'article redimensionnée en WebP (anti-SSRF)        |
 
 > **Connexion sans application GitHub** : avec `AUTH_FAKE_PROVIDER=true` (interdit en production), `GET /api/v1/auth/github?login=awa-dev` connecte directement un faux compte `awa-dev`. Pratique en local et utilisé par les tests de bout en bout.
 

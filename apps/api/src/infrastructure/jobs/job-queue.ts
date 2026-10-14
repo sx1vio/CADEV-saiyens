@@ -30,7 +30,9 @@ export class JobQueue implements OnModuleInit, OnApplicationShutdown {
 
   async onModuleInit(): Promise<void> {
     await this.boss.start();
-    for (const job of Object.values(JOBS)) await this.boss.createQueue(job.name);
+    for (const job of Object.values(JOBS)) {
+      await this.boss.createQueue(job.name, 'queue' in job ? job.queue : undefined);
+    }
   }
 
   async onApplicationShutdown(): Promise<void> {
@@ -49,6 +51,11 @@ export class JobQueue implements OnModuleInit, OnApplicationShutdown {
       ...(singletonKey ? { singletonKey } : {}),
       ...(startAfterSeconds ? { startAfter: startAfterSeconds } : {}),
     });
+  }
+
+  /** Planifie un job récurrent selon le `cron` du catalogue (worker uniquement). */
+  async schedule<J extends JobDefinition & { cron: string }>(job: J): Promise<void> {
+    await this.boss.schedule(job.name, job.cron, {}, job.options);
   }
 
   /** Enregistre un handler (worker uniquement). Chaque job est validé avant traitement. */

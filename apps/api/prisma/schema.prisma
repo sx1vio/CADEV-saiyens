@@ -769,3 +769,50 @@ model ContentRevision {
   @@unique([contentType, contentId, version])
   @@map("content_revisions")
 }
+
+// ─────────────────────────────── Actualités (module news) ───────────────────────────────
+// Agrégateur : titre, court extrait et lien vers l'éditeur d'origine. Collecte toutes les
+// 15 minutes par le worker (job news.ingest) ; purge à 45 jours, sauf les versions.
+
+enum NewsKind {
+  article
+  video
+  hn
+  devto
+  repo
+  release
+}
+
+model NewsItem {
+  id          String   @id // SHA-1 tronqué du lien : un même lien n'est stocké qu'une fois
+  kind        NewsKind
+  source      String // identifiant de la source (apps/api/src/modules/news/domain/sources.ts)
+  sourceName  String   @map("source_name")
+  category    String // ia | tech | apple | google | samsung | mobile | dev | afrique | cloud | securite
+  lang        Lang     @default(en)
+  title       String
+  summary     String   @default("")
+  url         String   @unique
+  image       String?
+  author      String?
+  publishedAt DateTime @map("published_at") @db.Timestamptz
+  score       Int      @default(0)
+  comments    Int      @default(0)
+  extra       Json     @default("{}")
+  fetchedAt   DateTime @default(now()) @map("fetched_at") @db.Timestamptz
+
+  @@index([category, publishedAt(sort: Desc)])
+  @@index([kind, publishedAt(sort: Desc)])
+  @@map("news_items")
+}
+
+model NewsIngestRun {
+  id         Int       @id @default(autoincrement())
+  startedAt  DateTime  @default(now()) @map("started_at") @db.Timestamptz
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz
+  items      Int       @default(0)
+  sourcesOk  Int       @default(0) @map("sources_ok")
+  errors     Json      @default("[]") // [{ source, error }]
+
+  @@map("news_ingest_runs")
+}

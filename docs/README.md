@@ -63,6 +63,16 @@ Cette documentation traduit les cahiers des charges en architecture exécutable.
 
 L'[index des ADR](adr/README.md) liste toutes les décisions techniques, leur statut et leur justification. **Une décision structurante sans ADR n'est pas prise.**
 
+### Front-end (`front/`)
+
+| Document                                           | Contenu                                                                |
+| -------------------------------------------------- | ---------------------------------------------------------------------- |
+| [Décisions front](front/decisions.md)              | Toutes les décisions d'interface, de design et de périmètre du front   |
+| [Analyse de la phase 0](front/phase0-analyse.md)   | Lecture du cahier des charges côté front, parcours, écrans, contrastes |
+| [Brief de design](front/prompt-frontend-design.md) | Brief UX/UI initial et [images d'inspiration](front/inspirations/)     |
+
+Le journal daté de tout le travail front est dans [`SUIVI.md`](../SUIVI.md), à la racine.
+
 ### Équipe (`equipe/`)
 
 | Document                                                  | Contenu                                                                 |
