@@ -80,3 +80,25 @@ export const ALL_NAV = [
   ...PLATFORM_NAV,
   ADMIN_NAV,
 ];
+
+/**
+ * ADR-0020 : services de l'écosystème sans API (contenus de démonstration, état gardé sur
+ * l'appareil). Le fil d'actualités et les vidéos ont une vraie API : ils n'y figurent pas.
+ */
+const ECOSYSTEM_PREVIEW = [
+  '/communautes',
+  '/c/',
+  '/emplois',
+  '/apprendre',
+  '/certifications',
+  '/skills',
+  '/post/',
+  '/publier',
+  '/templates',
+  '/creer',
+];
+
+export const isEcosystemPreview = (path: string) =>
+  ECOSYSTEM_PREVIEW.some((p) =>
+    p.endsWith('/') ? path.startsWith(p) : path === p || path.startsWith(`${p}/`),
+  );
