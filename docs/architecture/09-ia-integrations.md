@@ -146,6 +146,18 @@ export interface GithubPort {
 }
 ```
 
+### Implémentation (8 octobre puis 14 octobre)
+
+`GithubApi` (`apps/api/src/modules/github/domain/ports.ts`) : `listOwnedRepos`, `repoLanguages` (PR1, X3), `getRepo` (R1), `getPullRequest` (R9), `listOpenIssues` (R2). Tout nom de dépôt est validé par `REPO_FULL_NAME` avant la requête, et un lien de PR par `parsePullUrl` (`https://github.com/owner/repo/pull/N` seulement). Un `404` devient `null`.
+
+Le faux client (`AUTH_FAKE_PROVIDER=true`) est déterministe :
+
+- tout dépôt est public, sauf un nom qui commence par `missing` (introuvable) ou `private` (privé) ;
+- la PR n° N est fusionnée si N est pair, et son auteur est `pr-author-N` ;
+- trois issues ouvertes sont renvoyées par dépôt.
+
+La vérification d'un dépôt à la création d'une salle se fait **hors transaction** : l'appel GitHub peut durer 10 s, alors qu'une transaction interactive Prisma expire au bout de 5 s.
+
 ### Quota (risque §14)
 
 | Mesure                                                 | Détail                                                                                                        |

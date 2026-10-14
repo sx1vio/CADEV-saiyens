@@ -12,6 +12,9 @@ export const ActionType = z.enum([
   'answer.update',
   'answer.vote',
   'answer.accept',
+  'join_request.create',
+  'task.take',
+  'room_message.create',
 ]);
 export type ActionType = z.infer<typeof ActionType>;
 

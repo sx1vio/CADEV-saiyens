@@ -1,4 +1,12 @@
-import type { GithubApi, GithubRepo, RepoLanguages } from '../domain/ports';
+import {
+  type GithubApi,
+  type GithubIssue,
+  type GithubPull,
+  type GithubRepo,
+  type GithubRepoInfo,
+  REPO_FULL_NAME,
+  type RepoLanguages,
+} from '../domain/ports';
 
 const API = 'https://api.github.com';
 const TIMEOUT_MS = 10_000;
@@ -59,6 +67,83 @@ export class GithubHttpClient implements GithubApi {
 
   repoLanguages(token: string, fullName: string): Promise<RepoLanguages> {
     return this.get<RepoLanguages>(token, `/repos/${fullName}/languages`);
+  }
+
+  async getRepo(token: string, fullName: string): Promise<GithubRepoInfo | null> {
+    if (!REPO_FULL_NAME.test(fullName)) return null;
+    const r = await this.getOrNull<{
+      full_name: string;
+      private: boolean;
+      archived: boolean;
+      description: string | null;
+      html_url: string;
+      permissions?: { admin?: boolean; maintain?: boolean; push?: boolean };
+    }>(token, `/repos/${fullName}`);
+    return r
+      ? {
+          fullName: r.full_name,
+          private: r.private,
+          archived: r.archived,
+          description: r.description,
+          htmlUrl: r.html_url,
+          canPush: Boolean(r.permissions?.admin || r.permissions?.maintain || r.permissions?.push),
+        }
+      : null;
+  }
+
+  async getPullRequest(
+    token: string,
+    fullName: string,
+    number: number,
+  ): Promise<GithubPull | null> {
+    if (!REPO_FULL_NAME.test(fullName) || !Number.isInteger(number)) return null;
+    const p = await this.getOrNull<{
+      number: number;
+      merged: boolean;
+      user: { id: number; login: string } | null;
+    }>(token, `/repos/${fullName}/pulls/${number}`);
+    return p
+      ? {
+          number: p.number,
+          merged: p.merged,
+          authorId: p.user ? BigInt(p.user.id) : null,
+          authorLogin: p.user?.login ?? null,
+        }
+      : null;
+  }
+
+  async listOpenIssues(token: string, fullName: string, labels?: string[]): Promise<GithubIssue[]> {
+    if (!REPO_FULL_NAME.test(fullName)) return [];
+    const query = new URLSearchParams({ state: 'open', per_page: '50' });
+    if (labels?.length) query.set('labels', labels.join(','));
+    const issues = await this.get<
+      Array<{
+        id: number;
+        number: number;
+        title: string;
+        body: string | null;
+        labels: Array<{ name: string } | string>;
+        pull_request?: unknown;
+      }>
+    >(token, `/repos/${fullName}/issues?${query.toString()}`);
+    return issues
+      .filter((i) => !i.pull_request)
+      .map((i) => ({
+        id: BigInt(i.id),
+        number: i.number,
+        title: i.title,
+        body: i.body,
+        labels: i.labels.map((l) => (typeof l === 'string' ? l : l.name)),
+      }));
+  }
+
+  private async getOrNull<T>(token: string, path: string): Promise<T | null> {
+    try {
+      return await this.get<T>(token, path);
+    } catch (err) {
+      if (err instanceof GithubApiError && err.status === 404) return null;
+      throw err;
+    }
   }
 
   private async get<T>(token: string, path: string): Promise<T> {
