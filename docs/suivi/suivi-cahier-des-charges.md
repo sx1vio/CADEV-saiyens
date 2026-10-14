@@ -158,12 +158,12 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Hors ligne (O)
 
-| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                                       | Commentaire                                                                                               |
-| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97                                          | Service worker et cache côté front ; contenus métier pas encore servis par l'API                          |
-| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #110 (API), `feat/web-realtime-sync` (front) | File hors ligne rejouée par `POST /sync` (lots de 50, opId = clientId)                                    |
-| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97                                          |                                                                                                           |
-| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | PR #110 (API)                                   | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran |
+| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                                       | Commentaire                                                                                                                 |
+| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97, `feat/web-offline-read`                 | Lectures de l'API gardées par le service worker (réseau d'abord, cache vidé à la déconnexion) ; essai sur téléphone à faire |
+| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #110 (API), `feat/web-realtime-sync` (front) | File hors ligne rejouée par `POST /sync` (lots de 50, opId = clientId)                                                      |
+| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97                                          |                                                                                                                             |
+| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | PR #110 (API)                                   | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran                   |
 
 ### Systalink, impact, notifications, stockage (Y)
 
