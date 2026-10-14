@@ -174,4 +174,10 @@ L'implémentation `http` (`services/http.ts`) est un **adaptateur** : elle appel
 - chaque écriture porte `X-DevHub-Client: web` et une `Idempotency-Key` (le `clientId` quand il existe : une action rejouée par la file hors ligne ne crée pas de doublon) ;
 - une fonction absente de l'API (pair programming, traduction, demande de retour, suppression de compte, connexion démo) lève `feature.unavailable`.
 
-Limites connues : le temps réel (`GET /events`) n'est pas encore branché (les pages se rafraîchissent à la navigation) ; la file hors ligne rejoue les actions une par une plutôt que par `POST /sync` ; signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID) ; le contrôle automatique du budget de 300 Ko en CI reste à ajouter (mesure locale : 262 Ko de JS et CSS compressés pour l'accueil, polices et images non comprises).
+Temps réel (`services/realtime.ts`) : une connexion `EventSource` par onglet sur `GET /events`, ouverte pour le compte connecté (notifications) et pour les sujets des pages affichées (`useTopic('question:<id>')`, `useTopic('room:<id>')`, cinq au plus ; une salle non listée n'est suivie que par ses membres). Chaque événement rafraîchit la clé de cache concernée ; `session.ended` déconnecte l'onglet. Changer de sujets rouvre la connexion avec `lastEventId`.
+
+File hors ligne (`offline/network.ts`) : avec l'API réelle, elle est rejouée par lots de 50 via `POST /sync`, l'`opId` étant le `clientId` de l'action (même clé et même corps qu'un envoi direct : jamais de doublon). `applied` et `duplicate` retirent l'action, `skipped` la garde pour un nouvel essai (attente progressive), `rejected` et `conflict` l'affichent en erreur. Le serveur simulé garde le rejeu action par action.
+
+Budget : `pnpm --filter @devhub/web budget` (après le build) mesure l'accueil à partir du manifeste Vite ; la CI l'affiche en mode rapport tant que BUG-024 est ouvert (mesure du 16 octobre : JS initial 202,6 Ko pour 150, accueil 412 Ko pour 300).
+
+Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID) ; aucun test e2e du front.
