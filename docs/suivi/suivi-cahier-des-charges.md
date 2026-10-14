@@ -35,27 +35,27 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 5       | 5        | 11      | 24 %        | 48 %       |
+| P0        | 21     | 5       | 6        | 10      | 24 %        | 52 %       |
 | P1        | 14     | 0       | 0        | 14      | 0 %         | 0 %        |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **5**    | **27**  | **14 %**    | **27 %**   |
+| **Total** | **37** | **5**   | **6**    | **26**  | **14 %**    | **30 %**   |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                        |
-| ----------------------- | --------- | ------- | -------- | --------------------------------- |
-| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait              |
-| Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait             |
-| SOS Dev (S)             | 7         | 1       | 1        | `██░░░░░░░░` S2 fait; S1 en cours |
-| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                      |
-| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                      |
-| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait          |
-| Hors ligne (O)          | 4         | 0       | 3        | `████░░░░░░` O1, O2, O3 en cours  |
-| Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                      |
-| Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                      |
-| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours          |
+| Module                  | Exigences | Terminé | En cours | Avancement                            |
+| ----------------------- | --------- | ------- | -------- | ------------------------------------- |
+| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                  |
+| Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait                 |
+| SOS Dev (S)             | 7         | 1       | 2        | `███░░░░░░░` S2 fait; S1, S4 en cours |
+| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                          |
+| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                          |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait              |
+| Hors ligne (O)          | 4         | 0       | 3        | `████░░░░░░` O1, O2, O3 en cours      |
+| Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                          |
+| Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                          |
+| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours              |
 
 ### Par personne (exigences v3 et setup ouverts)
 
@@ -116,15 +116,15 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### SOS Dev (S)
 
-| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                | Commentaire                                                                       |
-| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ------------------------ | --------------------------------------------------------------------------------- |
-| S1  | #21   | Poser une question                     | P0   | `En cours` | Florent     | PR #106                  | `POST /questions` idempotent, secrets masqués, 10 par heure ; déclenche `ai.hint` |
-| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106 | Job `ai.hint` déclenché par S1 ; reste l’essai avec la vraie clé (#7)             |
-| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `À faire`  | Florent     |                          | Algorithme §6.2                                                                   |
-| S4  | #24   | Répondre, voter, valider               | P0   | `À faire`  | Florent     |                          | Validation = +10 Proof XP                                                         |
-| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                          |                                                                                   |
-| S6  | #26   | Question résolue = fiche cherchable    | P1   | `À faire`  | Florent     |                          |                                                                                   |
-| S7  | #27   | Questions similaires avant publication | P1   | `À faire`  | Florent     |                          |                                                                                   |
+| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                       | Commentaire                                                                       |
+| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| S1  | #21   | Poser une question                     | P0   | `En cours` | Florent     | PR #106                         | `POST /questions` idempotent, secrets masqués, 10 par heure ; déclenche `ai.hint` |
+| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106        | Job `ai.hint` déclenché par S1 ; reste l’essai avec la vraie clé (#7)             |
+| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `À faire`  | Florent     |                                 | Algorithme §6.2                                                                   |
+| S4  | #24   | Répondre, voter, valider               | P0   | `En cours` | Florent     | PR à venir (`feat/sos-answers`) | Répondre, voter, valider : XP et notifications dans la même transaction           |
+| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                                 |                                                                                   |
+| S6  | #26   | Question résolue = fiche cherchable    | P1   | `À faire`  | Florent     |                                 |                                                                                   |
+| S7  | #27   | Questions similaires avant publication | P1   | `À faire`  | Florent     |                                 |                                                                                   |
 
 ### Salles de projet (R)
 
