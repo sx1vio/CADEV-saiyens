@@ -182,4 +182,25 @@ Lecture hors ligne (O1) : le service worker garde les lectures de l'API (`src/of
 
 Budget : `pnpm --filter @devhub/web budget` (après le build) mesure l'accueil à partir du manifeste Vite ; la CI l'affiche en mode rapport tant que BUG-024 est ouvert (mesure du 14 octobre : JS initial 202,6 Ko pour 150, accueil 412 Ko pour 300).
 
-Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID) ; aucun test e2e du front.
+Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID).
+
+## Tests de bout en bout (Playwright)
+
+`pnpm test:e2e` (racine) construit l'API et le front, puis lance `apps/web/e2e/*.e2e.ts` avec Playwright (Chromium). Le front testé est le **build de production** servi par `vite preview`, branché sur l'**API réelle** (`apps/api/dist`) par le proxy `/api` : même origine, comme derrière Caddy. La connexion passe par le faux fournisseur GitHub (`AUTH_FAKE_PROVIDER=true`, `/api/v1/auth/github?login=…`) ; le code de conduite est accepté par l'API pour aller droit au parcours.
+
+| Fichier          | Parcours vérifié                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sos.e2e.ts`     | Poser une question (S1), répondre avec un second compte, valider la réponse (S4) ; seul l'auteur voit « M'a débloqué »                                 |
+| `offline.e2e.ts` | Rédiger et publier hors ligne (action en file IndexedDB, rien sur le serveur), retour du réseau, `POST /sync` (`applied`), une seule question au final |
+| `auth.e2e.ts`    | Connexion GitHub avec le service worker actif : la navigation `/api/v1/auth/github` atteint l'API (BUG-028)                                            |
+
+Lancement local (une base dédiée par session, voir [sessions parallèles](../equipe/sessions-paralleles.md)) :
+
+```bash
+DATABASE_URL=postgresql://devhub:devhub@localhost:55432/devhub_test_b pnpm test:e2e
+```
+
+- Les migrations sont appliquées au démarrage de l'API de test (qui aligne elle-même les étiquettes de référence) ; chaque test crée des comptes au login unique : la base peut être réutilisée.
+- Ports : `E2E_API_PORT` (3001) et `E2E_WEB_PORT` (5174) ; `DEVHUB_API_PROXY` (lu par `vite.config.ts`) est positionné par `playwright.config.ts`. Hors CI, des serveurs déjà lancés sur ces ports sont réutilisés.
+- Un seul worker : les fichiers partagent la base. Rapport et traces des échecs : `apps/web/playwright-report`, `apps/web/test-results` (téléversés par la CI).
+- Les fichiers se nomment `*.e2e.ts` pour ne pas être ramassés par Vitest.
