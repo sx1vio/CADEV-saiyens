@@ -11,7 +11,7 @@ import { PrismaIdentityRepository } from './infrastructure/prisma-identity.repos
 import { PrismaSessionStore } from './infrastructure/prisma-session.store';
 import { AuthController, GITHUB_OAUTH_PROVIDER } from './http/auth.controller';
 import { MeController } from './http/me.controller';
-import { SessionGuard } from './http/session.guard';
+import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
 
 @Module({
   controllers: [AuthController, MeController],
@@ -19,6 +19,7 @@ import { SessionGuard } from './http/session.guard';
     PrismaIdentityRepository,
     PrismaSessionStore,
     SessionGuard,
+    OptionalSessionGuard,
     GithubTokenReader,
     EnqueueProfileImport,
     {
@@ -47,6 +48,6 @@ import { SessionGuard } from './http/session.guard';
         ),
     },
   ],
-  exports: [SessionGuard, PrismaSessionStore, GithubTokenReader],
+  exports: [SessionGuard, OptionalSessionGuard, PrismaSessionStore, GithubTokenReader],
 })
 export class IdentityModule {}

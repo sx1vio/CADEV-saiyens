@@ -6,6 +6,7 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 import { AiHintJob } from '../src/modules/ai/jobs/ai-hint.job';
 import { applyTestEnv } from './env.fixture';
+import { ensureTags } from './tags.fixture';
 
 // S2 de bout en bout, avec le faux modèle (aucune clé d'IA en test) et une vraie base.
 applyTestEnv({ AUTH_FAKE_PROVIDER: 'true', NODE_ENV: 'test', LOG_LEVEL: 'warn', LLM_API_KEY: '' });
@@ -40,12 +41,10 @@ describe('piste IA (S2) de bout en bout', () => {
     await app.init();
     prisma = app.get(PrismaService);
     job = app.get(AiHintJob);
-    const tag = await prisma.tag.upsert({
-      where: { slug: 'docker' },
-      create: { slug: 'docker', label: 'Docker', aliases: ['Dockerfile'] },
-      update: {},
-    });
-    tagId = tag.id;
+    const ids = await ensureTags(prisma, [
+      { slug: 'docker', label: 'Docker', aliases: ['Dockerfile'] },
+    ]);
+    tagId = ids.get('docker')!;
     const author = await prisma.user.create({
       data: { handle: `e2e-ai-${suffix}`, displayName: 'E2E IA' },
     });

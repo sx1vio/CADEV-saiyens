@@ -2,7 +2,7 @@
 
 > **Source de vérité partagée** de tous les intervenants (humains et agents IA). À lire au début de chaque session de travail, à mettre à jour avant de clôturer une action (nouvelle fonctionnalité, décision, pivot, correction majeure).
 >
-> Dernière mise à jour : **8 octobre 2026, soir** (jour du Jalon 1), par Joachim GOEH-AKUE, puis Caleb KPOSSOU après les fusions.
+> Dernière mise à jour : **14 octobre 2026** (jour du Jalon 2), par Joachim GOEH-AKUE.
 
 ## Sommaire
 
@@ -63,21 +63,35 @@ Détail exigence par exigence : [suivi du cahier des charges](docs/suivi/suivi-c
 | **PR1, X3** Import du profil GitHub, compétences proposées, score G résistant aux dépôts vides (BUG-010 corrigé)              | PR #99             |
 | **#5** Paquets `@devhub/core` (scores, barème XP, `maskSecrets`) et `@devhub/contracts`                                       | PR #101            |
 | **X1, X2** Proof XP : `AwardXp`, garde-fous, journal public `GET /u/:handle/proofs`, barème `GET /rules/xp`                   | PR #102            |
-| **S2, M2** Module `ai` : piste IA, quota, cache, protection contre l'injection (déclenchée quand S1 existera)                 | PR #104            |
+| **S2, M2** Module `ai` : piste IA, quota, cache, protection contre l'injection                                                | PR #104            |
+| Outillage : ESLint actif avec frontières d'architecture, hooks Git, Node 24 imposé ### En cours (PR ouvertes)                 |
 
-Vérifié le 8 octobre au soir, après les fusions : CI verte sur `main` (format, types, tests, build, gitleaks, audit).
+| PR   | Contenu                                                                                                                              | Auteur  | Exigences                             |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------------------------- |
+| #105 | ADR 0001 à 0013 acceptés, ADR 0014 à 0019 (XP, base, périmètre du MVP, tri v3.1, pile front, gouvernance)                            | Caleb   | #1                                    |
+| (S1) | Module `sos` : `POST /questions` idempotent, liste et fiche publiques, recherche plein texte ; service d'idempotence partagé         | Joachim | S1, S2 (déclenchement), O2 (côté API) |
+| #97  | `apps/web` (PWA de Sylvio) : à retravailler selon l'ADR-0016 (navigation du MVP, pas de `news`, mode local réservé au développement) | Sylvio  | I1, O1-O3                             |
 
-### En cours (PR ouvertes, en attente de relecture)
+### Plan jusqu'au gel du 22 octobre
 
-| PR   | Contenu                                                                                  | Auteur  | Exigences                     |
-| ---- | ---------------------------------------------------------------------------------------- | ------- | ----------------------------- |
-| #103 | ESLint réellement actif, hooks Git, Node 24 imposé (empilée sur #100)                    | Joachim | BUG-001, 007, 008, 009        |
-| #97  | `apps/web` (PWA de Sylvio) + module API `news` + design system v2. **Contient tout #96** | Sylvio  | I1, O1-O3 (partiel), hors CDC |
-| #96  | Première version de l'intégration front, **remplacée par #97** (à fermer)                | Sylvio  | idem                          |
+Mandat du 14 octobre : Joachim avance **toutes** les tâches restantes (les siennes et celles de l'équipe), une PR par fonctionnalité, dans l'ordre du parcours de démo.
 
-### À faire (prochaines étapes du planning)
+| Ordre | Lot                                                      | Exigences          | Statut                  |
+| ----- | -------------------------------------------------------- | ------------------ | ----------------------- |
+| 1     | Poser une question, idempotence                          | S1, O2 (API)       | En cours                |
+| 2     | Répondre, voter, valider (+ XP)                          | S4                 | À faire                 |
+| 3     | Matching et notifications dans l'application             | S3, X4             | À faire                 |
+| 4     | Synchronisation hors ligne `POST /sync`                  | O2                 | À faire                 |
+| 5     | Salles de projet : créer, rejoindre, tâches, PR vérifiée | R1, R2, R3, R8, R9 | À faire                 |
+| 6     | Passport public et preuves                               | PR2, PR3           | À faire                 |
+| 7     | Découverte et classement                                 | D1, D2             | À faire                 |
+| 8     | Écrans Systalink et impact, modération                   | Y1, Y2, M1         | À faire                 |
+| 9     | Front : intégration des écrans du MVP sur l'API réelle   | I1, O1-O4          | À faire (dépend de #97) |
 
-- **Jalon 1 (aujourd'hui, 8 oct.)** : connexion GitHub, profil, base et **URL Systalink en ligne**. Le profil (PR1) est fusionné ; l'URL de production dépend de #6, #7 et #9.
+Bloquants hors code, qui demandent une personne de l'équipe : URL de production et VPS (#6, Emmanuel), application OAuth GitHub et clé IA (#7), base Systalink (#9, ADR-0015), invitations (#10, Caleb).
+
+; l'URL de production dépend de #6, #7 et #9.
+
 - **Jalon 2 (14 oct.)** : parcours SOS Dev de bout en bout (S1 à S4), piste IA (S2, rôle 5 : fusionnée dans #104), 30+ devs invités. S1 (Florent) doit déclencher le job `ai.hint`.
 - `packages/core` et `packages/contracts` : en place depuis #101 (Caleb).
 
@@ -189,3 +203,4 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 | 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104) |
 | 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                          |
 | 2026-10-09 | Fusion de #100 et #103 ; ADR 0001 à 0013 acceptés ; ADR 0014 à 0019 (XP, base, périmètre, tri v3.1, front, dépôt)                |
+| 2026-10-14 | Reprise : Joachim mandaté pour finir toutes les tâches ; S1 (`sos`) et service d'idempotence partagé                             |

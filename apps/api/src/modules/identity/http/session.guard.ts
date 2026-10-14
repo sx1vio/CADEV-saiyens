@@ -47,6 +47,24 @@ export class SessionGuard implements CanActivate {
   }
 }
 
+/**
+ * Lit la session si elle existe, sans l'exiger : routes publiques dont la réponse dépend du
+ * visiteur (« mes questions »). Ne prolonge pas la session.
+ */
+@Injectable()
+export class OptionalSessionGuard implements CanActivate {
+  constructor(private readonly sessions: PrismaSessionStore) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const token = readCookie(req, SESSION_COOKIE);
+    if (!token) return true;
+    const session = await this.sessions.findActive(hashSessionToken(token), new Date());
+    if (session) req.auth = { userId: session.userId, sessionIdHash: session.idHash };
+    return true;
+  }
+}
+
 function unauthorized(): UnauthorizedException {
   return new UnauthorizedException({ code: 'auth.required', title: 'Authentication required' });
 }
@@ -58,4 +76,10 @@ export const CurrentUser = createParamDecorator(
     if (!auth) throw unauthorized();
     return auth;
   },
+);
+
+/** Utilisateur connecté s'il y en a un (après OptionalSessionGuard), sinon null. */
+export const OptionalUser = createParamDecorator(
+  (_: unknown, context: ExecutionContext): AuthenticatedUser | null =>
+    context.switchToHttp().getRequest<AuthenticatedRequest>().auth ?? null,
 );

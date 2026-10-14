@@ -8,6 +8,7 @@ import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 import { AwardXp, SelfVoteError, XpEventNotRevertableError } from '../src/modules/reputation';
 import { applyTestEnv } from './env.fixture';
+import { ensureTags } from './tags.fixture';
 
 // X1 et X2 contre une vraie base : barème, plafonds, garde-fous, annulation, journal public.
 applyTestEnv({ AUTH_FAKE_PROVIDER: 'true', NODE_ENV: 'test', LOG_LEVEL: 'warn' });
@@ -43,11 +44,11 @@ describe('reputation : Proof XP (X1, X2)', () => {
     await app.init();
     prisma = app.get(PrismaService);
     xp = app.get(AwardXp);
-    for (const slug of ['docker', 'nginx', 'nodejs']) {
-      tags[slug] = (
-        await prisma.tag.upsert({ where: { slug }, create: { slug, label: slug }, update: {} })
-      ).id;
-    }
+    const ids = await ensureTags(
+      prisma,
+      ['docker', 'nginx', 'nodejs'].map((slug) => ({ slug, label: slug })),
+    );
+    for (const [slug, id] of ids) tags[slug] = id;
     for (const name of ['awa', 'moussa', 'kwame', 'aida']) await user(name);
   });
 

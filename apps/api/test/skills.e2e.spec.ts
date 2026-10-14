@@ -8,6 +8,7 @@ import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 import { ImportProfileJob } from '../src/modules/passport/jobs/import-profile.job';
 import { applyTestEnv } from './env.fixture';
+import { ensureTags } from './tags.fixture';
 import { WRITE_HEADERS, signInAs } from './sign-in.helper';
 
 // PR1 + X3 de bout en bout, avec le faux fournisseur et le faux client GitHub.
@@ -37,13 +38,10 @@ describe('compétences importées depuis GitHub (PR1, X3)', () => {
     app.useGlobalFilters(new ProblemDetailsFilter());
     await app.init();
     prisma = app.get(PrismaService);
-    for (const [slug, label, aliases] of TAGS) {
-      await prisma.tag.upsert({
-        where: { slug },
-        create: { slug, label, aliases: [...aliases] },
-        update: {},
-      });
-    }
+    await ensureTags(
+      prisma,
+      TAGS.map(([slug, label, aliases]) => ({ slug, label, aliases })),
+    );
     cookie = await signInAs(app, login);
     userId = (await prisma.user.findUniqueOrThrow({ where: { handle: login } })).id;
   });
