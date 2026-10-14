@@ -84,8 +84,8 @@ Mandat du 14 octobre : Joachim avance **toutes** les tâches restantes (les sien
 | 3b    | Temps réel SSE (notifications et pages de question)               | Y8                 | PR #109                 |
 | 4     | Synchronisation hors ligne `POST /sync`                           | O2                 | PR #110                 |
 | 5     | Salles de projet : créer, rejoindre, tâches, PR vérifiée          | R1, R2, R3, R8, R9 | PR #111, #112           |
-| 6     | Passport public et preuves                                        | PR2, PR3           | En cours                |
-| 7     | Découverte et classement                                          | D1, D2             | À faire                 |
+| 6     | Passport public et preuves                                        | PR2, PR3           | PR #113                 |
+| 7     | Découverte et classement                                          | D1, D2             | En cours                |
 | 8     | Écrans Systalink et impact, modération                            | Y1, Y2, M1         | À faire                 |
 | 9     | Front : intégration des écrans du MVP sur l'API réelle            | I1, O1-O4          | À faire (dépend de #97) |
 
