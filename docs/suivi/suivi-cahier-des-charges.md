@@ -35,10 +35,10 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 5       | 11       | 5       | 24 %        | 76 %       |
+| P0        | 21     | 5       | 13       | 3       | 24 %        | 86 %       |
 | P1        | 14     | 0       | 3        | 11      | 0 %         | 21 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **14**   | **18**  | **14 %**    | **51 %**   |
+| **Total** | **37** | **5**   | **16**   | **16**  | **14 %**    | **57 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -47,7 +47,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Module                  | Exigences | Terminé | En cours | Avancement                                   |
 | ----------------------- | --------- | ------- | -------- | -------------------------------------------- |
 | Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                         |
-| Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait                        |
+| Profil et Passport (PR) | 4         | 1       | 2        | `█████░░░░░` PR1 fait; PR2, PR3 en cours     |
 | SOS Dev (S)             | 7         | 1       | 3        | `████░░░░░░` S2 fait; S1, S3, S4 en cours    |
 | Salles de projet (R)    | 8         | 0       | 6        | `████░░░░░░` R1, R2, R3, R4, R7, R8 en cours |
 | Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                                 |
@@ -107,12 +107,12 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Profil et Passport (PR)
 
-| ID  | Issue | Exigence                                     | Prio | Statut    | Responsable | Référence       | Commentaire                                         |
-| --- | ----- | -------------------------------------------- | ---- | --------- | ----------- | --------------- | --------------------------------------------------- |
-| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé` | Caleb       | #99 (fusionnée) | Job `github.import-profile`, au moins 3 compétences |
-| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `À faire` | Caleb       |                 | `trustSignals()` de #98 réutilisable                |
-| PR3 | #19   | « Voir les preuves »                         | P0   | `À faire` | Caleb       |                 | `GET /me/skills` (#99) expose déjà G et P           |
-| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire` | Caleb       |                 |                                                     |
+| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence                    | Commentaire                                                                                                                         |
+| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé`  | Caleb       | #99 (fusionnée)              | Job `github.import-profile`, au moins 3 compétences                                                                                 |
+| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `En cours` | Caleb       | `feat/passport-public`       | `GET /u/:handle` public : identité filtrée (PR14), compétences, statistiques calculées, projets publics ; reste l’aperçu Open Graph |
+| PR3 | #19   | « Voir les preuves »                         | P0   | `En cours` | Caleb       | `feat/passport-public`, #102 | Chaque score : G + P ; preuves dans `GET /u/:handle/proofs`                                                                         |
+| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire`  | Caleb       |                              |                                                                                                                                     |
 
 ### SOS Dev (S)
 
@@ -207,8 +207,8 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `À faire`  | Sylvio, Emmanuel              |                                                                                               |
 | PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `P2`       | Sylvio                        |                                                                                               |
 | PR9  | #73   | Recommandations adossées à une preuve            | P1        | `Écarté`   | —                             |                                                                                               |
-| PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `À faire`  | Caleb                         |                                                                                               |
-| PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `À faire`  | Caleb                         |                                                                                               |
+| PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `En cours` | Caleb                         | `feat/passport-public` (`PATCH /me`, Passport)                                                |
+| PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `En cours` | Caleb                         | `feat/passport-public` (`PATCH /me`, Passport)                                                |
 | S12  | #76   | Fiche de résolution générée                      | P1        | `P2`       | Joachim                       |                                                                                               |
 | S14  | #77   | Lien de reproduction                             | P1        | `À faire`  | Florent                       |                                                                                               |
 | S16  | #78   | File « Personne n'a encore répondu »             | P1        | `À faire`  | Florent                       |                                                                                               |

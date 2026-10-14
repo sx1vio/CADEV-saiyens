@@ -76,18 +76,18 @@ Détail exigence par exigence : [suivi du cahier des charges](docs/suivi/suivi-c
 
 Mandat du 14 octobre : Joachim avance **toutes** les tâches restantes (les siennes et celles de l'équipe), une PR par fonctionnalité, dans l'ordre du parcours de démo.
 
-| Ordre | Lot                                                               | Exigences          | Statut                                      |
-| ----- | ----------------------------------------------------------------- | ------------------ | ------------------------------------------- |
-| 1     | Poser une question, idempotence                                   | S1, O2 (API)       | PR #106                                     |
-| 2     | Répondre, voter, valider (+ XP), notifications dans l'application | S4                 | PR #107                                     |
-| 3     | Matching et notifications dans l'application                      | S3, X4             | PR #108                                     |
-| 3b    | Temps réel SSE (notifications et pages de question)               | Y8                 | PR #109                                     |
-| 4     | Synchronisation hors ligne `POST /sync`                           | O2                 | PR #110                                     |
-| 5     | Salles de projet : créer, rejoindre, tâches, PR vérifiée          | R1, R2, R3, R8, R9 | R1, R3 en PR #111 ; R2, R4, R8, R9 en cours |
-| 6     | Passport public et preuves                                        | PR2, PR3           | À faire                                     |
-| 7     | Découverte et classement                                          | D1, D2             | À faire                                     |
-| 8     | Écrans Systalink et impact, modération                            | Y1, Y2, M1         | À faire                                     |
-| 9     | Front : intégration des écrans du MVP sur l'API réelle            | I1, O1-O4          | À faire (dépend de #97)                     |
+| Ordre | Lot                                                               | Exigences          | Statut                  |
+| ----- | ----------------------------------------------------------------- | ------------------ | ----------------------- |
+| 1     | Poser une question, idempotence                                   | S1, O2 (API)       | PR #106                 |
+| 2     | Répondre, voter, valider (+ XP), notifications dans l'application | S4                 | PR #107                 |
+| 3     | Matching et notifications dans l'application                      | S3, X4             | PR #108                 |
+| 3b    | Temps réel SSE (notifications et pages de question)               | Y8                 | PR #109                 |
+| 4     | Synchronisation hors ligne `POST /sync`                           | O2                 | PR #110                 |
+| 5     | Salles de projet : créer, rejoindre, tâches, PR vérifiée          | R1, R2, R3, R8, R9 | PR #111, #112           |
+| 6     | Passport public et preuves                                        | PR2, PR3           | En cours                |
+| 7     | Découverte et classement                                          | D1, D2             | À faire                 |
+| 8     | Écrans Systalink et impact, modération                            | Y1, Y2, M1         | À faire                 |
+| 9     | Front : intégration des écrans du MVP sur l'API réelle            | I1, O1-O4          | À faire (dépend de #97) |
 
 Bloquants hors code, qui demandent une personne de l'équipe : URL de production et VPS (#6, Emmanuel), application OAuth GitHub et clé IA (#7), base Systalink (#9, ADR-0015), invitations (#10, Caleb).
 
