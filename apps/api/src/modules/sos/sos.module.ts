@@ -5,8 +5,10 @@ import { NotificationsModule, Notifier } from '../notifications';
 import { AwardXp, ReputationModule } from '../reputation';
 import { Answers } from './application/answers';
 import { AskQuestion } from './application/ask-question';
+import { EditContent } from './application/edit-content';
 import { AnswersController } from './http/answers.controller';
 import { QuestionsController } from './http/questions.controller';
+import { SosActions } from './http/sos.actions';
 import { QuestionReader } from './infrastructure/question.reader';
 
 // Module sos : SOS Dev, questions et réponses (CDC v3 §6.1). Propriétaire : Florent.
@@ -15,6 +17,8 @@ import { QuestionReader } from './infrastructure/question.reader';
   controllers: [QuestionsController, AnswersController],
   providers: [
     QuestionReader,
+    SosActions,
+    EditContent,
     { provide: AskQuestion, useFactory: () => new AskQuestion() },
     {
       provide: Answers,

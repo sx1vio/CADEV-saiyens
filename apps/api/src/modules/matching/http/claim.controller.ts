@@ -1,21 +1,13 @@
-import {
-  Controller,
-  ForbiddenException,
-  HttpCode,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, HttpCode, Param, ParseUUIDPipe, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ClaimResponse } from '@devhub/contracts';
 import type { Response } from 'express';
 import { createZodDto } from 'nestjs-zod';
+import { runAction } from '../../../infrastructure/actions/action-registry';
 import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-key.decorator';
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
 import { type AuthenticatedUser, CurrentUser, SessionGuard } from '../../identity';
-import { ClaimQuestion, NotSolicitedError } from '../application/run-wave';
+import { MatchingActions } from './matching.actions';
 
 class ClaimResponseDto extends createZodDto(ClaimResponse) {}
 
@@ -24,7 +16,7 @@ class ClaimResponseDto extends createZodDto(ClaimResponse) {}
 export class ClaimController {
   constructor(
     private readonly idempotency: IdempotencyService,
-    private readonly claimQuestion: ClaimQuestion,
+    private readonly actions: MatchingActions,
   ) {}
 
   /** S11 : « Je m'en occupe », réservé aux aidants sollicités. Retarde l'escalade de 20 minutes. */
@@ -37,24 +29,16 @@ export class ClaimController {
     @Param('id', ParseUUIDPipe) questionId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ClaimResponse> {
-    const outcome = await this.idempotency
-      .run(
-        { userId: auth.userId, key, endpoint: `POST /questions/${questionId}/claim`, body: {} },
-        async (tx) => {
-          const { claimedAt } = await this.claimQuestion.execute(questionId, auth.userId, tx);
-          return { status: 200, body: { questionId, claimedAt: claimedAt.toISOString() } };
-        },
-      )
-      .catch((err: unknown) => {
-        if (err instanceof NotSolicitedError) {
-          throw new ForbiddenException({
-            code: 'forbidden',
-            title: 'Only a solicited helper can claim an open question',
-          });
-        }
-        throw err;
-      });
+    const outcome = await runAction(
+      this.idempotency,
+      this.actions.questionClaim,
+      auth.userId,
+      key,
+      {
+        questionId,
+      },
+    );
     if (outcome.replayed) res.setHeader('Idempotent-Replayed', 'true');
-    return outcome.body;
+    return outcome.body as ClaimResponse;
   }
 }
