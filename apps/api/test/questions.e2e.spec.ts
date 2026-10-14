@@ -3,7 +3,9 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { TAG_REFERENCE } from '@devhub/core';
 import { AppModule } from '../src/app.module';
+import { TagReferenceSync } from '../src/modules/sos/infrastructure/tag-reference.sync';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 import { applyTestEnv } from './env.fixture';
@@ -59,6 +61,15 @@ describe('poser une question (S1) et la lire', () => {
       await prisma.question.deleteMany({ where: { authorId: user.id } });
     }
     await app.close();
+  });
+
+  it('le référentiel des étiquettes est en base dès le démarrage, sans seed (BUG-026)', async () => {
+    const slugs = new Set(
+      (await app.get(PrismaService).tag.findMany({ select: { slug: true } })).map((t) => t.slug),
+    );
+    for (const t of TAG_REFERENCE) expect(slugs, t.slug).toContain(t.slug);
+    // Relancer l'alignement ne change rien (idempotent).
+    expect(await app.get(TagReferenceSync).sync()).toBe(0);
   });
 
   it('GET /tags : référentiel public, mis en cache', async () => {

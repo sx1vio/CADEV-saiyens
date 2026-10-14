@@ -4,3 +4,4 @@ export * from './scoring/github-signals';
 export * from './scoring/matching';
 export * from './xp/rules';
 export * from './secrets/mask';
+export * from './reference/tags';
