@@ -1,6 +1,6 @@
 # ADR-0016 : Périmètre du MVP, services « écosystème » et données de démonstration
 
-- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1, qui « a le dernier mot sur le périmètre », CDC §3 et §10). Points 1 et 3 de la décision **remplacés** par l'[ADR-0020](0020-services-ecosysteme-conserves.md) le 2026-10-16.
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1, qui « a le dernier mot sur le périmètre », CDC §3 et §10). Points 1 et 3 de la décision **remplacés** par l'[ADR-0020](0020-services-ecosysteme-conserves.md) le 2026-10-14.
 - **Date** : 2026-10-09
 - **Décideurs** : Caleb (rôle 1)
 - **Exigences concernées** : CDC v3 §2, §3, §6.6, §9, §13 ; PR #96 et #97 ; BUG-005

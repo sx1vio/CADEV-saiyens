@@ -69,23 +69,25 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ## Jalons
 
-| Jalon | Date    | Critère de sortie                                                                | Statut                                                                          |
-| ----- | ------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 1     | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne              | **À risque** : A1 et profil (PR1) fusionnés ; pas d'URL de production constatée |
-| 2     | 14 oct. | Question → piste IA → réponse d'un autre dev, de bout en bout ; 30+ devs invités | `À faire`                                                                       |
-| 3     | 16 oct. | Poser, lire, répondre sans réseau puis synchroniser, sur un vrai téléphone       | `À faire` (moteur hors ligne front en revue dans #97)                           |
-| 4     | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches           | `À faire`                                                                       |
-| 5     | 22 oct. | Passport, Proof XP, découverte, Systalink et impact ; gel du code                | `À faire`                                                                       |
+| Jalon | Date    | Critère de sortie                                                                | Statut au 14 octobre                                                                                                                                                          |
+| ----- | ------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne              | **Manqué** : code fusionné (A1 #95, PR1 #99) ; pas d'URL de production, en attente de #6, #7 et #9                                                                            |
+| 2     | 14 oct. | Question → piste IA → réponse d'un autre dev, de bout en bout ; 30+ devs invités | **Code prêt** (S1 à S4 #106 à #108, IA #104, front branché #116) ; restent la vraie clé IA (#7), un essai réel et les invitations (#10)                                       |
+| 3     | 16 oct. | Poser, lire, répondre sans réseau puis synchroniser, sur un vrai téléphone       | **Partiel** : rédaction et synchronisation prêtes (#110, #118) ; restent la lecture hors ligne des questions et salles (O1), l'écran de conflit (O4) et l'essai sur téléphone |
+| 4     | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches           | **Code prêt** (#111, #112, #113, front #116) ; restent l'aperçu de partage (R7) et un essai avec un vrai dépôt                                                                |
+| 5     | 22 oct. | Passport, Proof XP, découverte, Systalink et impact ; gel du code                | **API prête** (#113 à #115) ; restent le budget de l'accueil (BUG-024), les tests e2e du front, le déploiement et le dossier (#12)                                            |
+
+Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bloquants) : [cahier de livraison](https://claude.ai/artifact/6aWU3KSVDkfH8qdDF8zpj3) (page privée, partagée par Joachim).
 
 ## Mise en place (setup)
 
 | Issue | Tâche                                               | Statut     | Responsable       | Référence / commentaire                                                      |
 | ----- | --------------------------------------------------- | ---------- | ----------------- | ---------------------------------------------------------------------------- |
-| #1    | Valider les ADR 0001 à 0013                         | `À faire`  | Caleb             | Les 13 ADR sont toujours « proposés »                                        |
+| #1    | Valider les ADR 0001 à 0013                         | `Terminé`  | Caleb             | Acceptés le 9 octobre (PR #105)                                              |
 | #2    | Questions ouvertes à Systalink                      | `À faire`  | Caleb             | Aucune réponse consignée                                                     |
 | #3    | Initialiser `apps/api`                              | `Terminé`  | Caleb             | PR #94, 7 oct.                                                               |
-| #4    | Initialiser `apps/web`                              | `En cours` | Sylvio            | PR #97                                                                       |
-| #5    | Initialiser `packages/core` et `packages/contracts` | `En cours` | Caleb             | PR #101 (Florent était attributaire)                                         |
+| #4    | Initialiser `apps/web`                              | `Terminé`  | Sylvio            | PR #97 (fusionnée), branchée sur l'API par #116                              |
+| #5    | Initialiser `packages/core` et `packages/contracts` | `Terminé`  | Caleb             | PR #101 (fusionnée)                                                          |
 | #6    | CI verte, déploiement auto, URL Systalink en ligne  | `En cours` | Emmanuel          | CI verte sur `main` ; déploiement non constaté                               |
 | #7    | Application OAuth GitHub et clé IA avec plafond     | `À faire`  | Joachim, Emmanuel | Scopes décidés (#51) ; nécessaire pour le vrai GitHub                        |
 | #8    | Protéger `main` et compléter CODEOWNERS             | `Bloqué`   | Emmanuel          | Impossible sur un dépôt privé gratuit : voir [BUG-003](anomalies.md#bug-003) |

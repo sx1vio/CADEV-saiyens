@@ -154,7 +154,7 @@ Le comportement est identique pour un humain et un robot : pas de détection d'a
 - Les textes générés par l'IA sont toujours rendus dans le composant `AiContent`, qui affiche la mention « généré par IA, à vérifier » (S2).
 - Les comptes de démonstration sont affichés avec le composant `DemoBadge` partout où apparaît un utilisateur (règle §6.6).
 
-## Accès aux données : serveur simulé et API réelle (état au 16 octobre)
+## Accès aux données : serveur simulé et API réelle (état au 14 octobre)
 
 Toutes les pages passent par `api` (`apps/web/src/services/index.ts`), qui choisit une implémentation du contrat `DevHubApi` ([ADR-0016](../adr/0016-perimetre-du-mvp.md) §4) :
 
@@ -178,6 +178,6 @@ Temps réel (`services/realtime.ts`) : une connexion `EventSource` par onglet su
 
 File hors ligne (`offline/network.ts`) : avec l'API réelle, elle est rejouée par lots de 50 via `POST /sync`, l'`opId` étant le `clientId` de l'action (même clé et même corps qu'un envoi direct : jamais de doublon). `applied` et `duplicate` retirent l'action, `skipped` la garde pour un nouvel essai (attente progressive), `rejected` et `conflict` l'affichent en erreur. Le serveur simulé garde le rejeu action par action.
 
-Budget : `pnpm --filter @devhub/web budget` (après le build) mesure l'accueil à partir du manifeste Vite ; la CI l'affiche en mode rapport tant que BUG-024 est ouvert (mesure du 16 octobre : JS initial 202,6 Ko pour 150, accueil 412 Ko pour 300).
+Budget : `pnpm --filter @devhub/web budget` (après le build) mesure l'accueil à partir du manifeste Vite ; la CI l'affiche en mode rapport tant que BUG-024 est ouvert (mesure du 14 octobre : JS initial 202,6 Ko pour 150, accueil 412 Ko pour 300).
 
 Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID) ; aucun test e2e du front.

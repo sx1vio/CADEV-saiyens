@@ -1,7 +1,7 @@
 # ADR-0020 : Services « écosystème » conservés dans le front, signalés comme aperçus
 
-- **Statut** : Accepté le 2026-10-16 par l'équipe (transmis par Joachim) ; **validation du rôle 1 (Caleb) à confirmer**, qui a le dernier mot sur le périmètre (CDC §3). Remplace les points 1 et 3 de la décision de l'[ADR-0016](0016-perimetre-du-mvp.md)
-- **Date** : 2026-10-16
+- **Statut** : Accepté le 2026-10-14 par l'équipe (transmis par Joachim) ; **validation du rôle 1 (Caleb) à confirmer**, qui a le dernier mot sur le périmètre (CDC §3). Remplace les points 1 et 3 de la décision de l'[ADR-0016](0016-perimetre-du-mvp.md)
+- **Date** : 2026-10-14
 - **Décideurs** : l'équipe, après la fusion de #97 ; rédaction Joachim (rôle 5)
 - **User stories ou exigences concernées** : §9 (budget), §6.6 (données de démonstration), I1, T1
 
@@ -11,13 +11,13 @@ L'[ADR-0016](0016-perimetre-du-mvp.md) (9 octobre) limitait les menus aux écran
 
 Le 14 octobre, #97 a été fusionnée sans ce remaniement. L'accueil d'un compte connecté est désormais un fil d'actualités servi par une vraie API (`GET /news`, `GET /videos`), et les menus présentent les services de l'écosystème. Sauf les actualités et les vidéos, ces services n'ont **pas de serveur** : leurs contenus sont des données de démonstration, et ce que fait l'utilisateur (candidatures, progression, publications) reste dans le navigateur.
 
-Le 16 octobre, l'équipe a choisi de garder #97 telle quelle et de réviser l'ADR-0016, plutôt que de retirer ces écrans à six jours du gel.
+Le 14 octobre, l'équipe a choisi de garder #97 telle quelle et de réviser l'ADR-0016, plutôt que de retirer ces écrans à huit jours du gel.
 
 ## Critères de décision
 
 - Indispensable : aucune donnée inventée présentée comme réelle (§6.6, honnêteté de la démo).
 - Indispensable : le parcours du MVP (SOS Dev, salles, Passport, Systalink) reste entièrement sur l'API réelle.
-- Souhaitable : ne pas défaire le travail fusionné de l'équipe front à six jours du gel.
+- Souhaitable : ne pas défaire le travail fusionné de l'équipe front à huit jours du gel.
 
 ## Options envisagées
 
