@@ -12,6 +12,7 @@
  */
 import { useEffect } from 'react';
 import { invalidate } from '@/lib/query';
+import { clearApiReadCache } from '@/offline/api-cache';
 import { api } from './index';
 
 const MAX_TOPICS = 5;
@@ -85,6 +86,7 @@ function open() {
   for (const event of PUBLIC_EVENTS) source.addEventListener(event, refreshFollowed);
   source.addEventListener('session.ended', () => {
     close();
+    void clearApiReadCache(); // session terminée ailleurs : on ne garde rien de ce compte
     state.userKey = null;
     state.onSessionEnded?.();
   });

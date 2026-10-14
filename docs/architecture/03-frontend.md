@@ -178,6 +178,8 @@ Temps réel (`services/realtime.ts`) : une connexion `EventSource` par onglet su
 
 File hors ligne (`offline/network.ts`) : avec l'API réelle, elle est rejouée par lots de 50 via `POST /sync`, l'`opId` étant le `clientId` de l'action (même clé et même corps qu'un envoi direct : jamais de doublon). `applied` et `duplicate` retirent l'action, `skipped` la garde pour un nouvel essai (attente progressive), `rejected` et `conflict` l'affichent en erreur. Le serveur simulé garde le rejeu action par action.
 
+Lecture hors ligne (O1) : le service worker garde les lectures de l'API (`src/offline/api-cache.ts` : questions, fiches des salles, Passport, étiquettes, découverte, classement, Systalink, impact, règles), réseau d'abord avec repli sur le cache après 4 s ou sans réseau, 300 réponses et 7 jours au plus. Jamais la session (`/me`), la connexion, le temps réel, les notifications, l'administration, ni les réponses qui dépendent des droits du compte (fil et tâches d'une salle, réservés aux membres d'une salle non listée ; demandes d'adhésion ; listes « mes… »). Le cache est vidé à la déconnexion (même hors ligne), à la fin de session, et quand un autre compte se connecte sur l'appareil.
+
 Budget : `pnpm --filter @devhub/web budget` (après le build) mesure l'accueil à partir du manifeste Vite ; la CI l'affiche en mode rapport tant que BUG-024 est ouvert (mesure du 14 octobre : JS initial 202,6 Ko pour 150, accueil 412 Ko pour 300).
 
 Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID) ; aucun test e2e du front.

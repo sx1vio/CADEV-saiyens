@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
+import { API_READ_CACHE, API_READ_PATTERN } from './src/offline/api-cache.ts';
 
 // Configuration du front DevHub Africa : PWA hors ligne d'abord (CDC §6.5, O1).
 export default defineConfig(({ command, mode }) => {
@@ -55,6 +56,19 @@ export default defineConfig(({ command, mode }) => {
               options: {
                 cacheName: 'api-news',
                 expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 3 },
+              },
+            },
+            {
+              // O1 : questions, salles, Passport… déjà ouverts restent lisibles sans réseau.
+              // Réseau d'abord (contenu frais en ligne), cache au bout de 4 s ou hors ligne.
+              urlPattern: API_READ_PATTERN,
+              handler: 'NetworkFirst',
+              method: 'GET',
+              options: {
+                cacheName: API_READ_CACHE,
+                networkTimeoutSeconds: 4,
+                expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 7 },
+                cacheableResponse: { statuses: [200] },
               },
             },
             {
