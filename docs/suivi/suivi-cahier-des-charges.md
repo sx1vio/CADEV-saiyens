@@ -35,10 +35,10 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 5       | 13       | 3       | 24 %        | 86 %       |
-| P1        | 14     | 0       | 3        | 11      | 0 %         | 21 %       |
+| P0        | 21     | 5       | 14       | 2       | 24 %        | 90 %       |
+| P1        | 14     | 0       | 4        | 10      | 0 %         | 29 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **16**   | **16**  | **14 %**    | **57 %**   |
+| **Total** | **37** | **5**   | **18**   | **14**  | **14 %**    | **62 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -50,7 +50,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Profil et Passport (PR) | 4         | 1       | 2        | `█████░░░░░` PR1 fait; PR2, PR3 en cours     |
 | SOS Dev (S)             | 7         | 1       | 3        | `████░░░░░░` S2 fait; S1, S3, S4 en cours    |
 | Salles de projet (R)    | 8         | 0       | 6        | `████░░░░░░` R1, R2, R3, R4, R7, R8 en cours |
-| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                                 |
+| Découverte (D)          | 3         | 0       | 2        | `███░░░░░░░` D1, D2 en cours                 |
 | Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                     |
 | Hors ligne (O)          | 4         | 0       | 4        | `█████░░░░░` O1, O2, O3, O4 en cours         |
 | Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                                 |
@@ -141,11 +141,11 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Découverte (D)
 
-| ID  | Issue | Exigence                   | Prio | Statut    | Responsable | Référence | Commentaire        |
-| --- | ----- | -------------------------- | ---- | --------- | ----------- | --------- | ------------------ |
-| D1  | #36   | Rechercher devs et projets | P0   | `À faire` | Caleb       |           | Planning : 19 oct. |
-| D2  | #37   | Classement par pays        | P1   | `À faire` | Caleb       |           |                    |
-| D3  | #38   | Recherche sémantique       | P2   | `À faire` | Caleb       |           | Gel des P2 le 15   |
+| ID  | Issue | Exigence                   | Prio | Statut     | Responsable | Référence        | Commentaire                                                                                                   |
+| --- | ----- | -------------------------- | ---- | ---------- | ----------- | ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| D1  | #36   | Rechercher devs et projets | P0   | `En cours` | Caleb       | `feat/discovery` | `GET /discover/devs` (stack, fuseau ± 3 h, disponibilité, objectif, pays) et `GET /rooms` ; non listés exclus |
+| D2  | #37   | Classement par pays        | P1   | `En cours` | Caleb       | `feat/discovery` | `GET /leaderboard` : somme du journal XP, démo et non listés exclus, méthode publiée                          |
+| D3  | #38   | Recherche sémantique       | P2   | `À faire`  | Caleb       |                  | Gel des P2 le 15                                                                                              |
 
 ### Réputation (X)
 

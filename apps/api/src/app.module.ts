@@ -14,6 +14,7 @@ import { RealtimeModule } from './infrastructure/realtime/realtime.module';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
+import { DiscoveryModule } from './modules/discovery';
 import { MatchingModule } from './modules/matching';
 import { NotificationsModule } from './modules/notifications';
 import { RoomsModule } from './modules/rooms';
@@ -55,6 +56,7 @@ import { ReputationModule } from './modules/reputation';
     MatchingModule,
     SyncModule,
     RoomsModule,
+    DiscoveryModule,
   ],
   controllers: [HealthController],
   providers: [
