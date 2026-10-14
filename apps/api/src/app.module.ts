@@ -9,6 +9,7 @@ import { ProblemDetailsFilter } from './infrastructure/http/problem-details.filt
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { IdempotencyModule } from './infrastructure/idempotency/idempotency.module';
 import { JobsModule } from './infrastructure/jobs/jobs.module';
+import { RealtimeModule } from './infrastructure/realtime/realtime.module';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
@@ -40,6 +41,7 @@ import { ReputationModule } from './modules/reputation';
     PrismaModule,
     JobsModule,
     IdempotencyModule,
+    RealtimeModule,
     IdentityModule,
     PassportModule,
     ReputationModule,

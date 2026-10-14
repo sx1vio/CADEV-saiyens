@@ -24,6 +24,7 @@ import type { Response } from 'express';
 import { createZodDto } from 'nestjs-zod';
 import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-key.decorator';
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
+import { publishToTopic } from '../../../infrastructure/realtime/realtime.publisher';
 import { type AuthenticatedUser, CurrentUser, SessionGuard } from '../../identity';
 import { SelfVoteError } from '../../reputation';
 import { Answers } from '../application/answers';
@@ -115,6 +116,12 @@ export class AnswersController {
             tx,
             { questionId, authorId: auth.userId, clientId: body.clientId, body: body.body },
           );
+          if (created) {
+            await publishToTopic(tx, `question:${questionId}`, 'answer.created', {
+              questionId,
+              answerId: answer.id,
+            });
+          }
           return {
             status: created ? HttpStatus.CREATED : HttpStatus.OK,
             body: {
@@ -186,6 +193,12 @@ export class AnswersController {
         async (tx) => {
           const writer = new PrismaAnswerWriter(tx);
           const result = await this.answers.accept(writer, tx, { answerId, actorId: auth.userId });
+          if (result.changed) {
+            await publishToTopic(tx, `question:${result.questionId}`, 'answer.accepted', {
+              questionId: result.questionId,
+              answerId,
+            });
+          }
           return {
             status: HttpStatus.OK,
             body: {

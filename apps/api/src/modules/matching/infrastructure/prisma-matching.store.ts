@@ -8,6 +8,7 @@ import {
 } from '@devhub/core';
 import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { publishToTopic } from '../../../infrastructure/realtime/realtime.publisher';
 import type { ClaimStore } from '../application/run-wave';
 import type { MatchingQuestion, MatchingStore, NewMatchEvent } from '../domain/ports';
 
@@ -181,6 +182,8 @@ export class PrismaMatchingStore implements MatchingStore, ClaimStore {
         })),
       });
       await notify(tx);
+      const questionId = events[0]!.questionId;
+      await publishToTopic(tx, `question:${questionId}`, 'question.matched', { questionId });
     });
   }
 
