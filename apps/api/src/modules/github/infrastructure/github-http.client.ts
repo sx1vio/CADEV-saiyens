@@ -77,6 +77,7 @@ export class GithubHttpClient implements GithubApi {
       archived: boolean;
       description: string | null;
       html_url: string;
+      permissions?: { admin?: boolean; maintain?: boolean; push?: boolean };
     }>(token, `/repos/${fullName}`);
     return r
       ? {
@@ -85,6 +86,7 @@ export class GithubHttpClient implements GithubApi {
           archived: r.archived,
           description: r.description,
           htmlUrl: r.html_url,
+          canPush: Boolean(r.permissions?.admin || r.permissions?.maintain || r.permissions?.push),
         }
       : null;
   }

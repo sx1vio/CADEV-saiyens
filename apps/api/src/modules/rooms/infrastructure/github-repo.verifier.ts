@@ -6,10 +6,14 @@ import {
   GithubNotLinkedError,
   GithubUnavailableError,
   RepoNotFoundError,
+  RepoNotOwnedError,
   RepoPrivateError,
 } from '../domain/room';
 
-/** R1 : le dépôt existe et il est public (lecture seule, jeton du créateur). */
+/**
+ * R1 : le dépôt existe, il est public, et le créateur peut y pousser (lecture seule, avec son
+ * jeton). Sans ce contrôle, n'importe qui pourrait se faire passer pour un projet connu.
+ */
 @Injectable()
 export class GithubRepoVerifier implements RepoVerifier {
   constructor(
@@ -24,6 +28,7 @@ export class GithubRepoVerifier implements RepoVerifier {
       const repo = await this.github.getRepo(token, fullName);
       if (!repo) throw new RepoNotFoundError();
       if (repo.private) throw new RepoPrivateError();
+      if (!repo.canPush) throw new RepoNotOwnedError();
       return { fullName: repo.fullName, htmlUrl: repo.htmlUrl };
     } catch (err) {
       if (err instanceof GithubApiError) throw new GithubUnavailableError(err.message);

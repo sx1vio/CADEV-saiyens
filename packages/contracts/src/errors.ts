@@ -30,6 +30,7 @@ export const ERROR_CODES = [
   // Salles de projet
   'room.repo_not_found',
   'room.repo_private',
+  'room.repo_not_owned',
   'room.not_member',
   'room.already_member',
   'task.already_taken',

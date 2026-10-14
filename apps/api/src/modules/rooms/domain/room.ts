@@ -3,6 +3,8 @@
 export class RoomNotFoundError extends Error {}
 export class RepoNotFoundError extends Error {}
 export class RepoPrivateError extends Error {}
+/** Le créateur n'a pas les droits d'écriture sur le dépôt : on ne lie pas le dépôt d'un autre. */
+export class RepoNotOwnedError extends Error {}
 export class GithubNotLinkedError extends Error {}
 export class GithubUnavailableError extends Error {}
 export class UnknownStackError extends Error {

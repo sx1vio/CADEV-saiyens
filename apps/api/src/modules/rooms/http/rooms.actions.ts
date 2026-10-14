@@ -30,6 +30,7 @@ import {
   JoinRequestNotFoundError,
   NotRoomManagerError,
   RepoNotFoundError,
+  RepoNotOwnedError,
   RepoPrivateError,
   RoomNotFoundError,
   UnknownStackError,
@@ -51,6 +52,12 @@ export function toHttp(err: unknown): never {
     throw new UnprocessableEntityException({
       code: 'room.repo_private',
       title: 'The repository must be public',
+    });
+  }
+  if (err instanceof RepoNotOwnedError) {
+    throw new ForbiddenException({
+      code: 'room.repo_not_owned',
+      title: 'You need write access to this repository to link it',
     });
   }
   if (err instanceof GithubNotLinkedError) {

@@ -104,6 +104,13 @@ describe('salles de projet : créer, rejoindre (R1, R3)', () => {
       roomBody({ repoFullName: 'awa/private-repo' }),
     ).expect(422);
     expect(priv.body.code).toBe('room.repo_private');
+    // Le dépôt d'un autre compte (ex. un projet connu) : refusé, faute de droits d'écriture.
+    const other = await post(
+      'awa',
+      '/api/v1/rooms',
+      roomBody({ repoFullName: 'facebook/react' }),
+    ).expect(403);
+    expect(other.body.code).toBe('room.repo_not_owned');
     const tags = await post(
       'awa',
       '/api/v1/rooms',

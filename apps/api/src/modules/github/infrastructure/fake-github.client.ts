@@ -69,10 +69,10 @@ export class FakeGithubClient implements GithubApi {
 
   /**
    * Dépôts : tout « owner/nom » existe et est public, sauf un nom qui commence par « missing »
-   * (introuvable) ou par « private » (privé).
+   * (introuvable) ou par « private » (privé). Seul « owner » peut y pousser.
    */
-  async getRepo(_token: string, fullName: string): Promise<GithubRepoInfo | null> {
-    const name = fullName.split('/')[1] ?? '';
+  async getRepo(token: string, fullName: string): Promise<GithubRepoInfo | null> {
+    const [owner = '', name = ''] = fullName.split('/');
     if (name.startsWith('missing')) return null;
     return {
       fullName,
@@ -80,6 +80,8 @@ export class FakeGithubClient implements GithubApi {
       archived: false,
       description: 'Dépôt de démonstration',
       htmlUrl: `https://github.com/${fullName}`,
+      // L'utilisateur du faux jeton peut pousser sur les dépôts de son propre compte.
+      canPush: owner.toLowerCase() === token.replace(/^fake-token-/, '').toLowerCase(),
     };
   }
 

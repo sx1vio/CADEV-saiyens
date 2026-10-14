@@ -19,6 +19,8 @@ export interface GithubRepoInfo {
   archived: boolean;
   description: string | null;
   htmlUrl: string;
+  /** L'utilisateur du jeton peut pousser sur le dépôt (droits d'écriture ou d'administration). */
+  canPush: boolean;
 }
 
 /** Pull request d'une contribution (R9). */
