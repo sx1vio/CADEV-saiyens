@@ -17,6 +17,10 @@ export interface ProblemDetails {
   instance: string;
   requestId?: string;
   errors?: unknown[];
+  /** Conflit de version (409 version_conflict) : la version actuelle côté serveur. */
+  server?: unknown;
+  /** Secondes avant de réessayer (429) : renvoyé aussi dans l'en-tête Retry-After. */
+  retryAfter?: number;
 }
 
 const ERROR_BASE = 'https://devhub.africa/errors/';
@@ -52,6 +56,8 @@ export function toProblem(
       instance,
       requestId,
       ...(Array.isArray(body.errors) ? { errors: body.errors } : {}),
+      ...(body.server !== undefined ? { server: body.server } : {}),
+      ...(typeof body.retryAfter === 'number' ? { retryAfter: body.retryAfter } : {}),
     };
   }
   // Erreur inattendue : aucun détail interne n'est exposé.
@@ -82,6 +88,7 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     if (!(exception instanceof HttpException)) {
       this.logger.error({ err: exception, requestId: problem.requestId }, 'Unhandled error');
     }
+    if (problem.retryAfter) response.setHeader('Retry-After', String(problem.retryAfter));
     response.status(problem.status).type('application/problem+json').json(problem);
   }
 }
