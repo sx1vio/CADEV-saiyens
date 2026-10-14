@@ -89,8 +89,12 @@ export class QuestionsController {
               secretsMasked,
               author: question.author,
             },
+            // S2 et S3 : piste IA et matching en tâche de fond, jamais bloquants.
             afterCommit: created
-              ? () => this.jobs.send(JOBS.aiHint, { questionId: question.id }, question.id)
+              ? async () => {
+                  await this.jobs.send(JOBS.aiHint, { questionId: question.id }, question.id);
+                  await this.jobs.send(JOBS.matchingRun, { questionId: question.id }, question.id);
+                }
               : undefined,
           };
         },

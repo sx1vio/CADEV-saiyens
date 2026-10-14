@@ -68,6 +68,17 @@ Jamais un pourcentage de compatibilité sans méthode (§6.2). On affiche **au p
 | `available_now`  | D = 1                     | « Disponible maintenant »                         |
 | `translated`     | L = 0,5                   | « Recevra ta question traduite en {lang} »        |
 
+### Implémentation
+
+| Élément                                                                                        | Où                                                                                                                            |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Éligibilité en mémoire, score, régime, raisons, sélection                                      | `packages/core/src/scoring/matching.ts` (`MATCHING`, `scoreHelper`, `pickHelpers`), couvert à 100 %                           |
+| Fuseau (`timezoneOffsetMinutes`) et disponibilité (`availabilityAt`, terme D)                  | même fichier ; créneaux lus dans le fuseau du dev                                                                             |
+| Présélection SQL (200 candidats), écriture des `match_events` et notifications `match.request` | `apps/api/src/modules/matching/infrastructure/prisma-matching.store.ts`                                                       |
+| Vague 1, escalade, « Je m'en occupe »                                                          | `apps/api/src/modules/matching/application/run-wave.ts`, jobs `matching.run` (envoyé par S1) et `matching.escalate` (+15 min) |
+
+Une vague déjà envoyée n'est jamais rejouée (nouvel essai d'un job) : `wavesDone`. Les raisons enregistrées portent le libellé des étiquettes (`{ code: "github_repos", params: { count: 6, tag: "Kubernetes" } }`). La langue vaut 0,5 seulement quand la traduction (S10) sera active ; elle vaut 0 en attendant.
+
 ### Escalade à 15 minutes
 
 Le job `matching.escalate` s'exécute 15 minutes après la première vague. Il ne fait rien si la question a une réponse, si elle est résolue, ou si un « Je m'en occupe » est actif (le statut expire après 20 minutes sans réponse, S11). Sinon, il relance la sélection en excluant les aidants déjà sollicités (vague 2) et marque `questions.escalated_at`.

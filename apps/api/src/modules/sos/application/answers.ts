@@ -8,6 +8,7 @@ import {
 } from '../domain/answer';
 import type {
   AnswerWriter,
+  MatchingAnswerPort,
   NotifierPort,
   ReputationPort,
   StoredAnswer,
@@ -45,6 +46,7 @@ export class Answers {
   constructor(
     private readonly reputation: ReputationPort,
     private readonly notifier: NotifierPort,
+    private readonly matching: MatchingAnswerPort,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
@@ -64,6 +66,7 @@ export class Answers {
     // §6.1 et O9 : secrets masqués avant tout stockage, côté serveur aussi.
     const masked = maskSecrets(input.body);
     const answer = await writer.createAnswer({ ...input, body: masked.text });
+    await this.matching.markAnswered(question.id, input.authorId, answer.createdAt, tx);
     if (question.authorId !== input.authorId) {
       await this.notifier.notify(
         [

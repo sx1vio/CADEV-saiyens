@@ -41,22 +41,23 @@ Modèle à copier :
 
 ## Synthèse
 
-| ID                  | Titre                                                                      | Gravité    | Statut   | Responsable proposé |
-| ------------------- | -------------------------------------------------------------------------- | ---------- | -------- | ------------------- |
-| [BUG-001](#bug-001) | L'étape `lint` de la CI ne vérifie rien                                    | Majeure    | Corrigé  | Joachim             |
-| [BUG-002](#bug-002) | CI en échec sur `main` le 6 octobre                                        | Majeure    | Corrigé  | Caleb               |
-| [BUG-003](#bug-003) | `main` n'est pas protégée ; merges non « squash » acceptés                 | Majeure    | Ouvert   | Emmanuel, Sylvio    |
-| [BUG-004](#bug-004) | Branche `sylvio-frontend` sans historique commun avec `main`               | Majeure    | En cours | Sylvio              |
-| [BUG-005](#bug-005) | PR #96 et #97 en doublon et 100 fois plus grosses que la limite            | Majeure    | Ouvert   | Sylvio              |
-| [BUG-006](#bug-006) | README : état du projet périmé et `pnpm dev` qui ne lance pas de front     | Mineure    | Corrigé  | Joachim             |
-| [BUG-007](#bug-007) | La version de Node.js exigée n'est pas imposée                             | Mineure    | Corrigé  | Joachim             |
-| [BUG-008](#bug-008) | `turbo` crée un `AGENTS.md` non suivi quand un agent IA lance une commande | Cosmétique | Corrigé  | Joachim             |
-| [BUG-009](#bug-009) | Hooks Git absents : commitlint et lint-staged ne s'exécutent jamais        | Mineure    | Corrigé  | Joachim             |
-| [BUG-010](#bug-010) | Import GitHub (PR #99) : requête refusée par GitHub (422)                  | Critique   | Corrigé  | Caleb               |
-| [BUG-011](#bug-011) | Supprimer la branche d'une PR fusionnée ferme les PR empilées dessus       | Majeure    | Corrigé  | Caleb               |
-| [BUG-012](#bug-012) | Faux secrets écrits en dur dans les tests : gitleaks fait échouer la CI    | Mineure    | Corrigé  | Caleb               |
-| [BUG-013](#bug-013) | Limite de 10 questions par heure contournable par envois simultanés        | Majeure    | Corrigé  | Joachim             |
-| [BUG-014](#bug-014) | Tests de bout en bout instables sur base neuve (étiquettes, délais)        | Mineure    | Corrigé  | Joachim             |
+| ID                  | Titre                                                                                    | Gravité    | Statut   | Responsable proposé |
+| ------------------- | ---------------------------------------------------------------------------------------- | ---------- | -------- | ------------------- |
+| [BUG-001](#bug-001) | L'étape `lint` de la CI ne vérifie rien                                                  | Majeure    | Corrigé  | Joachim             |
+| [BUG-002](#bug-002) | CI en échec sur `main` le 6 octobre                                                      | Majeure    | Corrigé  | Caleb               |
+| [BUG-003](#bug-003) | `main` n'est pas protégée ; merges non « squash » acceptés                               | Majeure    | Ouvert   | Emmanuel, Sylvio    |
+| [BUG-004](#bug-004) | Branche `sylvio-frontend` sans historique commun avec `main`                             | Majeure    | En cours | Sylvio              |
+| [BUG-005](#bug-005) | PR #96 et #97 en doublon et 100 fois plus grosses que la limite                          | Majeure    | Ouvert   | Sylvio              |
+| [BUG-006](#bug-006) | README : état du projet périmé et `pnpm dev` qui ne lance pas de front                   | Mineure    | Corrigé  | Joachim             |
+| [BUG-007](#bug-007) | La version de Node.js exigée n'est pas imposée                                           | Mineure    | Corrigé  | Joachim             |
+| [BUG-008](#bug-008) | `turbo` crée un `AGENTS.md` non suivi quand un agent IA lance une commande               | Cosmétique | Corrigé  | Joachim             |
+| [BUG-009](#bug-009) | Hooks Git absents : commitlint et lint-staged ne s'exécutent jamais                      | Mineure    | Corrigé  | Joachim             |
+| [BUG-010](#bug-010) | Import GitHub (PR #99) : requête refusée par GitHub (422)                                | Critique   | Corrigé  | Caleb               |
+| [BUG-011](#bug-011) | Supprimer la branche d'une PR fusionnée ferme les PR empilées dessus                     | Majeure    | Corrigé  | Caleb               |
+| [BUG-012](#bug-012) | Faux secrets écrits en dur dans les tests : gitleaks fait échouer la CI                  | Mineure    | Corrigé  | Caleb               |
+| [BUG-013](#bug-013) | Limite de 10 questions par heure contournable par envois simultanés                      | Majeure    | Corrigé  | Joachim             |
+| [BUG-014](#bug-014) | Tests de bout en bout instables sur base neuve (étiquettes, délais)                      | Mineure    | Corrigé  | Joachim             |
+| [BUG-015](#bug-015) | Escalade jamais replanifiée après « Je m'en occupe », et statut renouvelable sans limite | Majeure    | Corrigé  | Joachim             |
 
 ## Anomalies ouvertes
 
@@ -103,6 +104,20 @@ Modèle à copier :
 | Référence              | PR #96, PR #97, [suivi § hors cahier des charges](suivi-cahier-des-charges.md#travail-réalisé-hors-cahier-des-charges)                                                                                                                                                                                                                                                                                                                                                           |
 
 ## Anomalies corrigées
+
+### BUG-015
+
+| Champ                  | Valeur                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre                  | Escalade jamais replanifiée après « Je m'en occupe », et statut renouvelable sans limite                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Description            | Observé (avant fusion, PR #108) : (1) si un aidant cliquait « Je m'en occupe » juste avant la 15e minute, l'escalade était sautée et **jamais replanifiée** : sans réponse, la question restait sans vague 2 ; (2) un aidant sollicité pouvait renouveler « Je m'en occupe » sans limite et bloquer l'escalade indéfiniment. Attendu : l'escalade a lieu au plus tard 20 minutes après un « Je m'en occupe » sans réponse.                                                                                              |
+| Étapes de reproduction | Question sollicitée ; « Je m'en occupe » à t+14 min ; `matching.escalate` à t+15 min : sauté, aucun job suivant.                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Gravité                | Majeure : une question peut rester sans aide humaine (§6.1, médiane sous 15 minutes)                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Statut                 | Corrigé                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Détection              | 2026-10-14, revue de sécurité automatique des commits poussés                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Correction             | 2026-10-14, par Joachim                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Correctif appliqué     | Cause : l'escalade traitait « quelqu'un s'en occupe » comme une fin, et le statut était réécrit à chaque appel. Solution : `claimExpiresAt` (expiration du statut actif le plus tardif) ; une escalade sautée pour cette raison est **replanifiée** à cette date (job `matching.escalate` différé, clé de singleton datée) ; le statut ne se pose qu'**une fois par aidant**, un nouvel appel renvoie la date d'origine. Tests unitaires et de bout en bout (job replanifié présent dans `pgboss.job`, date conservée). |
+| Référence              | PR #108                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ### BUG-014
 

@@ -35,27 +35,27 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 5       | 6        | 10      | 24 %        | 52 %       |
+| P0        | 21     | 5       | 7        | 9       | 24 %        | 57 %       |
 | P1        | 14     | 0       | 0        | 14      | 0 %         | 0 %        |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **6**    | **26**  | **14 %**    | **30 %**   |
+| **Total** | **37** | **5**   | **7**    | **25**  | **14 %**    | **32 %**   |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                            |
-| ----------------------- | --------- | ------- | -------- | ------------------------------------- |
-| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                  |
-| Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait                 |
-| SOS Dev (S)             | 7         | 1       | 2        | `███░░░░░░░` S2 fait; S1, S4 en cours |
-| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                          |
-| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                          |
-| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait              |
-| Hors ligne (O)          | 4         | 0       | 3        | `████░░░░░░` O1, O2, O3 en cours      |
-| Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                          |
-| Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                          |
-| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours              |
+| Module                  | Exigences | Terminé | En cours | Avancement                                |
+| ----------------------- | --------- | ------- | -------- | ----------------------------------------- |
+| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                      |
+| Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait                     |
+| SOS Dev (S)             | 7         | 1       | 3        | `████░░░░░░` S2 fait; S1, S3, S4 en cours |
+| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                              |
+| Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                              |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                  |
+| Hors ligne (O)          | 4         | 0       | 3        | `████░░░░░░` O1, O2, O3 en cours          |
+| Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                              |
+| Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                              |
+| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                  |
 
 ### Par personne (exigences v3 et setup ouverts)
 
@@ -120,7 +120,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ------------------------------- | --------------------------------------------------------------------------------- |
 | S1  | #21   | Poser une question                     | P0   | `En cours` | Florent     | PR #106                         | `POST /questions` idempotent, secrets masqués, 10 par heure ; déclenche `ai.hint` |
 | S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106        | Job `ai.hint` déclenché par S1 ; reste l’essai avec la vraie clé (#7)             |
-| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `À faire`  | Florent     |                                 | Algorithme §6.2                                                                   |
+| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `En cours` | Florent     | PR à venir (`feat/matching`)    | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8) à suivre  |
 | S4  | #24   | Répondre, voter, valider               | P0   | `En cours` | Florent     | PR à venir (`feat/sos-answers`) | Répondre, voter, valider : XP et notifications dans la même transaction           |
 | S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                                 |                                                                                   |
 | S6  | #26   | Question résolue = fiche cherchable    | P1   | `À faire`  | Florent     |                                 |                                                                                   |
@@ -183,50 +183,50 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions-v3-1.md) : `À faire` (retenue, avec jalon et responsable), `P2` ou `Écarté`. Les propositions P2 et roadmap de la v3.1 n'ont pas d'issue et ne sont pas suivies ici.
 
-| ID   | Issue | Proposition                                      | Prio      | Statut     | Responsable                   | Référence                               |
-| ---- | ----- | ------------------------------------------------ | --------- | ---------- | ----------------------------- | --------------------------------------- |
-| X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `Terminé`  | Caleb (à la place de Joachim) | #99 (fusionnée)                         |
-| X4   | #53   | Démarrage à froid du matching                    | Correctif | `À faire`  | Florent                       |                                         |
-| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `À faire`  | Florent                       |                                         |
-| M2   | #55   | Protection contre l'injection de prompt          | Correctif | `En cours` | Joachim, Emmanuel             | PR #104 (piste IA)                      |
-| O9   | #56   | Masquage des secrets avant la mise en file       | Correctif | `En cours` | Sylvio, Emmanuel              | PR #101 (`maskSecrets`), #104 (côté IA) |
-| PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À faire`  | Caleb                         |                                         |
-| PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À faire`  | Caleb                         |                                         |
-| PR7  | #59   | Barre de score bicolore G + P                    | MVP+      | `À faire`  | Sylvio                        |                                         |
-| PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                         |
-| S8   | #61   | Assistant de rédaction et jauge de qualité       | MVP+      | `À faire`  | Sylvio                        |                                         |
-| S9   | #62   | Étiquettes détectées depuis l'erreur             | MVP+      | `À faire`  | Joachim                       |                                         |
-| S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À faire`  | Joachim                       |                                         |
-| S11  | #64   | Statut « Je m'en occupe »                        | MVP+      | `À faire`  | Florent                       |                                         |
-| O5   | #65   | Simulateur de réseau intégré                     | MVP+      | `En cours` | Sylvio                        | PR #97 (`?net=offline\|2g`)             |
-| R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `À faire`  | Joachim                       |                                         |
-| X5   | #67   | Page publique « Comment marchent les Proof XP »  | MVP+      | `En cours` | Caleb                         | PR #102 (`GET /rules/xp`)               |
-| Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `À faire`  | Sylvio                        |                                         |
-| M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                         |
-| T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `À faire`  | Sylvio                        | #97 a une landing publique              |
-| T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `À faire`  | Sylvio, Emmanuel              |                                         |
-| PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `P2`       | Sylvio                        |                                         |
-| PR9  | #73   | Recommandations adossées à une preuve            | P1        | `Écarté`   | —                             |                                         |
-| PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `À faire`  | Caleb                         |                                         |
-| PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `À faire`  | Caleb                         |                                         |
-| S12  | #76   | Fiche de résolution générée                      | P1        | `P2`       | Joachim                       |                                         |
-| S14  | #77   | Lien de reproduction                             | P1        | `À faire`  | Florent                       |                                         |
-| S16  | #78   | File « Personne n'a encore répondu »             | P1        | `À faire`  | Florent                       |                                         |
-| O6   | #79   | Mode économie de données                         | P1        | `P2`       | Sylvio                        |                                         |
-| O8   | #80   | Centre de synchronisation                        | P1        | `À faire`  | Sylvio                        |                                         |
-| R10  | #81   | Rôles recherchés                                 | P1        | `P2`       | Joachim                       |                                         |
-| R11  | #82   | Vue Kanban et santé du projet                    | P1        | `À faire`  | Sylvio                        |                                         |
-| R12  | #83   | Salle créée à partir du README                   | P1        | `P2`       | Joachim                       |                                         |
-| R14  | #84   | Stand-up asynchrone relié à SOS Dev              | P1        | `Écarté`   | —                             |                                         |
-| D4   | #85   | Carte interactive de l'Afrique                   | P1        | `À faire`  | Sylvio                        |                                         |
-| D5   | #86   | Classements par école, ville et communauté       | P1        | `P2`       | Caleb                         |                                         |
-| D6   | #87   | « Devs à rencontrer » sur l'accueil              | P1        | `P2`       | Caleb                         |                                         |
-| Y5   | #88   | Page de statut avec historique                   | P1        | `À faire`  | Emmanuel                      |                                         |
-| Y7   | #89   | Notifications Telegram et Web Push               | P1        | `P2`       | Joachim                       |                                         |
-| Y9   | #90   | Écran d'impact enrichi                           | P1        | `À faire`  | Caleb                         |                                         |
-| M4   | #91   | Journal d'audit de la modération                 | P1        | `À faire`  | Emmanuel                      |                                         |
-| T3   | #92   | Accueil personnalisé en une question             | P1        | `P2`       | Sylvio                        |                                         |
-| T4   | #93   | Thème sombre                                     | P1        | `À faire`  | Sylvio                        |                                         |
+| ID   | Issue | Proposition                                      | Prio      | Statut     | Responsable                   | Référence                                          |
+| ---- | ----- | ------------------------------------------------ | --------- | ---------- | ----------------------------- | -------------------------------------------------- |
+| X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `Terminé`  | Caleb (à la place de Joachim) | #99 (fusionnée)                                    |
+| X4   | #53   | Démarrage à froid du matching                    | Correctif | `En cours` | Florent                       | `feat/matching` (régime froid, « Je m'en occupe ») |
+| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `À faire`  | Florent                       |                                                    |
+| M2   | #55   | Protection contre l'injection de prompt          | Correctif | `En cours` | Joachim, Emmanuel             | PR #104 (piste IA)                                 |
+| O9   | #56   | Masquage des secrets avant la mise en file       | Correctif | `En cours` | Sylvio, Emmanuel              | PR #101 (`maskSecrets`), #104 (côté IA)            |
+| PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À faire`  | Caleb                         |                                                    |
+| PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À faire`  | Caleb                         |                                                    |
+| PR7  | #59   | Barre de score bicolore G + P                    | MVP+      | `À faire`  | Sylvio                        |                                                    |
+| PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                                    |
+| S8   | #61   | Assistant de rédaction et jauge de qualité       | MVP+      | `À faire`  | Sylvio                        |                                                    |
+| S9   | #62   | Étiquettes détectées depuis l'erreur             | MVP+      | `À faire`  | Joachim                       |                                                    |
+| S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À faire`  | Joachim                       |                                                    |
+| S11  | #64   | Statut « Je m'en occupe »                        | MVP+      | `En cours` | Florent                       | `feat/matching` (régime froid, « Je m'en occupe ») |
+| O5   | #65   | Simulateur de réseau intégré                     | MVP+      | `En cours` | Sylvio                        | PR #97 (`?net=offline\|2g`)                        |
+| R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `À faire`  | Joachim                       |                                                    |
+| X5   | #67   | Page publique « Comment marchent les Proof XP »  | MVP+      | `En cours` | Caleb                         | PR #102 (`GET /rules/xp`)                          |
+| Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `À faire`  | Sylvio                        |                                                    |
+| M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                                    |
+| T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `À faire`  | Sylvio                        | #97 a une landing publique                         |
+| T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `À faire`  | Sylvio, Emmanuel              |                                                    |
+| PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `P2`       | Sylvio                        |                                                    |
+| PR9  | #73   | Recommandations adossées à une preuve            | P1        | `Écarté`   | —                             |                                                    |
+| PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `À faire`  | Caleb                         |                                                    |
+| PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `À faire`  | Caleb                         |                                                    |
+| S12  | #76   | Fiche de résolution générée                      | P1        | `P2`       | Joachim                       |                                                    |
+| S14  | #77   | Lien de reproduction                             | P1        | `À faire`  | Florent                       |                                                    |
+| S16  | #78   | File « Personne n'a encore répondu »             | P1        | `À faire`  | Florent                       |                                                    |
+| O6   | #79   | Mode économie de données                         | P1        | `P2`       | Sylvio                        |                                                    |
+| O8   | #80   | Centre de synchronisation                        | P1        | `À faire`  | Sylvio                        |                                                    |
+| R10  | #81   | Rôles recherchés                                 | P1        | `P2`       | Joachim                       |                                                    |
+| R11  | #82   | Vue Kanban et santé du projet                    | P1        | `À faire`  | Sylvio                        |                                                    |
+| R12  | #83   | Salle créée à partir du README                   | P1        | `P2`       | Joachim                       |                                                    |
+| R14  | #84   | Stand-up asynchrone relié à SOS Dev              | P1        | `Écarté`   | —                             |                                                    |
+| D4   | #85   | Carte interactive de l'Afrique                   | P1        | `À faire`  | Sylvio                        |                                                    |
+| D5   | #86   | Classements par école, ville et communauté       | P1        | `P2`       | Caleb                         |                                                    |
+| D6   | #87   | « Devs à rencontrer » sur l'accueil              | P1        | `P2`       | Caleb                         |                                                    |
+| Y5   | #88   | Page de statut avec historique                   | P1        | `À faire`  | Emmanuel                      |                                                    |
+| Y7   | #89   | Notifications Telegram et Web Push               | P1        | `P2`       | Joachim                       |                                                    |
+| Y9   | #90   | Écran d'impact enrichi                           | P1        | `À faire`  | Caleb                         |                                                    |
+| M4   | #91   | Journal d'audit de la modération                 | P1        | `À faire`  | Emmanuel                      |                                                    |
+| T3   | #92   | Accueil personnalisé en une question             | P1        | `P2`       | Sylvio                        |                                                    |
+| T4   | #93   | Thème sombre                                     | P1        | `À faire`  | Sylvio                        |                                                    |
 
 ## Travail réalisé hors cahier des charges
 
