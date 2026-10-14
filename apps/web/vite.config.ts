@@ -46,6 +46,9 @@ export default defineConfig(({ command, mode }) => {
           // Shell précaché ; navigation SPA servie depuis le cache hors ligne.
           globPatterns: ['**/*.{js,css,html,svg,woff2}', 'pwa-*.png', 'assets/**/*.webp'],
           navigateFallback: '/index.html',
+          // Les navigations vers ce que sert l'API (connexion OAuth et son retour, images Open Graph,
+          // badges : infra/Caddyfile) vont au serveur, jamais vers le shell en cache (BUG-028).
+          navigateFallbackDenylist: [/^\/api\//, /^\/og\//, /^\/badge\//, /^\/readyz$/],
           runtimeCaching: [
             {
               // Actualités et vidéos lisibles hors ligne ; jamais la connexion ni le profil (/api/v1/auth, /api/v1/me)
