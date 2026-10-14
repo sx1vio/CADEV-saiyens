@@ -21,13 +21,14 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { relativeTime, setLanguage, useLang } from '@/i18n';
 import { useQuery, invalidate } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { api } from '@/services';
+import { useUserStream } from '@/services/realtime';
 import { useSession, useUI } from '@/stores/app';
 import { serverLogout } from '@/platform/auth';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
@@ -721,6 +722,13 @@ function useEdgeSwipe(enabled: boolean) {
 export function AppShell() {
   const { t } = useTranslation();
   const setDrawer = useUI((s) => s.setDrawer);
+  const me = useSession((s) => s.user);
+  const setUser = useSession((s) => s.setUser);
+  // Y8 : notifications en direct ; une session terminée ailleurs (déconnexion) ferme le flux.
+  useUserStream(
+    me?.id ?? null,
+    useCallback(() => setUser(null), [setUser]),
+  );
   const location = useLocation();
   const isSm = useMedia('(min-width: 640px)');
   const isLg = useMedia('(min-width: 1024px)');
