@@ -27,6 +27,12 @@ export const JOBS = {
     payload: z.object({ questionId: z.uuid() }),
     options: { retryLimit: 3, retryDelay: 30, retryBackoff: true, expireInSeconds: 30 },
   },
+  /** R9 : GitHub indisponible à la clôture : nouvel essai de la vérification de la PR. */
+  githubVerifyPr: {
+    name: 'github.verify-pr',
+    payload: z.object({ taskId: z.uuid(), actorId: z.uuid() }),
+    options: { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
+  },
 } as const;
 
 export type JobName = (typeof JOBS)[keyof typeof JOBS]['name'];

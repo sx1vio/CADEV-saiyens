@@ -7,4 +7,5 @@ export * from './questions';
 export * from './rooms';
 export * from './skills';
 export * from './sync';
+export * from './tasks';
 export * from './xp';

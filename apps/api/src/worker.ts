@@ -8,6 +8,7 @@ import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { AiModule } from './modules/ai';
 import { MatchingModule } from './modules/matching';
+import { RoomsModule } from './modules/rooms';
 import { PassportModule } from './modules/passport';
 
 // Process worker : même code que l'API, sans HTTP (PROCESS_ROLE=worker). Chaque module
@@ -22,6 +23,7 @@ import { PassportModule } from './modules/passport';
     PassportModule,
     AiModule,
     MatchingModule,
+    RoomsModule,
   ],
 })
 class WorkerModule {}
