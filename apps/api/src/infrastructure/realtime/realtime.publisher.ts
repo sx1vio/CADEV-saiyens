@@ -22,7 +22,8 @@ export type PublicEvent =
   | 'answer.created'
   | 'answer.accepted'
   | 'task.updated'
-  | 'room_message.created';
+  | 'room_message.created'
+  | 'content.hidden';
 
 /** Événement public sur un sujet (« question:<id> », « room:<id> ») : les pages ouvertes se rafraîchissent. */
 export async function publishToTopic(

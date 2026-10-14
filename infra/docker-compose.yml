@@ -40,6 +40,9 @@ services:
     command: ['node', 'dist/worker.js']
     environment:
       PROCESS_ROLE: worker
+    # Y1 : status.check lit le fichier d'état écrit par backup.sh (BACKUP_STATUS_URL).
+    volumes:
+      - /srv/devhub/backups:/srv/devhub/backups:ro
 
   # Si la base managée Systalink ne convient pas (voir ADR-0005), décommenter :
   # postgres:

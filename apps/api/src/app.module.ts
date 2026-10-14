@@ -15,6 +15,8 @@ import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
 import { DiscoveryModule } from './modules/discovery';
+import { ModerationModule } from './modules/moderation';
+import { PlatformModule } from './modules/platform';
 import { MatchingModule } from './modules/matching';
 import { NewsModule } from './modules/news';
 import { NotificationsModule } from './modules/notifications';
@@ -59,6 +61,8 @@ import { ReputationModule } from './modules/reputation';
     RoomsModule,
     DiscoveryModule,
     NewsModule,
+    PlatformModule,
+    ModerationModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -11,6 +11,7 @@ import { MatchingModule } from './modules/matching';
 import { NewsJobsModule } from './modules/news';
 import { RoomsModule } from './modules/rooms';
 import { PassportModule } from './modules/passport';
+import { PlatformModule } from './modules/platform';
 
 // Process worker : même code que l'API, sans HTTP (PROCESS_ROLE=worker). Chaque module
 // enregistre ses handlers de jobs au démarrage (catalogue : infrastructure/jobs/catalog.ts).
@@ -26,6 +27,7 @@ import { PassportModule } from './modules/passport';
     MatchingModule,
     NewsJobsModule,
     RoomsModule,
+    PlatformModule,
   ],
 })
 class WorkerModule {}

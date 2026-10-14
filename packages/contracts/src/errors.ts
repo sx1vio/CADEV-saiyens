@@ -36,6 +36,10 @@ export const ERROR_CODES = [
   'task.already_taken',
   'task.invalid_status',
   'task.pr_invalid',
+  // Modération
+  'report.target_not_found',
+  'report.target_not_hideable',
+  'report.already_handled',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
