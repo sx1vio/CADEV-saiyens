@@ -181,6 +181,8 @@ La vérification d'un dépôt à la création d'une salle se fait **hors transac
    réessaie ; s'il réussit plus tard, la vérification est mise à jour (et la chronologie aussi).
 ```
 
+Implémenté dans `apps/api/src/modules/rooms` : la PR est lue hors transaction par `GithubPrVerifier` avec le jeton du créateur ; si GitHub ne répond pas, la tâche est close « déclarée » et le job `github.verify-pr` réessaie (5 fois, délai croissant), puis passe la tâche à `github_verified` si la PR est fusionnée par l'assigné. Une PR soumise ou indiquée à la clôture doit appartenir au dépôt de la salle (`422 task.pr_invalid`).
+
 Les +15 XP sont attribués à la clôture dans les deux cas. La **source** est toujours affichée, ce qui est l'objet de R9. Une version par webhook est prévue en P2.
 
 ## 3. Messagerie Systalink (SMTP)

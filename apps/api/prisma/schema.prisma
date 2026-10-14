@@ -178,7 +178,7 @@ model User {
   lookingFor       String?   @map("looking_for")
   canHelpTagIds    String[]  @default([]) @map("can_help_tag_ids") @db.Uuid // PR10, 5 max
   wantLearnTagIds  String[]  @default([]) @map("want_learn_tag_ids") @db.Uuid // PR10, 5 max
-  privacy          Json      @default("{}") // PR14 : { country, timezone, stats, availability, unlisted }
+  privacy          Json      @default("{}") // PR14 : { unlisted, hideCountry, hideTimezone, hideAvailability, hideStats } (lu par resolvePrivacy, qui accepte aussi { country: false, … })
   doNotDisturb     Boolean   @default(false) @map("do_not_disturb")
   onboardingIntent String?   @map("onboarding_intent") // T3
   uiLang           Lang      @default(fr) @map("ui_lang")
