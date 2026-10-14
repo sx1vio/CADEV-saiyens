@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { SCORING, skillLevel } from '@devhub/core';
-import type { Availability, PassportResponse, Privacy } from '@devhub/contracts';
+import type { Availability, PassportResponse } from '@devhub/contracts';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { trustSignals } from '../../identity';
+import { resolvePrivacy, trustSignals } from '../../identity';
 
 /**
  * PR2, PR3 : Passport public, lisible sans compte. Lecture seule (CQRS léger, 02-backend.md) :
@@ -16,7 +16,7 @@ export class PassportReader {
   async byHandle(handle: string): Promise<PassportResponse | null> {
     const u = await this.prisma.user.findFirst({ where: { handle, deletedAt: null } });
     if (!u) return null;
-    const privacy = (u.privacy ?? {}) as Privacy;
+    const privacy = resolvePrivacy(u.privacy);
 
     const [skills, tags, xp, answers, votes, resolved, median, tasks, reviews, rooms] =
       await Promise.all([
@@ -73,7 +73,7 @@ export class PassportReader {
         avatarUrl: u.avatarUrl,
         bio: u.bio,
         country: privacy.hideCountry ? null : u.country,
-        timezone: privacy.hideCountry ? null : u.timezone,
+        timezone: privacy.hideTimezone ? null : u.timezone,
         languages: u.languages,
         lookingFor: u.lookingFor,
         availability: privacy.hideAvailability ? null : (u.availability as Availability),
@@ -91,17 +91,19 @@ export class PassportReader {
       })),
       canHelp: pick(u.canHelpTagIds),
       wantLearn: pick(u.wantLearnTagIds),
-      stats: {
-        totalXp: xp._sum.points ?? 0,
-        answersAccepted: answers,
-        helpfulVotes: votes,
-        questionsResolved: resolved,
-        medianMinutesToHelp: minutes === null ? null : Math.round(minutes),
-        contributions,
-        contributionsVerified:
-          tasks.find((t) => t.verification === 'github_verified')?._count._all ?? 0,
-        reviews,
-      },
+      stats: privacy.hideStats
+        ? null
+        : {
+            totalXp: xp._sum.points ?? 0,
+            answersAccepted: answers,
+            helpfulVotes: votes,
+            questionsResolved: resolved,
+            medianMinutesToHelp: minutes === null ? null : Math.round(minutes),
+            contributions,
+            contributionsVerified:
+              tasks.find((t) => t.verification === 'github_verified')?._count._all ?? 0,
+            reviews,
+          },
       projects: rooms.map((m) => ({
         code: m.room.inviteCode,
         name: m.room.name,

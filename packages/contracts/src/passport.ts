@@ -26,7 +26,9 @@ export type Availability = z.infer<typeof Availability>;
 export const Privacy = z.object({
   unlisted: z.boolean().optional(),
   hideCountry: z.boolean().optional(),
+  hideTimezone: z.boolean().optional(),
   hideAvailability: z.boolean().optional(),
+  hideStats: z.boolean().optional(),
 });
 export type Privacy = z.infer<typeof Privacy>;
 
@@ -84,17 +86,20 @@ export const PassportResponse = z.object({
   skills: MySkillsResponse.shape.skills,
   canHelp: z.array(QuestionTag),
   wantLearn: z.array(QuestionTag),
-  stats: z.object({
-    totalXp: z.number().int(),
-    answersAccepted: z.number().int(),
-    helpfulVotes: z.number().int(),
-    questionsResolved: z.number().int(),
-    /** Médiane, en minutes, entre une question et la réponse du dev qui a été validée. */
-    medianMinutesToHelp: z.number().nullable(),
-    contributions: z.number().int(),
-    contributionsVerified: z.number().int(),
-    reviews: z.number().int(),
-  }),
+  /** null si le dev masque ses statistiques (PR14). */
+  stats: z
+    .object({
+      totalXp: z.number().int(),
+      answersAccepted: z.number().int(),
+      helpfulVotes: z.number().int(),
+      questionsResolved: z.number().int(),
+      /** Médiane, en minutes, entre une question et la réponse du dev qui a été validée. */
+      medianMinutesToHelp: z.number().nullable(),
+      contributions: z.number().int(),
+      contributionsVerified: z.number().int(),
+      reviews: z.number().int(),
+    })
+    .nullable(),
   projects: z.array(
     z.object({
       code: z.string(),

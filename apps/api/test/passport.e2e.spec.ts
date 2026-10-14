@@ -131,6 +131,23 @@ describe('Developer Passport public (PR2)', () => {
     expect(proofs.body.events.length).toBeGreaterThan(0);
   });
 
+  it('statistiques et disponibilités masquées (clés du modèle de données comprises)', async () => {
+    await send('patch', moussa, '/api/v1/me', {
+      privacy: { hideStats: true, hideAvailability: true },
+    }).expect(200);
+    const res = await request(app.getHttpServer()).get(`/api/v1/u/${moussa}`).expect(200);
+    expect(res.body.stats).toBeNull();
+    expect(res.body.user.availability).toBeNull();
+    // Un réglage écrit avec les clés du modèle (« champ visible » à false) masque aussi.
+    const prisma = app.get(PrismaService);
+    await prisma.user.update({
+      where: { handle: awa },
+      data: { country: 'CI', privacy: { country: false } },
+    });
+    const a = await request(app.getHttpServer()).get(`/api/v1/u/${awa}`).expect(200);
+    expect(a.body.user.country).toBeNull();
+  });
+
   it('Passport inconnu : 404', async () => {
     await request(app.getHttpServer()).get('/api/v1/u/personne-inconnue-xyz').expect(404);
     await request(app.getHttpServer()).get('/api/v1/u/pas%20valide').expect(404);
