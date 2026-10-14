@@ -35,10 +35,10 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 5       | 7        | 9       | 24 %        | 57 %       |
-| P1        | 14     | 0       | 1        | 13      | 0 %         | 7 %        |
+| P0        | 21     | 5       | 9        | 7       | 24 %        | 67 %       |
+| P1        | 14     | 0       | 2        | 12      | 0 %         | 14 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **8**    | **24**  | **14 %**    | **35 %**   |
+| **Total** | **37** | **5**   | **11**   | **21**  | **14 %**    | **43 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -49,7 +49,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                      |
 | Profil et Passport (PR) | 4         | 1       | 0        | `██░░░░░░░░` PR1 fait                     |
 | SOS Dev (S)             | 7         | 1       | 3        | `████░░░░░░` S2 fait; S1, S3, S4 en cours |
-| Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                              |
+| Salles de projet (R)    | 8         | 0       | 3        | `██░░░░░░░░` R1, R3, R7 en cours          |
 | Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                              |
 | Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                  |
 | Hors ligne (O)          | 4         | 0       | 4        | `█████░░░░░` O1, O2, O3, O4 en cours      |
@@ -128,16 +128,16 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Salles de projet (R)
 
-| ID  | Issue | Exigence                                 | Prio | Statut    | Responsable | Référence | Commentaire                      |
-| --- | ----- | ---------------------------------------- | ---- | --------- | ----------- | --------- | -------------------------------- |
-| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `À faire` | Joachim     |           | Planning : 15 oct.               |
-| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `À faire` | Joachim     |           |                                  |
-| R3  | #30   | Demander à rejoindre                     | P0   | `À faire` | Joachim     |           | API : appui de Florent (16 oct.) |
-| R4  | #31   | Fil de discussion par salle              | P1   | `À faire` | Joachim     |           |                                  |
-| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire` | Joachim     |           | Planning : 18 oct.               |
-| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire` | Joachim     |           |                                  |
-| R7  | #34   | Lien d'invitation riche                  | P1   | `À faire` | Joachim     |           | ADR-0012                         |
-| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `À faire` | Joachim     |           | Renforcé par R9 (v3.1)           |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence           | Commentaire                                                                    |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ------------------- | ------------------------------------------------------------------------------ |
+| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `En cours` | Joachim     | `feat/rooms`        | Dépôt vérifié via GitHub (public), créateur « owner », +5 XP si démo           |
+| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `À faire`  | Joachim     |                     |                                                                                |
+| R3  | #30   | Demander à rejoindre                     | P0   | `En cours` | Joachim     | `feat/rooms`        | Demande, décision par le créateur, notifications ; aussi via /sync             |
+| R4  | #31   | Fil de discussion par salle              | P1   | `À faire`  | Joachim     |                     |                                                                                |
+| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |                     | Planning : 18 oct.                                                             |
+| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |                     |                                                                                |
+| R7  | #34   | Lien d'invitation riche                  | P1   | `En cours` | Joachim     | `feat/rooms` (code) | Code d’invitation et fiche publique `/rooms/:code` ; reste l’aperçu Open Graph |
+| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `À faire`  | Joachim     |                     | Renforcé par R9 (v3.1)                                                         |
 
 ### Découverte (D)
 
