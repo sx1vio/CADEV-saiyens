@@ -163,3 +163,9 @@ export const UpdateQuestionResponse = z.object({
   secretsMasked: z.number().int(),
 });
 export type UpdateQuestionResponse = z.infer<typeof UpdateQuestionResponse>;
+
+/** GET /api/v1/tags : référentiel des étiquettes (sélecteurs du front, détection S9). */
+export const ListTagsResponse = z.object({
+  data: z.array(QuestionTag.extend({ aliases: z.array(z.string()) })),
+});
+export type ListTagsResponse = z.infer<typeof ListTagsResponse>;
