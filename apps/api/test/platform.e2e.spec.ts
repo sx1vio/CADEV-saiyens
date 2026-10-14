@@ -136,12 +136,17 @@ describe('écran Systalink et impact (Y1, Y2)', () => {
     }).expect(201);
 
     const res = await request(app.getHttpServer()).get('/api/v1/impact').expect(200);
-    expect(res.body).toMatchObject({
-      registeredDevs: before.registeredDevs,
-      questionsAsked: before.questionsAsked + 1,
-      questionsResolved: before.questionsResolved + 1,
-      medianFirstResponseMinutes: expect.any(Number),
-    });
+    // Les autres fichiers de test écrivent en parallèle : on compare par bornes, jamais à l'égalité.
+    expect(res.body.questionsAsked).toBeGreaterThanOrEqual(before.questionsAsked + 1);
+    expect(res.body.questionsResolved).toBeGreaterThanOrEqual(before.questionsResolved + 1);
+    expect(res.body.medianFirstResponseMinutes).toEqual(expect.any(Number));
+    // Le compte de démo et sa question existaient avant le calcul : ils n'y sont pas comptés.
+    const [users, questions] = await Promise.all([
+      prisma.user.count({ where: { deletedAt: null } }),
+      prisma.question.count({ where: { hiddenAt: null } }),
+    ]);
+    expect(res.body.registeredDevs).toBeLessThanOrEqual(users - 1);
+    expect(res.body.questionsAsked).toBeLessThanOrEqual(questions - 1);
     expect(res.headers['cache-control']).toBe('public, max-age=60');
   });
 });
