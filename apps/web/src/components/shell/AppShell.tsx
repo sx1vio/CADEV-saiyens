@@ -739,6 +739,7 @@ export function AppShell() {
         <div className="min-w-0 flex-1">
           {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
           {isLg && <OfflineBanner />}
+          {api.mode === 'local' && <LocalDataBanner />}
           <main
             id="main"
             tabIndex={-1}
@@ -752,5 +753,19 @@ export function AppShell() {
       {!isSm && <TabBar onCreate={() => setCreateOpen(true)} />}
       <CreateSheet open={createOpen} onOpenChange={setCreateOpen} />
     </div>
+  );
+}
+
+/** ADR-0016 §4 : en mode simulé (développement), rappel permanent que rien n'est réel. */
+function LocalDataBanner() {
+  const { t } = useTranslation();
+  return (
+    <p
+      role="status"
+      className="border-b border-line bg-surface-2 px-4 py-1.5 text-center text-xs text-muted"
+      title={t('common.demoDataHint')}
+    >
+      {t('common.demoData')}
+    </p>
   );
 }

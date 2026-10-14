@@ -12,7 +12,6 @@ import { setLanguage, useLang, type AppLang } from '@/i18n';
 import { invalidate } from '@/lib/query';
 import { useNetwork, type SimMode } from '@/offline/network';
 import { api } from '@/services';
-import { resetLocalServer } from '@/services/local';
 import { useSession, useUI, type Theme } from '@/stores/app';
 import { Page } from './_layout';
 
@@ -136,6 +135,9 @@ export default function Settings() {
                 size="sm"
                 icon={<RotateCcw />}
                 onClick={async () => {
+                  // Import à la demande : le serveur simulé n'est jamais livré en production.
+                  if (import.meta.env.PROD) return;
+                  const { resetLocalServer } = await import('@/services/local');
                   await resetLocalServer();
                   const u = await api.loginDemo(me.handle);
                   setUser(u);
