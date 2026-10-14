@@ -21,7 +21,8 @@ export interface ClientRef {
  * action envoyée seule puis rejouée dans un lot est reconnue comme un doublon (ADR-0008).
  */
 export interface ActionDefinition<P = Record<string, unknown>> {
-  type: ActionType;
+  /** Type d'action ; ceux de `ActionType` sont acceptés par POST /sync. */
+  type: ActionType | `${string}.${string}`;
   /** Schéma du payload de /sync (identifiants compris). */
   schema: ZodType<P>;
   refs?: ClientRef[];
@@ -34,8 +35,9 @@ export interface ActionDefinition<P = Record<string, unknown>> {
 
 @Injectable()
 export class ActionRegistry {
-  private readonly actions = new Map<ActionType, ActionDefinition>();
+  private readonly actions = new Map<string, ActionDefinition>();
 
+  /** Rend l'action disponible dans POST /sync. */
   register<P>(definition: ActionDefinition<P>): void {
     this.actions.set(definition.type, definition as unknown as ActionDefinition);
   }

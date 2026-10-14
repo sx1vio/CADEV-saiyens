@@ -27,6 +27,14 @@ export const ERROR_CODES = [
   'xp.self_vote',
   'version_conflict',
   'sync.dependency_failed',
+  // Salles de projet
+  'room.repo_not_found',
+  'room.repo_private',
+  'room.not_member',
+  'room.already_member',
+  'task.already_taken',
+  'task.invalid_status',
+  'task.pr_invalid',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
