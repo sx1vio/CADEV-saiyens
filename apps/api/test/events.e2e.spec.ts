@@ -114,6 +114,34 @@ describe('temps réel (Y8)', () => {
     page.close();
   });
 
+  it('après la déconnexion, le flux ne transmet plus rien et se ferme', async () => {
+    const kwame = await signInAs(app, `kwame-sse-${suffix}`);
+    const q = await post(kwame, '/api/v1/questions', {
+      clientId: randomUUID(),
+      title: `SSE ${suffix} : session révoquée pendant le flux`,
+      body: 'Test de fin de session.',
+      tagSlugs: ['docker'],
+      lang: 'fr',
+    }).expect(201);
+    const stream = await openStream(`${base}/api/v1/events`, { Cookie: kwame });
+    await stream.waitFor('retry: 3000');
+
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/logout')
+      .set(WRITE_HEADERS)
+      .set('Cookie', kwame)
+      .set('Idempotency-Key', randomUUID())
+      .expect(204);
+    await post(moussa, `/api/v1/questions/${q.body.id}/answers`, {
+      clientId: randomUUID(),
+      body: 'Réponse envoyée après la déconnexion.',
+    }).expect(201);
+
+    const received = await stream.waitFor('event: session.ended');
+    expect(received).not.toContain('"type":"answer.created"');
+    stream.close();
+  });
+
   it('reprise avec Last-Event-ID : les événements manqués sont rejoués', async () => {
     const user = await prisma.user.findUniqueOrThrow({ where: { handle: `awa-sse-${suffix}` } });
     const last = await prisma.notification.findFirstOrThrow({

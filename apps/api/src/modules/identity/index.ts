@@ -9,3 +9,4 @@ export {
 } from './http/session.guard';
 export { OriginGuard } from './http/origin.guard';
 export { GithubTokenReader } from './infrastructure/github-token.reader';
+export { PrismaSessionStore } from './infrastructure/prisma-session.store';

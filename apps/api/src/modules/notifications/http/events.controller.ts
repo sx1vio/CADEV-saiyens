@@ -10,7 +10,12 @@ import {
 } from '@nestjs/common';
 import { ApiProduces } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import { type AuthenticatedUser, OptionalSessionGuard, OptionalUser } from '../../identity';
+import {
+  type AuthenticatedUser,
+  OptionalSessionGuard,
+  OptionalUser,
+  PrismaSessionStore,
+} from '../../identity';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { RealtimeHub } from '../../../infrastructure/realtime/realtime.hub';
 
@@ -31,6 +36,7 @@ export class EventsController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hub: RealtimeHub,
+    private readonly sessions: PrismaSessionStore,
   ) {}
 
   @Get()
@@ -83,10 +89,24 @@ export class EventsController {
 
     let closed = false;
     let queue = Promise.resolve();
+    let stop = () => undefined as void;
+    // Une connexion longue ne survit pas à la déconnexion ni à l'expiration de la session :
+    // on la revérifie avant chaque envoi personnel et à chaque ping.
+    const sessionStillValid = async (): Promise<boolean> => {
+      if (!viewer) return true;
+      if (await this.sessions.findActive(viewer.sessionIdHash, new Date())) return true;
+      if (!closed) {
+        res.write(sseFrame('session.ended', {}));
+        stop();
+        res.end();
+      }
+      return false;
+    };
     const flushUser = () => {
       if (!userId || closed) return;
       queue = queue
         .then(async () => {
+          if (!(await sessionStillValid())) return;
           const rows = await this.prisma.notification.findMany({
             where: { userId, seq: { gt: lastSeq! } },
             orderBy: { seq: 'asc' },
@@ -120,12 +140,16 @@ export class EventsController {
         if (!closed) res.write(sseFrame(event, data));
       },
     });
-    const ping = setInterval(() => res.write(': ping\n\n'), PING_MS);
-    req.on('close', () => {
+    const ping = setInterval(() => {
+      res.write(': ping\n\n');
+      void sessionStillValid().catch(() => undefined);
+    }, PING_MS);
+    stop = () => {
       closed = true;
       clearInterval(ping);
       remove();
-    });
+    };
+    req.on('close', stop);
 
     // Événements manqués pendant la coupure (Last-Event-ID).
     if (resumeFrom) flushUser();
