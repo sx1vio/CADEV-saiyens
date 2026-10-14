@@ -35,6 +35,21 @@ Cinq personnes, 17 jours de développement (du 6 au 22 octobre), soumission le 2
 
 Si l'équipe perd un membre actif, le cahier des charges prévoit la fusion des rôles 1 et 5, puis 4 et 2.
 
+## Réaffectations et avancement
+
+Quand une tâche change de main, on le note ici, avec la raison, et on met à jour l'issue (commentaire, assignation) et le tableau GitHub Projects.
+
+| Date   | Tâche                                                               | Prévu   | Fait par | Raison                                                            | PR               |
+| ------ | ------------------------------------------------------------------- | ------- | -------- | ----------------------------------------------------------------- | ---------------- |
+| 8 oct. | X3 · score GitHub résistant aux dépôts vides (#52), module `github` | Joachim | Caleb    | Bloquait PR1 et le Jalon 1                                        | #99 (fusionnée)  |
+| 8 oct. | Initialisation de `packages/core` et `packages/contracts` (#5)      | Florent | Caleb    | Bloquait le Jalon 2 (contrats, masquage des secrets, formules XP) | #101 (fusionnée) |
+
+Les propriétaires de modules ne changent pas : Joachim reste propriétaire de `github` (relecture de #99), Florent de `sos`, `matching`, `notifications` et `sync`.
+
+### Avancement
+
+L'état du projet (fait, en cours, à faire, risques) est tenu à jour dans une seule source : [`context.md`](../../context.md), détaillé exigence par exigence dans le [suivi du cahier des charges](../suivi/suivi-cahier-des-charges.md).
+
 ## Autorité de décision
 
 | Domaine                                                    | Qui tranche                           | Comment                                                               |

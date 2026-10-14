@@ -1,23 +1,17 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
 import { SignInWithGithub } from './application/sign-in-with-github';
-import type { SignUpListener } from './domain/ports';
 import { AesGcmTokenCipher } from './infrastructure/aes-gcm-token-cipher';
+import { EnqueueProfileImport } from './infrastructure/enqueue-profile-import.listener';
+import { GithubTokenReader } from './infrastructure/github-token.reader';
 import { FakeGithubOAuthProvider } from './infrastructure/fake-oauth.provider';
 import { GithubOAuthHttpProvider } from './infrastructure/github-oauth.provider';
 import { PrismaIdentityRepository } from './infrastructure/prisma-identity.repository';
 import { PrismaSessionStore } from './infrastructure/prisma-session.store';
 import { AuthController, GITHUB_OAUTH_PROVIDER } from './http/auth.controller';
 import { MeController } from './http/me.controller';
-import { SessionGuard } from './http/session.guard';
-
-// Pour l'instant, une inscription est seulement journalisée. L'import du profil GitHub
-// (dépôts, langages, score G) s'y branchera avec PR1 (#17) et X3 (#52).
-const logSignUps: SignUpListener = {
-  userSignedUp: async (userId) =>
-    new Logger('IdentityModule').log({ userId }, 'Nouvelle inscription'),
-};
+import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
 
 @Module({
   controllers: [AuthController, MeController],
@@ -25,6 +19,9 @@ const logSignUps: SignUpListener = {
     PrismaIdentityRepository,
     PrismaSessionStore,
     SessionGuard,
+    OptionalSessionGuard,
+    GithubTokenReader,
+    EnqueueProfileImport,
     {
       provide: GITHUB_OAUTH_PROVIDER,
       inject: [ENV],
@@ -35,17 +32,22 @@ const logSignUps: SignUpListener = {
     },
     {
       provide: SignInWithGithub,
-      inject: [ENV, PrismaIdentityRepository, PrismaSessionStore],
-      useFactory: (env: Env, accounts: PrismaIdentityRepository, sessions: PrismaSessionStore) =>
+      inject: [ENV, PrismaIdentityRepository, PrismaSessionStore, EnqueueProfileImport],
+      useFactory: (
+        env: Env,
+        accounts: PrismaIdentityRepository,
+        sessions: PrismaSessionStore,
+        signUps: EnqueueProfileImport,
+      ) =>
         new SignInWithGithub(
           accounts,
           sessions,
           new AesGcmTokenCipher(env.TOKEN_ENCRYPTION_KEY),
           { now: () => new Date() },
-          logSignUps,
+          signUps,
         ),
     },
   ],
-  exports: [SessionGuard, PrismaSessionStore],
+  exports: [SessionGuard, OptionalSessionGuard, PrismaSessionStore, GithubTokenReader],
 })
 export class IdentityModule {}

@@ -1,6 +1,6 @@
 # ADR-0004 : Monolithe modulaire, architecture hexagonale allégée
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1), conforme au code fusionné sur `main`.
 - **Date** : 2026-10-06
 - **Décideurs** : back-end
 - **Exigences concernées** : §8, §9 (tests du matching et des XP), §10 (aucune connaissance détenue par une seule personne)

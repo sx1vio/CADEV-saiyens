@@ -1,6 +1,6 @@
 # ADR-0009 : Sessions serveur par cookie plutôt que JWT
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1), conforme au code fusionné sur `main`.
 - **Date** : 2026-10-06
 - **Décideurs** : back-end, sécurité (Emmanuel)
 - **Exigences concernées** : §9 (« sessions par cookie HttpOnly et SameSite »), A1, A3, M1

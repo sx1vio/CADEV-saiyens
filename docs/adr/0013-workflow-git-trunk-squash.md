@@ -1,6 +1,6 @@
 # ADR-0013 : Branches courtes, squash merge, Conventional Commits
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09**, complété par [ADR-0019](0019-gouvernance-du-depot.md) (dépôt non protégeable, PR empilées).
 - **Date** : 2026-10-06
 - **Décideurs** : toute l'équipe
 - **Exigences concernées** : §10 (« branches courtes, une PR par fonctionnalité, relue par une autre personne, fusion vers main seulement si le déploiement de test passe ») ; §15 (« historique de commits régulier »)

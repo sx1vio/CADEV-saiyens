@@ -1,6 +1,6 @@
 # ADR-0007 : Temps réel par Server-Sent Events et LISTEN/NOTIFY
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1) ; pas encore implémenté (Y8, Florent, Jalon 2).
 - **Date** : 2026-10-06
 - **Décideurs** : back-end, front-end
 - **Exigences concernées** : S3 (notification en moins d'une minute), S11, O3, M1 ; correctif v3.1 **Y8**

@@ -1,5 +1,7 @@
 # 03 · Front-end
 
+> **Bibliothèques réellement retenues** : voir l'[ADR-0018](../adr/0018-pile-front-reelle.md) (`idb`, Zustand, Radix, oxlint), qui amende le tableau « Pile technique » ci-dessous. Les invariants (file hors ligne, `@devhub/contracts`, budget, pas de serveur simulé en production) restent ceux de ce document.
+
 **PWA React** construite avec **Vite**, installable, utilisable hors ligne, en français et en anglais, légère sur un téléphone d'entrée de gamme. Voir [ADR-0003](../adr/0003-frontend-react-vite-pwa.md).
 
 ## Pile technique

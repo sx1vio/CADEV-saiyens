@@ -19,23 +19,26 @@ pnpm install
 pnpm --filter @devhub/api exec prisma migrate deploy   # applique les migrations
 pnpm --filter @devhub/api exec prisma db seed          # 52 étiquettes de référence
 pnpm --filter @devhub/api dev                          # API sur http://localhost:3000
-pnpm --filter @devhub/api dev:worker                   # worker pg-boss
+pnpm --filter @devhub/api dev:worker                   # worker pg-boss (import du profil GitHub, actualités…)
 pnpm --filter @devhub/api news:ingest                  # collecte des actualités à la main (le worker le fait toutes les 15 min)
 ```
 
-| URL                        | Rôle                                                      |
-| -------------------------- | --------------------------------------------------------- |
-| `GET /api/v1/healthz`      | Le process répond                                         |
-| `GET /readyz`              | La base répond (Docker, déploiement)                      |
-| `GET /api/docs`            | Documentation OpenAPI (hors production)                   |
-| `GET /api/v1/auth/github`  | Connexion GitHub (redirection OAuth, `?returnTo=/chemin`) |
-| `GET /api/v1/me`           | Mon profil (session requise)                              |
-| `POST /api/v1/auth/logout` | Déconnexion (en-têtes `Origin` et `X-DevHub-Client: web`) |
-| `GET /api/v1/news/home`    | Accueil : à la une, rubriques, vidéos, HN, DEV, GitHub    |
-| `GET /api/v1/news`         | Actualités filtrées (`category`, `kind`, `lang`, `q`…)    |
-| `GET /api/v1/videos`       | Vidéos YouTube des chaînes suivies                        |
-| `GET /api/v1/news/sources` | Sources suivies, volume et fraîcheur                      |
-| `GET /api/v1/img`          | Image d'article redimensionnée en WebP (anti-SSRF)        |
+| URL                               | Rôle                                                      |
+| --------------------------------- | --------------------------------------------------------- |
+| `GET /api/v1/healthz`             | Le process répond                                         |
+| `GET /readyz`                     | La base répond (Docker, déploiement)                      |
+| `GET /api/docs`                   | Documentation OpenAPI (hors production)                   |
+| `GET /api/v1/auth/github`         | Connexion GitHub (redirection OAuth, `?returnTo=/chemin`) |
+| `GET /api/v1/me`                  | Mon profil (session requise)                              |
+| `POST /api/v1/auth/logout`        | Déconnexion (en-têtes `Origin` et `X-DevHub-Client: web`) |
+| `POST /api/v1/me/code-of-conduct` | Acceptation du code de conduite (M3)                      |
+| `GET /api/v1/me/skills`           | Compétences proposées depuis GitHub (PR1, X3)             |
+| `POST /api/v1/me/github/refresh`  | Réimport du profil GitHub (une fois par heure)            |
+| `GET /api/v1/news/home`           | Accueil : à la une, rubriques, vidéos, HN, DEV, GitHub    |
+| `GET /api/v1/news`                | Actualités filtrées (`category`, `kind`, `lang`, `q`…)    |
+| `GET /api/v1/videos`              | Vidéos YouTube des chaînes suivies                        |
+| `GET /api/v1/news/sources`        | Sources suivies, volume et fraîcheur                      |
+| `GET /api/v1/img`                 | Image d'article redimensionnée en WebP (anti-SSRF)        |
 
 > **Connexion sans application GitHub** : avec `AUTH_FAKE_PROVIDER=true` (interdit en production), `GET /api/v1/auth/github?login=awa-dev` connecte directement un faux compte `awa-dev`. Pratique en local et utilisé par les tests de bout en bout.
 
@@ -63,13 +66,14 @@ prisma/
 
 ## Scripts
 
-| Script       | Rôle                               |
-| ------------ | ---------------------------------- |
-| `dev`        | API en mode surveillance           |
-| `dev:worker` | Worker en mode surveillance        |
-| `build`      | `prisma generate` puis compilation |
-| `typecheck`  | Vérification des types             |
-| `test`       | Tests Vitest (unitaires et HTTP)   |
+| Script       | Rôle                                                                    |
+| ------------ | ----------------------------------------------------------------------- |
+| `dev`        | API en mode surveillance                                                |
+| `dev:worker` | Worker en mode surveillance                                             |
+| `ai:try`     | Essai de la piste IA contre la vraie API Claude (`LLM_API_KEY` requise) |
+| `build`      | `prisma generate` puis compilation                                      |
+| `typecheck`  | Vérification des types                                                  |
+| `test`       | Tests Vitest (unitaires et HTTP)                                        |
 
 ## Règles pour les migrations
 

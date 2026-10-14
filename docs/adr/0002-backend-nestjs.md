@@ -1,6 +1,6 @@
 # ADR-0002 : NestJS pour le back-end (plutôt que FastAPI)
 
-- **Statut** : **Proposé, à confirmer en urgence.** Le cahier des charges laissait le choix au rôle 2, à figer le 5 octobre au soir (§16). Si l'équipe back-end a déjà choisi FastAPI, cet ADR passe en « Rejeté » et les ADR 0001, 0004, 0006 et 0010 sont à revoir (voir la dernière section).
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1). NestJS était déjà en production dans `apps/api` (#94 à #104) ; aucun membre n'a proposé FastAPI. La section « Si l'équipe choisit FastAPI » est conservée pour mémoire.
 - **Date** : 2026-10-06
 - **Décideurs** : rôle 2 (Caleb, Florent, Joachim)
 - **Exigences concernées** : §8, §10

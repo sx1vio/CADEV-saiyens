@@ -95,7 +95,7 @@ Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm
 | `GET /auth/github/callback`                            | Pub    | Création ou connexion du compte, cookie de session, import du profil en tâche de fond                              | A1, PR1       |
 | `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`) | Pub    | Idem                                                                                                               | A2 (P1)       |
 | `POST /auth/logout`                                    | Co, Id | Révoque la session                                                                                                 | —             |
-| `GET /me`                                              | Co     | Mon profil, mes préférences, mes compteurs                                                                         | PR1           |
+| `GET /me`                                              | Co     | Mon profil, mes préférences et mes signaux de confiance (PR11)                                                     | PR1           |
 | `PATCH /me`                                            | Co, Id | Fuseau, disponibilités, langues, « je cherche », « je peux aider » et « je veux apprendre », langue de l'interface | PR1, PR10, T3 |
 | `PATCH /me/privacy`                                    | Co, Id | Confidentialité par champ, mode non listé                                                                          | PR14          |
 | `POST /me/code-of-conduct`                             | Co, Id | Acceptation du code de conduite                                                                                    | M3            |
@@ -103,14 +103,15 @@ Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm
 
 ### Passport et réputation (`passport`, `reputation`)
 
-| Méthode et chemin              | Accès  | Rôle                                                                                         | US             |
-| ------------------------------ | ------ | -------------------------------------------------------------------------------------------- | -------------- |
-| `GET /u/:handle`               | Pub    | Passport public : identité, compétences (G + P), statistiques, projets, signaux de confiance | PR2, PR7, PR11 |
-| `GET /u/:handle/proofs?tag=`   | Pub    | Chronologie des preuves, filtrable par étiquette ; chaque ligne renvoie à sa source          | PR3, X1        |
-| `GET /u/:handle/activity`      | Pub    | Carte de chaleur de l'entraide sur 26 semaines                                               | PR8 (P1)       |
-| `POST /u/:handle/endorsements` | Co, Id | Recommandation adossée à une interaction vérifiée                                            | PR9 (P1)       |
-| `POST /me/github/refresh`      | Co, Id | Réimport du profil GitHub (limité à 1 par heure)                                             | PR1            |
-| `GET /rules/xp`                | Pub    | Barème, plafonds et formules (alimente `/regles`)                                            | X5             |
+| Méthode et chemin              | Accès  | Rôle                                                                                                              | US             |
+| ------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------- | -------------- |
+| `GET /u/:handle`               | Pub    | Passport public : identité, compétences (G + P), statistiques, projets, signaux de confiance                      | PR2, PR7, PR11 |
+| `GET /u/:handle/proofs?tag=`   | Pub    | Chronologie des preuves, filtrable par étiquette ; chaque ligne renvoie à sa source                               | PR3, X1        |
+| `GET /u/:handle/activity`      | Pub    | Carte de chaleur de l'entraide sur 26 semaines                                                                    | PR8 (P1)       |
+| `POST /u/:handle/endorsements` | Co, Id | Recommandation adossée à une interaction vérifiée                                                                 | PR9 (P1)       |
+| `GET /me/skills`               | Co     | Mes compétences : score, niveau, part GitHub (G, dépôts qualifiés) et part plateforme (P), date du dernier import | PR1, PR7       |
+| `POST /me/github/refresh`      | Co, Id | Réimport du profil GitHub (1 par heure, sinon `429` avec `Retry-After`) ; renvoie les compétences                 | PR1            |
+| `GET /rules/xp`                | Pub    | Barème, plafonds et formules (alimente `/regles`)                                                                 | X5             |
 
 Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
@@ -216,6 +217,21 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | --------------------- | ----------------------------------------------------------------------------------------- |
 | `GET /api/v1/healthz` | Le processus répond (utilisé par le front pour confirmer « en ligne »)                    |
 | `GET /readyz`         | La base répond et les migrations sont à jour (utilisé par Docker et la CI de déploiement) |
+
+## État d'implémentation
+
+| Endpoint                                                                            | État | PR                      |
+| ----------------------------------------------------------------------------------- | ---- | ----------------------- |
+| Authentification, `GET /me`, code de conduite                                       | Fait | #95, #98                |
+| `GET /me/skills`, `POST /me/github/refresh`                                         | Fait | #99                     |
+| `GET /u/:handle/proofs`, `GET /rules/xp`                                            | Fait | #102                    |
+| `POST /questions`, `GET /questions`, `GET /questions/:id`                           | Fait | #106 (S1)               |
+| `POST /questions/:id/answers`, `POST /answers/:id/vote`, `POST /answers/:id/accept` | Fait | S4 (`feat/sos-answers`) |
+| `GET /notifications`, `POST /notifications/read`                                    | Fait | S4 (`feat/sos-answers`) |
+
+L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructure/idempotency`) : chaque écriture appelle `idempotency.run(...)` avec la transaction de la requête, et lit la clé avec le décorateur `@IdempotencyKey()`. Les effets hors transaction (jobs) passent par `afterCommit` et ne sont jamais rejoués.
+
+Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/src/infrastructure/actions`) : l'endpoint HTTP et `POST /sync` l'appellent avec la même route canonique et le même corps (`runAction`), donc avec la même empreinte. Une action envoyée seule, puis rejouée dans un lot (ou l'inverse), est reconnue comme doublon. Un conflit de version renvoie `409 version_conflict` avec le champ `server` (version actuelle) ; une limite de débit renvoie `retryAfter` et l'en-tête `Retry-After`.
 
 ## Exemple complet : poser une question
 

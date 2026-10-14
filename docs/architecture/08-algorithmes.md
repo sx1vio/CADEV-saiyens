@@ -68,6 +68,17 @@ Jamais un pourcentage de compatibilité sans méthode (§6.2). On affiche **au p
 | `available_now`  | D = 1                     | « Disponible maintenant »                         |
 | `translated`     | L = 0,5                   | « Recevra ta question traduite en {lang} »        |
 
+### Implémentation
+
+| Élément                                                                                        | Où                                                                                                                            |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Éligibilité en mémoire, score, régime, raisons, sélection                                      | `packages/core/src/scoring/matching.ts` (`MATCHING`, `scoreHelper`, `pickHelpers`), couvert à 100 %                           |
+| Fuseau (`timezoneOffsetMinutes`) et disponibilité (`availabilityAt`, terme D)                  | même fichier ; créneaux lus dans le fuseau du dev                                                                             |
+| Présélection SQL (200 candidats), écriture des `match_events` et notifications `match.request` | `apps/api/src/modules/matching/infrastructure/prisma-matching.store.ts`                                                       |
+| Vague 1, escalade, « Je m'en occupe »                                                          | `apps/api/src/modules/matching/application/run-wave.ts`, jobs `matching.run` (envoyé par S1) et `matching.escalate` (+15 min) |
+
+Une vague déjà envoyée n'est jamais rejouée (nouvel essai d'un job) : `wavesDone`. Les raisons enregistrées portent le libellé des étiquettes (`{ code: "github_repos", params: { count: 6, tag: "Kubernetes" } }`). La langue vaut 0,5 seulement quand la traduction (S10) sera active ; elle vaut 0 en attendant.
+
 ### Escalade à 15 minutes
 
 Le job `matching.escalate` s'exécute 15 minutes après la première vague. Il ne fait rien si la question a une réponse, si elle est résolue, ou si un « Je m'en occupe » est actif (le statut expire après 20 minutes sans réponse, S11). Sinon, il relance la sélection en excluant les aidants déjà sollicités (vague 2) et marque `questions.escalated_at`.
@@ -86,19 +97,20 @@ Le job `matching.escalate` s'exécute 15 minutes après la première vague. Il n
 | Projet partagé avec démo en ligne                     | `project_demo_shared` | +5     | Créateur     | Stack de la salle     | Une fois par projet                                    |
 | Question résolue (auteur)                             | `question_resolved`   | +1     | Auteur       | Aucune                | Encourage la clôture                                   |
 
-Quand une action crédite plusieurs étiquettes, **un événement est écrit par étiquette**, avec les points divisés en entiers (reste attribué à la première étiquette) : 10 points sur 3 étiquettes donnent 4 + 3 + 3. Le total de l'utilisateur ne dépend donc pas du nombre d'étiquettes. Cette règle de répartition est une **proposition d'implémentation** à valider par l'équipe : le cahier des charges dit seulement « attribués aux étiquettes de la question ». Il existe une alternative : créditer les 10 points sur **chaque** étiquette pour le score de compétence, mais ne les compter qu'une fois dans le total. Elle avantage les compétences, mais elle oblige à distinguer « XP total » et « XP par étiquette » dans le journal. À trancher avant le 9 octobre (début de SOS Dev).
+Quand une action crédite plusieurs étiquettes, **un événement est écrit par étiquette**, avec les points divisés en entiers (reste attribué à la première étiquette) : 10 points sur 3 étiquettes donnent 4 + 3 + 3. Le total de l'utilisateur ne dépend donc pas du nombre d'étiquettes. **Implémenté le 8 octobre** (`splitPoints` dans `@devhub/core`, `planGain` dans `reputation`). Les parts nulles (2 points sur 3 étiquettes) ne créent pas d'événement. Le cahier des charges dit seulement « attribués aux étiquettes de la question » : si l'équipe préfère créditer les points sur **chaque** étiquette pour le score de compétence tout en ne les comptant qu'une fois dans le total, il faudra distinguer « XP total » et « XP par étiquette » dans le journal. Décision prise : répartition, voir l'[ADR-0014](../adr/0014-repartition-des-xp-entre-etiquettes.md).
 
 ### Garde-fous (X2)
 
-| Garde-fou                                                           | Implémentation                                                                                                                                   |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Plafond de **60 XP par jour** (UTC), hors bonus de vitesse          | Avant l'insertion : somme des points du jour ; on n'attribue que ce qui reste sous le plafond (événement partiel). Le dépassement est journalisé |
-| Voter pour soi interdit                                             | Refus dans le cas d'usage (`403 xp.self_vote`)                                                                                                   |
-| Au plus **2 validations par paire auteur-répondant et par semaine** | Au-delà, la validation est acceptée (la question est résolue) mais **sans XP** ; l'interface l'explique                                          |
-| Compte de moins de 24 h exclu des votes                             | Le vote est enregistré mais ne rapporte pas d'XP                                                                                                 |
-| Double gain impossible                                              | Contrainte unique `(user_id, kind, source_type, source_id, tag_id)`                                                                              |
-| Abus confirmé                                                       | Événement `revert` à points négatifs, lié par `reverts_id`, et action journalisée dans `admin_actions`                                           |
-| Limitation du débit et signalement                                  | Voir [10 · Sécurité](10-securite.md)                                                                                                             |
+| Garde-fou                                                           | Implémentation                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plafond de **60 XP par jour** (UTC), hors bonus de vitesse          | Avant l'insertion : somme des points du jour ; on n'attribue que ce qui reste sous le plafond (événement partiel), et le résultat signale `daily_cap`. Un verrou consultatif par utilisateur (`pg_advisory_xact_lock`) rend le calcul exact en concurrence |
+| Voter pour soi interdit                                             | Refus dans le cas d'usage (`403 xp.self_vote`)                                                                                                                                                                                                             |
+| Au plus **2 validations par paire auteur-répondant et par semaine** | Au-delà, la validation est acceptée (la question est résolue) mais **sans XP** (`pair_weekly_limit`) ; l'interface l'explique. Comptage par `xp_events.counterpart_id` sur 7 jours glissants                                                               |
+| Compte de moins de 24 h exclu des votes                             | Le vote est enregistré par `sos` mais ne rapporte pas d'XP (`voter_too_new`)                                                                                                                                                                               |
+| Au plus **5 votes rémunérés** par réponse, un par votant            | Au-delà : `vote_cap` ; un même votant : `already_awarded`                                                                                                                                                                                                  |
+| Double gain impossible                                              | Vérification dans le cas d'usage, et contrainte unique `xp_events_unique_gain` sur `(user_id, kind, source_type, source_id, tag_id, counterpart_id)`                                                                                                       |
+| Abus confirmé                                                       | Événement `revert` à points négatifs, lié par `reverts_id`, et action journalisée dans `admin_actions`                                                                                                                                                     |
+| Limitation du débit et signalement                                  | Voir [10 · Sécurité](10-securite.md)                                                                                                                                                                                                                       |
 
 ### Vérification de cohérence
 

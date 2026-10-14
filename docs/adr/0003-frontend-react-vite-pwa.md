@@ -1,6 +1,6 @@
 # ADR-0003 : PWA React + Vite + Workbox + Dexie
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09, amendé par [ADR-0018](0018-pile-front-reelle.md)** (bibliothèques réellement retenues par le front).
 - **Date** : 2026-10-06
 - **Décideurs** : rôle 3 (Sylvio)
 - **Exigences concernées** : §8, §9 (performance), O1–O5, I1

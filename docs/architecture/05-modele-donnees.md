@@ -75,12 +75,12 @@ Les créneaux sont exprimés dans le fuseau `users.timezone` ; le calcul du term
 
 ### passport et reputation
 
-| Table          | Rôle                                            | Points d'attention                                                                                                                                                                            |
-| -------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tags`         | Étiquettes de technologie                       | `aliases` sert à la détection automatique (S9) et à la correspondance avec les langages GitHub                                                                                                |
-| `user_skills`  | Score par étiquette                             | `github_signal` (G), `xp_tag` (P brut), `score` = min(100, G + min(60, xp_tag)). **Table dérivée** : recalculable à tout moment depuis GitHub et `xp_events`                                  |
-| `xp_events`    | Journal des Proof XP                            | Append-only. Une annulation crée un événement `revert` à points négatifs, lié par `reverts_id`. La contrainte `UNIQUE (user_id, kind, source_type, source_id, tag_id)` empêche un double gain |
-| `endorsements` | Recommandations adossées à une preuve (PR9, P1) | `source_type` + `source_id` obligatoires ; éligibilité vérifiée par l'API                                                                                                                     |
+| Table          | Rôle                                            | Points d'attention                                                                                                                                                                                                                                                                                    |
+| -------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tags`         | Étiquettes de technologie                       | `aliases` sert à la détection automatique (S9) et à la correspondance avec les langages GitHub                                                                                                                                                                                                        |
+| `user_skills`  | Score par étiquette                             | `github_signal` (G), `xp_tag` (P brut), `score` = min(100, G + min(60, xp_tag)). **Table dérivée** : recalculable à tout moment depuis GitHub et `xp_events`                                                                                                                                          |
+| `xp_events`    | Journal des Proof XP                            | Append-only. Une annulation crée un événement `revert` à points négatifs, lié par `reverts_id`. `counterpart_id` : l'autre personne concernée (auteur qui valide, votant), jamais exposée publiquement. La contrainte `UNIQUE (user_id, kind, source_type, source_id, tag_id)` empêche un double gain |
+| `endorsements` | Recommandations adossées à une preuve (PR9, P1) | `source_type` + `source_id` obligatoires ; éligibilité vérifiée par l'API                                                                                                                                                                                                                             |
 
 **Invariant fondamental** : `SUM(points)` sur `xp_events` d'un utilisateur = son total de Proof XP affiché. Le Passport n'a pas de compteur stocké ailleurs qui pourrait diverger. Pour les performances, le total peut être mis en cache, mais il se recalcule toujours depuis le journal.
 
@@ -162,11 +162,11 @@ CREATE INDEX questions_open_idx ON questions (created_at DESC)
 CREATE UNIQUE INDEX join_requests_one_pending
   ON join_requests (room_id, user_id) WHERE status = 'pending';
 
--- Le gain unique dans xp_events doit aussi valoir quand tag_id est NULL
--- (PostgreSQL 15+ : NULLS NOT DISTINCT)
-DROP INDEX IF EXISTS "xp_events_user_id_kind_source_type_source_id_tag_id_key";
+-- Gain unique dans xp_events, par contrepartie (plusieurs votants sur une même réponse),
+-- y compris quand tag_id ou counterpart_id est NULL (PostgreSQL 15+ : NULLS NOT DISTINCT).
+-- Migration 20261008142000_xp_unique_gain_per_counterpart.
 CREATE UNIQUE INDEX xp_events_unique_gain
-  ON xp_events (user_id, kind, source_type, source_id, tag_id) NULLS NOT DISTINCT
+  ON xp_events (user_id, kind, source_type, source_id, tag_id, counterpart_id) NULLS NOT DISTINCT
   WHERE kind <> 'revert';
 
 -- Recherche de devs par étiquettes (D1)

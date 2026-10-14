@@ -145,6 +145,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 14/10/2026 — Fusion de toutes les PR dans `main`
+
+- **Demande de Sylvio** : « corrige les PR et fais les merges sur le main, pour toutes les PR ».
+- **Pile backend #105 → #114** (ADR 0014-0019, SOS, réponses, matching, SSE, sync, salles, tâches, Passport public, Découvrir) fusionnée dans `main` par merge commits, dans l'ordre, CI verte sur chacune. #112 a été fusionnée dans `feat/rooms` (coupure réseau pendant le changement de base) ; son contenu est arrivé dans `main` via #113. L'arbre de `main` est identique à la pointe de la pile.
+- **PR #97** : `main` fusionnée dans `feat/web-calm-ui`. Conflits résolus (`apps/api/README.md`, `app.module.ts`, `worker.ts`, `pnpm-lock.yaml` régénéré).
+- **Module `news` porté sur la file de jobs commune** : `news.ingest` et `news.ingest-github` ajoutés au catalogue (`infrastructure/jobs/catalog.ts`, file `exclusive` et `cron`), `JobQueue.schedule()` ajouté, handlers dans `NewsJobs` (worker seulement, comme `MatchingJobs`) ; `registerNewsJobs` supprimé.
+- **Migration** `20261008120000_news` renommée `20261014120000_news` pour passer après les migrations XP déjà sur `main`.
+- Les branches des PR fusionnées n'ont pas été supprimées (suppression refusée par le garde-fou local).
+
 ### 08/10/2026 (nuit, fin) — Pull request vers `main`
 
 - **Demande de Sylvio** : « fais une pull request vers main ».

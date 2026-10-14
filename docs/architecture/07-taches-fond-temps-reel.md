@@ -103,6 +103,19 @@ sequenceDiagram
 - **Ping** toutes les 25 secondes pour maintenir la connexion à travers les proxys des opérateurs mobiles.
 - **Caddy** : `flush_interval -1` sur `/api/v1/events` pour ne pas mettre la réponse en tampon.
 
+### Implémentation (Y8)
+
+| Élément                                                                                     | Où                                                             |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `pg_notify` dans la transaction de l'action (`publishToUsers`, `publishToTopic`)            | `apps/api/src/infrastructure/realtime/realtime.publisher.ts`   |
+| Unique connexion `LISTEN` par process API, registre des connexions, reconnexion automatique | `apps/api/src/infrastructure/realtime/realtime.hub.ts`         |
+| Flux `GET /api/v1/events`                                                                   | `apps/api/src/modules/notifications/http/events.controller.ts` |
+
+- Chaque notification créée par `Notifier` émet `NOTIFY devhub_events` ; l'API envoie `event: notification.created` (`id` = `notifications.seq`, `data` = `{ id, type, payload, createdAt }`).
+- Sujets publics (`?topics=question:<id>`, 5 au plus, sans compte) : `question.ai_hint`, `question.matched`, `answer.created`, `answer.accepted`, avec `data` = identifiants seulement ; le client relit `GET /questions/:id`.
+- Première connexion sans `Last-Event-ID` : on part de maintenant (l'historique est dans `GET /notifications`). Avec `Last-Event-ID` (en-tête ou paramètre `lastEventId`) : jusqu'à 100 événements manqués rejoués.
+- Le worker publie mais n'écoute pas (`PROCESS_ROLE=worker`).
+
 ### Types d'événements
 
 | `event`                | Destinataire                        | Effet côté front                                           |

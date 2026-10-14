@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest';
+import { ERROR_CODES, MeResponse, MySkillsResponse } from './index';
+
+const me = {
+  id: '6f1c2a8e-3b4d-4e5f-9a0b-1c2d3e4f5a6b',
+  handle: 'awa-dev',
+  displayName: 'Awa',
+  avatarUrl: null,
+  email: 'awa@example.test',
+  emailVerified: true,
+  bio: null,
+  country: 'CI',
+  timezone: 'Africa/Abidjan',
+  languages: ['fr'],
+  uiLang: 'fr',
+  lookingFor: null,
+  githubLinked: true,
+  githubCreatedAt: '2020-01-01T00:00:00.000Z',
+  codeOfConductAcceptedAt: null,
+  isAdmin: false,
+  isDemo: false,
+  createdAt: '2026-10-08T10:00:00.000Z',
+  trust: {
+    githubLinked: true,
+    githubAccountYears: 6,
+    emailVerified: true,
+    demo: false,
+    founder: true,
+  },
+};
+
+describe('contrats', () => {
+  it('accepte une réponse /me valide', () => {
+    expect(MeResponse.parse(me)).toEqual(me);
+  });
+
+  it('refuse une réponse /me sans signaux de confiance', () => {
+    const { trust: _, ...withoutTrust } = me;
+    expect(MeResponse.safeParse(withoutTrust).success).toBe(false);
+  });
+
+  it('refuse un niveau de compétence inconnu', () => {
+    const skills = {
+      skills: [
+        {
+          tag: { slug: 'ts', label: 'TS' },
+          score: 5,
+          level: 'guru',
+          githubSignal: 5,
+          githubRepos: 1,
+          platformPoints: 0,
+        },
+      ],
+      lastImportedAt: null,
+    };
+    expect(MySkillsResponse.safeParse(skills).success).toBe(false);
+  });
+
+  it('expose des codes d’erreur uniques', () => {
+    expect(new Set(ERROR_CODES).size).toBe(ERROR_CODES.length);
+  });
+});

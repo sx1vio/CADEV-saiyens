@@ -1,6 +1,6 @@
 # ADR-0001 : Monorepo TypeScript avec pnpm et Turborepo
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1), conforme au code fusionné sur `main`.
 - **Date** : 2026-10-06
 - **Décideurs** : toute l'équipe
 - **Exigences concernées** : §8 (stack), §10 (une PR par fonctionnalité), O9 et S9 (règles partagées front/back)
