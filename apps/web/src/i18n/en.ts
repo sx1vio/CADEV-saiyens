@@ -48,6 +48,8 @@ const en: Dict = {
     reportReason: 'Why?',
     reportPlaceholder: 'Spam, offensive content, leaked secret…',
     reportSent: 'Report sent. An administrator will review it.',
+    ecosystemPreview:
+      'Preview: this service has no server yet. Demo content; what you do stays on this device.',
     demoData: 'Demo data',
     demoDataHint:
       'Demo accounts and figures, labelled as such. Real figures will show as soon as the API is live.',

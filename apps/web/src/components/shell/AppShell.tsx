@@ -32,7 +32,14 @@ import { useSession, useUI } from '@/stores/app';
 import { serverLogout } from '@/platform/auth';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
-import { ADMIN_NAV, CREATE_NAV, EXPLORE_NAV, MAIN_NAV, type NavEntry } from './nav';
+import {
+  ADMIN_NAV,
+  CREATE_NAV,
+  EXPLORE_NAV,
+  MAIN_NAV,
+  isEcosystemPreview,
+  type NavEntry,
+} from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
 import { Logo as Wordmark } from './PublicShell';
 import * as Popover from '@radix-ui/react-popover';
@@ -739,7 +746,11 @@ export function AppShell() {
         <div className="min-w-0 flex-1">
           {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
           {isLg && <OfflineBanner />}
-          {api.mode === 'local' && <LocalDataBanner />}
+          {api.mode === 'local' ? (
+            <LocalDataBanner />
+          ) : (
+            isEcosystemPreview(location.pathname) && <EcosystemBanner />
+          )}
           <main
             id="main"
             tabIndex={-1}
@@ -766,6 +777,18 @@ function LocalDataBanner() {
       title={t('common.demoDataHint')}
     >
       {t('common.demoData')}
+    </p>
+  );
+}
+
+function EcosystemBanner() {
+  const { t } = useTranslation();
+  return (
+    <p
+      role="status"
+      className="border-b border-line bg-surface-2 px-4 py-1.5 text-center text-xs text-muted"
+    >
+      {t('common.ecosystemPreview')}
     </p>
   );
 }

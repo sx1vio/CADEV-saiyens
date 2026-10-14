@@ -166,6 +166,8 @@ Toutes les pages passent par `api` (`apps/web/src/services/index.ts`), qui chois
 
 Le serveur simulé n'est jamais inclus dans le build de production (aucun import statique de `services/local`).
 
+Les services de l'écosystème sans serveur (communautés, emplois, apprendre, certifications, outils IA, publications, templates, guide) restent dans les menus ([ADR-0020](../adr/0020-services-ecosysteme-conserves.md)) : leurs routes, listées par `isEcosystemPreview` (`components/shell/nav.ts`), affichent un bandeau « Aperçu ». Le fil d'actualités et les vidéos ont une vraie API.
+
 L'implémentation `http` (`services/http.ts`) est un **adaptateur** : elle appelle les endpoints de [06-api.md](06-api.md) et convertit les réponses (`@devhub/contracts`) vers les types du front dans `services/http-mappers.ts` (fonctions pures, testées avec Vitest). Conventions :
 
 - un utilisateur est identifié par son **handle** (l'API n'expose pas l'UUID des autres comptes), une étiquette par son **slug** ;
