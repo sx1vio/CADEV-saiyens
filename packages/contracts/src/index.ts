@@ -3,6 +3,7 @@ export * from './answers';
 export * from './errors';
 export * from './me';
 export * from './notifications';
+export * from './passport';
 export * from './questions';
 export * from './rooms';
 export * from './skills';
