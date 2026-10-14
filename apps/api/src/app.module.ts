@@ -7,6 +7,7 @@ import type { Env } from './infrastructure/config/env';
 import { HealthController } from './infrastructure/http/health.controller';
 import { ProblemDetailsFilter } from './infrastructure/http/problem-details.filter';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { ActionsModule } from './infrastructure/actions/action-registry';
 import { IdempotencyModule } from './infrastructure/idempotency/idempotency.module';
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { RealtimeModule } from './infrastructure/realtime/realtime.module';
@@ -16,6 +17,7 @@ import { AiModule } from './modules/ai';
 import { MatchingModule } from './modules/matching';
 import { NotificationsModule } from './modules/notifications';
 import { SosModule } from './modules/sos';
+import { SyncModule } from './modules/sync';
 import { ReputationModule } from './modules/reputation';
 
 // Les modules métier (identity, sos, rooms…) s'ajoutent ici : docs/architecture/02-backend.md
@@ -41,6 +43,7 @@ import { ReputationModule } from './modules/reputation';
     PrismaModule,
     JobsModule,
     IdempotencyModule,
+    ActionsModule,
     RealtimeModule,
     IdentityModule,
     PassportModule,
@@ -49,6 +52,7 @@ import { ReputationModule } from './modules/reputation';
     SosModule,
     NotificationsModule,
     MatchingModule,
+    SyncModule,
   ],
   controllers: [HealthController],
   providers: [

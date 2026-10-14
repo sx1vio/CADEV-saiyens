@@ -81,8 +81,8 @@ Mandat du 14 octobre : Joachim avance **toutes** les tâches restantes (les sien
 | 1     | Poser une question, idempotence                                   | S1, O2 (API)       | PR #106                 |
 | 2     | Répondre, voter, valider (+ XP), notifications dans l'application | S4                 | PR #107                 |
 | 3     | Matching et notifications dans l'application                      | S3, X4             | PR #108                 |
-| 3b    | Temps réel SSE (notifications et pages de question)               | Y8                 | En cours                |
-| 4     | Synchronisation hors ligne `POST /sync`                           | O2                 | À faire                 |
+| 3b    | Temps réel SSE (notifications et pages de question)               | Y8                 | PR #109                 |
+| 4     | Synchronisation hors ligne `POST /sync`                           | O2                 | En cours                |
 | 5     | Salles de projet : créer, rejoindre, tâches, PR vérifiée          | R1, R2, R3, R8, R9 | À faire                 |
 | 6     | Passport public et preuves                                        | PR2, PR3           | À faire                 |
 | 7     | Découverte et classement                                          | D1, D2             | À faire                 |

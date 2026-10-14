@@ -36,9 +36,9 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 5       | 7        | 9       | 24 %        | 57 %       |
-| P1        | 14     | 0       | 0        | 14      | 0 %         | 0 %        |
+| P1        | 14     | 0       | 1        | 13      | 0 %         | 7 %        |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **7**    | **25**  | **14 %**    | **32 %**   |
+| **Total** | **37** | **5**   | **8**    | **24**  | **14 %**    | **35 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -52,7 +52,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Salles de projet (R)    | 8         | 0       | 0        | `░░░░░░░░░░`                              |
 | Découverte (D)          | 3         | 0       | 0        | `░░░░░░░░░░`                              |
 | Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                  |
-| Hors ligne (O)          | 4         | 0       | 3        | `████░░░░░░` O1, O2, O3 en cours          |
+| Hors ligne (O)          | 4         | 0       | 4        | `█████░░░░░` O1, O2, O3, O4 en cours      |
 | Systalink et impact (Y) | 4         | 0       | 0        | `░░░░░░░░░░`                              |
 | Modération (M)          | 1         | 0       | 0        | `░░░░░░░░░░`                              |
 | Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                  |
@@ -156,12 +156,12 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Hors ligne (O)
 
-| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence | Commentaire                                                                      |
-| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | --------- | -------------------------------------------------------------------------------- |
-| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97    | Service worker et cache côté front ; contenus métier pas encore servis par l'API |
-| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #97    | File IndexedDB côté front ; `/sync` idempotent côté API à faire                  |
-| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97    |                                                                                  |
-| O4  | #44   | Écran de conflit de version                | P1   | `À faire`  | Sylvio          |           |                                                                                  |
+| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                         | Commentaire                                                                                               |
+| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97                            | Service worker et cache côté front ; contenus métier pas encore servis par l'API                          |
+| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #97 (front), `feat/sync` (API) | API prête : `POST /sync` idempotent, références `client:` ; reste le moteur du front                      |
+| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97                            |                                                                                                           |
+| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | `feat/sync` (API)                 | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran |
 
 ### Systalink, impact, notifications, stockage (Y)
 

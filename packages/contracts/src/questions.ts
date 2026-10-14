@@ -140,3 +140,26 @@ export const QuestionDetail = QuestionSummary.extend({
   helpers: z.array(MatchedHelper),
 });
 export type QuestionDetail = z.infer<typeof QuestionDetail>;
+
+/** PATCH /api/v1/questions/:id (O4) : champs modifiés + version connue du client. */
+export const UpdateQuestionRequest = z
+  .object({
+    title: z.string().trim().min(QUESTION_LIMITS.titleMin).max(QUESTION_LIMITS.titleMax).optional(),
+    body: z.string().trim().min(1).max(QUESTION_LIMITS.bodyMax).optional(),
+    codeSnippet: z.string().max(QUESTION_LIMITS.codeMax).nullish(),
+    baseVersion: z.number().int().min(1),
+  })
+  .refine((v) => v.title !== undefined || v.body !== undefined || v.codeSnippet !== undefined, {
+    message: 'Au moins un champ à modifier',
+  });
+export type UpdateQuestionRequest = z.infer<typeof UpdateQuestionRequest>;
+
+export const UpdateQuestionResponse = z.object({
+  id: z.uuid(),
+  version: z.number().int(),
+  title: z.string(),
+  body: z.string(),
+  codeSnippet: z.string().nullable(),
+  secretsMasked: z.number().int(),
+});
+export type UpdateQuestionResponse = z.infer<typeof UpdateQuestionResponse>;

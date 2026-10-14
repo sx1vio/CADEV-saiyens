@@ -5,4 +5,5 @@ export * from './me';
 export * from './notifications';
 export * from './questions';
 export * from './skills';
+export * from './sync';
 export * from './xp';

@@ -3,6 +3,7 @@ import { IdentityModule } from '../identity';
 import { NotificationsModule, Notifier } from '../notifications';
 import { ClaimQuestion, RunWave } from './application/run-wave';
 import { ClaimController } from './http/claim.controller';
+import { MatchingActions } from './http/matching.actions';
 import { PrismaMatchingStore } from './infrastructure/prisma-matching.store';
 import { MatchingJobs } from './jobs/matching.jobs';
 
@@ -14,6 +15,7 @@ import { MatchingJobs } from './jobs/matching.jobs';
   providers: [
     PrismaMatchingStore,
     MatchingJobs,
+    MatchingActions,
     {
       provide: RunWave,
       inject: [PrismaMatchingStore, Notifier],
