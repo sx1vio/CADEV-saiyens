@@ -1,6 +1,6 @@
 # ADR-0010 : Contrat d'API : REST, schémas zod partagés, OpenAPI généré
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1), conforme au code fusionné sur `main`.
 - **Date** : 2026-10-06
 - **Décideurs** : back-end, front-end
 - **Exigences concernées** : §8 (« API REST documentée, OpenAPI »), §9 (« validation de schéma sur chaque endpoint »)

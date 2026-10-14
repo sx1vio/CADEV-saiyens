@@ -1,6 +1,6 @@
 # ADR-0012 : Aperçus de partage par injection serveur dans `index.html`
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1) ; pas encore implémenté (PR2, R7, PR5).
 - **Date** : 2026-10-06
 - **Décideurs** : front-end, back-end
 - **Exigences concernées** : PR2 (aperçu Open Graph), R7 (lien d'invitation riche), PR5 (Proof Card), §8 (« route serveur légère pour les aperçus »)

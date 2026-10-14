@@ -1,6 +1,6 @@
 # ADR-0008 : Hors ligne : file d'actions unique et idempotence
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1) ; côté API pas encore implémenté (`/sync`, idempotence : Florent) ; le front a sa propre file IndexedDB, à aligner sur ce contrat.
 - **Date** : 2026-10-06
 - **Décideurs** : back-end (sync) et front-end ; contrat à figer ensemble (§10)
 - **Exigences concernées** : O1–O5, O8, O9 ; §6.5

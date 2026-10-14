@@ -83,29 +83,37 @@ Vérifié le 8 octobre au soir, après les fusions : CI verte sur `main` (format
 
 ## 4. Décisions techniques et fonctionnelles
 
-Les décisions structurantes sont des ADR : [index des ADR](docs/adr/README.md). Toutes sont encore au statut **proposé** (validation en équipe : issue #1).
+Les décisions structurantes sont des ADR : [index des ADR](docs/adr/README.md). Les ADR 0001 à 0013 sont **acceptés** depuis le 9 octobre (rôle 1, issue #1) ; les ADR 0014 à 0019 ont tranché les décisions restées ouvertes.
 
-| Décision                                             | ADR  | Justification courte                                         |
-| ---------------------------------------------------- | ---- | ------------------------------------------------------------ |
-| Monorepo pnpm + Turborepo                            | 0001 | Contrat partagé front/API, une seule CI                      |
-| Back-end NestJS (et non FastAPI)                     | 0002 | TypeScript de bout en bout, modules, OpenAPI généré          |
-| Front React + Vite en PWA                            | 0003 | Léger, installable, hors ligne                               |
-| Monolithe modulaire, architecture hexagonale allégée | 0004 | Une seule unité à déployer, frontières claires entre modules |
-| PostgreSQL + Prisma                                  | 0005 | Produit Systalink, migrations relues                         |
-| File de tâches pg-boss dans PostgreSQL               | 0006 | Aucun service supplémentaire à héberger                      |
-| Temps réel par SSE + LISTEN/NOTIFY                   | 0007 | Plus simple que WebSocket, compatible proxy                  |
-| File d'actions hors ligne + clés d'idempotence       | 0008 | Rejouer sans doublon au retour du réseau                     |
-| Sessions par cookie serveur                          | 0009 | Révocables, pas de jeton côté client                         |
-| Contrat REST validé par zod, OpenAPI généré          | 0010 | Une seule source pour les types du front et de l'API         |
-| Docker Compose + Caddy sur le VPS Systalink          | 0011 | Déploiement reproductible, TLS automatique                   |
-| Aperçus de partage par route serveur                 | 0012 | Open Graph lisible par WhatsApp et LinkedIn                  |
-| Trunk-based, squash merge                            | 0013 | Historique lisible, `main` toujours déployable               |
+| Décision                                                                                  | ADR  | Justification courte                                                 |
+| ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------- |
+| Monorepo pnpm + Turborepo                                                                 | 0001 | Contrat partagé front/API, une seule CI                              |
+| Back-end NestJS (et non FastAPI)                                                          | 0002 | TypeScript de bout en bout, modules, OpenAPI généré                  |
+| Front React + Vite en PWA                                                                 | 0003 | Léger, installable, hors ligne                                       |
+| Monolithe modulaire, architecture hexagonale allégée                                      | 0004 | Une seule unité à déployer, frontières claires entre modules         |
+| PostgreSQL + Prisma                                                                       | 0005 | Produit Systalink, migrations relues                                 |
+| File de tâches pg-boss dans PostgreSQL                                                    | 0006 | Aucun service supplémentaire à héberger                              |
+| Temps réel par SSE + LISTEN/NOTIFY                                                        | 0007 | Plus simple que WebSocket, compatible proxy                          |
+| File d'actions hors ligne + clés d'idempotence                                            | 0008 | Rejouer sans doublon au retour du réseau                             |
+| Sessions par cookie serveur                                                               | 0009 | Révocables, pas de jeton côté client                                 |
+| Contrat REST validé par zod, OpenAPI généré                                               | 0010 | Une seule source pour les types du front et de l'API                 |
+| Docker Compose + Caddy sur le VPS Systalink                                               | 0011 | Déploiement reproductible, TLS automatique                           |
+| Aperçus de partage par route serveur                                                      | 0012 | Open Graph lisible par WhatsApp et LinkedIn                          |
+| Trunk-based, squash merge                                                                 | 0013 | Historique lisible, `main` toujours déployable                       |
+| Proof XP répartis entre les étiquettes (4, 3, 3)                                          | 0014 | Le total ne dépend pas du nombre d'étiquettes                        |
+| Base Systalink managée si elle passe la vérification, sinon PostgreSQL sur le VPS         | 0015 | Produit Systalink en priorité, sans bloquer sur #2                   |
+| MVP = CDC v3 ; services « écosystème » en roadmap ; pas de données simulées en production | 0016 | Produit lisible, dates tenables, honnêteté (§6.6)                    |
+| Tri des 43 propositions v3.1 : 32 retenues, 9 en P2, 2 écartées                           | 0017 | Preuve, démo, coût                                                   |
+| Pile front réelle (`idb`, Zustand, Radix) acceptée, avec ses invariants                   | 0018 | Équivalente ; contrat hors ligne et `@devhub/contracts` obligatoires |
+| Gouvernance sans protection de branche : squash seul, relecture obligatoire               | 0019 | Dépôt privé gratuit : protection indisponible                        |
 
 Décisions prises hors ADR, constatées dans le code :
 
 - Messages de commit **en anglais**, documentation, PR et issues **en français** ([workflow Git](docs/equipe/workflow-git.md)).
 - Fournisseur OAuth factice (`AUTH_FAKE_PROVIDER=true`) pour le développement local et les tests ; interdit en production.
 - Scopes OAuth GitHub : `read:user` et `user:email` (issue #51, close).
+- Rôles complémentaires confirmés le 9 octobre : **Caleb** rôle 1 (produit et pitch), **Joachim** rôle 5 (IA et intégrations).
+- Badge « Membre fondateur » : inscrits avant le 22 octobre 2026 à 00:00 UTC, jamais les comptes démo.
 
 ## 5. Contraintes
 
@@ -137,15 +145,15 @@ Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à id
 
 ## 7. Points d'attention et risques ouverts
 
-| #   | Sujet                                                                                                                                                 | Impact                           | Qui                             |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ------------------------------- |
-| 1   | **`main` n'est pas protégée** : le dépôt est privé sur un compte gratuit, GitHub refuse la protection de branche ([BUG-003](docs/suivi/anomalies.md)) | Fusions sans relecture possibles | Emmanuel, Sylvio (propriétaire) |
-| 2   | **#97 sort du périmètre** : fil d'actualité, emplois, certifications, skills IA sont listés en roadmap dans le CDC (§3)                               | Temps pris aux P0 ; risque jury  | Caleb (rôle 1)                  |
-| 3   | **#96 et #97 font +39 000 lignes** chacune, contre 400 au maximum dans le workflow ; #97 contient #96                                                 | Relecture impossible en l'état   | Sylvio                          |
-| 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                   | Emmanuel, Joachim               |
-| 5   | L'étape `lint` de la CI n'exécutait aucune vérification : **corrigé dans #103**, à fusionner                                                          | Fausse impression de qualité     | Emmanuel (relecture)            |
-| 7   | Les ADR 0001 à 0013 sont toujours « proposés » (#1) ; aucune réponse de Systalink consignée (#2)                                                      | Décisions non actées             | Caleb                           |
-| 9   | Aucune clé d'IA n'existe encore (#7) : S2 n'a été essayé qu'avec le faux modèle                                                                       | Démo de S2                       | Joachim, Emmanuel               |
+| #   | Sujet                                                                                                                                                 | Impact                                                  | Qui                             |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------- |
+| 1   | **`main` n'est pas protégée** : le dépôt est privé sur un compte gratuit, GitHub refuse la protection de branche ([BUG-003](docs/suivi/anomalies.md)) | Fusions sans relecture possibles                        | Emmanuel, Sylvio (propriétaire) |
+| 2   | **#97 sort du périmètre** (pivot « écosystème » décidé côté front) : tranché par l'[ADR-0016](docs/adr/0016-perimetre-du-mvp.md), #97 à retravailler  | Fusion du front retardée tant que #97 n'est pas réduite | Sylvio, Caleb                   |
+| 3   | **#96 et #97 font +39 000 lignes** chacune, contre 400 au maximum dans le workflow ; #97 contient #96                                                 | Relecture impossible en l'état                          | Sylvio                          |
+| 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                                          | Emmanuel, Joachim               |
+| 5   | L'étape `lint` de la CI n'exécutait aucune vérification : **corrigé dans #103**, à fusionner                                                          | Fausse impression de qualité                            | Emmanuel (relecture)            |
+| 7   | Aucune réponse de Systalink consignée (#2) : barème, produits acceptés, base managée (règle de choix : ADR-0015)                                      | Critère Systalink à 40 %                                | Caleb                           |
+| 9   | Aucune clé d'IA n'existe encore (#7) : S2 n'a été essayé qu'avec le faux modèle                                                                       | Démo de S2                                              | Joachim, Emmanuel               |
 
 ## 8. Carte de la documentation
 
@@ -180,3 +188,4 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 | 2026-10-08 | Création de `context.md`, du suivi du cahier des charges, du registre des anomalies et du guide de démarrage                     |
 | 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104) |
 | 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                          |
+| 2026-10-09 | Fusion de #100 et #103 ; ADR 0001 à 0013 acceptés ; ADR 0014 à 0019 (XP, base, périmètre, tri v3.1, front, dépôt)                |

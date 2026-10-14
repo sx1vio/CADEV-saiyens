@@ -1,6 +1,6 @@
 # ADR-0011 : Déploiement Docker Compose + Caddy sur le VPS Systalink
 
-- **Statut** : Proposé
+- **Statut** : **Accepté le 2026-10-09** (Caleb, rôle 1) ; fichiers en place (`infra/`, CI), **aucun déploiement réalisé** (Emmanuel, #6).
 - **Date** : 2026-10-06
 - **Décideurs** : rôle 4 (Emmanuel)
 - **Exigences concernées** : §8 (VPS Systalink, Docker Compose, Caddy, GitHub Actions), §9 (déploiement reproductible), critère Systalink (40 %)
