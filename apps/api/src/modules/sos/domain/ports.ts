@@ -122,6 +122,11 @@ export interface ReputationPort {
   ): Promise<XpAward>;
 }
 
+/** Implémenté par le module matching : une réponse d'un aidant sollicité (Y2, S11). */
+export interface MatchingAnswerPort {
+  markAnswered(questionId: string, helperId: string, at: Date, tx?: unknown): Promise<void>;
+}
+
 /** Implémenté par Notifier (module notifications), appelé dans la même transaction. */
 export interface NotifierPort {
   notify(

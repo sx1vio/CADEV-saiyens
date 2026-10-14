@@ -114,11 +114,17 @@ const notifier = (): NotifierPort & {
   return { sent, notify: async (n) => void sent.push(...n) };
 };
 
+const answered: string[] = [];
+const matching = () => ({
+  markAnswered: async (questionId: string, helperId: string) =>
+    void answered.push(`${questionId}:${helperId}`),
+});
+
 describe('Answers (S4)', () => {
   it('répondre : secrets masqués, l’auteur de la question est notifié', async () => {
     const writer = new MemoryWriter();
     const n = notifier();
-    const out = await new Answers(reputation(), n, () => now).post(writer, 'tx', {
+    const out = await new Answers(reputation(), n, matching(), () => now).post(writer, 'tx', {
       questionId: 'q1',
       authorId: 'moussa',
       clientId: 'c1',
@@ -134,11 +140,12 @@ describe('Answers (S4)', () => {
       },
     ]);
     expect(writer.locks).toEqual(['author:moussa']);
+    expect(answered).toContain('q1:moussa');
   });
 
   it('répondre deux fois avec le même clientId : une seule réponse', async () => {
     const writer = new MemoryWriter();
-    const answers = new Answers(reputation(), notifier(), () => now);
+    const answers = new Answers(reputation(), notifier(), matching(), () => now);
     const input = { questionId: 'q1', authorId: 'moussa', clientId: 'c1', body: 'b' };
     await answers.post(writer, 'tx', input);
     expect((await answers.post(writer, 'tx', input)).created).toBe(false);
@@ -149,7 +156,7 @@ describe('Answers (S4)', () => {
     const writer = new MemoryWriter();
     const rep = reputation();
     const n = notifier();
-    const answers = new Answers(rep, n, () => now);
+    const answers = new Answers(rep, n, matching(), () => now);
     await answers.post(writer, 'tx', {
       questionId: 'q1',
       authorId: 'moussa',
@@ -178,7 +185,7 @@ describe('Answers (S4)', () => {
   it('voter : compté une fois, XP au répondant', async () => {
     const writer = new MemoryWriter();
     const rep = reputation();
-    const answers = new Answers(rep, notifier(), () => now);
+    const answers = new Answers(rep, notifier(), matching(), () => now);
     await answers.post(writer, 'tx', {
       questionId: 'q1',
       authorId: 'moussa',
