@@ -17,6 +17,7 @@ import {
 const task = (over: Partial<TaskState> = {}): TaskState => ({
   id: 't1',
   roomId: 'r1',
+  title: 'Ajouter Orange Money',
   status: 'open',
   assigneeId: null,
   prUrl: null,

@@ -33,6 +33,7 @@ export class PrismaAnswerWriter implements AnswerWriter {
       where: { id: questionId, hiddenAt: null },
       select: {
         id: true,
+        title: true,
         authorId: true,
         status: true,
         acceptedAnswerId: true,

@@ -15,6 +15,7 @@ const author = (handle: string) => ({
 class MemoryWriter implements AnswerWriter {
   question: QuestionState = {
     id: 'q1',
+    title: 'nginx renvoie 502',
     authorId: 'awa',
     status: 'open',
     acceptedAnswerId: null,
@@ -136,7 +137,7 @@ describe('Answers (S4)', () => {
       {
         userId: 'awa',
         type: 'answer.created',
-        payload: { questionId: 'q1', answerId: 'a1', by: 'moussa' },
+        payload: { questionId: 'q1', answerId: 'a1', title: 'nginx renvoie 502', by: 'moussa' },
       },
     ]);
     expect(writer.locks).toEqual(['author:moussa']);
@@ -171,7 +172,7 @@ describe('Answers (S4)', () => {
     expect(n.sent.at(-1)).toEqual({
       userId: 'moussa',
       type: 'answer.accepted',
-      payload: { questionId: 'q1', answerId: 'a1', points: 13 },
+      payload: { questionId: 'q1', answerId: 'a1', title: 'nginx renvoie 502', points: 13 },
     });
     expect(writer.locks).toContain('question');
 

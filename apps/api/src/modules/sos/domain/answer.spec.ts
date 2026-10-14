@@ -13,6 +13,7 @@ import {
 const asked = new Date('2026-10-14T10:00:00Z');
 const question = (over: Partial<QuestionState> = {}): QuestionState => ({
   id: 'q1',
+  title: 'nginx renvoie 502',
   authorId: 'awa',
   status: 'open',
   acceptedAnswerId: null,
