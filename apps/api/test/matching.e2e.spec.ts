@@ -116,6 +116,9 @@ describe('matching (S3) de bout en bout', () => {
   it('« Je m’en occupe » : 200 pour un aidant sollicité, 403 sinon', async () => {
     const ok = await write('moussa', `/api/v1/questions/${questionId}/claim`).expect(200);
     expect(ok.body).toMatchObject({ questionId, claimedAt: expect.any(String) });
+    // Un second « Je m'en occupe » ne prolonge pas le statut (sinon l'escalade serait bloquée).
+    const again = await write('moussa', `/api/v1/questions/${questionId}/claim`).expect(200);
+    expect(again.body.claimedAt).toBe(ok.body.claimedAt);
     const no = await write('idle', `/api/v1/questions/${questionId}/claim`).expect(403);
     expect(no.body.code).toBe('forbidden');
   });
@@ -124,6 +127,12 @@ describe('matching (S3) de bout en bout', () => {
     await jobs.escalate(questionId);
     const q = await prisma.question.findUniqueOrThrow({ where: { id: questionId } });
     expect(q.escalatedAt).toBeNull();
+    // L'escalade est replanifiée à l'expiration du « Je m'en occupe » (20 min).
+    const [scheduled] = await prisma.$queryRaw<Array<{ n: bigint }>>`
+      SELECT count(*) AS n FROM pgboss.job
+      WHERE name = 'matching.escalate' AND data->>'questionId' = ${questionId}
+        AND start_after > now() + interval '15 minutes'`;
+    expect(Number(scheduled?.n)).toBeGreaterThanOrEqual(1);
 
     await write('moussa', `/api/v1/questions/${questionId}/answers`, {
       clientId: randomUUID(),

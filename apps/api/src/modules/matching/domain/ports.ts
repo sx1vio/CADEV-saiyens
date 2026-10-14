@@ -13,8 +13,8 @@ export interface MatchingQuestion {
   tags: Array<{ id: string; label: string }>;
   /** Réponses visibles, toutes personnes confondues. */
   answerCount: number;
-  /** « Je m'en occupe » encore actif (S11). */
-  activeClaim: boolean;
+  /** Expiration du « Je m'en occupe » actif le plus tardif (S11), ou null s'il n'y en a pas. */
+  claimExpiresAt: Date | null;
   /** Vagues déjà envoyées : un job rejoué ne relance jamais la même vague. */
   wavesDone: number[];
 }
@@ -30,7 +30,7 @@ export interface NewMatchEvent {
 }
 
 export interface MatchingStore {
-  findQuestion(questionId: string, claimSince: Date): Promise<MatchingQuestion | null>;
+  findQuestion(questionId: string, now: Date): Promise<MatchingQuestion | null>;
   /** Réponses validées sur toute la plateforme (régime X4). */
   acceptedAnswersOnPlatform(): Promise<number>;
   /** Présélection SQL puis détails, au plus 200 candidats (08 § 1). */
@@ -55,4 +55,6 @@ export type WaveOutcome =
   | { kind: 'matched'; helpers: ScoredHelper[]; regime: Regime }
   /** Moins de 3 éligibles : la question est ouverte à toute la stack (08 § 1, sélection 3). */
   | { kind: 'open_to_stack'; helpers: ScoredHelper[]; regime: Regime }
-  | { kind: 'skipped'; reason: 'not_found' | 'not_open' | 'answered' | 'claimed' | 'already_sent' };
+  | { kind: 'skipped'; reason: 'not_found' | 'not_open' | 'answered' | 'already_sent' }
+  /** Quelqu'un s'en occupe : l'escalade est replanifiée à l'expiration du statut. */
+  | { kind: 'skipped'; reason: 'claimed'; retryAt: Date };

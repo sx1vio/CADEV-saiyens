@@ -56,7 +56,7 @@ const question = (over: Partial<MatchingQuestion> = {}): MatchingQuestion => ({
   lang: 'fr',
   tags: [{ id: 't-docker', label: 'Docker' }],
   answerCount: 0,
-  activeClaim: false,
+  claimExpiresAt: null,
   wavesDone: [],
   ...over,
 });
@@ -126,16 +126,24 @@ describe('RunWave (S3, X4)', () => {
     expect(outcome).toEqual({ kind: 'skipped', reason });
   });
 
-  it.each([
-    [question({ answerCount: 1 }), 'answered'],
-    [question({ activeClaim: true }), 'claimed'],
-  ] as const)('escalade sautée si quelqu’un a répondu ou s’en occupe', async (q, reason) => {
-    const store = new MemoryStore(q, [helper('a')]);
+  it('escalade sautée si quelqu’un a déjà répondu', async () => {
+    const store = new MemoryStore(question({ answerCount: 1 }), [helper('a')]);
     expect(await new RunWave(store, notifier(), () => now).escalate('q1')).toEqual({
       kind: 'skipped',
-      reason,
+      reason: 'answered',
     });
     expect(store.escalated).toBe(false);
+  });
+
+  it('quelqu’un s’en occupe : escalade remise à l’expiration du statut', async () => {
+    const until = new Date(now.getTime() + 6 * 60_000);
+    const store = new MemoryStore(question({ claimExpiresAt: until }), [helper('a')]);
+    expect(await new RunWave(store, notifier(), () => now).escalate('q1')).toEqual({
+      kind: 'skipped',
+      reason: 'claimed',
+      retryAt: until,
+    });
+    expect(store.events).toHaveLength(0);
   });
 
   it('escalade : vague 2, question marquée', async () => {

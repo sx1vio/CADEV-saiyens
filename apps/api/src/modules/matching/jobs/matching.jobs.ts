@@ -39,5 +39,15 @@ export class MatchingJobs implements OnApplicationBootstrap {
   async escalate(questionId: string): Promise<void> {
     const outcome = await this.runWave.escalate(questionId);
     this.logger.log({ questionId, outcome: outcome.kind }, 'Matching, vague 2');
+    // Quelqu'un s'en occupait : si le statut expire sans réponse, l'escalade doit avoir lieu.
+    if (outcome.kind === 'skipped' && outcome.reason === 'claimed') {
+      const delay = Math.max(1, Math.ceil((outcome.retryAt.getTime() - Date.now()) / 1000));
+      await this.jobs.send(
+        JOBS.matchingEscalate,
+        { questionId },
+        `escalate:${questionId}:${outcome.retryAt.getTime()}`,
+        delay,
+      );
+    }
   }
 }

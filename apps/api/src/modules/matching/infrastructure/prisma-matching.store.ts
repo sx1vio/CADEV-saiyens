@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   type AvailabilitySettings,
+  MATCHING,
   type MatchCandidate,
   availabilityAt,
   timezoneOffsetMinutes,
@@ -20,7 +21,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export class PrismaMatchingStore implements MatchingStore, ClaimStore {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findQuestion(questionId: string, claimSince: Date): Promise<MatchingQuestion | null> {
+  async findQuestion(questionId: string, now: Date): Promise<MatchingQuestion | null> {
     const q = await this.prisma.question.findFirst({
       where: { id: questionId, hiddenAt: null },
       select: {
@@ -36,6 +37,11 @@ export class PrismaMatchingStore implements MatchingStore, ClaimStore {
       },
     });
     if (!q) return null;
+    // Un « Je m'en occupe » expire après 20 minutes sans réponse de cet aidant (S11).
+    const expiries = q.matchEvents
+      .filter((m) => m.claimedAt !== null && m.answeredAt === null)
+      .map((m) => m.claimedAt!.getTime() + MATCHING.claimExpiresMinutes * 60_000)
+      .filter((t) => t > now.getTime());
     return {
       id: q.id,
       title: q.title,
@@ -46,9 +52,7 @@ export class PrismaMatchingStore implements MatchingStore, ClaimStore {
       lang: q.lang,
       tags: q.tags.map((t) => t.tag),
       answerCount: q._count.answers,
-      activeClaim: q.matchEvents.some(
-        (m) => m.claimedAt !== null && m.claimedAt >= claimSince && m.answeredAt === null,
-      ),
+      claimExpiresAt: expiries.length > 0 ? new Date(Math.max(...expiries)) : null,
       wavesDone: [...new Set(q.matchEvents.map((m) => m.wave))],
     };
   }
@@ -194,11 +198,19 @@ export class PrismaMatchingStore implements MatchingStore, ClaimStore {
     tx?: unknown,
   ): Promise<{ claimedAt: Date } | null> {
     const db = (tx as Prisma.TransactionClient | undefined) ?? this.prisma;
-    const { count } = await db.matchEvent.updateMany({
+    const solicited = await db.matchEvent.findMany({
       where: { questionId, helperId, question: { status: 'open', hiddenAt: null } },
+      select: { id: true, claimedAt: true },
+    });
+    if (solicited.length === 0) return null;
+    // Une seule fois par aidant : renouveler le statut bloquerait l'escalade indéfiniment.
+    const previous = solicited.find((m) => m.claimedAt !== null)?.claimedAt;
+    if (previous) return { claimedAt: previous };
+    await db.matchEvent.updateMany({
+      where: { id: { in: solicited.map((m) => m.id) } },
       data: { claimedAt: at },
     });
-    return count > 0 ? { claimedAt: at } : null;
+    return { claimedAt: at };
   }
 
   /** Une réponse d'un aidant sollicité : alimente le temps de première réponse (Y2) et S11. */

@@ -8,7 +8,6 @@ import {
 import type { MatchNotifier, MatchingStore, NewMatchEvent, WaveOutcome } from '../domain/ports';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const MINUTE_MS = 60 * 1000;
 
 /**
  * S3 et X4 : sollicite les 3 devs les plus adaptés, avec la raison du choix. La vague 1 suit la
@@ -34,13 +33,14 @@ export class RunWave {
 
   private async run(questionId: string, wave: 1 | 2): Promise<WaveOutcome> {
     const now = this.now();
-    const claimSince = new Date(now.getTime() - MATCHING.claimExpiresMinutes * MINUTE_MS);
-    const question = await this.store.findQuestion(questionId, claimSince);
+    const question = await this.store.findQuestion(questionId, now);
     if (!question) return { kind: 'skipped', reason: 'not_found' };
     if (question.status !== 'open') return { kind: 'skipped', reason: 'not_open' };
     if (question.wavesDone.includes(wave)) return { kind: 'skipped', reason: 'already_sent' };
     if (wave === 2 && question.answerCount > 0) return { kind: 'skipped', reason: 'answered' };
-    if (wave === 2 && question.activeClaim) return { kind: 'skipped', reason: 'claimed' };
+    if (wave === 2 && question.claimExpiresAt) {
+      return { kind: 'skipped', reason: 'claimed', retryAt: question.claimExpiresAt };
+    }
 
     const regime = regimeFor(await this.store.acceptedAnswersOnPlatform());
     const activeSince = new Date(now.getTime() - MATCHING.activeDays * DAY_MS);
