@@ -209,6 +209,19 @@ Content-Type: application/json
 
 Le lot ne s'interrompt pas sur un `conflict` ou un `rejected` : seules les actions dépendantes sont `skipped`.
 
+### Implémentation côté API (O2)
+
+| Élément                                                     | Où                                                                                                                                                              |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/v1/sync` (50 actions au plus, 6 lots par minute) | `apps/api/src/modules/sync`                                                                                                                                     |
+| Actions disponibles                                         | `question.create`, `question.update`, `question.claim`, `answer.create`, `answer.update`, `answer.vote`, `answer.accept` (les salles s'ajouteront avec R2 à R4) |
+| Gestionnaires partagés avec les endpoints                   | `SosActions`, `MatchingActions`, enregistrés dans `ActionRegistry`                                                                                              |
+
+- `baseVersion` au niveau de l'action est ajouté au payload pour les modifications.
+- Une référence `client:<uuid>` est résolue parmi les créations du lot, puis parmi les contenus déjà synchronisés de l'utilisateur (`author_id`, `client_id`). Inconnue : `rejected` (404).
+- Une action qui dépend d'une création refusée ou ignorée dans le lot : `skipped`, `httpStatus` 424, code `sync.dependency_failed`.
+- Erreur passagère (429, 5xx, `idempotency_key.in_progress`) : `skipped`, le client garde l'action en attente. Erreur définitive : `rejected` avec l'erreur au format problem+json.
+
 ## 5. Conflits
 
 | Situation                                                                                         | Règle                                                                                                                                                                                       |

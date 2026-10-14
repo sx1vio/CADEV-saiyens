@@ -218,6 +218,8 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructure/idempotency`) : chaque écriture appelle `idempotency.run(...)` avec la transaction de la requête, et lit la clé avec le décorateur `@IdempotencyKey()`. Les effets hors transaction (jobs) passent par `afterCommit` et ne sont jamais rejoués.
 
+Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/src/infrastructure/actions`) : l'endpoint HTTP et `POST /sync` l'appellent avec la même route canonique et le même corps (`runAction`), donc avec la même empreinte. Une action envoyée seule, puis rejouée dans un lot (ou l'inverse), est reconnue comme doublon. Un conflit de version renvoie `409 version_conflict` avec le champ `server` (version actuelle) ; une limite de débit renvoie `retryAfter` et l'en-tête `Retry-After`.
+
 ## Exemple complet : poser une question
 
 ```http
