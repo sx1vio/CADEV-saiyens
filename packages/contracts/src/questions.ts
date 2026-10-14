@@ -123,6 +123,10 @@ export const MatchedHelper = z.object({
   claimedAt: z.iso.datetime().nullable(),
 });
 
+/** POST /api/v1/questions/:id/claim : « Je m'en occupe » (S11). */
+export const ClaimResponse = z.object({ questionId: z.uuid(), claimedAt: z.iso.datetime() });
+export type ClaimResponse = z.infer<typeof ClaimResponse>;
+
 /** GET /api/v1/questions/:id : question, piste IA, réponses, aidants sollicités. */
 export const QuestionDetail = QuestionSummary.extend({
   body: z.string(),

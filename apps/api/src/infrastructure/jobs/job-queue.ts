@@ -41,10 +41,13 @@ export class JobQueue implements OnModuleInit, OnApplicationShutdown {
     job: J,
     data: JobPayload<J>,
     singletonKey?: string,
+    /** Exécution différée (ex. escalade à 15 minutes). */
+    startAfterSeconds?: number,
   ): Promise<void> {
     await this.boss.send(job.name, job.payload.parse(data) as object, {
       ...job.options,
       ...(singletonKey ? { singletonKey } : {}),
+      ...(startAfterSeconds ? { startAfter: startAfterSeconds } : {}),
     });
   }
 
