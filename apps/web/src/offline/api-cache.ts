@@ -6,12 +6,13 @@
  * Gardé : contenus que l'on rouvre (questions, salles, Passport, découverte, classement,
  * référentiel des étiquettes, Systalink et impact). Jamais gardé : la session (/me), la
  * connexion (/auth), le flux temps réel (/events), l'administration (/admin), les écritures,
- * ni les réponses réservées à un compte (fil d'une salle, demandes d'adhésion, listes « mes… »).
+ * ni les réponses qui dépendent des droits du compte : fil et tâches d'une salle (réservés aux
+ * membres d'une salle non listée, BUG-018), demandes d'adhésion, listes « mes… ».
  */
 export const API_READ_CACHE = 'api-content';
 
 export const API_READ_PATTERN =
-  /^https?:\/\/[^/]+\/api\/v1\/(?:questions|rooms|tasks|u|tags|discover|leaderboard|status|impact|rules)(?!.*(?:\/messages|\/join-requests|[?&]mine=true))(?:[/?]|$)/;
+  /^https?:\/\/[^/]+\/api\/v1\/(?:questions|rooms|u|tags|discover|leaderboard|status|impact|rules)(?!.*(?:\/messages|\/join-requests|\/tasks|[?&](?:mine|unread)=))(?:[/?]|$)/;
 
 /** Données personnelles en cache : à vider à la déconnexion (appareil partagé). */
 export async function clearApiReadCache(): Promise<void> {
