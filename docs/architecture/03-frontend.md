@@ -153,3 +153,23 @@ Le comportement est identique pour un humain et un robot : pas de détection d'a
 - Pas de `useEffect` pour charger des données : on utilise TanStack Query.
 - Les textes générés par l'IA sont toujours rendus dans le composant `AiContent`, qui affiche la mention « généré par IA, à vérifier » (S2).
 - Les comptes de démonstration sont affichés avec le composant `DemoBadge` partout où apparaît un utilisateur (règle §6.6).
+
+## Accès aux données : serveur simulé et API réelle (état au 16 octobre)
+
+Toutes les pages passent par `api` (`apps/web/src/services/index.ts`), qui choisit une implémentation du contrat `DevHubApi` ([ADR-0016](../adr/0016-perimetre-du-mvp.md) §4) :
+
+| Contexte                        | Implémentation                                  | Choix                                                           |
+| ------------------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| Build de production             | `http` : vraie API, même origine (`/api/v1`)    | Imposé ; `VITE_API_MODE=local` fait échouer le build            |
+| Développement (`pnpm dev`)      | `local` : serveur simulé dans le navigateur     | Par défaut ; bandeau « Données de démonstration » permanent     |
+| Développement avec l'API locale | `http`, via le proxy Vite vers `localhost:3000` | `VITE_API_MODE=http` (ou `VITE_API_URL` pour une autre origine) |
+
+Le serveur simulé n'est jamais inclus dans le build de production (aucun import statique de `services/local`).
+
+L'implémentation `http` (`services/http.ts`) est un **adaptateur** : elle appelle les endpoints de [06-api.md](06-api.md) et convertit les réponses (`@devhub/contracts`) vers les types du front dans `services/http-mappers.ts` (fonctions pures, testées avec Vitest). Conventions :
+
+- un utilisateur est identifié par son **handle** (l'API n'expose pas l'UUID des autres comptes), une étiquette par son **slug** ;
+- chaque écriture porte `X-DevHub-Client: web` et une `Idempotency-Key` (le `clientId` quand il existe : une action rejouée par la file hors ligne ne crée pas de doublon) ;
+- une fonction absente de l'API (pair programming, traduction, demande de retour, suppression de compte, connexion démo) lève `feature.unavailable`.
+
+Limites connues : le temps réel (`GET /events`) n'est pas encore branché (les pages se rafraîchissent à la navigation) ; la file hors ligne rejoue les actions une par une plutôt que par `POST /sync` ; signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID) ; le contrôle automatique du budget de 300 Ko en CI reste à ajouter (mesure locale : 262 Ko de JS et CSS compressés pour l'accueil, polices et images non comprises).

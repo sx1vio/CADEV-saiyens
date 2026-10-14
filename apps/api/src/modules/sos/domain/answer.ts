@@ -12,6 +12,7 @@ export class OwnAnswerVoteError extends Error {}
 
 export interface QuestionState {
   id: string;
+  title: string;
   authorId: string;
   status: 'open' | 'resolved' | 'closed';
   acceptedAnswerId: string | null;

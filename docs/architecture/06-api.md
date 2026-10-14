@@ -236,10 +236,13 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | `PATCH /me`, `GET /u/:handle`                                                                                                             | Fait | #113 (PR2, PR14)                                         |
 | `GET /discover/devs`, `GET /leaderboard`                                                                                                  | Fait | #114 (D1, D2)                                            |
 | `GET /news`, `GET /news/home`, `GET /videos`, `GET /news/sources`                                                                         | Fait | #97 (module `news`, hors du périmètre fixé par ADR-0016) |
-| `GET /status`, `GET /impact`                                                                                                              | Fait | `feat/platform` (Y1, Y2)                                 |
-| `POST /reports`, `GET /admin/reports`, `POST /admin/reports/:id/action`                                                                   | Fait | `feat/platform` (M1, M4 : journal `admin_actions`)       |
+| `GET /status`, `GET /impact`                                                                                                              | Fait | #115 (Y1, Y2)                                            |
+| `GET /tags`                                                                                                                               | Fait | `feat/web-api-integration` (référentiel des étiquettes)  |
+| `POST /reports`, `GET /admin/reports`, `POST /admin/reports/:id/action`                                                                   | Fait | #115 (M1, M4 : journal `admin_actions`)                  |
 
 `GET /status` lit la dernière sonde de chaque service (job `status.check`, toutes les 5 minutes, côté worker) : `operational`, `down`, `not_configured` (variable vide, ex. `SMTP_HOST`) ou `unknown` (aucune sonde depuis 15 minutes). La sauvegarde est lue dans le fichier d'état de `backup.sh` (`BACKUP_STATUS_URL`) et jugée à jour sous 26 h. `GET /impact` exclut les comptes de démonstration et met le résultat en cache 60 s.
+
+Les notifications portent les libellés utiles à l'affichage : `title` (question) pour `match.request`, `answer.created`, `answer.accepted` ; `taskTitle` et `roomName` pour `task.completed` ; `roomName` pour `join.*`.
 
 La modération masque (`hidden_at`), ne supprime jamais ; elle clôt d'un coup tous les signalements ouverts sur le même contenu, annule sur demande les Proof XP gagnés grâce à lui (`revertXp`, X2), écrit chaque décision dans `admin_actions` (M4) et publie `content.hidden` sur le sujet de la page. Un compte signalé se rejette (`dismiss`) : le masquer renvoie `422 report.target_not_hideable`.
 

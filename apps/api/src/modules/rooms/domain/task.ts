@@ -17,6 +17,7 @@ export type Verification = 'github_verified' | 'declared';
 export interface TaskState {
   id: string;
   roomId: string;
+  title: string;
   status: TaskStatus;
   assigneeId: string | null;
   prUrl: string | null;

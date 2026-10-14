@@ -1,21 +1,60 @@
 /**
- * Implémentation « http » du contrat DevHubApi : la vraie API (CDC §8).
- * Activée dès que VITE_API_URL est défini. Les écritures portent un en-tête Idempotency-Key (CDC §6.5).
+ * Implémentation « http » du contrat DevHubApi : la vraie API (docs/architecture/06-api.md).
+ * Même origine en production (Caddy route /api vers l'API, ADR-0011) ; VITE_API_URL sert
+ * seulement à viser une autre origine en développement.
+ *
+ * - Chaque écriture porte `X-DevHub-Client: web` (protection CSRF, 10-securite.md) et une
+ *   `Idempotency-Key` (le client_id quand il existe : un rejeu hors ligne ne crée pas de doublon).
+ * - Les réponses sont converties vers les types du front dans http-mappers.ts.
+ * - Une fonction absente de l'API (hors périmètre du MVP, ADR-0016) lève `feature.unavailable`.
  */
-import type { DevHubApi } from './api';
-import { DomainError, type User } from './types';
+import type {
+  AcceptAnswerResponse,
+  AskQuestionResponse,
+  CompleteTaskResponse,
+  DiscoverDevsResponse,
+  ImpactResponse,
+  JoinRoomResponse,
+  LeaderboardResponse,
+  ListJoinRequestsResponse,
+  ListMessagesResponse,
+  ListNotificationsResponse,
+  ListQuestionsResponse,
+  ListReportsResponse,
+  ListRoomsResponse,
+  ListTagsResponse,
+  ListTasksResponse,
+  MeResponse,
+  MessageView,
+  PassportResponse,
+  PostAnswerResponse,
+  ProofsResponse,
+  QuestionDetail as ApiQuestionDetail,
+  RoomDetail as ApiRoomDetail,
+  StatusResponse,
+  TaskView,
+  UpdateMeRequest,
+} from '@devhub/contracts';
+import type { DevHubApi, QuestionTab } from './api';
+import * as m from './http-mappers';
+import { DomainError, type NewQuestionInput, type User } from './types';
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+const BASE = `${(import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''}/api/v1`;
+
+type Query = Record<string, string | number | boolean | undefined>;
 
 async function call<T>(
-  method: string,
+  method: 'GET' | 'POST' | 'PATCH',
   path: string,
   body?: unknown,
   idempotencyKey?: string,
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
+  if (method !== 'GET') {
+    headers['X-DevHub-Client'] = 'web';
+    headers['Idempotency-Key'] = idempotencyKey ?? crypto.randomUUID();
+  }
   if (body !== undefined) headers['Content-Type'] = 'application/json';
-  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers,
@@ -25,75 +64,376 @@ async function call<T>(
     throw new DomainError('network.offline');
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = (await res.json().catch(() => ({}))) as {
+      code?: string;
+      params?: Record<string, string | number>;
+    };
     throw new DomainError(err.code ?? `http.${res.status}`, err.params);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
-const q = (o: Record<string, string | number | boolean | undefined | string[]>) => {
+const get = <T>(path: string, query: Query = {}) => {
   const p = new URLSearchParams();
-  for (const [k, v] of Object.entries(o))
-    if (v !== undefined && v !== '') p.set(k, Array.isArray(v) ? v.join(',') : String(v));
+  for (const [k, v] of Object.entries(query)) if (v !== undefined && v !== '') p.set(k, String(v));
   const s = p.toString();
-  return s ? `?${s}` : '';
+  return call<T>('GET', s ? `${path}?${s}` : path);
 };
+const post = <T>(path: string, body?: unknown, key?: string) =>
+  call<T>('POST', path, body ?? {}, key);
+
+const unavailable = (): never => {
+  throw new DomainError('feature.unavailable');
+};
+
+/** La recherche plein texte exige au moins 2 caractères (06-api.md). */
+const search = (q?: string) => (q && q.trim().length >= 2 ? q.trim().slice(0, 200) : undefined);
+
+const uiLang = (): 'fr' | 'en' => (document.documentElement.lang === 'en' ? 'en' : 'fr');
+
+/** Gabarit guidé (S8) : les rubriques facultatives rejoignent le corps de la question. */
+function questionBody(i: NewQuestionInput): string {
+  const parts = [i.body.trim()];
+  if (i.tried?.trim()) parts.push(`**Ce que j'ai essayé**\n\n${i.tried.trim()}`);
+  if (i.expected?.trim()) parts.push(`**Ce que j'attendais**\n\n${i.expected.trim()}`);
+  if (i.environment?.trim()) parts.push(`**Environnement**\n\n${i.environment.trim()}`);
+  if (i.reproUrl?.trim()) parts.push(`Reproduction : ${i.reproUrl.trim()}`);
+  return parts.join('\n\n');
+}
+
+const QUESTION_TAB: Record<QuestionTab, Query> = {
+  'for-me': { status: 'open' },
+  unanswered: { status: 'open', unanswered: true },
+  resolved: { status: 'resolved' },
+  all: {},
+  mine: { mine: true },
+};
+
+async function session(): Promise<User | null> {
+  const me = await get<MeResponse>('/me').catch((e: unknown) => {
+    if (e instanceof DomainError && (e.code === 'auth.required' || e.code === 'http.401'))
+      return null;
+    throw e;
+  });
+  if (!me) return null;
+  const passport = await get<PassportResponse>(`/u/${me.handle}`).catch(() => null);
+  return m.user(me, passport);
+}
+
+async function sessionOrThrow(): Promise<User> {
+  const u = await session();
+  if (!u) throw new DomainError('auth.required');
+  return u;
+}
+
+async function room(code: string) {
+  const r = await get<ApiRoomDetail>(`/rooms/${encodeURIComponent(code)}`);
+  const member = r.viewer?.role != null;
+  const manager = r.viewer?.role === 'owner' || r.viewer?.role === 'maintainer';
+  const [tasks, messages, requests] = await Promise.all([
+    get<ListTasksResponse>(`/rooms/${r.id}/tasks`).catch(() => ({ data: [] as TaskView[] })),
+    member
+      ? get<ListMessagesResponse>(`/rooms/${r.id}/messages`, { limit: 100 }).then((x) => x.data)
+      : Promise.resolve([] as MessageView[]),
+    manager
+      ? get<ListJoinRequestsResponse>(`/rooms/${r.id}/join-requests`).then((x) => x.data)
+      : Promise.resolve([]),
+  ]);
+  return m.roomDetail(r, { tasks: tasks.data, messages, requests });
+}
 
 export const httpApi: DevHubApi = {
   mode: 'http',
-  getSession: () => call<User>('GET', '/me').catch(() => null),
-  importGitHub: async () => {
-    // En production, la connexion passe par OAuth : redirection vers /auth/github.
-    window.location.href = `${BASE}/auth/github`;
+
+  getSession: session,
+  importGitHub: () => {
+    // Connexion par OAuth GitHub : l'API redirige vers GitHub, puis revient sur l'application.
+    const returnTo = `${location.pathname}${location.search}`;
+    window.location.href = `${BASE}/auth/github?returnTo=${encodeURIComponent(returnTo)}`;
     return new Promise(() => {});
   },
-  signUpWithGitHub: () => call('GET', '/me'),
-  loginDemo: (handle) => call('POST', '/auth/demo', { handle }),
-  listDemoAccounts: () => call('GET', '/auth/demo'),
-  logout: () => call('POST', '/auth/logout'),
-  updateMe: (input) => call('PATCH', '/me', input),
-  deleteMe: () => call('DELETE', '/me'),
-  setMySkills: (slugs) => call('PUT', '/me/skills', { slugs }),
-  listTags: () => call('GET', '/tags'),
-  getHome: () => call('GET', '/home'),
-  getLanding: () => call('GET', '/public/landing'),
-  listQuestions: (tab, opts = {}) => call('GET', `/questions${q({ tab, ...opts })}`),
-  getQuestion: (id) => call('GET', `/questions/${id}`),
-  similarQuestions: (text, tagIds) => call('GET', `/questions/similar${q({ text, tags: tagIds })}`),
-  createQuestion: (input, clientId) => call('POST', '/questions', { ...input, clientId }, clientId),
-  answer: (questionId, body, clientId) =>
-    call('POST', `/questions/${questionId}/answers`, { body, clientId }, clientId),
-  vote: (answerId) => call('POST', `/answers/${answerId}/vote`),
-  accept: (answerId) => call('POST', `/answers/${answerId}/accept`),
-  claim: (questionId) => call('POST', `/questions/${questionId}/claim`),
-  proposePair: (questionId, startsAt, videoLink) =>
-    call('POST', `/questions/${questionId}/pair`, { startsAt, videoLink }),
-  respondPair: (pairId, accept) => call('POST', `/pair/${pairId}/respond`, { accept }),
-  translate: (text, to) =>
-    call<{ text: string }>('POST', '/translate', { text, to }).then((r) => r.text),
-  listRooms: (opts = {}) => call('GET', `/rooms${q(opts)}`),
-  getRoom: (code) => call('GET', `/rooms/${code}`),
-  verifyRepo: (fullName) => call('GET', `/github/repos/${fullName}`),
-  createRoom: (input) => call('POST', '/rooms', input),
-  requestJoin: (roomId, message) => call('POST', `/rooms/${roomId}/join`, { message }),
-  respondJoin: (requestId, accept) => call('POST', `/join-requests/${requestId}`, { accept }),
-  createTask: (roomId, input) => call('POST', `/rooms/${roomId}/tasks`, input),
-  takeTask: (taskId) => call('POST', `/tasks/${taskId}/take`),
-  moveTask: (taskId, status) => call('POST', `/tasks/${taskId}/status`, { status }),
-  completeTask: (taskId, prUrl) => call('POST', `/tasks/${taskId}/complete`, { prUrl }),
-  postMessage: (roomId, body, kind, clientId) =>
-    call('POST', `/rooms/${roomId}/messages`, { body, kind, clientId }, clientId),
-  requestFeedback: (roomId, kind) => call('POST', `/rooms/${roomId}/feedback`, { kind }),
-  discoverDevs: (f) => call('GET', `/discover/devs${q({ ...f, tags: f.tags })}`),
-  leaderboard: () => call('GET', '/leaderboard'),
-  getPassport: (handle) => call('GET', `/u/${handle}`),
-  listNotifications: () => call('GET', '/notifications'),
-  markNotificationsRead: () => call('POST', '/notifications/read'),
-  report: (targetType, targetId, targetLabel, reason) =>
-    call('POST', '/reports', { targetType, targetId, targetLabel, reason }),
-  listReports: () => call('GET', '/admin/reports'),
-  handleReport: (id, remove) => call(remove ? 'DELETE' : 'POST', `/admin/reports/${id}`),
-  getStatus: () => call('GET', '/status'),
-  getImpact: () => call('GET', '/impact'),
+  signUpWithGitHub: sessionOrThrow,
+  loginDemo: async () => unavailable(),
+  listDemoAccounts: async () => [],
+  logout: () => post('/auth/logout'),
+  updateMe: async (input) => {
+    const body: UpdateMeRequest = {};
+    if (input.displayName !== undefined) body.displayName = input.displayName;
+    if (input.bio !== undefined) body.bio = input.bio || null;
+    if (input.country !== undefined)
+      body.country = input.country ? input.country.toUpperCase() : null;
+    if (input.timezone !== undefined) body.timezone = input.timezone || null;
+    if (input.languages?.length) body.languages = input.languages;
+    if (input.lookingFor !== undefined) body.lookingFor = m.lookingForToApi(input.lookingFor);
+    if (input.availability !== undefined)
+      body.availability = { now: input.availability.status === 'now' };
+    if (input.canHelpWith !== undefined) body.canHelpTagSlugs = input.canHelpWith.slice(0, 5);
+    if (input.wantsToLearn !== undefined) body.wantLearnTagSlugs = input.wantsToLearn.slice(0, 5);
+    if (Object.keys(body).length > 0) await call('PATCH', '/me', body);
+    if (input.codeOfConductAcceptedAt) await post('/me/code-of-conduct');
+    return sessionOrThrow();
+  },
+  deleteMe: async () => unavailable(),
+  setMySkills: async (slugs) => {
+    await call('PATCH', '/me', { canHelpTagSlugs: slugs.slice(0, 5) });
+  },
+
+  listTags: async () => (await get<ListTagsResponse>('/tags')).data.map(m.tag),
+
+  getHome: async () => {
+    const me = await session();
+    const [open, unanswered, mine, rooms] = await Promise.all([
+      get<ListQuestionsResponse>('/questions', { status: 'open', limit: 10 }),
+      get<ListQuestionsResponse>('/questions', { status: 'open', unanswered: true, limit: 10 }),
+      me ? get<ListQuestionsResponse>('/questions', { mine: true, limit: 10 }) : null,
+      get<ListRoomsResponse>('/rooms', { limit: 6 }),
+    ]);
+    return {
+      openInMyStacks: open.data.map(m.questionItem),
+      unanswered: unanswered.data.map(m.questionItem),
+      myQuestions: mine?.data.map(m.questionItem) ?? [],
+      recommendedRooms: rooms.data.map(m.roomItem),
+      myTasks: [],
+      devsToMeet: [],
+      activity: [],
+    };
+  },
+  getLanding: async () => ({
+    stats: m.impact(await get<ImpactResponse>('/impact')),
+    live: [],
+    featured: [],
+  }),
+
+  listQuestions: async (tab, opts = {}) =>
+    (
+      await get<ListQuestionsResponse>('/questions', {
+        ...QUESTION_TAB[tab],
+        tag: opts.tag,
+        q: search(opts.q),
+        limit: 50,
+      })
+    ).data.map(m.questionItem),
+  getQuestion: async (id) => m.questionDetail(await get<ApiQuestionDetail>(`/questions/${id}`)),
+  similarQuestions: async (text) => {
+    const q = search(text);
+    if (!q) return [];
+    return (await get<ListQuestionsResponse>('/questions', { q, limit: 5 })).data.map(
+      m.questionItem,
+    );
+  },
+  createQuestion: async (input, clientId) => {
+    const res = await post<AskQuestionResponse>(
+      '/questions',
+      {
+        clientId,
+        title: input.title,
+        body: questionBody(input),
+        codeSnippet: input.codeSnippet || null,
+        tagSlugs: input.tagIds,
+        urgency: input.urgency,
+        lang: uiLang(),
+      },
+      clientId,
+    );
+    return {
+      id: res.id,
+      authorId: res.author.handle,
+      title: input.title,
+      body: questionBody(input),
+      codeSnippet: input.codeSnippet,
+      codeLang: input.codeLang,
+      urgency: input.urgency,
+      lang: uiLang(),
+      tagIds: input.tagIds,
+      status: 'open',
+      aiHint: null,
+      aiStatus: 'pending',
+      aiHintSource: null,
+      acceptedAnswerId: null,
+      clientId,
+      createdAt: res.createdAt,
+      resolvedAt: null,
+    };
+  },
+  answer: async (questionId, body, clientId) => {
+    const a = await post<PostAnswerResponse>(
+      `/questions/${questionId}/answers`,
+      { clientId, body },
+      clientId,
+    );
+    return { ...m.answer(questionId, a), clientId };
+  },
+  vote: async (answerId) => {
+    await post(`/answers/${answerId}/vote`);
+  },
+  accept: async (answerId) => {
+    const r = await post<AcceptAnswerResponse>(`/answers/${answerId}/accept`);
+    return {
+      gained: r.xp.granted.reduce((s, g) => s + g.points, 0),
+      capped: r.xp.withheld.some((w) => w.reason === 'daily_cap'),
+    };
+  },
+  claim: async (questionId) => {
+    await post(`/questions/${questionId}/claim`);
+  },
+  proposePair: async () => unavailable(),
+  respondPair: async () => unavailable(),
+  translate: async () => unavailable(),
+
+  listRooms: async (opts = {}) =>
+    (
+      await get<ListRoomsResponse>('/rooms', {
+        tag: opts.tag,
+        q: search(opts.q),
+        mine: opts.mine || undefined,
+        limit: 50,
+      })
+    ).data.map(m.roomItem),
+  getRoom: room,
+  // Le dépôt est vérifié par l'API à la création (droits d'écriture compris, BUG-017).
+  verifyRepo: async (fullName) => ({ ok: /^[\w-]+\/[\w.-]+$/.test(fullName) }),
+  createRoom: async (input) => {
+    const description = input.tagline?.trim()
+      ? `${input.tagline.trim()}\n\n${input.description.trim()}`
+      : input.description.trim();
+    const r = await post<ApiRoomDetail>('/rooms', {
+      name: input.name,
+      description,
+      state: m.roomStateToApi(input.state),
+      repoFullName: input.repoFullName || null,
+      demoUrl: input.demoUrl || null,
+      stackTagSlugs: input.tagIds,
+    });
+    return m.roomItem(r);
+  },
+  requestJoin: async (roomId, message) => {
+    const r = await post<JoinRoomResponse>(`/rooms/${roomId}/join`, { message: message || null });
+    const me = await sessionOrThrow();
+    return {
+      id: r.id,
+      roomId: r.roomId,
+      userId: me.id,
+      message,
+      status: r.status === 'refused' || r.status === 'cancelled' ? 'declined' : r.status,
+      createdAt: new Date().toISOString(),
+    };
+  },
+  respondJoin: async (requestId, accept) => {
+    const r = await post<JoinRoomResponse & { decidedAt: string }>(
+      `/join-requests/${requestId}/decide`,
+      {
+        decision: accept ? 'accept' : 'refuse',
+      },
+    );
+    return {
+      id: r.id,
+      roomId: r.roomId,
+      userId: '',
+      message: '',
+      status: r.status === 'accepted' ? 'accepted' : 'declined',
+      createdAt: r.decidedAt,
+    };
+  },
+  createTask: async (roomId, input) =>
+    m.task(
+      await post<TaskView>(`/rooms/${roomId}/tasks`, {
+        title: input.title,
+        description: input.description || null,
+        level: m.levelToApi(input.level),
+      }),
+    ),
+  takeTask: async (taskId) => m.task(await post<TaskView>(`/tasks/${taskId}/take`)),
+  // R8 : « en revue » exige le lien de la PR (completeTask) ; on ne rend pas une tâche prise.
+  moveTask: async (taskId, status) => {
+    if (status === 'taken') return m.task(await post<TaskView>(`/tasks/${taskId}/take`));
+    throw new DomainError(status === 'review' ? 'task.pr_required' : 'feature.unavailable');
+  },
+  // L'assigné soumet sa PR ; le créateur de la salle clôture (avec ou sans lien).
+  completeTask: async (taskId, prUrl) => {
+    const me = await sessionOrThrow();
+    const current = await call<TaskView>('POST', `/tasks/${taskId}/submit`, { prUrl }).catch(
+      (e: unknown) => {
+        if (
+          e instanceof DomainError &&
+          (e.code === 'forbidden' || e.code === 'task.invalid_status')
+        )
+          return null;
+        throw e;
+      },
+    );
+    if (current && current.assignee?.handle === me.id) {
+      // Soumise par l'assigné : la clôture revient au créateur, qui est notifié.
+      return { task: m.task(current), gained: 0, verified: null };
+    }
+    const r = await post<CompleteTaskResponse>(`/tasks/${taskId}/complete`, { prUrl });
+    return {
+      task: m.task(r.task),
+      gained: r.points,
+      verified: r.task.verification === null ? null : r.task.verification === 'github_verified',
+    };
+  },
+  postMessage: async (roomId, body, kind, clientId) =>
+    m.message(
+      await post<MessageView>(
+        `/rooms/${roomId}/messages`,
+        { clientId, body, kind: kind === 'standup' ? 'standup' : 'text' },
+        clientId,
+      ),
+    ),
+  requestFeedback: async () => unavailable(),
+
+  discoverDevs: async (f) => {
+    const offset = Math.round(-new Date().getTimezoneOffset() / 60);
+    const res = await get<DiscoverDevsResponse>('/discover/devs', {
+      tag: f.tags?.[0],
+      country: f.country ? f.country.toUpperCase() : undefined,
+      tz: f.timezone === 'near' ? offset : undefined,
+      available: f.availability === 'now' ? true : undefined,
+      lookingFor: f.lookingFor,
+      limit: 50,
+    });
+    const cards = res.data.map(m.devCard);
+    const q = f.q?.trim().toLowerCase();
+    return q
+      ? cards.filter(
+          (c) => c.handle.toLowerCase().includes(q) || c.displayName.toLowerCase().includes(q),
+        )
+      : cards;
+  },
+  leaderboard: async () => m.leaderboard(await get<LeaderboardResponse>('/leaderboard')),
+  getPassport: async (handle) => {
+    const [p, proofs] = await Promise.all([
+      get<PassportResponse>(`/u/${encodeURIComponent(handle)}`),
+      get<ProofsResponse>(`/u/${encodeURIComponent(handle)}/proofs`, { limit: 50 }).catch(
+        () => null,
+      ),
+    ]);
+    return m.passport(p, proofs);
+  },
+
+  listNotifications: async () => {
+    const me = await session();
+    if (!me) return [];
+    const r = await get<ListNotificationsResponse>('/notifications', { limit: 50 });
+    return r.data.map((n) => m.notification(n, me.id));
+  },
+  markNotificationsRead: async () => {
+    await post('/notifications/read', { all: true });
+  },
+
+  report: async (targetType, targetId, _label, reason) => {
+    await post('/reports', { targetType: m.reportTypeToApi(targetType), targetId, reason });
+  },
+  listReports: async () =>
+    (await get<ListReportsResponse>('/admin/reports', { limit: 50 })).data.map(m.report),
+  handleReport: async (id, remove) => {
+    await post(`/admin/reports/${id}/action`, {
+      action: remove ? 'hide' : 'dismiss',
+      reason: remove ? 'Retiré par la modération' : 'Signalement rejeté',
+    });
+  },
+
+  getStatus: async () => m.status(await get<StatusResponse>('/status')),
+  getImpact: async () => m.impact(await get<ImpactResponse>('/impact')),
 };

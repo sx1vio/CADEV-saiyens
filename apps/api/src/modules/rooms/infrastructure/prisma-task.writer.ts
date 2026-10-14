@@ -6,6 +6,7 @@ import type { TaskState } from '../domain/task';
 const roomSelect = {
   id: true,
   ownerId: true,
+  name: true,
   repoFullName: true,
   stackTagIds: true,
   hiddenAt: true,
@@ -17,6 +18,7 @@ async function findRoom(tx: Tx, roomId: string): Promise<TaskRoom | null> {
     ? {
         id: r.id,
         ownerId: r.ownerId,
+        name: r.name,
         repoFullName: r.repoFullName,
         stackTagIds: r.stackTagIds,
         hidden: r.hiddenAt !== null,
@@ -52,7 +54,7 @@ export class PrismaTaskWriter implements TaskWriter {
     await this.tx.$queryRaw`SELECT id FROM tasks WHERE id = ${taskId}::uuid FOR UPDATE`;
     return this.tx.task.findUnique({
       where: { id: taskId },
-      select: { id: true, roomId: true, status: true, assigneeId: true, prUrl: true },
+      select: { id: true, roomId: true, title: true, status: true, assigneeId: true, prUrl: true },
     });
   }
 

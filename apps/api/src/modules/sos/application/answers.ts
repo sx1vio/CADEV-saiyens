@@ -73,7 +73,12 @@ export class Answers {
           {
             userId: question.authorId,
             type: 'answer.created',
-            payload: { questionId: question.id, answerId: answer.id, by: answer.author.handle },
+            payload: {
+              questionId: question.id,
+              answerId: answer.id,
+              title: question.title,
+              by: answer.author.handle,
+            },
           },
         ],
         tx,
@@ -153,7 +158,12 @@ export class Answers {
           {
             userId: answer.authorId,
             type: 'answer.accepted',
-            payload: { questionId: question.id, answerId: answer.id, points },
+            payload: {
+              questionId: question.id,
+              answerId: answer.id,
+              title: question.title,
+              points,
+            },
           },
         ],
         tx,

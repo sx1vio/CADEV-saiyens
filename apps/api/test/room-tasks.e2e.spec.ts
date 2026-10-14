@@ -159,7 +159,13 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
     const inbox = await get('/api/v1/notifications', 'contrib').expect(200);
     expect(inbox.body.data[0]).toMatchObject({
       type: 'task.completed',
-      payload: { taskId, points: 15, verification: 'github_verified' },
+      payload: {
+        taskId,
+        taskTitle: 'Ajouter Orange Money',
+        roomName: `Paylink ${suffix}`,
+        points: 15,
+        verification: 'github_verified',
+      },
     });
     expect((await post('awa', `/api/v1/tasks/${taskId}/complete`).expect(409)).body.code).toBe(
       'task.invalid_status',

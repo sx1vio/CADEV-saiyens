@@ -61,6 +61,16 @@ describe('poser une question (S1) et la lire', () => {
     await app.close();
   });
 
+  it('GET /tags : référentiel public, mis en cache', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/tags').expect(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=300');
+    expect(res.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ slug: 'docker', aliases: expect.any(Array) }),
+      ]),
+    );
+  });
+
   it('exige une session et une clé d’idempotence', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/questions')

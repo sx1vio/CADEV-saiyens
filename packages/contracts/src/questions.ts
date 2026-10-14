@@ -42,6 +42,7 @@ export const PublicAuthor = z.object({
   /** Compte de démonstration, toujours signalé comme tel (§6.6). */
   isDemo: z.boolean(),
 });
+export type PublicAuthor = z.infer<typeof PublicAuthor>;
 
 export const QuestionTag = z.object({ slug: z.string(), label: z.string() });
 
@@ -122,6 +123,7 @@ export const MatchedHelper = z.object({
   notifiedAt: z.iso.datetime(),
   claimedAt: z.iso.datetime().nullable(),
 });
+export type MatchedHelper = z.infer<typeof MatchedHelper>;
 
 /** POST /api/v1/questions/:id/claim : « Je m'en occupe » (S11). */
 export const ClaimResponse = z.object({ questionId: z.uuid(), claimedAt: z.iso.datetime() });
@@ -163,3 +165,9 @@ export const UpdateQuestionResponse = z.object({
   secretsMasked: z.number().int(),
 });
 export type UpdateQuestionResponse = z.infer<typeof UpdateQuestionResponse>;
+
+/** GET /api/v1/tags : référentiel des étiquettes (sélecteurs du front, détection S9). */
+export const ListTagsResponse = z.object({
+  data: z.array(QuestionTag.extend({ aliases: z.array(z.string()) })),
+});
+export type ListTagsResponse = z.infer<typeof ListTagsResponse>;

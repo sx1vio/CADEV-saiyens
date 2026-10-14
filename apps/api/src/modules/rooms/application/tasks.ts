@@ -178,7 +178,14 @@ export class Tasks {
           {
             userId: task.assigneeId!,
             type: 'task.completed',
-            payload: { roomId: room.id, taskId: task.id, points, verification },
+            payload: {
+              roomId: room.id,
+              roomName: room.name,
+              taskId: task.id,
+              taskTitle: task.title,
+              points,
+              verification,
+            },
           },
         ],
         tx,

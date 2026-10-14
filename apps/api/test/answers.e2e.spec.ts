@@ -77,7 +77,7 @@ describe('répondre, voter, valider (S4)', () => {
     expect(inbox.body.unreadCount).toBe(1);
     expect(inbox.body.data[0]).toMatchObject({
       type: 'answer.created',
-      payload: { questionId, answerId, by: handles.moussa },
+      payload: { questionId, answerId, title: expect.any(String), by: handles.moussa },
       readAt: null,
     });
 
@@ -145,7 +145,7 @@ describe('répondre, voter, valider (S4)', () => {
       .expect(200);
     expect(inbox.body.data[0]).toMatchObject({
       type: 'answer.accepted',
-      payload: { questionId, answerId, points: 13 },
+      payload: { questionId, answerId, title: expect.any(String), points: 13 },
     });
   });
 

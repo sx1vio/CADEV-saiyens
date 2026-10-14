@@ -85,6 +85,7 @@ export interface RoomNotifier {
 export interface TaskRoom {
   id: string;
   ownerId: string;
+  name: string;
   repoFullName: string | null;
   stackTagIds: string[];
   hidden: boolean;

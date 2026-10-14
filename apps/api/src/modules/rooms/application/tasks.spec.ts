@@ -24,6 +24,7 @@ class TaskMemory implements TaskWriter {
   async findRoom() {
     return {
       id: 'r1',
+      name: 'Paylink',
       ownerId: 'awa',
       repoFullName: 'awa/paylink',
       stackTagIds: [],
@@ -64,6 +65,7 @@ describe('Tasks.complete (R8, R9)', () => {
   const state: TaskState = {
     id: 't1',
     roomId: 'r1',
+    title: 'Ajouter Orange Money',
     status: 'in_review',
     assigneeId: 'moussa',
     prUrl: 'https://github.com/awa/paylink/pull/2',
