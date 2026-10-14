@@ -12,6 +12,7 @@ import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
+import { NotificationsModule } from './modules/notifications';
 import { SosModule } from './modules/sos';
 import { ReputationModule } from './modules/reputation';
 
@@ -43,6 +44,7 @@ import { ReputationModule } from './modules/reputation';
     ReputationModule,
     AiModule,
     SosModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
   providers: [
