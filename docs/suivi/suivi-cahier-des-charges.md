@@ -156,28 +156,28 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ### Hors ligne (O)
 
-| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                     | Commentaire                                                                                               |
-| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97                        | Service worker et cache côté front ; contenus métier pas encore servis par l'API                          |
-| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #97 (front), PR #110 (API) | API prête : `POST /sync` idempotent, références `client:` ; reste le moteur du front                      |
-| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97                        |                                                                                                           |
-| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | PR #110 (API)                 | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran |
+| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                                                 | Commentaire                                                                                                                            |
+| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97                                                    | Service worker et cache côté front ; contenus métier pas encore servis par l'API                                                       |
+| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #97 (front), PR #110 (API), `feat/web-api-integration` | Front branché sur l'API réelle : file hors ligne rejouée avec le `clientId` comme clé d'idempotence ; passage par `POST /sync` à faire |
+| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97                                                    |                                                                                                                                        |
+| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | PR #110 (API)                                             | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran                              |
 
 ### Systalink, impact, notifications, stockage (Y)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence       | Commentaire                                                                                                                                           |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Y1  | #45   | État des services et dernière sauvegarde | P0   | `En cours` | Emmanuel    | `feat/platform` | `GET /status` : sondes réelles toutes les 5 min (VPS, base, sauvegarde, SMTP), dernière sauvegarde lue dans le fichier de `backup.sh` ; reste l'écran |
-| Y2  | #46   | Écran d'impact                           | P1   | `En cours` | Emmanuel    | `feat/platform` | `GET /impact` : devs, questions posées et résolues, médiane de première réponse, pays, salles ; démo exclue                                           |
-| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire`  | Emmanuel    |                 | Mailpit prêt en local                                                                                                                                 |
-| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire`  | Emmanuel    |                 | Si le produit est accepté (#2)                                                                                                                        |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence | Commentaire                                                                                                                                           |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Y1  | #45   | État des services et dernière sauvegarde | P0   | `En cours` | Emmanuel    | PR #115   | `GET /status` : sondes réelles toutes les 5 min (VPS, base, sauvegarde, SMTP), dernière sauvegarde lue dans le fichier de `backup.sh` ; reste l'écran |
+| Y2  | #46   | Écran d'impact                           | P1   | `En cours` | Emmanuel    | PR #115   | `GET /impact` : devs, questions posées et résolues, médiane de première réponse, pays, salles ; démo exclue                                           |
+| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire`  | Emmanuel    |           | Mailpit prêt en local                                                                                                                                 |
+| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire`  | Emmanuel    |           | Si le produit est accepté (#2)                                                                                                                        |
 
 ### Modération (M) et langues (I)
 
-| ID  | Issue | Exigence                                  | Prio | Statut     | Responsable | Référence       | Commentaire                                                                                                                 |
-| --- | ----- | ----------------------------------------- | ---- | ---------- | ----------- | --------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| M1  | #49   | Signaler un contenu, retrait par un admin | P0   | `En cours` | Emmanuel    | `feat/platform` | Signaler, file admin, masquer, rétablir, rejeter, annulation des XP sur demande, audit dans `admin_actions` ; reste l'écran |
-| I1  | #50   | Interface en français et en anglais       | P0   | `En cours` | Sylvio      | PR #97          | Français par défaut côté front                                                                                              |
+| ID  | Issue | Exigence                                  | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                                                                 |
+| --- | ----- | ----------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| M1  | #49   | Signaler un contenu, retrait par un admin | P0   | `En cours` | Emmanuel    | PR #115                            | Signaler, file admin, masquer, rétablir, rejeter, annulation des XP sur demande, audit dans `admin_actions` ; reste l'écran |
+| I1  | #50   | Interface en français et en anglais       | P0   | `En cours` | Sylvio      | PR #97, `feat/web-api-integration` | Français par défaut côté front                                                                                              |
 
 ## Propositions v3.1
 
@@ -224,7 +224,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | Y5   | #88   | Page de statut avec historique                   | P1        | `À faire`  | Emmanuel                      |                                                                                           |
 | Y7   | #89   | Notifications Telegram et Web Push               | P1        | `P2`       | Joachim                       |                                                                                           |
 | Y9   | #90   | Écran d'impact enrichi                           | P1        | `À faire`  | Caleb                         |                                                                                           |
-| M4   | #91   | Journal d'audit de la modération                 | P1        | `En cours` | Emmanuel                      | `feat/platform`                                                                           |
+| M4   | #91   | Journal d'audit de la modération                 | P1        | `En cours` | Emmanuel                      | PR #115                                                                                   |
 | T3   | #92   | Accueil personnalisé en une question             | P1        | `P2`       | Sylvio                        |                                                                                           |
 | T4   | #93   | Thème sombre                                     | P1        | `À faire`  | Sylvio                        |                                                                                           |
 
