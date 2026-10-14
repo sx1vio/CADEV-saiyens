@@ -37,6 +37,7 @@ import type {
   UpdateMeRequest,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
+import { clearApiReadCache } from '@/offline/api-cache';
 import * as m from './http-mappers';
 import { DomainError, type User } from './types';
 
@@ -147,7 +148,10 @@ export const httpApi: DevHubApi = {
   signUpWithGitHub: sessionOrThrow,
   loginDemo: async () => unavailable(),
   listDemoAccounts: async () => [],
-  logout: () => post('/auth/logout'),
+  logout: async () => {
+    await post('/auth/logout');
+    await clearApiReadCache(); // O1 : rien de ce compte ne reste lisible sur l'appareil
+  },
   updateMe: async (input) => {
     const body: UpdateMeRequest = {};
     if (input.displayName !== undefined) body.displayName = input.displayName;
