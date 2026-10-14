@@ -56,6 +56,11 @@ jobs:
         run: pnpm --filter @devhub/api exec prisma migrate deploy
       - run: pnpm test
       - run: pnpm build
+      # Budget de l'accueil (03-frontend.md). En mode rapport tant que BUG-024 est ouvert :
+      # retirer continue-on-error dès que l'accueil repasse sous le budget.
+      - name: Budget de performance de l'accueil
+        continue-on-error: true
+        run: node apps/web/scripts/check-budget.mjs | tee -a "$GITHUB_STEP_SUMMARY"
 
   e2e:
     name: e2e (Playwright, parcours SOS + hors ligne)
