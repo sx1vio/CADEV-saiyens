@@ -35,27 +35,27 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 5       | 16       | 0       | 24 %        | 100 %      |
-| P1        | 14     | 0       | 5        | 9       | 0 %         | 36 %       |
+| P0        | 21     | 10      | 11       | 0       | 48 %        | 100 %      |
+| P1        | 14     | 1       | 4        | 9       | 7 %         | 36 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **5**   | **21**   | **11**  | **14 %**    | **70 %**   |
+| **Total** | **37** | **11**  | **15**   | **11**  | **30 %**    | **70 %**   |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                                   |
-| ----------------------- | --------- | ------- | -------- | -------------------------------------------- |
-| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                         |
-| Profil et Passport (PR) | 4         | 1       | 2        | `█████░░░░░` PR1 fait; PR2, PR3 en cours     |
-| SOS Dev (S)             | 7         | 1       | 3        | `████░░░░░░` S2 fait; S1, S3, S4 en cours    |
-| Salles de projet (R)    | 8         | 0       | 6        | `████░░░░░░` R1, R2, R3, R4, R7, R8 en cours |
-| Découverte (D)          | 3         | 0       | 2        | `███░░░░░░░` D1, D2 en cours                 |
-| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                     |
-| Hors ligne (O)          | 4         | 0       | 4        | `█████░░░░░` O1, O2, O3, O4 en cours         |
-| Systalink et impact (Y) | 4         | 0       | 2        | `██░░░░░░░░` Y1, Y2 en cours                 |
-| Modération (M)          | 1         | 0       | 1        | `█████░░░░░` M1 en cours                     |
-| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                     |
+| Module                  | Exigences | Terminé | En cours | Avancement                                        |
+| ----------------------- | --------- | ------- | -------- | ------------------------------------------------- |
+| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                              |
+| Profil et Passport (PR) | 4         | 1       | 2        | `█████░░░░░` PR1 fait; PR2, PR3 en cours          |
+| SOS Dev (S)             | 7         | 3       | 1        | `█████░░░░░` S1, S2, S4 fait; S3 en cours         |
+| Salles de projet (R)    | 8         | 1       | 5        | `████░░░░░░` R7 fait; R1, R2, R3, R4, R8 en cours |
+| Découverte (D)          | 3         | 0       | 2        | `███░░░░░░░` D1, D2 en cours                      |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                          |
+| Hors ligne (O)          | 4         | 3       | 1        | `█████████░` O1, O2, O3 fait; O4 en cours         |
+| Systalink et impact (Y) | 4         | 0       | 2        | `██░░░░░░░░` Y1, Y2 en cours                      |
+| Modération (M)          | 1         | 0       | 1        | `█████░░░░░` M1 en cours                          |
+| Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                          |
 
 ### Par personne (exigences v3 et setup ouverts)
 
@@ -69,13 +69,13 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 ## Jalons
 
-| Jalon | Date    | Critère de sortie                                                                | Statut au 14 octobre                                                                                                                                                          |
-| ----- | ------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne              | **Manqué** : code fusionné (A1 #95, PR1 #99) ; pas d'URL de production, en attente de #6, #7 et #9                                                                            |
-| 2     | 14 oct. | Question → piste IA → réponse d'un autre dev, de bout en bout ; 30+ devs invités | **Code prêt** (S1 à S4 #106 à #108, IA #104, front branché #116) ; restent la vraie clé IA (#7), un essai réel et les invitations (#10)                                       |
-| 3     | 16 oct. | Poser, lire, répondre sans réseau puis synchroniser, sur un vrai téléphone       | **Partiel** : rédaction et synchronisation prêtes (#110, #118) ; restent la lecture hors ligne des questions et salles (O1), l'écran de conflit (O4) et l'essai sur téléphone |
-| 4     | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches           | **Code prêt** (#111, #112, #113, front #116) ; restent l'aperçu de partage (R7) et un essai avec un vrai dépôt                                                                |
-| 5     | 22 oct. | Passport, Proof XP, découverte, Systalink et impact ; gel du code                | **API prête** (#113 à #115) ; restent le budget de l'accueil (BUG-024), les tests e2e du front, le déploiement et le dossier (#12)                                            |
+| Jalon | Date    | Critère de sortie                                                                | Statut au 15 octobre                                                                                                                                                                                   |
+| ----- | ------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1     | 8 oct.  | Connexion GitHub, profil, base de données et URL Systalink en ligne              | **Manqué** : code fusionné (A1 #95, PR1 #99) ; pas d'URL de production, en attente de #6, #7 et #9                                                                                                     |
+| 2     | 14 oct. | Question → piste IA → réponse d'un autre dev, de bout en bout ; 30+ devs invités | **Code prêt et validé en réel en local** (S1, S4, Y8, M2 le 14 oct. ; IA avec le faux modèle) ; restent la vraie clé IA (#7), l'URL de production et les invitations (#10)                             |
+| 3     | 16 oct. | Poser, lire, répondre sans réseau puis synchroniser, sur un vrai téléphone       | **Partiel** : lecture hors ligne (O1, #119) et synchronisation (O2, #118, e2e #123) validées dans le navigateur ; restent l'écran de conflit (O4, session B en cours) et l'essai sur un vrai téléphone |
+| 4     | 18 oct. | Créer une salle, lier un dépôt, rejoindre, créer et prendre des tâches           | **Code prêt** (#111 à #113, front #116, aperçus de partage #122) ; reste un essai avec un vrai dépôt GitHub (#7)                                                                                       |
+| 5     | 22 oct. | Passport, Proof XP, découverte, Systalink et impact ; gel du code                | **API prête** (#113 à #115) ; restent le budget de l'accueil (BUG-024), le journal d'audit (M4), le déploiement et le dossier (#12)                                                                    |
 
 Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bloquants) : [cahier de livraison](https://claude.ai/artifact/6aWU3KSVDkfH8qdDF8zpj3) (page privée, partagée par Joachim).
 
@@ -118,28 +118,28 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### SOS Dev (S)
 
-| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                | Commentaire                                                                       |
-| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ------------------------ | --------------------------------------------------------------------------------- |
-| S1  | #21   | Poser une question                     | P0   | `En cours` | Florent     | PR #106                  | `POST /questions` idempotent, secrets masqués, 10 par heure ; déclenche `ai.hint` |
-| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106 | Job `ai.hint` déclenché par S1 ; reste l’essai avec la vraie clé (#7)             |
-| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `En cours` | Florent     | PR #108                  | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8) à suivre  |
-| S4  | #24   | Répondre, voter, valider               | P0   | `En cours` | Florent     | PR #107                  | Répondre, voter, valider : XP et notifications dans la même transaction           |
-| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                          |                                                                                   |
-| S6  | #26   | Question résolue = fiche cherchable    | P1   | `À faire`  | Florent     |                          |                                                                                   |
-| S7  | #27   | Questions similaires avant publication | P1   | `À faire`  | Florent     |                          |                                                                                   |
+| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                | Commentaire                                                                                              |
+| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| S1  | #21   | Poser une question                     | P0   | `Terminé`  | Florent     | PR #106                  | Validé en réel le 14 oct. (session C : API réelle, front http, deux comptes) ; reste l'URL de production |
+| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106 | Validé en réel avec le faux modèle le 14 oct. ; reste l'essai avec la vraie clé (#7)                     |
+| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `En cours` | Florent     | PR #108                  | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8) à suivre                         |
+| S4  | #24   | Répondre, voter, valider               | P0   | `Terminé`  | Florent     | PR #107                  | Validé en réel le 14 oct. (2e compte, validation, +10 XP et +3 de rapidité)                              |
+| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                          |                                                                                                          |
+| S6  | #26   | Question résolue = fiche cherchable    | P1   | `À faire`  | Florent     |                          |                                                                                                          |
+| S7  | #27   | Questions similaires avant publication | P1   | `À faire`  | Florent     |                          |                                                                                                          |
 
 ### Salles de projet (R)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                                                     |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `En cours` | Joachim     | #111                               | Dépôt vérifié via GitHub (public, droits d’écriture du créateur), +5 XP si démo                                 |
-| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `En cours` | Joachim     | PR #112, #113                      | Créer, importer les issues, prendre, soumettre avec PR ; aussi via /sync                                        |
-| R3  | #30   | Demander à rejoindre                     | P0   | `En cours` | Joachim     | PR #111                            | Demande, décision par le créateur, notifications ; aussi via /sync                                              |
-| R4  | #31   | Fil de discussion par salle              | P1   | `En cours` | Joachim     | PR #112, #113                      | Membres seulement, ordre serveur, hors ligne via /sync                                                          |
-| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |                                    | Planning : 18 oct.                                                                                              |
-| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |                                    |                                                                                                                 |
-| R7  | #34   | Lien d'invitation riche                  | P1   | `En cours` | Joachim     | PR #111 (code), `feat/og-previews` | Code d'invitation, fiche publique et aperçu de partage (balises og injectées par l'API) ; image dédiée avec PR5 |
-| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `En cours` | Joachim     | PR #112, #113                      | Clôture par le créateur, +15 XP, contributeur notifié                                                           |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence     | Commentaire                                                                        |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ------------- | ---------------------------------------------------------------------------------- |
+| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `En cours` | Joachim     | #111          | Dépôt vérifié via GitHub (public, droits d’écriture du créateur), +5 XP si démo    |
+| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `En cours` | Joachim     | PR #112, #113 | Créer, importer les issues, prendre, soumettre avec PR ; aussi via /sync           |
+| R3  | #30   | Demander à rejoindre                     | P0   | `En cours` | Joachim     | PR #111       | Demande, décision par le créateur, notifications ; aussi via /sync                 |
+| R4  | #31   | Fil de discussion par salle              | P1   | `En cours` | Joachim     | PR #112, #113 | Membres seulement, ordre serveur, hors ligne via /sync                             |
+| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |               | Planning : 18 oct.                                                                 |
+| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |               |                                                                                    |
+| R7  | #34   | Lien d'invitation riche                  | P1   | `Terminé`  | Joachim     | PR #111, #122 | Validé le 15 oct. (balises échappées, salle masquée → 404) ; image dédiée avec PR5 |
+| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `En cours` | Joachim     | PR #112, #113 | Clôture par le créateur, +15 XP, contributeur notifié                              |
 
 ### Découverte (D)
 
@@ -158,12 +158,12 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Hors ligne (O)
 
-| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                                       | Commentaire                                                                                                                 |
-| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `En cours` | Sylvio          | PR #97, `feat/web-offline-read`                 | Lectures de l'API gardées par le service worker (réseau d'abord, cache vidé à la déconnexion) ; essai sur téléphone à faire |
-| O2  | #42   | Rédiger sans réseau                        | P0   | `En cours` | Sylvio, Florent | PR #110 (API), `feat/web-realtime-sync` (front) | File hors ligne rejouée par `POST /sync` (lots de 50, opId = clientId)                                                      |
-| O3  | #43   | État réseau toujours visible               | P0   | `En cours` | Sylvio          | PR #97                                          |                                                                                                                             |
-| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | PR #110 (API)                                   | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran                   |
+| ID  | Issue | Exigence                                   | Prio | Statut     | Responsable     | Référence                               | Commentaire                                                                                               |
+| --- | ----- | ------------------------------------------ | ---- | ---------- | --------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| O1  | #41   | Lire sans réseau les contenus déjà ouverts | P0   | `Terminé`  | Sylvio          | PR #97, #119, #124                      | Validé en réel le 15 oct. (build de prod, service worker, réseau coupé) ; essai sur téléphone au Jalon 3  |
+| O2  | #42   | Rédiger sans réseau                        | P0   | `Terminé`  | Sylvio, Florent | PR #110 (API), #118 (front), #123 (e2e) | Vérifié de bout en bout dans le navigateur (tests e2e de #123)                                            |
+| O3  | #43   | État réseau toujours visible               | P0   | `Terminé`  | Sylvio          | PR #97, #123 (e2e)                      | Vérifié par les tests e2e                                                                                 |
+| O4  | #44   | Écran de conflit de version                | P1   | `En cours` | Sylvio          | PR #110 (API)                           | API prête : `PATCH` avec `baseVersion`, `409 version_conflict` + version serveur, archive ; reste l’écran |
 
 ### Systalink, impact, notifications, stockage (Y)
 
@@ -189,8 +189,8 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | ---- | ----- | ------------------------------------------------ | --------- | ---------- | ----------------------------- | ----------------------------------------------------------------------------------------- |
 | X3   | #52   | Score GitHub (G) résistant aux dépôts vides      | Correctif | `Terminé`  | Caleb (à la place de Joachim) | #99 (fusionnée)                                                                           |
 | X4   | #53   | Démarrage à froid du matching                    | Correctif | `En cours` | Florent                       | PR #108 (régime froid, « Je m'en occupe »)                                                |
-| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `En cours` | Florent                       | PR #109 (API), `feat/web-realtime-sync` (front)                                           |
-| M2   | #55   | Protection contre l'injection de prompt          | Correctif | `En cours` | Joachim, Emmanuel             | PR #104 (piste IA)                                                                        |
+| Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `Terminé`  | Florent                       | PR #109 (API), #118 (front)                                                               |
+| M2   | #55   | Protection contre l'injection de prompt          | Correctif | `Terminé`  | Joachim, Emmanuel             | PR #104 (piste IA)                                                                        |
 | O9   | #56   | Masquage des secrets avant la mise en file       | Correctif | `En cours` | Sylvio, Emmanuel              | PR #101 (`maskSecrets`), #104 (côté IA)                                                   |
 | PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `À faire`  | Caleb                         |                                                                                           |
 | PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À faire`  | Caleb                         |                                                                                           |
