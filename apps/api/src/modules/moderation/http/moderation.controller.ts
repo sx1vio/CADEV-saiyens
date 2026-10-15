@@ -16,6 +16,8 @@ import {
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import {
   CreateReportRequest,
+  ListAuditQuery,
+  ListAuditResponse,
   ListReportsQuery,
   ListReportsResponse,
   ReportActionRequest,
@@ -45,6 +47,8 @@ class ListReportsQueryDto extends createZodDto(ListReportsQuery) {}
 class ListReportsResponseDto extends createZodDto(ListReportsResponse) {}
 class ReportActionRequestDto extends createZodDto(ReportActionRequest) {}
 class ReportActionResponseDto extends createZodDto(ReportActionResponse) {}
+class ListAuditQueryDto extends createZodDto(ListAuditQuery) {}
+class ListAuditResponseDto extends createZodDto(ListAuditResponse) {}
 
 const view = (r: ReportState): ReportView => ({ ...r, createdAt: r.createdAt.toISOString() });
 
@@ -112,6 +116,14 @@ export class ModerationController {
   @ApiOkResponse({ type: ListReportsResponseDto })
   list(@Query() query: ListReportsQueryDto): Promise<ListReportsResponse> {
     return this.reader.list(query);
+  }
+
+  /** M4 : journal d'audit des décisions de modération (filtrable par contenu). */
+  @Get('admin/audit')
+  @UseGuards(SessionGuard, AdminGuard)
+  @ApiOkResponse({ type: ListAuditResponseDto })
+  audit(@Query() query: ListAuditQueryDto): Promise<ListAuditResponse> {
+    return this.reader.audit(query);
   }
 
   /** M1, M4 : masquer, rétablir ou rejeter ; annuler les Proof XP sur demande. */

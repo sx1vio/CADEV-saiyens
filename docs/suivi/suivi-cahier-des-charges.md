@@ -226,7 +226,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | Y5   | #88   | Page de statut avec historique                   | P1        | `À faire`  | Emmanuel                      |                                                                                           |
 | Y7   | #89   | Notifications Telegram et Web Push               | P1        | `P2`       | Joachim                       |                                                                                           |
 | Y9   | #90   | Écran d'impact enrichi                           | P1        | `À faire`  | Caleb                         |                                                                                           |
-| M4   | #91   | Journal d'audit de la modération                 | P1        | `En cours` | Emmanuel                      | PR #115                                                                                   |
+| M4   | #91   | Journal d'audit de la modération                 | P1        | `En cours` | Emmanuel                      | PR #115, `feat/admin-audit`                                                               |
 | T3   | #92   | Accueil personnalisé en une question             | P1        | `P2`       | Sylvio                        |                                                                                           |
 | T4   | #93   | Thème sombre                                     | P1        | `À faire`  | Sylvio                        |                                                                                           |
 
