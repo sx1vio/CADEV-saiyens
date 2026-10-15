@@ -39,5 +39,6 @@ import { VerifyPrJob } from './jobs/verify-pr.job';
         new Rooms(xp, notifier, (n) => new Uint8Array(randomBytes(n))),
     },
   ],
+  exports: [RoomReader],
 })
 export class RoomsModule {}

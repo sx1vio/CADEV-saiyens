@@ -46,6 +46,8 @@ export const EnvSchema = z
     BACKUP_STATUS_URL: optional(z.string()),
     SMTP_HOST: optional(z.string()),
     SMTP_PORT: z.coerce.number().int().positive().default(587),
+    // R7 : index.html construit du front, enrichi des balises de partage (défaut : ./web/index.html).
+    WEB_INDEX_HTML: optional(z.string()),
   })
   .refine((env) => !(env.NODE_ENV === 'production' && env.AUTH_FAKE_PROVIDER), {
     message: 'AUTH_FAKE_PROVIDER est interdit en production',

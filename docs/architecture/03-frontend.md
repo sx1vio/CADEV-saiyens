@@ -146,6 +146,8 @@ Une SPA ne peut pas fournir de balises `og:*` propres à chaque page aux robots 
 
 Le comportement est identique pour un humain et un robot : pas de détection d'agent utilisateur.
 
+État au 14 octobre : l'injection des balises est en place (`apps/api/src/modules/share`, `GET /u/:handle` et `GET /p/:code`, HTML échappé, 404 avec la SPA pour un lien inconnu). L'image d'aperçu est pour l'instant le logo de l'application (`/pwa-512.png`) : la carte générée par `satori` relève de la Proof Card (PR5).
+
 ## Conventions de code front-end
 
 - Composants en fonctions, nommés en PascalCase, un composant exporté par fichier.

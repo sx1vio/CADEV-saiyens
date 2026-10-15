@@ -220,25 +220,26 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 
 ## État d'implémentation
 
-| Endpoint                                                                                                                                  | État | PR                                                       |
-| ----------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------- |
-| Authentification, `GET /me`, code de conduite                                                                                             | Fait | #95, #98                                                 |
-| `GET /me/skills`, `POST /me/github/refresh`                                                                                               | Fait | #99                                                      |
-| `GET /u/:handle/proofs`, `GET /rules/xp`                                                                                                  | Fait | #102                                                     |
-| `POST /questions`, `GET /questions`, `GET /questions/:id`                                                                                 | Fait | #106 (S1)                                                |
-| `POST /questions/:id/answers`, `POST /answers/:id/vote`, `POST /answers/:id/accept`                                                       | Fait | #107 (S4)                                                |
-| `GET /notifications`, `POST /notifications/read`                                                                                          | Fait | #107                                                     |
-| `POST /questions/:id/claim` (matching, escalade)                                                                                          | Fait | #108 (S3, X4)                                            |
-| `GET /events` (SSE)                                                                                                                       | Fait | #109 (Y8)                                                |
-| `POST /sync`, `PATCH /questions/:id`, `PATCH /answers/:id`                                                                                | Fait | #110 (O2)                                                |
-| `POST /rooms`, `GET /rooms`, `GET /rooms/:code`, `POST /rooms/:id/join`, `GET /rooms/:id/join-requests`, `POST /join-requests/:id/decide` | Fait | #111 (R1, R3)                                            |
-| Tâches (`/rooms/:id/tasks`, `import-issues`, `/tasks/:id/take`, `submit`, `complete`), `GET`/`POST /rooms/:id/messages`                   | Fait | #112, #113 (R2, R4, R8, R9)                              |
-| `PATCH /me`, `GET /u/:handle`                                                                                                             | Fait | #113 (PR2, PR14)                                         |
-| `GET /discover/devs`, `GET /leaderboard`                                                                                                  | Fait | #114 (D1, D2)                                            |
-| `GET /news`, `GET /news/home`, `GET /videos`, `GET /news/sources`                                                                         | Fait | #97 (module `news`, hors du périmètre fixé par ADR-0016) |
-| `GET /status`, `GET /impact`                                                                                                              | Fait | #115 (Y1, Y2)                                            |
-| `GET /tags`                                                                                                                               | Fait | `feat/web-api-integration` (référentiel des étiquettes)  |
-| `POST /reports`, `GET /admin/reports`, `POST /admin/reports/:id/action`                                                                   | Fait | #115 (M1, M4 : journal `admin_actions`)                  |
+| Endpoint                                                                                                                                  | État | PR                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| Authentification, `GET /me`, code de conduite                                                                                             | Fait | #95, #98                                                    |
+| `GET /me/skills`, `POST /me/github/refresh`                                                                                               | Fait | #99                                                         |
+| `GET /u/:handle/proofs`, `GET /rules/xp`                                                                                                  | Fait | #102                                                        |
+| `POST /questions`, `GET /questions`, `GET /questions/:id`                                                                                 | Fait | #106 (S1)                                                   |
+| `POST /questions/:id/answers`, `POST /answers/:id/vote`, `POST /answers/:id/accept`                                                       | Fait | #107 (S4)                                                   |
+| `GET /notifications`, `POST /notifications/read`                                                                                          | Fait | #107                                                        |
+| `POST /questions/:id/claim` (matching, escalade)                                                                                          | Fait | #108 (S3, X4)                                               |
+| `GET /events` (SSE)                                                                                                                       | Fait | #109 (Y8)                                                   |
+| `POST /sync`, `PATCH /questions/:id`, `PATCH /answers/:id`                                                                                | Fait | #110 (O2)                                                   |
+| `POST /rooms`, `GET /rooms`, `GET /rooms/:code`, `POST /rooms/:id/join`, `GET /rooms/:id/join-requests`, `POST /join-requests/:id/decide` | Fait | #111 (R1, R3)                                               |
+| Tâches (`/rooms/:id/tasks`, `import-issues`, `/tasks/:id/take`, `submit`, `complete`), `GET`/`POST /rooms/:id/messages`                   | Fait | #112, #113 (R2, R4, R8, R9)                                 |
+| `PATCH /me`, `GET /u/:handle`                                                                                                             | Fait | #113 (PR2, PR14)                                            |
+| `GET /discover/devs`, `GET /leaderboard`                                                                                                  | Fait | #114 (D1, D2)                                               |
+| `GET /news`, `GET /news/home`, `GET /videos`, `GET /news/sources`                                                                         | Fait | #97 (module `news`, hors du périmètre fixé par ADR-0016)    |
+| `GET /status`, `GET /impact`                                                                                                              | Fait | #115 (Y1, Y2)                                               |
+| `GET /u/:handle`, `GET /p/:code` (HTML, hors `/api`)                                                                                      | Fait | `feat/og-previews` (R7, PR2 : aperçus de partage, ADR-0012) |
+| `GET /tags`                                                                                                                               | Fait | `feat/web-api-integration` (référentiel des étiquettes)     |
+| `POST /reports`, `GET /admin/reports`, `POST /admin/reports/:id/action`                                                                   | Fait | #115 (M1, M4 : journal `admin_actions`)                     |
 
 `GET /status` lit la dernière sonde de chaque service (job `status.check`, toutes les 5 minutes, côté worker) : `operational`, `down`, `not_configured` (variable vide, ex. `SMTP_HOST`) ou `unknown` (aucune sonde depuis 15 minutes). La sauvegarde est lue dans le fichier d'état de `backup.sh` (`BACKUP_STATUS_URL`) et jugée à jour sous 26 h. `GET /impact` exclut les comptes de démonstration et met le résultat en cache 60 s.
 

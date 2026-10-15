@@ -130,16 +130,16 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Salles de projet (R)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence      | Commentaire                                                                     |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | -------------- | ------------------------------------------------------------------------------- |
-| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `En cours` | Joachim     | #111           | Dépôt vérifié via GitHub (public, droits d’écriture du créateur), +5 XP si démo |
-| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `En cours` | Joachim     | PR #112, #113  | Créer, importer les issues, prendre, soumettre avec PR ; aussi via /sync        |
-| R3  | #30   | Demander à rejoindre                     | P0   | `En cours` | Joachim     | PR #111        | Demande, décision par le créateur, notifications ; aussi via /sync              |
-| R4  | #31   | Fil de discussion par salle              | P1   | `En cours` | Joachim     | PR #112, #113  | Membres seulement, ordre serveur, hors ligne via /sync                          |
-| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |                | Planning : 18 oct.                                                              |
-| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |                |                                                                                 |
-| R7  | #34   | Lien d'invitation riche                  | P1   | `En cours` | Joachim     | PR #111 (code) | Code d’invitation et fiche publique `/rooms/:code` ; reste l’aperçu Open Graph  |
-| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `En cours` | Joachim     | PR #112, #113  | Clôture par le créateur, +15 XP, contributeur notifié                           |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                                                     |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `En cours` | Joachim     | #111                               | Dépôt vérifié via GitHub (public, droits d’écriture du créateur), +5 XP si démo                                 |
+| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `En cours` | Joachim     | PR #112, #113                      | Créer, importer les issues, prendre, soumettre avec PR ; aussi via /sync                                        |
+| R3  | #30   | Demander à rejoindre                     | P0   | `En cours` | Joachim     | PR #111                            | Demande, décision par le créateur, notifications ; aussi via /sync                                              |
+| R4  | #31   | Fil de discussion par salle              | P1   | `En cours` | Joachim     | PR #112, #113                      | Membres seulement, ordre serveur, hors ligne via /sync                                                          |
+| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |                                    | Planning : 18 oct.                                                                                              |
+| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |                                    |                                                                                                                 |
+| R7  | #34   | Lien d'invitation riche                  | P1   | `En cours` | Joachim     | PR #111 (code), `feat/og-previews` | Code d'invitation, fiche publique et aperçu de partage (balises og injectées par l'API) ; image dédiée avec PR5 |
+| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `En cours` | Joachim     | PR #112, #113                      | Clôture par le créateur, +15 XP, contributeur notifié                                                           |
 
 ### Découverte (D)
 

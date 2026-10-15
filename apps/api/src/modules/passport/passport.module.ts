@@ -23,5 +23,6 @@ import { ImportProfileJob } from './jobs/import-profile.job';
         new ImportGithubProfile(tokens, github, store),
     },
   ],
+  exports: [PassportReader],
 })
 export class PassportModule {}

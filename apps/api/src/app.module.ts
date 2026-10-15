@@ -17,6 +17,7 @@ import { AiModule } from './modules/ai';
 import { DiscoveryModule } from './modules/discovery';
 import { ModerationModule } from './modules/moderation';
 import { PlatformModule } from './modules/platform';
+import { ShareModule } from './modules/share';
 import { MatchingModule } from './modules/matching';
 import { NewsModule } from './modules/news';
 import { NotificationsModule } from './modules/notifications';
@@ -63,6 +64,7 @@ import { ReputationModule } from './modules/reputation';
     NewsModule,
     PlatformModule,
     ModerationModule,
+    ShareModule,
   ],
   controllers: [HealthController],
   providers: [
