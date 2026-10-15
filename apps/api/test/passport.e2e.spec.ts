@@ -105,6 +105,7 @@ describe('Developer Passport public (PR2)', () => {
 
     const res = await request(app.getHttpServer()).get(`/api/v1/u/${moussa}`).expect(200);
     expect(res.body.user).toMatchObject({
+      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
       handle: moussa,
       bio: 'Backend Node.js à Dakar.',
       country: null, // masqué (PR14)
