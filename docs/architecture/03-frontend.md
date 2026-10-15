@@ -178,11 +178,24 @@ L'implémentation `http` (`services/http.ts`) est un **adaptateur** : elle appel
 
 Temps réel (`services/realtime.ts`) : une connexion `EventSource` par onglet sur `GET /events`, ouverte pour le compte connecté (notifications) et pour les sujets des pages affichées (`useTopic('question:<id>')`, `useTopic('room:<id>')`, cinq au plus ; une salle non listée n'est suivie que par ses membres). Chaque événement rafraîchit la clé de cache concernée ; `session.ended` déconnecte l'onglet. Changer de sujets rouvre la connexion avec `lastEventId`.
 
-File hors ligne (`offline/network.ts`) : avec l'API réelle, elle est rejouée par lots de 50 via `POST /sync`, l'`opId` étant le `clientId` de l'action (même clé et même corps qu'un envoi direct : jamais de doublon). `applied` et `duplicate` retirent l'action, `skipped` la garde pour un nouvel essai (attente progressive), `rejected` et `conflict` l'affichent en erreur. Le serveur simulé garde le rejeu action par action.
+File hors ligne (`offline/network.ts`) : avec l'API réelle, elle est rejouée par lots de 50 via `POST /sync`, l'`opId` étant le `clientId` de l'action (même clé et même corps qu'un envoi direct : jamais de doublon). `applied` et `duplicate` retirent l'action, `skipped` la garde pour un nouvel essai (attente progressive), `rejected` l'affiche en erreur, `conflict` garde l'action avec la version en ligne pour l'écran de conflit (ci-dessous). Le serveur simulé garde le rejeu action par action.
 
 Lecture hors ligne (O1) : le service worker garde les lectures de l'API (`src/offline/api-cache.ts` : questions, fiches des salles, Passport, étiquettes, découverte, classement, Systalink, impact, règles), réseau d'abord avec repli sur le cache après 4 s ou sans réseau, 300 réponses et 7 jours au plus. Jamais la session (`/me`), la connexion, le temps réel, les notifications, l'administration, ni les réponses qui dépendent des droits du compte (fil et tâches d'une salle, réservés aux membres d'une salle non listée ; demandes d'adhésion ; listes « mes… »). Le cache est vidé à la déconnexion (même hors ligne), à la fin de session, et quand un autre compte se connecte sur l'appareil.
 
 Budget : `pnpm --filter @devhub/web budget` (après le build) mesure l'accueil à partir du manifeste Vite ; la CI l'affiche en mode rapport tant que BUG-024 est ouvert (mesure du 14 octobre : JS initial 202,6 Ko pour 150, accueil 412 Ko pour 300).
+
+### Modifier un texte publié et régler un conflit de version (O4)
+
+L'auteur modifie sa question (titre, texte, extrait de code) ou sa réponse avec le bouton « Modifier » de la page de la question (`components/EditText.tsx`). La modification est une action de la file comme les autres (`edit-question`, `edit-answer`) : elle part tout de suite en ligne (`PATCH /questions/:id`, `PATCH /answers/:id`) et attend le réseau hors ligne (`question.update`, `answer.update` dans `POST /sync`). Elle porte toujours `baseVersion`, la version que l'auteur avait sous les yeux ; une deuxième modification avant l'envoi remplace la première avec la même base, pour que l'auteur ne se mette pas en conflit avec lui-même.
+
+Si le texte a changé en ligne entre-temps, l'API répond `409 version_conflict` (ou `conflict` dans `/sync`) avec la version du serveur. L'action **reste dans la file** avec cette version (`QueueItem.conflict`) et n'est plus rejouée automatiquement ; un bandeau sur la page de la question et un bouton dans le centre de synchronisation ouvrent l'**écran de conflit** (`ConflictSheet`, 04-hors-ligne-sync.md § 5) :
+
+- deux colonnes par champ modifié, « Ta version » et « Version en ligne », différences surlignées mot à mot (`lib/diff.ts`, testé) ; un champ identique des deux côtés est simplement signalé ;
+- **Garder la mienne** : renvoyée avec la version en ligne comme nouvelle base, sous une nouvelle clé d'idempotence ;
+- **Garder celle en ligne** : l'action est retirée de la file ;
+- **Fusionner à la main** : champs pré-remplis avec sa version, à corriger avant l'envoi.
+
+Si le texte change encore pendant ce choix, l'écran se rouvre sur la nouvelle version. Le serveur simulé applique la même règle de version (mode développement).
 
 Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID).
 
@@ -190,11 +203,12 @@ Limites connues : signaler un **compte** n'est pas possible depuis le front (l'A
 
 `pnpm test:e2e` (racine) construit l'API et le front, puis lance `apps/web/e2e/*.e2e.ts` avec Playwright (Chromium). Le front testé est le **build de production** servi par `vite preview`, branché sur l'**API réelle** (`apps/api/dist`) par le proxy `/api` : même origine, comme derrière Caddy. La connexion passe par le faux fournisseur GitHub (`AUTH_FAKE_PROVIDER=true`, `/api/v1/auth/github?login=…`) ; le code de conduite est accepté par l'API pour aller droit au parcours.
 
-| Fichier          | Parcours vérifié                                                                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sos.e2e.ts`     | Poser une question (S1), répondre avec un second compte, valider la réponse (S4) ; seul l'auteur voit « M'a débloqué »                                 |
-| `offline.e2e.ts` | Rédiger et publier hors ligne (action en file IndexedDB, rien sur le serveur), retour du réseau, `POST /sync` (`applied`), une seule question au final |
-| `auth.e2e.ts`    | Connexion GitHub avec le service worker actif : la navigation `/api/v1/auth/github` atteint l'API (BUG-028)                                            |
+| Fichier           | Parcours vérifié                                                                                                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sos.e2e.ts`      | Poser une question (S1), répondre avec un second compte, la réponse arrive chez l'auteur en temps réel, sans rechargement (Y8) ; valider la réponse (S4) ; seul l'auteur voit « M'a débloqué » |
+| `conflict.e2e.ts` | Modifier sa question hors ligne pendant qu'un autre appareil la modifie en ligne : `/sync` répond `conflict`, l'écran compare les deux versions, « Garder la mienne » publie la version 3      |
+| `offline.e2e.ts`  | Rédiger et publier hors ligne (action en file IndexedDB, rien sur le serveur), retour du réseau, `POST /sync` (`applied`), une seule question au final                                         |
+| `auth.e2e.ts`     | Connexion GitHub avec le service worker actif : la navigation `/api/v1/auth/github` atteint l'API (BUG-028)                                                                                    |
 
 Lancement local (une base dédiée par session, voir [sessions parallèles](../equipe/sessions-paralleles.md)) :
 
