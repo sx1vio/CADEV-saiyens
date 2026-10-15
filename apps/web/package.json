@@ -10,6 +10,7 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "budget": "node scripts/check-budget.mjs"
   },
   "dependencies": {

@@ -26,6 +26,11 @@
     "test:e2e": {
       "dependsOn": ["build"],
       "cache": false
+    },
+    "@devhub/web#test:e2e": {
+      "dependsOn": ["build", "@devhub/api#build"],
+      "passThroughEnv": ["E2E_API_PORT", "E2E_WEB_PORT", "CI"],
+      "cache": false
     }
   }
 }

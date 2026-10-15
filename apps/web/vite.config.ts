@@ -46,6 +46,9 @@ export default defineConfig(({ command, mode }) => {
           // Shell précaché ; navigation SPA servie depuis le cache hors ligne.
           globPatterns: ['**/*.{js,css,html,svg,woff2}', 'pwa-*.png', 'assets/**/*.webp'],
           navigateFallback: '/index.html',
+          // Les navigations vers ce que sert l'API (connexion OAuth et son retour, images Open Graph,
+          // badges : infra/Caddyfile) vont au serveur, jamais vers le shell en cache (BUG-028).
+          navigateFallbackDenylist: [/^\/api\//, /^\/og\//, /^\/badge\//, /^\/readyz$/],
           runtimeCaching: [
             {
               // Actualités et vidéos lisibles hors ligne ; jamais la connexion ni le profil (/api/v1/auth, /api/v1/me)
@@ -107,9 +110,16 @@ export default defineConfig(({ command, mode }) => {
       // Lu par scripts/check-budget.mjs (budget de l'accueil, 03-frontend.md).
       manifest: true,
     },
-    // En développement, l'API (apps/api, NestJS) tourne sur le port 3000 et est servie sous /api
+    // En développement, l'API (apps/api, NestJS) tourne sur le port 3000 et est servie sous /api.
+    // DEVHUB_API_PROXY vise une autre API locale (sessions parallèles, tests e2e) ; vite preview
+    // reprend ce proxy.
     server: {
-      proxy: { '/api': { target: 'http://127.0.0.1:3000', changeOrigin: false } },
+      proxy: {
+        '/api': {
+          target: process.env.DEVHUB_API_PROXY ?? 'http://127.0.0.1:3000',
+          changeOrigin: false,
+        },
+      },
     },
   };
 });
