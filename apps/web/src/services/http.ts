@@ -34,7 +34,9 @@ import type {
   StatusResponse,
   SyncResponse,
   TaskView,
+  UpdateAnswerResponse,
   UpdateMeRequest,
+  UpdateQuestionResponse,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
 import { claimApiReadCache, clearApiReadCache, releaseApiReadCache } from '@/offline/api-cache';
@@ -69,8 +71,9 @@ async function call<T>(
     const err = (await res.json().catch(() => ({}))) as {
       code?: string;
       params?: Record<string, string | number>;
+      server?: unknown;
     };
-    throw new DomainError(err.code ?? `http.${res.status}`, err.params);
+    throw new DomainError(err.code ?? `http.${res.status}`, err.params, m.serverText(err.server));
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
@@ -261,6 +264,24 @@ export const httpApi: DevHubApi = {
       clientId,
     );
     return { ...m.answer(questionId, a), clientId };
+  },
+  editQuestion: async (questionId, text, baseVersion, clientId) => {
+    const r = await call<UpdateQuestionResponse>(
+      'PATCH',
+      `/questions/${questionId}`,
+      { title: text.title, body: text.body, codeSnippet: text.codeSnippet || null, baseVersion },
+      clientId,
+    );
+    return { title: r.title, body: r.body, codeSnippet: r.codeSnippet ?? '', version: r.version };
+  },
+  editAnswer: async (answerId, body, baseVersion, clientId) => {
+    const r = await call<UpdateAnswerResponse>(
+      'PATCH',
+      `/answers/${answerId}`,
+      { body, baseVersion },
+      clientId,
+    );
+    return { body: r.body, version: r.version };
   },
   vote: async (answerId) => {
     await post(`/answers/${answerId}/vote`);

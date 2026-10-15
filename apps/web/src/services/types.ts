@@ -105,6 +105,8 @@ export interface Question {
   resolvedAt: ISODate | null;
   /** Retiré par la modération */
   removedAt?: ISODate | null;
+  /** O4 : version du texte, envoyée comme `baseVersion` à la modification (1 par défaut). */
+  version?: number;
 }
 
 export interface Answer {
@@ -117,7 +119,21 @@ export interface Answer {
   clientId: ID;
   createdAt: ISODate;
   removedAt?: ISODate | null;
+  /** O4 : version du texte (1 par défaut). */
+  version?: number;
 }
+
+/** O4 : texte modifiable d'une question (le titre, l'énoncé, l'extrait de code). */
+export interface QuestionText {
+  title: string;
+  body: string;
+  codeSnippet: string;
+}
+
+/** O4 : la version d'un texte actuellement en ligne, renvoyée par le serveur en cas de conflit. */
+export type ServerText =
+  | ({ kind: 'question'; version: number } & QuestionText)
+  | { kind: 'answer'; version: number; body: string };
 
 /** Raison lisible d'un matching (« a déjà résolu 5 problèmes Docker ») */
 export interface MatchReason {
@@ -504,7 +520,22 @@ export type OfflineAction =
       type: 'message';
       payload: { roomId: string; body: string; kind: RoomMessage['kind']; roomName: string };
     }
-  | { type: 'take-task'; payload: { taskId: string; taskTitle: string } };
+  | { type: 'take-task'; payload: { taskId: string; taskTitle: string } }
+  // O4 : modification d'un texte publié, avec la version que l'auteur avait sous les yeux.
+  | {
+      type: 'edit-question';
+      payload: QuestionText & { questionId: ID; baseVersion: number };
+    }
+  | {
+      type: 'edit-answer';
+      payload: {
+        answerId: ID;
+        questionId: ID;
+        questionTitle: string;
+        body: string;
+        baseVersion: number;
+      };
+    };
 
 /**
  * Résultat d'une action rejouée par lot (POST /sync) : `done` = appliquée ou déjà appliquée,
@@ -514,15 +545,20 @@ export interface SyncOutcome {
   opId: ID;
   outcome: 'done' | 'retry' | 'error';
   code?: string;
+  /** Conflit de version (O4) : le texte en ligne, pour l'écran de conflit. */
+  server?: ServerText;
 }
 
 /** Erreurs métier lisibles (garde-fous X2, etc.) */
 export class DomainError extends Error {
   code: string;
   params?: Record<string, string | number>;
-  constructor(code: string, params?: Record<string, string | number>) {
+  /** 409 version_conflict (O4) : le texte en ligne. */
+  server?: ServerText;
+  constructor(code: string, params?: Record<string, string | number>, server?: ServerText) {
     super(code);
     this.code = code;
     this.params = params;
+    this.server = server;
   }
 }

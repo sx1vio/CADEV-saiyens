@@ -8,9 +8,9 @@ import { openDB, type IDBPDatabase } from 'idb';
 import { create } from 'zustand';
 import { maskSecrets } from '@/lib/detect';
 import { refreshAll, invalidate } from '@/lib/query';
-import { sleep, storageGet, storageSet } from '@/lib/utils';
+import { sleep, storageGet, storageSet, uuid } from '@/lib/utils';
 import { api } from '@/services';
-import type { OfflineAction } from '@/services';
+import type { OfflineAction, ServerText } from '@/services';
 
 export type SimMode = 'off' | 'offline' | '2g';
 
@@ -22,6 +22,8 @@ export type QueueItem = QueuedAction & {
   attempts: number;
   status: 'pending' | 'syncing' | 'error';
   error?: string;
+  /** O4 : le texte a changé en ligne ; l'action attend le choix de l'auteur (écran de conflit). */
+  conflict?: ServerText;
   userId: string;
 };
 
@@ -107,8 +109,20 @@ function sanitize(a: QueuedAction): QueuedAction {
     };
   if (a.type === 'answer')
     return { ...a, payload: { ...a.payload, body: maskSecrets(a.payload.body).text } };
-  if (a.type === 'message')
-    return { ...a, payload: { ...a.payload, body: maskSecrets(a.payload.body).text } };
+  if (a.type === 'message' || a.type === 'edit-answer')
+    return {
+      ...a,
+      payload: { ...a.payload, body: maskSecrets(a.payload.body).text },
+    } as QueuedAction;
+  if (a.type === 'edit-question')
+    return {
+      ...a,
+      payload: {
+        ...a.payload,
+        body: maskSecrets(a.payload.body).text,
+        codeSnippet: maskSecrets(a.payload.codeSnippet).text,
+      },
+    };
   return a;
 }
 
@@ -123,6 +137,17 @@ async function execute(item: QueueItem) {
       return api.postMessage(item.payload.roomId, item.payload.body, item.payload.kind, item.id);
     case 'take-task':
       return api.takeTask(item.payload.taskId);
+    case 'edit-question': {
+      const { questionId, baseVersion, title, body, codeSnippet } = item.payload;
+      return api.editQuestion(questionId, { title, body, codeSnippet }, baseVersion, item.id);
+    }
+    case 'edit-answer':
+      return api.editAnswer(
+        item.payload.answerId,
+        item.payload.body,
+        item.payload.baseVersion,
+        item.id,
+      );
   }
 }
 
@@ -160,6 +185,7 @@ async function flushOne(item: QueueItem) {
       attempts: item.attempts + 1,
       status: offline ? 'pending' : 'error',
       error: offline ? undefined : code,
+      conflict: (err as { server?: ServerText }).server,
     };
     await save(next);
     useNetwork.setState((s) => ({ queue: s.queue.map((q) => (q.id === item.id ? next : q)) }));
@@ -231,6 +257,7 @@ async function flushBatches(pending: QueueItem[]) {
         attempts: item.attempts + 1,
         status: o.outcome === 'retry' ? 'pending' : 'error',
         error: o.outcome === 'retry' ? undefined : o.code,
+        conflict: o.server,
       };
       await save(next);
       useNetwork.setState((s) => ({ queue: s.queue.map((q) => (q.id === item.id ? next : q)) }));
@@ -245,7 +272,8 @@ let flushing = false;
 /** Rejoue la file dans l'ordre ; s'arrête à la première coupure ; reprise progressive (1 s, 2 s, 4 s…). */
 export async function flush() {
   if (flushing || !isOnline()) return;
-  const pending = useNetwork.getState().queue.filter((q) => q.status !== 'syncing');
+  // Un conflit de version attend la décision de l'auteur : le renvoyer tel quel échouerait encore.
+  const pending = useNetwork.getState().queue.filter((q) => q.status !== 'syncing' && !q.conflict);
   if (!pending.length) return;
   flushing = true;
   useNetwork.setState({ syncing: true });
@@ -273,6 +301,61 @@ export async function retryQueued(id: string) {
   await save(next);
   useNetwork.setState((s) => ({ queue: s.queue.map((q) => (q.id === id ? next : q)) }));
   void flush();
+}
+
+/**
+ * O4 : décision de l'auteur sur un conflit de version (04-hors-ligne-sync.md § 5).
+ * - `server` : garder la version en ligne, la modification est abandonnée ;
+ * - un texte : le renvoyer (le sien ou une fusion) avec la version en ligne comme nouvelle base.
+ */
+export async function resolveConflict(
+  id: string,
+  choice: 'server' | { title?: string; body: string; codeSnippet?: string },
+): Promise<{ id: string; queued: boolean; error?: unknown } | null> {
+  const item = useNetwork.getState().queue.find((q) => q.id === id);
+  if (!item?.conflict) return null;
+  if (choice === 'server') {
+    await cancelQueued(id);
+    return null;
+  }
+  const baseVersion = item.conflict.version;
+  let next: QueueItem;
+  if (item.type === 'edit-question')
+    next = {
+      ...item,
+      payload: {
+        ...item.payload,
+        title: choice.title ?? item.payload.title,
+        body: choice.body,
+        codeSnippet: choice.codeSnippet ?? item.payload.codeSnippet,
+        baseVersion,
+      },
+    };
+  else if (item.type === 'edit-answer')
+    next = { ...item, payload: { ...item.payload, body: choice.body, baseVersion } };
+  else return null;
+  // Nouvelle clé d'idempotence : la tentative refusée est déjà enregistrée sous l'ancienne.
+  await remove(id);
+  const resent: QueueItem = {
+    ...(sanitize(next) as QueueItem),
+    id: uuid(),
+    status: 'pending',
+    error: undefined,
+    conflict: undefined,
+    attempts: 0,
+    userId: item.userId,
+    createdAt: item.createdAt,
+  };
+  await save(resent);
+  useNetwork.setState((s) => ({ queue: s.queue.map((q) => (q.id === id ? resent : q)) }));
+  if (!isOnline()) return { id: resent.id, queued: true };
+  // Le texte a pu changer encore : l'erreur (nouveau conflit compris) reste sur `resent.id`.
+  try {
+    const r = await flushOne(resent);
+    return { id: resent.id, queued: r.queued };
+  } catch (error) {
+    return { id: resent.id, queued: false, error };
+  }
 }
 
 /** Écritures qui exigent le réseau (non mises en file) : on prévient clairement l'utilisateur. */

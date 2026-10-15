@@ -83,7 +83,8 @@ describe('file hors ligne → POST /sync (O2)', () => {
       outcome: 'error',
       code: 'question.not_open',
     });
-    expect(r('conflict')).toEqual({ opId: 'o', outcome: 'error', code: 'conflict' });
+    // O4 : le conflit garde son code, la version en ligne arrive dans `server` (voir http-mappers.spec).
+    expect(r('conflict')).toEqual({ opId: 'o', outcome: 'error', code: 'version_conflict' });
   });
 });
 
