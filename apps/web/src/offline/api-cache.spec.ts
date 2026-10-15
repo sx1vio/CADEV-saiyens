@@ -47,3 +47,27 @@ describe('lectures gardées hors ligne (O1)', () => {
     }
   });
 });
+
+describe('propriétaire du cache (O1, appareil partagé)', () => {
+  it('un autre compte vide le cache ; la fin de session aussi, une seule fois', async () => {
+    const { claimApiReadCache, releaseApiReadCache } = await import('./api-cache');
+    const deleted: string[] = [];
+    const store = new Map<string, string>();
+    Object.assign(globalThis, {
+      caches: { delete: async (name: string) => (deleted.push(name), true) },
+      localStorage: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, v),
+        removeItem: (k: string) => void store.delete(k),
+      },
+    });
+    await claimApiReadCache('awa');
+    await claimApiReadCache('awa');
+    expect(deleted).toEqual(['api-content']);
+    await claimApiReadCache('moussa');
+    expect(deleted).toHaveLength(2);
+    await releaseApiReadCache();
+    await releaseApiReadCache();
+    expect(deleted).toHaveLength(3);
+  });
+});
