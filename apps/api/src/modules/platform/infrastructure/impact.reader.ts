@@ -58,7 +58,8 @@ export class ImpactReader {
         (SELECT COUNT(*) FROM real_questions q
           JOIN answers a ON a.question_id = q.id AND a.is_accepted AND a.hidden_at IS NULL
           JOIN users h ON h.id = a.author_id AND NOT h.is_demo
-          WHERE NOT (q.lang = ANY (h.languages)))::int AS cross`;
+          -- Langues non déclarées (profil vide, compte anonymisé) : pas un échange entre langues.
+          WHERE cardinality(h.languages) > 0 AND NOT (q.lang = ANY (h.languages)))::int AS cross`;
     const row = rows[0]!; // une seule ligne d'agrégats, toujours présente
     const value: ImpactResponse = {
       registeredDevs: row.devs,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type {
   AdminReportView,
+  AuditEntry,
   ListAuditQuery,
   ListAuditResponse,
   ListReportsQuery,
@@ -83,8 +84,9 @@ export class ReportReader {
     return {
       data: page.map((r) => ({
         id: r.id,
-        action: r.action,
-        targetType: r.targetType,
+        // Colonnes texte du journal, écrites uniquement par la modération (AUDIT_ACTION).
+        action: r.action as AuditEntry['action'],
+        targetType: r.targetType as ReportTargetType,
         targetId: r.targetId,
         reason: r.reason,
         admin: r.admin,
