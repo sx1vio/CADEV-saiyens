@@ -77,3 +77,27 @@ export const ReportActionResponse = z.object({
   revertedXpEvents: z.number().int(),
 });
 export type ReportActionResponse = z.infer<typeof ReportActionResponse>;
+
+/** GET /api/v1/admin/audit (M4) : journal des décisions de modération, plus récentes d'abord. */
+export const ListAuditQuery = z.object({
+  targetType: ReportTargetType.optional(),
+  targetId: z.uuid().optional(),
+  cursor: z.string().max(200).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+export type ListAuditQuery = z.infer<typeof ListAuditQuery>;
+
+export const AuditEntry = z.object({
+  id: z.uuid(),
+  /** hide_content | restore_content | dismiss_report */
+  action: z.string(),
+  targetType: z.string(),
+  targetId: z.uuid(),
+  reason: z.string(),
+  admin: PublicAuthor,
+  createdAt: z.iso.datetime(),
+});
+export type AuditEntry = z.infer<typeof AuditEntry>;
+
+export const ListAuditResponse = z.object({ data: z.array(AuditEntry), page: PageInfo });
+export type ListAuditResponse = z.infer<typeof ListAuditResponse>;
