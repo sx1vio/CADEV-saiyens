@@ -21,13 +21,15 @@ export class ImpactReader {
         median: number | null;
         countries: number;
         rooms: number;
+        verified: number;
+        cross: number;
       }>
     >`
       WITH real_users AS (
         SELECT id, country, privacy FROM users WHERE NOT is_demo AND deleted_at IS NULL
       ),
       real_questions AS (
-        SELECT q.id, q.created_at, q.author_id, q.status
+        SELECT q.id, q.created_at, q.author_id, q.status, q.lang
         FROM questions q JOIN real_users u ON u.id = q.author_id
         WHERE q.hidden_at IS NULL
       ),
@@ -48,7 +50,15 @@ export class ImpactReader {
             AND COALESCE((privacy ->> 'hideCountry')::boolean, false) = false
             AND COALESCE((privacy ->> 'country')::boolean, true) = true)::int AS countries,
         (SELECT COUNT(*) FROM rooms r JOIN real_users o ON o.id = r.owner_id
-          WHERE r.hidden_at IS NULL AND r.visibility = 'public')::int AS rooms`;
+          WHERE r.hidden_at IS NULL AND r.visibility = 'public')::int AS rooms,
+        (SELECT COUNT(*) FROM tasks t
+          JOIN rooms r ON r.id = t.room_id AND r.hidden_at IS NULL AND r.visibility = 'public'
+          JOIN real_users a ON a.id = t.assignee_id
+          WHERE t.status = 'done' AND t.verification = 'github_verified')::int AS verified,
+        (SELECT COUNT(*) FROM real_questions q
+          JOIN answers a ON a.question_id = q.id AND a.is_accepted AND a.hidden_at IS NULL
+          JOIN users h ON h.id = a.author_id AND NOT h.is_demo
+          WHERE NOT (q.lang = ANY (h.languages)))::int AS cross`;
     const row = rows[0]!; // une seule ligne d'agrégats, toujours présente
     const value: ImpactResponse = {
       registeredDevs: row.devs,
@@ -57,6 +67,8 @@ export class ImpactReader {
       medianFirstResponseMinutes: row.median === null ? null : Math.round(row.median),
       countries: row.countries,
       projectRooms: row.rooms,
+      verifiedContributions: row.verified,
+      crossLanguageAnswers: row.cross,
       computedAt: new Date().toISOString(),
     };
     this.cache = { at: Date.now(), value };

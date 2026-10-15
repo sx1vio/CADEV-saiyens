@@ -38,6 +38,10 @@ export const ImpactResponse = z.object({
   medianFirstResponseMinutes: z.number().int().nullable(),
   countries: z.number().int(),
   projectRooms: z.number().int(),
+  /** Tâches terminées avec une PR « Vérifiée par GitHub » (R9), salles publiques. */
+  verifiedContributions: z.number().int(),
+  /** Réponses validées écrites par un dev qui ne parle pas la langue de la question (S10, Y9). */
+  crossLanguageAnswers: z.number().int(),
   computedAt: z.iso.datetime(),
 });
 export type ImpactResponse = z.infer<typeof ImpactResponse>;
