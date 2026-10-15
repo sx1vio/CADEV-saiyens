@@ -62,6 +62,8 @@ export type UpdateMeRequest = z.infer<typeof UpdateMeRequest>;
 /** GET /api/v1/u/:handle (PR2) : public sans compte. Chaque chiffre est calculé, jamais saisi. */
 export const PassportResponse = z.object({
   user: z.object({
+    /** Identifiant du compte : cible d'un signalement (POST /reports, targetType « user »). */
+    id: z.uuid(),
     handle: z.string(),
     displayName: z.string(),
     avatarUrl: z.string().nullable(),
