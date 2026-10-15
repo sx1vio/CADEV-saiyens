@@ -22,7 +22,7 @@ export async function loginAs(browser, login, query = '') {
   page.on('console', (m) => m.type() === 'error' && console.log(`[${login}] console: ${m.text()}`));
   await page.goto(`${WEB}/api/v1/auth/github?login=${login}`);
   await page.waitForLoadState('networkidle');
-  if (query) await page.goto(`${WEB}/${query}`);
+  if (query) await page.goto(`${WEB}/${query}`, { waitUntil: 'domcontentloaded' });
   return { ctx, page };
 }
 
