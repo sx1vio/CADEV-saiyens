@@ -124,7 +124,39 @@ describe('écran Systalink et impact (Y1, Y2)', () => {
       clientId: randomUUID(),
       body: 'Ajoute un start_period au healthcheck.',
     }).expect(201);
+    // Moussa ne parle qu'anglais : sa réponse validée à une question en français est un échange
+    // entre langues. Une contribution vérifiée par GitHub dans une salle publique de Moussa.
+    const moussa = await prisma.user.update({
+      where: { handle: handle('moussa') },
+      data: { languages: ['en'] },
+    });
     await post('awa', `/api/v1/answers/${a.body.id}/accept`).expect(200);
+    const room = await prisma.room.create({
+      data: {
+        ownerId: moussa.id,
+        name: `Impact ${suffix}`,
+        description: 'Salle publique pour le test d’impact.',
+        inviteCode: `imp${suffix}`,
+      },
+    });
+    await prisma.task.create({
+      data: {
+        roomId: room.id,
+        title: 'Contribution vérifiée',
+        status: 'done',
+        assigneeId: moussa.id,
+        verification: 'github_verified',
+      },
+    });
+    await prisma.task.create({
+      data: {
+        roomId: room.id,
+        title: 'Contribution déclarée',
+        status: 'done',
+        assigneeId: moussa.id,
+        verification: 'declared',
+      },
+    });
     await post('demo', '/api/v1/questions', {
       clientId: randomUUID(),
       title: `Démo ${suffix} : question d'un compte de démonstration`,
@@ -139,10 +171,14 @@ describe('écran Systalink et impact (Y1, Y2)', () => {
     expect(res.body.questionsAsked).toBeGreaterThanOrEqual(1);
     expect(res.body.questionsResolved).toBeGreaterThanOrEqual(1);
     expect(res.body.medianFirstResponseMinutes).toEqual(expect.any(Number));
-    expect(res.body).toMatchObject({
-      verifiedContributions: expect.any(Number),
-      crossLanguageAnswers: expect.any(Number),
+    // Valeurs réelles, pas seulement des types (BUG-032) : nos données comptent, la tâche
+    // « déclarée » non ; un aidant sans langue déclarée ne compte pas entre langues.
+    expect(res.body.verifiedContributions).toBeGreaterThanOrEqual(1);
+    expect(res.body.crossLanguageAnswers).toBeGreaterThanOrEqual(1);
+    const verified = await prisma.task.count({
+      where: { verification: 'github_verified', status: 'done' },
     });
+    expect(res.body.verifiedContributions).toBeLessThanOrEqual(verified);
     // Le compte de démo et sa question existaient avant le calcul : ils n'y sont pas comptés.
     const [users, questions] = await Promise.all([
       prisma.user.count({ where: { deletedAt: null } }),
