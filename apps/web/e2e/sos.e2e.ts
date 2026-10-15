@@ -35,11 +35,8 @@ test('poser, répondre avec un second compte, valider', async ({ browser }) => {
   await expect(helper.getByLabel('Ta réponse')).toHaveValue('');
   await expect(helper.getByText('1 réponse')).toBeVisible();
 
-  // 3. L'auteur voit la réponse (temps réel ou rechargement) et la valide
-  await expect(async () => {
-    await asker.reload();
-    await expect(asker.locator('p', { hasText: answer })).toBeVisible({ timeout: 2_000 });
-  }).toPass({ timeout: 15_000 });
+  // 3. L'auteur voit la réponse arriver en temps réel (Y8, SSE), sans recharger la page
+  await expect(asker.locator('p', { hasText: answer })).toBeVisible({ timeout: 15_000 });
   await asker.getByRole('button', { name: "M'a débloqué" }).click();
   await asker.getByRole('dialog').getByRole('button', { name: 'Confirmer' }).click();
 
