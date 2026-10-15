@@ -19,10 +19,16 @@ test('poser, répondre avec un second compte, valider', async ({ browser }) => {
   await ask.getByRole('button', { name: 'Docker', exact: true }).click();
   await ask.getByRole('button', { name: 'Continuer' }).click();
   await ask.getByLabel('Ce que tu veux faire').fill("Servir l'API Node derrière nginx.");
+  // La page de la question s'abonne à son sujet SSE (Y8) : on attend l'ouverture du flux avant
+  // la réponse, sinon une réponse publiée avant l'abonnement n'arrive pas (BUG-033).
+  const subscribed = asker.waitForRequest((r) =>
+    /\/api\/v1\/events\?.*topics=[^&]*question%3A/.test(r.url()),
+  );
   await ask.getByRole('button', { name: 'Publier ma question' }).click();
 
   await expect(asker).toHaveURL(/\/sos\/[0-9a-f-]{36}$/);
   const questionUrl = new URL(asker.url()).pathname;
+  expect((await subscribed).url()).toContain(`question%3A${questionUrl.split('/').pop()}`);
   await expect(asker.getByRole('heading', { name: title })).toBeVisible();
   await expect(asker.getByText('Ouverte', { exact: true })).toBeVisible();
 
@@ -35,11 +41,8 @@ test('poser, répondre avec un second compte, valider', async ({ browser }) => {
   await expect(helper.getByLabel('Ta réponse')).toHaveValue('');
   await expect(helper.getByText('1 réponse')).toBeVisible();
 
-  // 3. L'auteur voit la réponse (temps réel ou rechargement) et la valide
-  await expect(async () => {
-    await asker.reload();
-    await expect(asker.locator('p', { hasText: answer })).toBeVisible({ timeout: 2_000 });
-  }).toPass({ timeout: 15_000 });
+  // 3. L'auteur voit la réponse arriver en temps réel (Y8, SSE), sans recharger la page
+  await expect(asker.locator('p', { hasText: answer })).toBeVisible({ timeout: 15_000 });
   await asker.getByRole('button', { name: "M'a débloqué" }).click();
   await asker.getByRole('dialog').getByRole('button', { name: 'Confirmer' }).click();
 

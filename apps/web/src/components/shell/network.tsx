@@ -1,6 +1,8 @@
 import {
   CloudOff,
+  GitMerge,
   MessageSquareText,
+  Pencil,
   RefreshCw,
   RotateCw,
   Signal,
@@ -132,6 +134,8 @@ const TYPE_ICON = {
   answer: MessageSquareText,
   message: MessageSquareText,
   'take-task': Signal,
+  'edit-question': Pencil,
+  'edit-answer': Pencil,
 };
 
 function preview(item: QueueItem) {
@@ -144,6 +148,10 @@ function preview(item: QueueItem) {
       return `${item.payload.roomName} · ${item.payload.body.slice(0, 60)}`;
     case 'take-task':
       return item.payload.taskTitle;
+    case 'edit-question':
+      return item.payload.title;
+    case 'edit-answer':
+      return item.payload.questionTitle;
   }
 }
 
@@ -153,6 +161,7 @@ export function SyncCenter() {
   const lang = useLang();
   const open = useUI((s) => s.syncOpen);
   const setOpen = useUI((s) => s.setSync);
+  const setConflict = useUI((s) => s.setConflict);
   const queue = useNetwork((s) => s.queue);
   const sim = useNetwork((s) => s.sim);
   const setSim = useNetwork((s) => s.setSim);
@@ -240,7 +249,20 @@ export function SyncCenter() {
                       )}
                     </div>
                     <div className="flex shrink-0 gap-1">
-                      {item.status === 'error' && (
+                      {item.conflict && (
+                        <Button
+                          size="xs"
+                          variant="pill"
+                          icon={<GitMerge />}
+                          onClick={() => {
+                            setOpen(false);
+                            setConflict(item.id);
+                          }}
+                        >
+                          {t('question.editResolve')}
+                        </Button>
+                      )}
+                      {item.status === 'error' && !item.conflict && (
                         <Button
                           size="icon-sm"
                           variant="ghost"

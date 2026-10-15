@@ -34,6 +34,7 @@ import {
   type Passport,
   type Question,
   type QuestionListItem,
+  type QuestionText,
   type Report,
   type Room,
   type RoomListItem,
@@ -417,6 +418,44 @@ export class Engine {
     m.claimedAt = iso(now);
     this.notify(q.authorId, 'claim', { questionId, helper: this.user(helperId).displayName }, now);
     return m;
+  }
+
+  /** O4 : modifier sa question ; refus si le texte a changé depuis `baseVersion`. */
+  editQuestion(questionId: ID, actorId: ID, text: QuestionText, baseVersion: number) {
+    const q = this.s.questions.find((x) => x.id === questionId && !x.removedAt);
+    if (!q) throw new DomainError('not-found');
+    if (q.authorId !== actorId) throw new DomainError('forbidden');
+    const version = q.version ?? 1;
+    if (version !== baseVersion)
+      throw new DomainError('version_conflict', undefined, {
+        kind: 'question',
+        version,
+        title: q.title,
+        body: q.body,
+        codeSnippet: q.codeSnippet,
+      });
+    q.title = text.title.trim();
+    q.body = maskSecrets(text.body).text;
+    q.codeSnippet = maskSecrets(text.codeSnippet).text;
+    q.version = version + 1;
+    return { title: q.title, body: q.body, codeSnippet: q.codeSnippet, version: q.version };
+  }
+
+  /** O4 : modifier sa réponse ; refus si le texte a changé depuis `baseVersion`. */
+  editAnswer(answerId: ID, actorId: ID, body: string, baseVersion: number) {
+    const a = this.s.answers.find((x) => x.id === answerId && !x.removedAt);
+    if (!a) throw new DomainError('not-found');
+    if (a.authorId !== actorId) throw new DomainError('forbidden');
+    const version = a.version ?? 1;
+    if (version !== baseVersion)
+      throw new DomainError('version_conflict', undefined, {
+        kind: 'answer',
+        version,
+        body: a.body,
+      });
+    a.body = maskSecrets(body).text;
+    a.version = version + 1;
+    return { body: a.body, version: a.version };
   }
 
   answer(questionId: ID, authorId: ID, body: string, clientId: ID, now: number): Answer {

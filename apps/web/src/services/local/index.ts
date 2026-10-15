@@ -503,6 +503,12 @@ export const localApi: DevHubApi = {
   async answer(questionId, body, clientId) {
     return write((e, me) => e.answer(questionId, me.id, body, clientId, Date.now()));
   },
+  async editQuestion(questionId, text, baseVersion) {
+    return write((e, me) => e.editQuestion(questionId, me.id, text, baseVersion));
+  },
+  async editAnswer(answerId, body, baseVersion) {
+    return write((e, me) => e.editAnswer(answerId, me.id, body, baseVersion));
+  },
   async vote(answerId) {
     await write((e, me) => e.vote(answerId, me.id, Date.now()));
   },

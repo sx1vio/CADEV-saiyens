@@ -303,3 +303,78 @@ describe('notifications, statut, modération', () => {
     });
   });
 });
+
+describe('modification et conflit de version (O4)', () => {
+  const opId = '7f1c2a9e-3b4d-4e5f-8a6b-1c2d3e4f5a6b';
+
+  it('une modification hors ligne part par /sync avec sa version de départ', () => {
+    expect(
+      m.syncAction(
+        opId,
+        {
+          type: 'edit-question',
+          payload: {
+            questionId: 'q1',
+            baseVersion: 2,
+            title: 'Titre',
+            body: 'Texte',
+            codeSnippet: '',
+          },
+        },
+        'fr',
+      ),
+    ).toEqual({
+      opId,
+      type: 'question.update',
+      payload: { questionId: 'q1', title: 'Titre', body: 'Texte', codeSnippet: null },
+      baseVersion: 2,
+    });
+    expect(
+      m.syncAction(
+        opId,
+        {
+          type: 'edit-answer',
+          payload: {
+            answerId: 'a1',
+            questionId: 'q1',
+            questionTitle: 'T',
+            body: 'R',
+            baseVersion: 3,
+          },
+        },
+        'fr',
+      ),
+    ).toEqual({
+      opId,
+      type: 'answer.update',
+      payload: { answerId: 'a1', body: 'R' },
+      baseVersion: 3,
+    });
+  });
+
+  it('un conflit de /sync garde la version en ligne pour l’écran de conflit', () => {
+    expect(
+      m.syncOutcome({
+        opId,
+        status: 'conflict',
+        httpStatus: 409,
+        data: { server: { version: 4, title: 'En ligne', body: 'Corps', codeSnippet: null } },
+      }),
+    ).toEqual({
+      opId,
+      outcome: 'error',
+      code: 'version_conflict',
+      server: { kind: 'question', version: 4, title: 'En ligne', body: 'Corps', codeSnippet: '' },
+    });
+  });
+
+  it('version serveur : question, réponse, ou rien d’exploitable', () => {
+    expect(m.serverText({ version: 2, body: 'Réponse' })).toEqual({
+      kind: 'answer',
+      version: 2,
+      body: 'Réponse',
+    });
+    expect(m.serverText(undefined)).toBeUndefined();
+    expect(m.serverText({ body: 'sans version' })).toBeUndefined();
+  });
+});

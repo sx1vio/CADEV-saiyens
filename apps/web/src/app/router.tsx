@@ -22,6 +22,9 @@ const ShortcutsDialog = reactLazy(() =>
 const SyncCenter = reactLazy(() =>
   import('@/components/shell/network').then((m) => ({ default: m.SyncCenter })),
 );
+const ConflictSheet = reactLazy(() =>
+  import('@/components/EditText').then((m) => ({ default: m.ConflictSheet })),
+);
 const AskDialog = reactLazy(() =>
   import('@/components/AskDialog').then((m) => ({ default: m.AskDialog })),
 );
@@ -42,6 +45,7 @@ function Overlays() {
   const shortcuts = useOnceTrue(useUI((s) => s.shortcutsOpen));
   const sync = useOnceTrue(useUI((s) => s.syncOpen));
   const ask = useOnceTrue(useUI((s) => s.askOpen));
+  const conflict = useUI((s) => s.conflictId) !== null;
   const tour = useUI((s) => s.tourStep) !== null;
   return (
     <Suspense fallback={null}>
@@ -49,6 +53,7 @@ function Overlays() {
       {shortcuts && <ShortcutsDialog />}
       {sync && <SyncCenter />}
       {user && ask && <AskDialog />}
+      {user && conflict && <ConflictSheet />}
       {user && tour && <Tour />}
     </Suspense>
   );

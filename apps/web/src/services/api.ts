@@ -35,6 +35,7 @@ import type {
   Answer,
   FeedbackRequest,
   OfflineAction,
+  QuestionText,
   SyncOutcome,
 } from './types';
 
@@ -80,6 +81,22 @@ export interface DevHubApi {
   similarQuestions(text: string, tagIds: ID[]): Promise<QuestionListItem[]>;
   createQuestion(input: NewQuestionInput, clientId: ID): Promise<Question>;
   answer(questionId: ID, body: string, clientId: ID): Promise<Answer>;
+  /**
+   * O4 — PATCH /questions/:id et /answers/:id : modifier son texte à partir de `baseVersion`.
+   * Si le texte a changé en ligne entre-temps : `DomainError('version_conflict')` avec `server`.
+   */
+  editQuestion(
+    questionId: ID,
+    text: QuestionText,
+    baseVersion: number,
+    clientId: ID,
+  ): Promise<QuestionText & { version: number }>;
+  editAnswer(
+    answerId: ID,
+    body: string,
+    baseVersion: number,
+    clientId: ID,
+  ): Promise<{ body: string; version: number }>;
   vote(answerId: ID): Promise<void>;
   accept(answerId: ID): Promise<{ gained: number; capped: boolean }>;
   claim(questionId: ID): Promise<void>;

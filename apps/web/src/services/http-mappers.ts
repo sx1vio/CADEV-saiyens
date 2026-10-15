@@ -53,6 +53,7 @@ import type {
   RoomListItem,
   RoomMessage,
   RoomState,
+  ServerText,
   ServiceStatus,
   SkillView,
   SyncOutcome,
@@ -239,6 +240,7 @@ export const answer = (questionId: string, a: ApiAnswer): AnswerView => ({
   createdAt: a.createdAt,
   author: summary(a.author),
   votedByMe: false,
+  version: a.version,
 });
 
 export function questionDetail(q: ApiQuestionDetail): QuestionDetail {
@@ -252,6 +254,7 @@ export function questionDetail(q: ApiQuestionDetail): QuestionDetail {
     aiStatus: AI_STATUS[q.aiStatus],
     aiHintSource: q.aiStatus === 'done' ? 'ai' : null,
     acceptedAnswerId: q.acceptedAnswerId,
+    version: q.version,
     claimedBy: claim ? claim.helper : null,
     answers: q.answers.map((a) => answer(q.id, a)),
     matches,
@@ -684,7 +687,42 @@ export function syncAction(opId: string, a: OfflineAction, lang: 'fr' | 'en'): S
       };
     case 'take-task':
       return { opId, type: 'task.take', payload: { taskId: a.payload.taskId } };
+    case 'edit-question': {
+      const { questionId, title, body, codeSnippet, baseVersion } = a.payload;
+      return {
+        opId,
+        type: 'question.update',
+        payload: { questionId, title, body, codeSnippet: codeSnippet || null },
+        baseVersion,
+      };
+    }
+    case 'edit-answer':
+      return {
+        opId,
+        type: 'answer.update',
+        payload: { answerId: a.payload.answerId, body: a.payload.body },
+        baseVersion: a.payload.baseVersion,
+      };
   }
+}
+
+/**
+ * O4 : le texte en ligne joint à un 409 version_conflict (`server` du problem+json, ou
+ * `data.server` d'un résultat de /sync). Une question a un titre ; une réponse, seulement un corps.
+ */
+export function serverText(raw: unknown): ServerText | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const s = raw as Record<string, unknown>;
+  if (typeof s.version !== 'number' || typeof s.body !== 'string') return undefined;
+  if (typeof s.title === 'string')
+    return {
+      kind: 'question',
+      version: s.version,
+      title: s.title,
+      body: s.body,
+      codeSnippet: typeof s.codeSnippet === 'string' ? s.codeSnippet : '',
+    };
+  return { kind: 'answer', version: s.version, body: s.body };
 }
 
 export const syncOutcome = (r: SyncResult): SyncOutcome =>
@@ -692,4 +730,11 @@ export const syncOutcome = (r: SyncResult): SyncOutcome =>
     ? { opId: r.opId, outcome: 'done' }
     : r.status === 'skipped'
       ? { opId: r.opId, outcome: 'retry', code: r.error?.code }
-      : { opId: r.opId, outcome: 'error', code: r.error?.code ?? r.status };
+      : r.status === 'conflict'
+        ? {
+            opId: r.opId,
+            outcome: 'error',
+            code: 'version_conflict',
+            server: serverText((r.data as { server?: unknown } | undefined)?.server),
+          }
+        : { opId: r.opId, outcome: 'error', code: r.error?.code ?? r.status };
