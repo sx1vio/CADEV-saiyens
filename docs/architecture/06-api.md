@@ -89,17 +89,16 @@ Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm
 
 ### Authentification et compte (`identity`)
 
-| Méthode et chemin                                      | Accès  | Rôle                                                                                                               | US            |
-| ------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------ | ------------- |
-| `GET /auth/github`                                     | Pub    | Redirection OAuth (paramètre `state` signé, PKCE)                                                                  | A1            |
-| `GET /auth/github/callback`                            | Pub    | Création ou connexion du compte, cookie de session, import du profil en tâche de fond                              | A1, PR1       |
-| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`) | Pub    | Idem                                                                                                               | A2 (P1)       |
-| `POST /auth/logout`                                    | Co, Id | Révoque la session                                                                                                 | —             |
-| `GET /me`                                              | Co     | Mon profil, mes préférences et mes signaux de confiance (PR11)                                                     | PR1           |
-| `PATCH /me`                                            | Co, Id | Fuseau, disponibilités, langues, « je cherche », « je peux aider » et « je veux apprendre », langue de l'interface | PR1, PR10, T3 |
-| `PATCH /me/privacy`                                    | Co, Id | Confidentialité par champ, mode non listé                                                                          | PR14          |
-| `POST /me/code-of-conduct`                             | Co, Id | Acceptation du code de conduite                                                                                    | M3            |
-| `DELETE /me`                                           | Co, Id | Suppression du compte (anonymisation)                                                                              | A3            |
+| Méthode et chemin                                      | Accès  | Rôle                                                                                                                                                                                                                      | US      |
+| ------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `GET /auth/github`                                     | Pub    | Redirection OAuth (paramètre `state` signé, PKCE)                                                                                                                                                                         | A1      |
+| `GET /auth/github/callback`                            | Pub    | Création ou connexion du compte, cookie de session, import du profil en tâche de fond                                                                                                                                     | A1, PR1 |
+| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`) | Pub    | Idem                                                                                                                                                                                                                      | A2 (P1) |
+| `POST /auth/logout`                                    | Co, Id | Révoque la session                                                                                                                                                                                                        | —       |
+| `GET /me`                                              | Co     | Mon profil, mes préférences et mes signaux de confiance (PR11)                                                                                                                                                            | PR1     |
+| `PATCH /me`                                            | Co, Id | Fuseau, disponibilités, langues, « je cherche », « je peux aider » et « je veux apprendre », langue de l'interface, confidentialité par champ et mode non listé (`privacy`, fusionné avec l'existant) PR1, PR10, T3, PR14 |
+| `POST /me/code-of-conduct`                             | Co, Id | Acceptation du code de conduite                                                                                                                                                                                           | M3      |
+| `DELETE /me`                                           | Co, Id | Suppression du compte (anonymisation)                                                                                                                                                                                     | A3      |
 
 ### Passport et réputation (`passport`, `reputation`)
 
