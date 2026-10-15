@@ -68,6 +68,7 @@ export class PassportReader {
 
     return {
       user: {
+        id: u.id,
         handle: u.handle,
         displayName: u.displayName,
         avatarUrl: u.avatarUrl,
