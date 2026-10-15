@@ -15,7 +15,9 @@ applyTestEnv({
 });
 
 describe('process worker', () => {
-  it('démarre avec tous ses modules et enregistre ses jobs', async () => {
+  // Démarrage complet (tous les modules, pg-boss, files) : jusqu'à 25 s quand toute la suite
+  // tourne en parallèle sur une base neuve (BUG-029). Délai propre à ce test.
+  it('démarre avec tous ses modules et enregistre ses jobs', { timeout: 60_000 }, async () => {
     const app = await NestFactory.createApplicationContext(WorkerModule, { logger: false });
     try {
       expect(app.get(JobQueue)).toBeDefined();
