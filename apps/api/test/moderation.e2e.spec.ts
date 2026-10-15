@@ -141,6 +141,24 @@ describe('signalement et modération (M1, M4)', () => {
     expect(twice.body.code).toBe('report.already_handled');
   });
 
+  it('journal d’audit (M4) : administrateurs seulement, filtrable par contenu', async () => {
+    await get('/api/v1/admin/audit', 'kwame').expect(403);
+    const res = await get(
+      `/api/v1/admin/audit?targetType=answer&targetId=${answerId}`,
+      'admin',
+    ).expect(200);
+    expect(res.body.data).toEqual([
+      expect.objectContaining({
+        action: 'hide_content',
+        targetType: 'answer',
+        targetId: answerId,
+        reason: 'Spam publicitaire',
+        admin: expect.objectContaining({ handle: handle('admin') }),
+      }),
+    ]);
+    expect(res.body.page).toEqual({ hasMore: false, nextCursor: null });
+  });
+
   it('rétablir : la réponse revient ; un compte signalé ne se masque pas', async () => {
     await post('admin', `/api/v1/admin/reports/${reportId}/action`, {
       action: 'restore',

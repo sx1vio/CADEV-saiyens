@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type { AdminReportView, ListReportsQuery, ListReportsResponse } from '@devhub/contracts';
+import type {
+  AdminReportView,
+  ListAuditQuery,
+  ListAuditResponse,
+  ListReportsQuery,
+  ListReportsResponse,
+} from '@devhub/contracts';
 import { afterCursor, decodeCursor, encodeCursor } from '../../../infrastructure/http/cursor';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type { ReportTargetType } from '../domain/moderation';
@@ -51,6 +57,39 @@ export class ReportReader {
     const hasMore = rows.length > query.limit;
     return {
       data,
+      page: {
+        hasMore,
+        nextCursor:
+          hasMore && last ? encodeCursor({ at: last.createdAt.toISOString(), id: last.id }) : null,
+      },
+    };
+  }
+
+  /** M4 : journal des décisions, append-only (admin_actions). */
+  async audit(query: ListAuditQuery): Promise<ListAuditResponse> {
+    const rows = await this.prisma.adminAction.findMany({
+      where: {
+        ...(query.targetType ? { targetType: query.targetType } : {}),
+        ...(query.targetId ? { targetId: query.targetId } : {}),
+        ...afterCursor(decodeCursor(query.cursor)),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: query.limit + 1,
+      include: { admin: author },
+    });
+    const page = rows.slice(0, query.limit);
+    const last = page.at(-1);
+    const hasMore = rows.length > query.limit;
+    return {
+      data: page.map((r) => ({
+        id: r.id,
+        action: r.action,
+        targetType: r.targetType,
+        targetId: r.targetId,
+        reason: r.reason,
+        admin: r.admin,
+        createdAt: r.createdAt.toISOString(),
+      })),
       page: {
         hasMore,
         nextCursor:
