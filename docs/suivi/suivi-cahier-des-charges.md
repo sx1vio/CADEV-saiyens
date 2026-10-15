@@ -35,10 +35,10 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
-| P0        | 21     | 10      | 11       | 0       | 48 %        | 100 %      |
-| P1        | 14     | 1       | 4        | 9       | 7 %         | 36 %       |
+| P0        | 21     | 19      | 2        | 0       | 90 %        | 100 %      |
+| P1        | 14     | 2       | 3        | 9       | 14 %        | 36 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **11**  | **15**   | **11**  | **30 %**    | **70 %**   |
+| **Total** | **37** | **21**  | **5**    | **11**  | **57 %**    | **70 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -47,14 +47,14 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Module                  | Exigences | Terminé | En cours | Avancement                                        |
 | ----------------------- | --------- | ------- | -------- | ------------------------------------------------- |
 | Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                              |
-| Profil et Passport (PR) | 4         | 1       | 2        | `█████░░░░░` PR1 fait; PR2, PR3 en cours          |
+| Profil et Passport (PR) | 4         | 3       | 0        | `████████░░` PR1, PR2, PR3 fait                   |
 | SOS Dev (S)             | 7         | 3       | 1        | `█████░░░░░` S1, S2, S4 fait; S3 en cours         |
-| Salles de projet (R)    | 8         | 1       | 5        | `████░░░░░░` R7 fait; R1, R2, R3, R4, R8 en cours |
-| Découverte (D)          | 3         | 0       | 2        | `███░░░░░░░` D1, D2 en cours                      |
+| Salles de projet (R)    | 8         | 5       | 1        | `███████░░░` R1, R2, R3, R7, R8 fait; R4 en cours |
+| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                          |
 | Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                          |
 | Hors ligne (O)          | 4         | 3       | 1        | `█████████░` O1, O2, O3 fait; O4 en cours         |
-| Systalink et impact (Y) | 4         | 0       | 2        | `██░░░░░░░░` Y1, Y2 en cours                      |
-| Modération (M)          | 1         | 0       | 1        | `█████░░░░░` M1 en cours                          |
+| Systalink et impact (Y) | 4         | 1       | 1        | `████░░░░░░` Y1 fait; Y2 en cours                 |
+| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                              |
 | Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                          |
 
 ### Par personne (exigences v3 et setup ouverts)
@@ -109,12 +109,12 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Profil et Passport (PR)
 
-| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence       | Commentaire                                                                                                                         |
-| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé`  | Caleb       | #99 (fusionnée) | Job `github.import-profile`, au moins 3 compétences                                                                                 |
-| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `En cours` | Caleb       | PR #113         | `GET /u/:handle` public : identité filtrée (PR14), compétences, statistiques calculées, projets publics ; reste l’aperçu Open Graph |
-| PR3 | #19   | « Voir les preuves »                         | P0   | `En cours` | Caleb       | PR #113, #102   | Chaque score : G + P ; preuves dans `GET /u/:handle/proofs`                                                                         |
-| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire`  | Caleb       |                 |                                                                                                                                     |
+| ID  | Issue | Exigence                                     | Prio | Statut    | Responsable | Référence       | Commentaire                                                                              |
+| --- | ----- | -------------------------------------------- | ---- | --------- | ----------- | --------------- | ---------------------------------------------------------------------------------------- |
+| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé` | Caleb       | #99 (fusionnée) | Job `github.import-profile`, au moins 3 compétences                                      |
+| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé` | Caleb       | PR #113         | Validé en réel le 15 oct. (session C, API et front de main)                              |
+| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé` | Caleb       | PR #113, #102   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API |
+| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire` | Caleb       |                 |                                                                                          |
 
 ### SOS Dev (S)
 
@@ -130,24 +130,24 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Salles de projet (R)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence     | Commentaire                                                                        |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ------------- | ---------------------------------------------------------------------------------- |
-| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `En cours` | Joachim     | #111          | Dépôt vérifié via GitHub (public, droits d’écriture du créateur), +5 XP si démo    |
-| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `En cours` | Joachim     | PR #112, #113 | Créer, importer les issues, prendre, soumettre avec PR ; aussi via /sync           |
-| R3  | #30   | Demander à rejoindre                     | P0   | `En cours` | Joachim     | PR #111       | Demande, décision par le créateur, notifications ; aussi via /sync                 |
-| R4  | #31   | Fil de discussion par salle              | P1   | `En cours` | Joachim     | PR #112, #113 | Membres seulement, ordre serveur, hors ligne via /sync                             |
-| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |               | Planning : 18 oct.                                                                 |
-| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |               |                                                                                    |
-| R7  | #34   | Lien d'invitation riche                  | P1   | `Terminé`  | Joachim     | PR #111, #122 | Validé le 15 oct. (balises échappées, salle masquée → 404) ; image dédiée avec PR5 |
-| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `En cours` | Joachim     | PR #112, #113 | Clôture par le créateur, +15 XP, contributeur notifié                              |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence     | Commentaire                                                                                                                        |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `Terminé`  | Joachim     | #111          | Validé en réel le 15 oct. (session C, API et front de main) ; essai avec un vrai dépôt quand #7 sera prêt                          |
+| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `Terminé`  | Joachim     | PR #112, #113 | Validé en réel le 15 oct. (session C, API et front de main) : création, prise par un membre, droits vérifiés (403 aux non-membres) |
+| R3  | #30   | Demander à rejoindre                     | P0   | `Terminé`  | Joachim     | PR #111       | Validé en réel le 15 oct. (session C, API et front de main) : demande, notifications, acceptation                                  |
+| R4  | #31   | Fil de discussion par salle              | P1   | `En cours` | Joachim     | PR #112, #113 | Membres seulement, ordre serveur, hors ligne via /sync                                                                             |
+| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |               | Planning : 18 oct.                                                                                                                 |
+| R6  | #33   | Demander un retour ou une revue de code  | P1   | `À faire`  | Joachim     |               |                                                                                                                                    |
+| R7  | #34   | Lien d'invitation riche                  | P1   | `Terminé`  | Joachim     | PR #111, #122 | Validé le 15 oct. (balises échappées, salle masquée → 404) ; image dédiée avec PR5                                                 |
+| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `Terminé`  | Joachim     | PR #112, #113 | Validé en réel le 15 oct. (session C, API et front de main) : clôture, +15 XP                                                      |
 
 ### Découverte (D)
 
-| ID  | Issue | Exigence                   | Prio | Statut     | Responsable | Référence | Commentaire                                                                                                   |
-| --- | ----- | -------------------------- | ---- | ---------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| D1  | #36   | Rechercher devs et projets | P0   | `En cours` | Caleb       | PR #114   | `GET /discover/devs` (stack, fuseau ± 3 h, disponibilité, objectif, pays) et `GET /rooms` ; non listés exclus |
-| D2  | #37   | Classement par pays        | P1   | `En cours` | Caleb       | PR #114   | `GET /leaderboard` : somme du journal XP, démo et non listés exclus, méthode publiée                          |
-| D3  | #38   | Recherche sémantique       | P2   | `À faire`  | Caleb       |           | Gel des P2 le 15                                                                                              |
+| ID  | Issue | Exigence                   | Prio | Statut    | Responsable | Référence | Commentaire                                                 |
+| --- | ----- | -------------------------- | ---- | --------- | ----------- | --------- | ----------------------------------------------------------- |
+| D1  | #36   | Rechercher devs et projets | P0   | `Terminé` | Caleb       | PR #114   | Validé en réel le 15 oct. (session C, API et front de main) |
+| D2  | #37   | Classement par pays        | P1   | `Terminé` | Caleb       | PR #114   | Validé en réel le 15 oct. (session C, API et front de main) |
+| D3  | #38   | Recherche sémantique       | P2   | `À faire` | Caleb       |           | Gel des P2 le 15                                            |
 
 ### Réputation (X)
 
@@ -167,19 +167,19 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Systalink, impact, notifications, stockage (Y)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence | Commentaire                                                                                                                                           |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Y1  | #45   | État des services et dernière sauvegarde | P0   | `En cours` | Emmanuel    | PR #115   | `GET /status` : sondes réelles toutes les 5 min (VPS, base, sauvegarde, SMTP), dernière sauvegarde lue dans le fichier de `backup.sh` ; reste l'écran |
-| Y2  | #46   | Écran d'impact                           | P1   | `En cours` | Emmanuel    | PR #115   | `GET /impact` : devs, questions posées et résolues, médiane de première réponse, pays, salles ; démo exclue                                           |
-| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire`  | Emmanuel    |           | Mailpit prêt en local                                                                                                                                 |
-| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire`  | Emmanuel    |           | Si le produit est accepté (#2)                                                                                                                        |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence     | Commentaire                                                                                                                        |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Y1  | #45   | État des services et dernière sauvegarde | P0   | `Terminé`  | Emmanuel    | PR #115       | Validé en réel le 15 oct. (session C, API et front de main) : sondes réelles ; sauvegarde et e-mail à brancher en production       |
+| Y2  | #46   | Écran d'impact                           | P1   | `En cours` | Emmanuel    | PR #115, #131 | API complète (contributions vérifiées et échanges entre langues, #131) ; affichage des deux tuiles à brancher (BUG-032, session B) |
+| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire`  | Emmanuel    |               | Mailpit prêt en local                                                                                                              |
+| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire`  | Emmanuel    |               | Si le produit est accepté (#2)                                                                                                     |
 
 ### Modération (M) et langues (I)
 
-| ID  | Issue | Exigence                                  | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                                                                 |
-| --- | ----- | ----------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| M1  | #49   | Signaler un contenu, retrait par un admin | P0   | `En cours` | Emmanuel    | PR #115                            | Signaler, file admin, masquer, rétablir, rejeter, annulation des XP sur demande, audit dans `admin_actions` ; reste l'écran |
-| I1  | #50   | Interface en français et en anglais       | P0   | `En cours` | Sylvio      | PR #97, `feat/web-api-integration` | Français par défaut côté front                                                                                              |
+| ID  | Issue | Exigence                                  | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                                                        |
+| --- | ----- | ----------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| M1  | #49   | Signaler un contenu, retrait par un admin | P0   | `Terminé`  | Emmanuel    | PR #115                            | Validé en réel le 15 oct. (session C, API et front de main) : signalement, retrait par un admin, 404 public, audit |
+| I1  | #50   | Interface en français et en anglais       | P0   | `En cours` | Sylvio      | PR #97, `feat/web-api-integration` | Français par défaut côté front                                                                                     |
 
 ## Propositions v3.1
 
@@ -201,7 +201,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À faire`  | Joachim                       |                                                                                           |
 | S11  | #64   | Statut « Je m'en occupe »                        | MVP+      | `En cours` | Florent                       | PR #108 (régime froid, « Je m'en occupe »)                                                |
 | O5   | #65   | Simulateur de réseau intégré                     | MVP+      | `En cours` | Sylvio                        | PR #97 (`?net=offline\|2g`)                                                               |
-| R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `En cours` | Joachim                       | PR #112, #113 (PR fusionnée + auteur = assigné ; nouvel essai si GitHub est indisponible) |
+| R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `Terminé`  | Joachim                       | PR #112, #113 (PR fusionnée + auteur = assigné ; nouvel essai si GitHub est indisponible) |
 | X5   | #67   | Page publique « Comment marchent les Proof XP »  | MVP+      | `En cours` | Caleb                         | PR #102 (`GET /rules/xp`)                                                                 |
 | Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `À faire`  | Sylvio                        |                                                                                           |
 | M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                                                                           |
@@ -226,7 +226,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | Y5   | #88   | Page de statut avec historique                   | P1        | `À faire`  | Emmanuel                      |                                                                                           |
 | Y7   | #89   | Notifications Telegram et Web Push               | P1        | `P2`       | Joachim                       |                                                                                           |
 | Y9   | #90   | Écran d'impact enrichi                           | P1        | `À faire`  | Caleb                         |                                                                                           |
-| M4   | #91   | Journal d'audit de la modération                 | P1        | `En cours` | Emmanuel                      | PR #115, `feat/admin-audit`                                                               |
+| M4   | #91   | Journal d'audit de la modération                 | P1        | `En cours` | Emmanuel                      | PR #115, #129                                                                             |
 | T3   | #92   | Accueil personnalisé en une question             | P1        | `P2`       | Sylvio                        |                                                                                           |
 | T4   | #93   | Thème sombre                                     | P1        | `À faire`  | Sylvio                        |                                                                                           |
 
