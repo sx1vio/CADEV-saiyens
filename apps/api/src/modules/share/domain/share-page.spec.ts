@@ -46,6 +46,15 @@ describe('renderSharePage (R7, ADR-0012)', () => {
   });
 });
 
+describe('renderSharePage : motifs de remplacement', () => {
+  it("un nom contenant $' ou $& ne recopie pas le document dans la page", () => {
+    const html = renderSharePage(INDEX, { ...meta, title: "Salle $' $& $` $1" });
+    expect(html).toContain('<title>Salle $&#39; $&amp; $` $1</title>');
+    expect(html.match(/<div id="root"><\/div>/g)).toHaveLength(1);
+    expect(html.match(/<script type="module"/g)).toHaveLength(1);
+  });
+});
+
 describe('oneLine', () => {
   it('aplatit et coupe au mot', () => {
     expect(oneLine('  Paiements\n mobile   money ', 100)).toBe('Paiements mobile money');

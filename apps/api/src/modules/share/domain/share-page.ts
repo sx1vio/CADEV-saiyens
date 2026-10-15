@@ -38,7 +38,7 @@ export function renderSharePage(indexHtml: string, meta: ShareMeta): string {
   const tags = [
     `<title>${escape(meta.title)}</title>`,
     `<meta name="description" content="${escape(meta.description)}" />`,
-    `<meta property="og:type" content="${meta.type}" />`,
+    `<meta property="og:type" content="${escape(meta.type)}" />`,
     `<meta property="og:site_name" content="DevHub Africa" />`,
     `<meta property="og:title" content="${escape(meta.title)}" />`,
     `<meta property="og:description" content="${escape(meta.description)}" />`,
@@ -47,5 +47,7 @@ export function renderSharePage(indexHtml: string, meta: ShareMeta): string {
     `<meta name="twitter:card" content="summary" />`,
     `<link rel="canonical" href="${escape(meta.url)}" />`,
   ].join('\n    ');
-  return stripped.replace(/<\/head>/i, `    ${tags}\n  </head>`);
+  // Remplacement par fonction : une chaîne de remplacement interpréterait `$'`, `$\``, `$&`
+  // venus d'un nom de salle ou d'une bio, et recopierait du HTML brut dans un attribut.
+  return stripped.replace(/<\/head>/i, () => `    ${tags}\n  </head>`);
 }
