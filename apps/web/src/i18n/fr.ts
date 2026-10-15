@@ -44,6 +44,7 @@ const fr = {
     or: 'ou',
     new: 'Nouveau',
     reportTitle: 'Signaler ce contenu',
+    reportUserTitle: 'Signaler ce compte',
     reportReason: 'Pourquoi ?',
     reportPlaceholder: 'Spam, contenu offensant, secret exposé…',
     reportSent: 'Signalement envoyé. Un administrateur va le traiter.',

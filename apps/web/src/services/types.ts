@@ -364,6 +364,8 @@ export interface Passport {
   /** PR8 : nombre d'événements d'entraide par jour, 26 semaines */
   heatmap: { date: string; count: number }[];
   countryRank: number | null;
+  /** Identifiant interne du compte (UUID en mode http) : cible d'un signalement (M1). */
+  accountId: ID;
 }
 
 export interface RoomListItem extends Room {

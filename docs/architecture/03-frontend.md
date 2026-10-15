@@ -172,7 +172,7 @@ Les services de l'écosystème sans serveur (communautés, emplois, apprendre, c
 
 L'implémentation `http` (`services/http.ts`) est un **adaptateur** : elle appelle les endpoints de [06-api.md](06-api.md) et convertit les réponses (`@devhub/contracts`) vers les types du front dans `services/http-mappers.ts` (fonctions pures, testées avec Vitest). Conventions :
 
-- un utilisateur est identifié par son **handle** (l'API n'expose pas l'UUID des autres comptes), une étiquette par son **slug** ;
+- un utilisateur est identifié par son **handle**, une étiquette par son **slug** ; le seul UUID de compte utilisé est `Passport.accountId` (`user.id` de `GET /u/:handle`), cible d'un signalement de compte ;
 - chaque écriture porte `X-DevHub-Client: web` et une `Idempotency-Key` (le `clientId` quand il existe : une action rejouée par la file hors ligne ne crée pas de doublon) ;
 - une fonction absente de l'API (pair programming, traduction, demande de retour, suppression de compte, connexion démo) lève `feature.unavailable`.
 
@@ -197,7 +197,7 @@ Si le texte a changé en ligne entre-temps, l'API répond `409 version_conflict`
 
 Si le texte change encore pendant ce choix, l'écran se rouvre sur la nouvelle version. Le serveur simulé applique la même règle de version (mode développement).
 
-Limites connues : signaler un **compte** n'est pas possible depuis le front (l'API attend son UUID).
+Signalement (M1, `components/ReportSheet.tsx`) : une question ou une réponse depuis la page de la question, un **compte** depuis son Passport (bouton drapeau, visible pour un autre compte connecté).
 
 ## Tests de bout en bout (Playwright)
 
@@ -208,6 +208,7 @@ Limites connues : signaler un **compte** n'est pas possible depuis le front (l'A
 | `sos.e2e.ts`      | Poser une question (S1), répondre avec un second compte, la réponse arrive chez l'auteur en temps réel, sans rechargement (Y8) ; valider la réponse (S4) ; seul l'auteur voit « M'a débloqué » |
 | `conflict.e2e.ts` | Modifier sa question hors ligne pendant qu'un autre appareil la modifie en ligne : `/sync` répond `conflict`, l'écran compare les deux versions, « Garder la mienne » publie la version 3      |
 | `offline.e2e.ts`  | Rédiger et publier hors ligne (action en file IndexedDB, rien sur le serveur), retour du réseau, `POST /sync` (`applied`), une seule question au final                                         |
+| `report.e2e.ts`   | Signaler un compte depuis son Passport : `POST /reports` avec `targetType: user` et l'UUID du compte ; pas de bouton sur son propre Passport                                                   |
 | `auth.e2e.ts`     | Connexion GitHub avec le service worker actif : la navigation `/api/v1/auth/github` atteint l'API (BUG-028)                                                                                    |
 
 Lancement local (une base dédiée par session, voir [sessions parallèles](../equipe/sessions-paralleles.md)) :

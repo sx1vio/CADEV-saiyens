@@ -890,6 +890,7 @@ export class Engine {
       proofs,
       heatmap,
       countryRank: idx >= 0 ? idx + 1 : null,
+      accountId: u.id,
     };
   }
 
