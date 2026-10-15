@@ -63,7 +63,8 @@ function close() {
   state.source = null;
 }
 
-function open() {
+/** Ouvre (ou rouvre) le flux pour le compte et les sujets suivis. Exporté pour les tests. */
+export function openStream() {
   close();
   const topics = [...state.topics.keys()];
   // Sans compte ni sujet, l'API refuse le flux (401) : rien à ouvrir.
@@ -81,6 +82,14 @@ function open() {
   const refreshFollowed = () => {
     for (const keys of state.topics.values()) for (const k of keys) invalidate(k);
   };
+  // BUG-033 : le serveur ne rejoue que les notifications, pas les événements publics. Ce qui
+  // s'est passé entre le chargement d'une page et l'ouverture du flux (ou pendant une coupure)
+  // serait perdu : à chaque ouverture et reconnexion, on relit les pages suivies et la boîte
+  // de notifications.
+  source.addEventListener('open', () => {
+    refreshFollowed();
+    if (state.userKey) invalidate(`notifications:${state.userKey}`);
+  });
   // Les données publiques ne disent pas toujours quel sujet est concerné (content.hidden) :
   // on rafraîchit les pages suivies, cinq au plus.
   for (const event of PUBLIC_EVENTS) source.addEventListener(event, refreshFollowed);
@@ -98,7 +107,7 @@ function scheduleOpen() {
   if (state.reopen) clearTimeout(state.reopen);
   state.reopen = setTimeout(() => {
     state.reopen = null;
-    open();
+    openStream();
   }, 50);
 }
 
@@ -112,19 +121,21 @@ export function useUserStream(userKey: string | null, onSessionEnded?: () => voi
   }, [userKey, onSessionEnded]);
 }
 
+/** Suit un sujet sous une clé de cache ; renvoie la fonction qui arrête de le suivre. */
+export function followTopic(topic: string, cacheKey: string): () => void {
+  const keys = state.topics.get(topic) ?? new Set<string>();
+  keys.add(cacheKey);
+  state.topics.set(topic, keys);
+  scheduleOpen();
+  return () => {
+    const current = state.topics.get(topic);
+    current?.delete(cacheKey);
+    if (current && current.size === 0) state.topics.delete(topic);
+    scheduleOpen();
+  };
+}
+
 /** La page suit un sujet public tant qu'elle est affichée ; `cacheKey` est rafraîchie à chaque événement. */
 export function useTopic(topic: string | null, cacheKey: string) {
-  useEffect(() => {
-    if (!topic) return;
-    const keys = state.topics.get(topic) ?? new Set<string>();
-    keys.add(cacheKey);
-    state.topics.set(topic, keys);
-    scheduleOpen();
-    return () => {
-      const current = state.topics.get(topic);
-      current?.delete(cacheKey);
-      if (current && current.size === 0) state.topics.delete(topic);
-      scheduleOpen();
-    };
-  }, [topic, cacheKey]);
+  useEffect(() => (topic ? followTopic(topic, cacheKey) : undefined), [topic, cacheKey]);
 }
