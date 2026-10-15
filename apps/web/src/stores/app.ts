@@ -43,6 +43,9 @@ interface UIState {
   setPalette: (o: boolean) => void;
   syncOpen: boolean;
   setSync: (o: boolean) => void;
+  /** O4 : action de la file en conflit de version affichée dans l'écran de conflit. */
+  conflictId: string | null;
+  setConflict: (id: string | null) => void;
   askOpen: boolean;
   setAsk: (o: boolean, prefill?: AskPrefill) => void;
   askPrefill: AskPrefill | null;
@@ -81,6 +84,8 @@ export const useUI = create<UIState>((set) => ({
   setPalette: (paletteOpen) => set({ paletteOpen }),
   syncOpen: false,
   setSync: (syncOpen) => set({ syncOpen }),
+  conflictId: null,
+  setConflict: (conflictId) => set({ conflictId }),
   askOpen: false,
   askPrefill: null,
   setAsk: (askOpen, prefill) => set({ askOpen, askPrefill: askOpen ? (prefill ?? null) : null }),

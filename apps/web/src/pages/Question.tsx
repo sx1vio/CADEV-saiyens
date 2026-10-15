@@ -11,6 +11,7 @@ import {
   Languages,
   Link2,
   MessageSquareText,
+  Pencil,
   Send,
   Sparkles,
   ThumbsUp,
@@ -22,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { Djeli, EmptyState, ErrorState } from '@/components/djeli';
+import { EditSheet, PendingEdit, useQueuedEdit, type EditTarget } from '@/components/EditText';
 import { DemoBadge, errorText, UserLink } from '@/components/domain';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CodeBlock, Markdown } from '@/components/ui/code';
@@ -64,6 +66,7 @@ export default function QuestionPage() {
     handle: string;
     points: number;
   } | null>(null);
+  const [editing, setEditing] = useState<EditTarget | null>(null);
   const [reportOpen, setReportOpen] = useState<{
     type: 'question' | 'answer';
     id: string;
@@ -101,6 +104,9 @@ export default function QuestionPage() {
       !q.answers.some((a) => a.clientId === x.id),
   );
   const myClaim = q.matches.find((m) => m.helperId === me?.id && m.claimedAt);
+  const questionEdit = queue.find(
+    (x) => x.type === 'edit-question' && x.payload.questionId === q.id,
+  );
 
   const onAccept = async (a: AnswerView) => {
     try {
@@ -229,6 +235,8 @@ export default function QuestionPage() {
           </div>
         )}
 
+        <PendingEdit item={questionEdit} />
+
         {/* Énoncé */}
         <Card className="flex flex-col gap-5 p-5 sm:p-6">
           <Markdown>{q.body}</Markdown>
@@ -277,6 +285,16 @@ export default function QuestionPage() {
             >
               {t('common.share')}
             </Button>
+            {isAuthor && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Pencil />}
+                onClick={() => setEditing({ kind: 'question', question: q })}
+              >
+                {t('question.edit')}
+              </Button>
+            )}
             {me && !isAuthor && (
               <Button
                 variant="ghost"
@@ -309,6 +327,11 @@ export default function QuestionPage() {
                 a={a}
                 canAccept={isAuthor && !resolved && a.author.id !== me?.id}
                 canVote={!!me && a.author.id !== me.id}
+                onEdit={
+                  me && a.author.id === me.id
+                    ? () => setEditing({ kind: 'answer', answer: a, questionTitle: q.title })
+                    : undefined
+                }
                 onAccept={() => onAccept(a)}
                 onReport={() =>
                   setReportOpen({ type: 'answer', id: a.id, label: a.body.slice(0, 80) })
@@ -338,6 +361,8 @@ export default function QuestionPage() {
           <AnswerForm q={q} />
         </section>
       </article>
+
+      <EditSheet target={editing} onClose={() => setEditing(null)} />
 
       {/* Moment signature : la validation */}
       <Sheet
@@ -426,16 +451,20 @@ function AnswerItem({
   canAccept,
   canVote,
   onAccept,
+  onEdit,
   onReport,
 }: {
   a: AnswerView;
   canAccept: boolean;
   canVote: boolean;
   onAccept: () => void;
+  /** Auteur de la réponse : modifier son texte (O4). */
+  onEdit?: () => void;
   onReport: () => void;
 }) {
   const { t } = useTranslation();
   const lang = useLang();
+  const pendingEdit = useQueuedEdit('answer', a.id);
   const [confirm, setConfirm] = useState(false);
   const [voted, setVoted] = useState(a.votedByMe);
   const [count, setCount] = useState(a.helpfulCount);
@@ -461,6 +490,11 @@ function AnswerItem({
         <div className="mt-2">
           <Markdown>{a.body}</Markdown>
         </div>
+        {pendingEdit && (
+          <div className="mt-2">
+            <PendingEdit item={pendingEdit} />
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Button
             variant={voted ? 'success' : 'ghost'}
@@ -484,6 +518,11 @@ function AnswerItem({
           >
             {t('question.helpful')} · {count}
           </Button>
+          {onEdit && (
+            <Button variant="ghost" size="sm" icon={<Pencil />} onClick={onEdit}>
+              {t('question.edit')}
+            </Button>
+          )}
           {canAccept && (
             <Button
               variant="success"
