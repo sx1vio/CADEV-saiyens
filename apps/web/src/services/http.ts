@@ -37,7 +37,7 @@ import type {
   UpdateMeRequest,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
-import { claimApiReadCache, clearApiReadCache } from '@/offline/api-cache';
+import { claimApiReadCache, clearApiReadCache, releaseApiReadCache } from '@/offline/api-cache';
 import * as m from './http-mappers';
 import { DomainError, type User } from './types';
 
@@ -108,7 +108,11 @@ async function session(): Promise<User | null> {
       return null;
     throw e;
   });
-  if (!me) return null;
+  if (!me) {
+    // L'API a répondu (pas une coupure) : sans session, on ne laisse rien du dernier compte.
+    await releaseApiReadCache();
+    return null;
+  }
   // Un autre compte sur le même appareil ne relit pas le cache du précédent.
   await claimApiReadCache(me.handle);
   const passport = await get<PassportResponse>(`/u/${me.handle}`).catch(() => null);

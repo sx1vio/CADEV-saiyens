@@ -43,3 +43,23 @@ export async function claimApiReadCache(handle: string): Promise<void> {
     /* stockage indisponible */
   }
 }
+
+/**
+ * Plus de session (expirée, ou déconnexion depuis un autre appareil) : le cache du dernier
+ * compte n'est plus lisible par le visiteur suivant.
+ */
+export async function releaseApiReadCache(): Promise<void> {
+  let owner: string | null = null;
+  try {
+    owner = localStorage.getItem(OWNER_KEY);
+  } catch {
+    /* stockage indisponible */
+  }
+  if (owner === null) return;
+  await clearApiReadCache();
+  try {
+    localStorage.removeItem(OWNER_KEY);
+  } catch {
+    /* stockage indisponible */
+  }
+}
