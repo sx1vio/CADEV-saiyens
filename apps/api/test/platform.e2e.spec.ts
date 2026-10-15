@@ -139,6 +139,10 @@ describe('écran Systalink et impact (Y1, Y2)', () => {
     expect(res.body.questionsAsked).toBeGreaterThanOrEqual(1);
     expect(res.body.questionsResolved).toBeGreaterThanOrEqual(1);
     expect(res.body.medianFirstResponseMinutes).toEqual(expect.any(Number));
+    expect(res.body).toMatchObject({
+      verifiedContributions: expect.any(Number),
+      crossLanguageAnswers: expect.any(Number),
+    });
     // Le compte de démo et sa question existaient avant le calcul : ils n'y sont pas comptés.
     const [users, questions] = await Promise.all([
       prisma.user.count({ where: { deletedAt: null } }),
