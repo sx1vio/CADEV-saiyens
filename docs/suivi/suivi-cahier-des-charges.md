@@ -36,9 +36,9 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 19      | 2        | 0       | 90 %        | 100 %      |
-| P1        | 14     | 2       | 4        | 8       | 14 %        | 43 %       |
+| P1        | 14     | 3       | 3        | 8       | 21 %        | 43 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **21**  | **6**    | **10**  | **57 %**    | **73 %**   |
+| **Total** | **37** | **22**  | **5**    | **10**  | **59 %**    | **73 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -53,7 +53,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                          |
 | Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                          |
 | Hors ligne (O)          | 4         | 3       | 1        | `█████████░` O1, O2, O3 fait; O4 en cours         |
-| Systalink et impact (Y) | 4         | 1       | 1        | `████░░░░░░` Y1 fait; Y2 en cours                 |
+| Systalink et impact (Y) | 4         | 2       | 0        | `█████░░░░░` Y1, Y2 fait                          |
 | Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                              |
 | Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                          |
 
@@ -101,11 +101,11 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Auth (A)
 
-| ID  | Issue | Exigence                   | Prio | Statut     | Responsable | Référence             | Commentaire                                                                                                                                              |
-| --- | ----- | -------------------------- | ---- | ---------- | ----------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A1  | #14   | Connexion avec GitHub      | P0   | `Terminé`  | Caleb       | PR #95                | OAuth avec `state`, cookie HttpOnly, jeton chiffré AES-GCM ; 8 tests e2e. Pas encore testé avec une vraie application OAuth (#7)                         |
-| A2  | #15   | Connexion GitLab ou Google | P1   | `À faire`  | Caleb       |                       | Le front de #97 les affiche « bientôt »                                                                                                                  |
-| A3  | #16   | Supprimer mon compte       | P1   | `En cours` | Caleb       | `feat/delete-account` | API faite : `DELETE /me` avec confirmation du handle, anonymisation transactionnelle, déconnexion partout ; bouton dans les réglages à faire (session B) |
+| ID  | Issue | Exigence                   | Prio | Statut     | Responsable | Référence | Commentaire                                                                                                                                             |
+| --- | ----- | -------------------------- | ---- | ---------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | #14   | Connexion avec GitHub      | P0   | `Terminé`  | Caleb       | PR #95    | OAuth avec `state`, cookie HttpOnly, jeton chiffré AES-GCM ; 8 tests e2e. Pas encore testé avec une vraie application OAuth (#7)                        |
+| A2  | #15   | Connexion GitLab ou Google | P1   | `À faire`  | Caleb       |           | Le front de #97 les affiche « bientôt »                                                                                                                 |
+| A3  | #16   | Supprimer mon compte       | P1   | `En cours` | Caleb       | PR #138   | API validée en réel le 16 oct. (session C : confirmation, déconnexion, Passport 404, contenus conservés) ; bouton dans les réglages à faire (session B) |
 
 ### Profil et Passport (PR)
 
@@ -167,19 +167,19 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Systalink, impact, notifications, stockage (Y)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence     | Commentaire                                                                                                                        |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Y1  | #45   | État des services et dernière sauvegarde | P0   | `Terminé`  | Emmanuel    | PR #115       | Validé en réel le 15 oct. (session C, API et front de main) : sondes réelles ; sauvegarde et e-mail à brancher en production       |
-| Y2  | #46   | Écran d'impact                           | P1   | `En cours` | Emmanuel    | PR #115, #131 | API complète (contributions vérifiées et échanges entre langues, #131) ; affichage des deux tuiles à brancher (BUG-032, session B) |
-| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire`  | Emmanuel    |               | Mailpit prêt en local                                                                                                              |
-| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire`  | Emmanuel    |               | Si le produit est accepté (#2)                                                                                                     |
+| ID  | Issue | Exigence                                 | Prio | Statut    | Responsable | Référence           | Commentaire                                                                                                                              |
+| --- | ----- | ---------------------------------------- | ---- | --------- | ----------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Y1  | #45   | État des services et dernière sauvegarde | P0   | `Terminé` | Emmanuel    | PR #115             | Validé en réel le 15 oct. (session C, API et front de main) : sondes réelles ; sauvegarde et e-mail à brancher en production             |
+| Y2  | #46   | Écran d'impact                           | P1   | `Terminé` | Emmanuel    | PR #115, #131, #141 | Chiffres réels uniquement : contributions vérifiées et échanges entre langues (#131, #141) ; série hebdomadaire masquée faute de données |
+| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire` | Emmanuel    |                     | Mailpit prêt en local                                                                                                                    |
+| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire` | Emmanuel    |                     | Si le produit est accepté (#2)                                                                                                           |
 
 ### Modération (M) et langues (I)
 
-| ID  | Issue | Exigence                                  | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                                                        |
-| --- | ----- | ----------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| M1  | #49   | Signaler un contenu, retrait par un admin | P0   | `Terminé`  | Emmanuel    | PR #115                            | Validé en réel le 15 oct. (session C, API et front de main) : signalement, retrait par un admin, 404 public, audit |
-| I1  | #50   | Interface en français et en anglais       | P0   | `En cours` | Sylvio      | PR #97, `feat/web-api-integration` | Français par défaut côté front                                                                                     |
+| ID  | Issue | Exigence                                  | Prio | Statut     | Responsable | Référence                          | Commentaire                                                                          |
+| --- | ----- | ----------------------------------------- | ---- | ---------- | ----------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
+| M1  | #49   | Signaler un contenu, retrait par un admin | P0   | `Terminé`  | Emmanuel    | PR #115, #137                      | Validé en réel le 15 oct. ; signalement d'un compte depuis le Passport ajouté (#137) |
+| I1  | #50   | Interface en français et en anglais       | P0   | `En cours` | Sylvio      | PR #97, `feat/web-api-integration` | Français par défaut côté front                                                       |
 
 ## Propositions v3.1
 
