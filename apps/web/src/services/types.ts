@@ -303,6 +303,23 @@ export interface Report {
   createdAt: ISODate;
 }
 
+/** M4 : une décision de modération, dans le journal (append-only) de /admin. */
+export interface AuditEntry {
+  id: ID;
+  action: 'hide' | 'restore' | 'dismiss';
+  targetType: Report['targetType'];
+  targetId: ID;
+  reason: string;
+  admin: UserSummary;
+  createdAt: ISODate;
+}
+
+export interface AuditPage {
+  entries: AuditEntry[];
+  /** Curseur de la page suivante, `null` à la fin du journal. */
+  next: string | null;
+}
+
 /* ---------- Vues composées renvoyées par l'API ---------- */
 
 export interface UserSummary {

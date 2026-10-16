@@ -795,6 +795,23 @@ const fr = {
     by: 'Signalé par {{name}} {{time}}',
     forbidden: 'Réservé aux administrateurs.',
     status: { open: 'À traiter', removed: 'Retiré', dismissed: 'Classé' },
+    tabs: { reports: 'Signalements', audit: 'Journal' },
+    target: {
+      question: 'Question',
+      answer: 'Réponse',
+      room: 'Salle',
+      message: 'Message',
+      user: 'Compte',
+    },
+    accountHint:
+      'Un compte ne se retire pas d’ici : classe le signalement ou contacte la personne.',
+    audit: {
+      subtitle: 'Chaque décision reste inscrite : qui, quand, sur quoi et pourquoi.',
+      empty: 'Aucune décision de modération pour le moment.',
+      more: 'Voir plus',
+      action: { hide: 'Contenu retiré', restore: 'Contenu rétabli', dismiss: 'Signalement classé' },
+      by: 'par',
+    },
   },
   settings: {
     title: 'Réglages',
@@ -845,6 +862,7 @@ const fr = {
     'not-found': 'Introuvable.',
     forbidden: "Tu n'as pas les droits pour faire ça.",
     network_offline: 'Cette action a besoin du réseau.',
+    report_target_not_hideable: 'Ce type de signalement ne se retire pas : classe-le sans suite.',
     version_conflict: 'Ce texte a changé en ligne entre-temps : choisis la version à garder.',
     vote_self: 'Tu ne peux pas voter pour ta propre réponse.',
     'vote_too-new': 'Les comptes de moins de 24 h ne peuvent pas encore voter.',

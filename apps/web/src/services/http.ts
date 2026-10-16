@@ -20,6 +20,7 @@ import type {
   ListMessagesResponse,
   ListNotificationsResponse,
   ListQuestionsResponse,
+  ListAuditResponse,
   ListReportsResponse,
   ListRoomsResponse,
   ListTagsResponse,
@@ -446,6 +447,8 @@ export const httpApi: DevHubApi = {
   },
   listReports: async () =>
     (await get<ListReportsResponse>('/admin/reports', { limit: 50 })).data.map(m.report),
+  listAudit: async (cursor) =>
+    m.auditPage(await get<ListAuditResponse>('/admin/audit', { cursor, limit: 20 })),
   handleReport: async (id, remove) => {
     await post(`/admin/reports/${id}/action`, {
       action: remove ? 'hide' : 'dismiss',
