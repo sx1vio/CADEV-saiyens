@@ -140,6 +140,6 @@ Les migrations doivent donc être **compatibles avec la version précédente du 
 - Vidéo de la démo complète enregistrée la veille.
 - Compte de secours prêt et testé.
 - Partage de connexion mobile en cas de Wi-Fi défaillant.
-- Simulateur de réseau (O5) si la coupure réelle se passe mal.
+- Mode avion du téléphone si la coupure du Wi-Fi se passe mal (le simulateur O5 a été retiré le 16 octobre).
 - Image précédente prête au retour arrière (`deploy.sh <SHA>`).
 - Sauvegarde de la veille restaurable en moins de 15 minutes.

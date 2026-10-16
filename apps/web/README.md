@@ -49,7 +49,7 @@ src/
   pages/        un fichier par écran
   platform/     services de l’écosystème (données de démo marquées), actualités, connexion
   services/     contrat d’API du cahier des charges : local (IndexedDB) et http
-  offline/      état réseau, simulateur (?net=offline|2g), file d’attente IndexedDB
+  offline/      état réseau (navigator.onLine), file d’attente IndexedDB
   i18n/         fr.ts (référence) et en.ts (typé : une clé manquante casse le build)
   lib/          règles, détection (étiquettes, secrets, qualité), cache de requêtes
   styles/       tokens (thèmes clair et sombre) et utilitaires

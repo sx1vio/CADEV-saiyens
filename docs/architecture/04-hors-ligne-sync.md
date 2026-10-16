@@ -10,7 +10,7 @@ C'est le chantier **le plus risqué et le plus distinctif** du projet (§10, §1
 | O2  | Rédiger questions, réponses et messages sans réseau ; envoi au retour, sans doublon | [File d'actions](#2-file-dactions-outbox), [Idempotence](#3-idempotence-côté-serveur) |
 | O3  | État toujours visible : en ligne, hors ligne, N en attente, synchronisation, erreur | [Indicateur réseau](#6-indicateur-réseau-et-machine-à-états)                          |
 | O4  | Écran de conflit à deux colonnes (P1) ; plan B : dernière modification gagnante     | [Conflits](#5-conflits)                                                               |
-| O5  | Simulateur de réseau (MVP+)                                                         | [Simulateur](#7-simulateur-de-réseau-o5)                                              |
+| O5  | Simulateur de réseau (MVP+) : **retiré le 16 octobre**                              | [Simulateur](#7-simulateur-de-réseau-o5-retiré)                                       |
 | O8  | Centre de synchronisation (P1)                                                      | [Centre de synchronisation](#8-centre-de-synchronisation-o8)                          |
 | O9  | Secrets masqués avant la mise en file, cache vidé à la déconnexion                  | [Sécurité locale](#9-sécurité-des-données-locales-o9)                                 |
 
@@ -23,7 +23,7 @@ flowchart LR
         tq[Cache TanStack Query<br/>persisté]
         outbox[(Dexie : outbox)]
         engine[Moteur de synchronisation]
-        net[Couche réseau<br/>+ simulateur O5]
+        net[Couche réseau]
         sw[Service worker<br/>précache + runtime]
     end
     api[API /api/v1]
@@ -247,7 +247,6 @@ stateDiagram-v2
     offline: Hors ligne
     syncing: Synchronisation…
     error: Erreur (réessayer)
-    simulated: Mode simulé
 
     online --> offline: événement offline ou 3 échecs réseau
     offline --> syncing: événement online + file non vide
@@ -255,20 +254,18 @@ stateDiagram-v2
     syncing --> online: file vide
     syncing --> error: échec non réseau répété
     error --> syncing: clic « réessayer »
-    online --> simulated: interrupteur O5 ou ?net=offline
-    simulated --> syncing: désactivation du simulateur
 ```
 
 - `navigator.onLine` ne suffit pas (il dit « en ligne » derrière un portail captif). L'état « en ligne » est confirmé par une requête légère `GET /api/v1/healthz` (sans cache) à chaque transition.
-- Le composant `NetworkBadge` est **toujours visible** dans le layout : « En ligne », « Hors ligne », « 2 actions en attente », « Synchronisation… », « Erreur, réessayer », « Mode simulé ».
+- Le composant `NetworkBadge` est **toujours visible** dans le layout : « En ligne », « Hors ligne », « 2 actions en attente », « Synchronisation… », « Erreur, réessayer ».
 - Hors ligne, les fonctions qui exigent le réseau affichent « en attente de connexion » (piste IA, matching) et se déclenchent automatiquement après synchronisation de la question.
 
-## 7. Simulateur de réseau (O5)
+## 7. Simulateur de réseau (O5, retiré)
 
-- Interrupteur dans le menu, ou paramètre d'URL `?net=offline` / `?net=2g`.
-- Implémenté dans la **couche réseau du front** (`shared/api/transport.ts`) : en mode `offline`, toute requête échoue immédiatement comme une coupure réelle ; en mode `2g`, on ajoute 800 ms de latence et on limite le débit.
-- Bandeau permanent « Mode simulé » pour qu'aucun juge ne confonde simulation et coupure réelle.
-- Sert aussi aux **tests Playwright** et de **plan B sur scène** si la coupure du Wi-Fi se passe mal. Le test sur un vrai téléphone reste obligatoire (Jalon 3).
+**Retiré le 16 octobre 2026** (décision de Sylvio : une plateforme « normale », sans mode avion ni 2G simulés). Plus d'interrupteur, plus de paramètre `?net`, plus de bandeau « Réseau coupé par le simulateur ». Le hors ligne réel (O1 à O4, O8, O9) ne change pas : l'état suit `navigator.onLine`, la file et la synchronisation fonctionnent comme avant.
+
+- **Démo** : on coupe vraiment le Wi-Fi (ou le mode avion du téléphone).
+- **Tests** : Playwright coupe le réseau du navigateur avec `context.setOffline(true)` (`apps/web/e2e`, `scripts/verif`).
 
 ## 8. Centre de synchronisation (O8)
 
