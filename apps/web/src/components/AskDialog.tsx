@@ -58,7 +58,7 @@ export function AskDialog() {
   const prefill = useUI((s) => s.askPrefill);
   const setOpen = useUI((s) => s.setAsk);
   const me = useSession((s) => s.user);
-  const online = useNetwork((s) => s.browserOnline && s.sim !== 'offline');
+  const online = useNetwork((s) => s.browserOnline);
 
   const [step, setStep] = useState<0 | 1>(0);
   const [title, setTitle] = useState('');

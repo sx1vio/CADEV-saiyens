@@ -14,26 +14,17 @@ import {
 import { useTranslation } from 'react-i18next';
 import { errorKey, relativeTime, useLang } from '@/i18n';
 import { cn } from '@/lib/utils';
-import {
-  cancelQueued,
-  flush,
-  retryQueued,
-  useNetwork,
-  type QueueItem,
-  type SimMode,
-} from '@/offline/network';
+import { cancelQueued, flush, retryQueued, useNetwork, type QueueItem } from '@/offline/network';
 import { useUI } from '@/stores/app';
 import { Button } from '../ui/button';
 import { Sheet } from '../ui/overlay';
 import { Badge, StatusDot } from '../ui/primitives';
-import { Segmented } from '../ui/segmented';
 
 export function useNetStatus() {
   const browserOnline = useNetwork((s) => s.browserOnline);
-  const sim = useNetwork((s) => s.sim);
   const queue = useNetwork((s) => s.queue);
   const syncing = useNetwork((s) => s.syncing);
-  const online = browserOnline && sim !== 'offline';
+  const online = browserOnline;
   const errors = queue.filter((q) => q.status === 'error').length;
   const pending = queue.length;
   const state: 'online' | 'offline' | 'syncing' | 'error' = !online
@@ -43,7 +34,7 @@ export function useNetStatus() {
       : errors
         ? 'error'
         : 'online';
-  return { online, sim, pending, errors, state };
+  return { online, pending, errors, state };
 }
 
 /** O3 : indicateur toujours visible. En ligne · Hors ligne · N en attente · Synchronisation · Erreur. */
@@ -55,7 +46,7 @@ export function NetworkIndicator({
   className?: string;
 }) {
   const { t } = useTranslation();
-  const { state, pending, sim } = useNetStatus();
+  const { state, pending } = useNetStatus();
   const setSync = useUI((s) => s.setSync);
   const label =
     state === 'offline'
@@ -64,9 +55,7 @@ export function NetworkIndicator({
         ? t('network.syncing')
         : state === 'error'
           ? t('network.error')
-          : sim === '2g'
-            ? t('network.sim2g')
-            : t('network.online');
+          : t('network.online');
   const tone =
     state === 'offline'
       ? 'warning'
@@ -108,8 +97,7 @@ export function NetworkIndicator({
 /** Bandeau hors ligne, sous la barre du haut. */
 export function OfflineBanner() {
   const { t } = useTranslation();
-  const { online, sim } = useNetStatus();
-  const setSim = useNetwork((s) => s.setSim);
+  const { online } = useNetStatus();
   if (online) return null;
   return (
     <div
@@ -117,14 +105,7 @@ export function OfflineBanner() {
       className="flex items-center gap-3 border-b border-line bg-warning-soft px-4 py-2 text-[13px] text-fg sm:px-6"
     >
       <CloudOff className="size-4 shrink-0 text-warning" />
-      <p className="min-w-0 flex-1">
-        {sim === 'offline' ? t('network.bannerSim') : t('network.bannerOffline')}
-      </p>
-      {sim === 'offline' && (
-        <Button size="xs" variant="secondary" onClick={() => setSim('off')}>
-          {t('network.bannerSimAction')}
-        </Button>
-      )}
+      <p className="min-w-0 flex-1">{t('network.bannerOffline')}</p>
     </div>
   );
 }
@@ -155,7 +136,7 @@ function preview(item: QueueItem) {
   }
 }
 
-/** O8 : centre de synchronisation + O5 : simulateur de réseau. */
+/** O8 : centre de synchronisation. */
 export function SyncCenter() {
   const { t } = useTranslation();
   const lang = useLang();
@@ -163,8 +144,6 @@ export function SyncCenter() {
   const setOpen = useUI((s) => s.setSync);
   const setConflict = useUI((s) => s.setConflict);
   const queue = useNetwork((s) => s.queue);
-  const sim = useNetwork((s) => s.sim);
-  const setSim = useNetwork((s) => s.setSim);
   const last = useNetwork((s) => s.lastSync);
   const { online } = useNetStatus();
   return (
@@ -184,21 +163,11 @@ export function SyncCenter() {
             ) : (
               <WifiOff className="size-4 text-warning" />
             )}
-            <h3 className="text-sm font-semibold text-fg">{t('network.simulator')}</h3>
+            <h3 className="text-sm font-semibold text-fg">
+              {online ? t('network.online') : t('network.offline')}
+            </h3>
           </div>
-          <p className="text-[13px] text-muted">{t('network.simHint')}</p>
-          <Segmented<SimMode>
-            label={t('network.simulator')}
-            value={sim}
-            onChange={setSim}
-            size="sm"
-            glow
-            items={[
-              { value: 'off', label: t('network.simOff') },
-              { value: 'offline', label: t('network.simOffline') },
-              { value: '2g', label: t('network.sim2gLabel') },
-            ]}
-          />
+          <p className="text-[13px] text-muted">{t('network.centerHint')}</p>
         </section>
 
         <section className="flex flex-col gap-3">

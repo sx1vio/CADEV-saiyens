@@ -46,15 +46,14 @@ flowchart TB
 
 ### Bout en bout (Playwright)
 
-| Parcours         | Contenu                                                                                                                                                                                | Jalon   |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `auth.spec`      | Connexion (GitHub simulé par un faux fournisseur OAuth en CI), Passport rempli                                                                                                         | 8 oct.  |
-| `sos.spec`       | Poser une question → piste IA (fausse IA) → réponse d'un second utilisateur → validation → +10 XP visibles sur le Passport                                                             | 14 oct. |
-| `offline.spec`   | `context.setOffline(true)` → écrire une réponse → « 1 action en attente » → recharger → l'action est toujours là → `setOffline(false)` → synchronisée → **une seule** réponse côté API | 16 oct. |
-| `simulator.spec` | Même scénario avec `?net=offline` (O5)                                                                                                                                                 | 16 oct. |
-| `rooms.spec`     | Créer une salle (GitHub simulé), rejoindre, créer et prendre une tâche, la terminer                                                                                                    | 18 oct. |
-| `public.spec`    | Accueil public, Passport sans compte, balises Open Graph présentes dans le HTML de `/u/:handle`                                                                                        | 19 oct. |
-| `a11y.spec`      | `axe` sur les pages principales, sans violation sérieuse                                                                                                                               | 21 oct. |
+| Parcours       | Contenu                                                                                                                                                                                | Jalon   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `auth.spec`    | Connexion (GitHub simulé par un faux fournisseur OAuth en CI), Passport rempli                                                                                                         | 8 oct.  |
+| `sos.spec`     | Poser une question → piste IA (fausse IA) → réponse d'un second utilisateur → validation → +10 XP visibles sur le Passport                                                             | 14 oct. |
+| `offline.spec` | `context.setOffline(true)` → écrire une réponse → « 1 action en attente » → recharger → l'action est toujours là → `setOffline(false)` → synchronisée → **une seule** réponse côté API | 16 oct. |
+| `rooms.spec`   | Créer une salle (GitHub simulé), rejoindre, créer et prendre une tâche, la terminer                                                                                                    | 18 oct. |
+| `public.spec`  | Accueil public, Passport sans compte, balises Open Graph présentes dans le HTML de `/u/:handle`                                                                                        | 19 oct. |
+| `a11y.spec`    | `axe` sur les pages principales, sans violation sérieuse                                                                                                                               | 21 oct. |
 
 Ces tests tournent en CI sur chaque PR (Chromium, émulation d'un mobile Android).
 

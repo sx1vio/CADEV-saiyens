@@ -18,7 +18,7 @@ API=http://localhost:3002 node scripts/verif/share-preview.mjs  # R7 : aperçus,
 | `onboarding.mjs`     | Les 5 étapes de `/bienvenue` (BUG-027), pays, fuseau et code de conduite enregistrés                 |
 | `sos.mjs`            | Question, secret masqué, piste IA, réponse en direct, validation, Proof XP, notifications            |
 | `offline-read.mjs`   | Lecture hors ligne des pages ouvertes, vidage du cache (session, changement de compte)               |
-| `offline-write.mjs`  | Rédaction hors ligne (`?net=offline`), file IndexedDB, `POST /sync` sans doublon                     |
+| `offline-write.mjs`  | Rédaction hors ligne (réseau coupé), file IndexedDB, `POST /sync` sans doublon                       |
 | `share-preview.mjs`  | Balises de partage `/u/:handle` et `/p/:code`, échappement, `hideStats`                              |
 | `rooms.mjs`          | Salle liée à un dépôt, adhésion, tâche prise puis clôturée avec PR vérifiée, +15 XP                  |
 | `rooms-rights.mjs`   | Droits des salles côté serveur (non-membre, membre, anonyme, en-tête CSRF)                           |

@@ -111,22 +111,15 @@ const en: Dict = {
     pending_other: '{{count}} pending actions',
     syncing: 'Syncing…',
     error: 'Sync error',
-    simulated: 'Simulated',
-    sim2g: 'Simulated 2G',
     bannerOffline:
       "You're offline. You can still read and write: everything will be sent when you're back online.",
-    bannerSim: 'Network cut by the simulator.',
-    bannerSimAction: 'Restore',
     centerTitle: 'Sync center',
     centerSubtitle:
       'What will be sent as soon as the network is back. You can cancel before it goes.',
     centerEmpty: 'Everything is synced.',
     lastSync: 'Last sync: {{sent}} sent, {{failed}} failed',
-    simulator: 'Network simulator',
-    simOff: 'Real',
-    simOffline: 'Offline',
-    sim2gLabel: 'Slow 2G',
-    simHint: 'Try offline mode without turning off your Wi-Fi.',
+    centerHint:
+      'You can read and write without a network: what you do waits here and is sent when you are back online.',
     syncNow: 'Sync now',
     type: {
       question: 'Question',
@@ -177,7 +170,7 @@ const en: Dict = {
     why3Text: 'Find contributors by proven skill, not by CV.',
     offlineTitle: 'Offline first',
     offlineText:
-      "Read, write and answer without a network. Everything syncs when you're back online. Try it: cut the network with the simulator.",
+      "Read, write and answer without a network. Everything syncs when you're back online.",
     offlineCta: 'Try offline mode',
     systalinkTitle: 'Hosted by Systalink',
     systalinkText: 'App, database, backups and emails all run at Systalink.',
@@ -280,8 +273,7 @@ const en: Dict = {
     s4Title: 'Your profile',
     s4Text: "Every validated answer and merged PR becomes a proof. It's your CV, but verifiable.",
     s5Title: 'Even offline',
-    s5Text:
-      'You can read and write offline. Here you see what is waiting to be sent. Try the simulator!',
+    s5Text: 'You can read and write offline. Here you see what is waiting to be sent.',
     s6Title: 'The pro shortcut',
     s6Text: 'Ctrl + K (or ⌘ + K): all of DevHub at your fingertips.',
   },

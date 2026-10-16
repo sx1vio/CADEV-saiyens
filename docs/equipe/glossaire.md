@@ -48,7 +48,7 @@ Le même mot doit désigner la même chose dans le produit, dans le code et dans
 | **Référence `client:`**            | Manière de désigner une entité créée hors ligne avant de connaître son identifiant serveur       |
 | **`baseVersion` / `version`**      | Compteur de modification ; une différence signale un conflit                                     |
 | **Conflit de version**             | Un texte modifié hors ligne a aussi changé sur le serveur entre-temps                            |
-| **Simulateur de réseau**           | Interrupteur qui imite une coupure ou une connexion 2G (O5)                                      |
+| **Simulateur de réseau**           | Interrupteur qui imitait une coupure ou une connexion 2G (O5) ; retiré le 16 octobre             |
 | **SSE**                            | Server-Sent Events : flux HTTP du serveur vers le navigateur, pour le temps réel                 |
 | **Job**                            | Tâche de fond dans la file pg-boss, exécutée par le worker                                       |
 | **Boîte d'envoi transactionnelle** | Création des jobs dans la même transaction que l'action métier                                   |

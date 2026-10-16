@@ -40,7 +40,7 @@ src/
 │       └── index.ts          # exports publics (routes, composants réutilisables)
 ├── offline/                  # moteur hors ligne, voir 04
 ├── shared/
-│   ├── api/                  # client HTTP typé, intercepteur réseau (simulateur O5)
+│   ├── api/                  # client HTTP typé, intercepteur réseau
 │   ├── ui/                   # Button, Card, TagChip, Avatar, ScoreBar, NetworkBadge…
 │   ├── i18n/
 │   └── lib/

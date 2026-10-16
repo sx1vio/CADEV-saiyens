@@ -1,6 +1,6 @@
 /**
  * Hors ligne d'abord (CDC §6.5, O1-O3, O5, O8, O9).
- * - État réseau réel (navigator.onLine) + simulateur (O5 : hors ligne ou 2G), aussi pilotable par ?net=offline|2g
+ * - État réseau réel (navigator.onLine)
  * - File d'attente IndexedDB : chaque action a un UUID (client_id), elle est rejouée dans l'ordre,
  *   avec reprise progressive en cas d'échec, sans doublon (le serveur est idempotent sur client_id).
  */
@@ -8,11 +8,9 @@ import { openDB, type IDBPDatabase } from 'idb';
 import { create } from 'zustand';
 import { maskSecrets } from '@/lib/detect';
 import { refreshAll, invalidate } from '@/lib/query';
-import { sleep, storageGet, storageSet, uuid } from '@/lib/utils';
+import { uuid } from '@/lib/utils';
 import { api } from '@/services';
 import type { OfflineAction, ServerText } from '@/services';
-
-export type SimMode = 'off' | 'offline' | '2g';
 
 export type QueuedAction = OfflineAction;
 
@@ -29,12 +27,10 @@ export type QueueItem = QueuedAction & {
 
 interface NetworkState {
   browserOnline: boolean;
-  sim: SimMode;
   queue: QueueItem[];
   syncing: boolean;
   lastSync: { at: string; sent: number; failed: number } | null;
   online: () => boolean;
-  setSim: (m: SimMode) => void;
 }
 
 let dbp: Promise<IDBPDatabase> | null = null;
@@ -43,33 +39,15 @@ const qdb = () =>
     upgrade: (d) => d.createObjectStore('actions', { keyPath: 'id' }),
   }));
 
-function initialSim(): SimMode {
-  const p = new URLSearchParams(location.search).get('net');
-  if (p === 'offline' || p === '2g') return p;
-  const s = storageGet('dh-net-sim');
-  return s === 'offline' || s === '2g' ? s : 'off';
-}
-
-export const useNetwork = create<NetworkState>((set, get) => ({
+export const useNetwork = create<NetworkState>((_set, get) => ({
   browserOnline: typeof navigator === 'undefined' ? true : navigator.onLine,
-  sim: initialSim(),
   queue: [],
   syncing: false,
   lastSync: null,
-  online: () => get().browserOnline && get().sim !== 'offline',
-  setSim: (sim) => {
-    set({ sim });
-    storageSet('dh-net-sim', sim === 'off' ? null : sim);
-    if (sim !== 'offline') void flush();
-  },
+  online: () => get().browserOnline,
 }));
 
 export const isOnline = () => useNetwork.getState().online();
-
-/** Délai artificiel en mode 2G simulé (O5). */
-export async function networkDelay() {
-  if (useNetwork.getState().sim === '2g') await sleep(900 + Math.random() * 700);
-}
 
 async function loadQueue() {
   try {
@@ -127,7 +105,6 @@ function sanitize(a: QueuedAction): QueuedAction {
 }
 
 async function execute(item: QueueItem) {
-  await networkDelay();
   switch (item.type) {
     case 'question':
       return api.createQuestion(item.payload, item.id);
@@ -227,7 +204,6 @@ async function flushBatches(pending: QueueItem[]) {
     useNetwork.setState((s) => ({
       queue: s.queue.map((q) => (ids.has(q.id) ? { ...q, status: 'syncing' } : q)),
     }));
-    await networkDelay();
     let outcomes;
     try {
       outcomes = await api.sync!(batch.map((item) => ({ opId: item.id, action: item })));

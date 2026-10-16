@@ -407,7 +407,7 @@ function Section({ label, children }: { label: string; children: string }) {
 /** S2 : piste marquée comme telle, qui ne bloque jamais la suite. */
 function HintCard({ q }: { q: QuestionDetail }) {
   const { t } = useTranslation();
-  const online = useNetwork((s) => s.browserOnline && s.sim !== 'offline');
+  const online = useNetwork((s) => s.browserOnline);
   const status = !online && q.aiStatus === 'pending' ? 'waiting-network' : q.aiStatus;
   return (
     <section className="glow-border relative overflow-hidden rounded-[10px] bg-surface-1 p-5">

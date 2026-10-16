@@ -16,7 +16,6 @@ import {
   Search,
   Sun,
   UserRound,
-  WifiOff,
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -24,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { setLanguage, useLang } from '@/i18n';
 import { useQuery } from '@/lib/query';
-import { useNetwork } from '@/offline/network';
 import { api } from '@/services';
 import { useSession, useUI } from '@/stores/app';
 import { RoomMark } from '../domain';
@@ -51,8 +49,6 @@ export function CommandPalette() {
   const setOpen = useUI((s) => s.setPalette);
   const { setAsk, theme, setTheme, startTour } = useUI();
   const me = useSession((s) => s.user);
-  const setSim = useNetwork((s) => s.setSim);
-  const sim = useNetwork((s) => s.sim);
   const [q, setQ] = useState('');
 
   const { data: questions } = useQuery(open ? 'palette:questions' : null, () =>
@@ -157,14 +153,6 @@ export function CommandPalette() {
                 >
                   <Languages />
                   {lang === 'fr' ? 'English' : 'Français'}
-                </Command.Item>
-                <Command.Item
-                  value="offline hors ligne simulateur network"
-                  onSelect={() => run(() => setSim(sim === 'offline' ? 'off' : 'offline'))}
-                >
-                  <WifiOff />
-                  {t('network.simulator')} ·{' '}
-                  {sim === 'offline' ? t('network.simOff') : t('network.simOffline')}
                 </Command.Item>
                 {me && (
                   <Command.Item

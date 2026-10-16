@@ -36,7 +36,7 @@ Cette documentation traduit les cahiers des charges en architecture exécutable.
 | 01  | [Structure du monorepo](architecture/01-structure-monorepo.md)                 | Arborescence complète, rôle de chaque paquet, règles de dépendance      |
 | 02  | [Back-end](architecture/02-backend.md)                                         | Monolithe modulaire NestJS, modules métier, couches, événements         |
 | 03  | [Front-end](architecture/03-frontend.md)                                       | PWA React, organisation par fonctionnalité, routes, i18n, performance   |
-| 04  | [Hors ligne et synchronisation](architecture/04-hors-ligne-sync.md)            | Service worker, file d'actions, idempotence, conflits, simulateur       |
+| 04  | [Hors ligne et synchronisation](architecture/04-hors-ligne-sync.md)            | Service worker, file d'actions, idempotence, conflits                   |
 | 05  | [Modèle de données](architecture/05-modele-donnees.md)                         | Tables, relations, index, invariants, migrations                        |
 | 06  | [Contrat d'API](architecture/06-api.md)                                        | Conventions REST, erreurs, pagination, idempotence, liste des endpoints |
 | 07  | [Tâches de fond et temps réel](architecture/07-taches-fond-temps-reel.md)      | File pg-boss, jobs, Server-Sent Events, LISTEN/NOTIFY                   |
