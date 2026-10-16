@@ -1,4 +1,4 @@
-// O2, O3, O8 : rédiger sans réseau (simulateur ?net=offline), recharger, puis synchroniser
+// O2, O3, O8 : rédiger sans réseau (coupure réelle du navigateur, context.setOffline), recharger, puis synchroniser
 // par POST /sync au retour du réseau, sans doublon.
 import { launch, loginAs, shot, api, WEB } from './lib.mjs';
 const b = await launch();
@@ -25,9 +25,13 @@ const queue = () =>
         o.onerror = () => res(['indexeddb ?']);
       }),
   );
-await K.page.goto(`${WEB}/sos/${q.json.id}?net=offline`);
+await K.page.goto(`${WEB}/sos/${q.json.id}`);
+await K.page.context().setOffline(true);
 await K.page.waitForTimeout(1500);
-console.log('bannière :', await K.page.getByText('Réseau coupé par le simulateur.').isVisible());
+console.log(
+  'bannière :',
+  await K.page.getByText('Tu es hors ligne.', { exact: false }).isVisible(),
+);
 const sent = [];
 K.page.on(
   'request',
@@ -42,7 +46,7 @@ await K.page.fill(
 );
 await K.page.getByRole('button', { name: /^Répondre$/ }).click();
 await K.page.waitForTimeout(800);
-// Navigation interne : un rechargement complet perdrait ?net=offline (non mémorisé).
+// Navigation interne : un rechargement complet échouerait sans réseau.
 await K.page
   .getByRole('link', { name: /SOS Dev/ })
   .first()
@@ -64,7 +68,7 @@ console.log('file après rédaction :', await queue(), '| écritures parties :',
 const sync = K.page
   .waitForResponse((r) => r.url().endsWith('/api/v1/sync'), { timeout: 15000 })
   .catch(() => null);
-await K.page.getByRole('button', { name: 'Rétablir' }).click();
+await K.page.context().setOffline(false);
 const r = await sync;
 console.log(
   'POST /sync',
