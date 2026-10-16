@@ -62,7 +62,7 @@ Questions auxquelles la plateforme doit répondre :
 
 - [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
 - [ ] Confirmer avec Systalink (cadev@systalink.com) leurs plages IP (`SYSTALINK_IP_RANGES`), un lien de déploiement préparé et un éventuel programme de crédits ou de commission
-- [ ] Supprimer la branche `sylvio-frontend` (BUG-004, BUG-005)
+- [x] Branche `sylvio-frontend` supprimée, BUG-004 et BUG-005 clos (16/10/2026)
 - [ ] Partager les types de `src/services/` avec le rôle 2 pour aligner le contrat d'API
 - [ ] Tester sur un vrai téléphone d'entrée de gamme, réseau coupé (CDC O1-O3)
 - [ ] Partager `src/services/api.ts` + `types.ts` + `local/engine.ts` avec le rôle 2 (contrat d'API et règles)
