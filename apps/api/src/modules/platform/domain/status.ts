@@ -62,3 +62,37 @@ export function summarize(latest: StoredCheck[], now: Date): StatusResponse {
         : null,
   };
 }
+
+/** Compte des sondes d'un service sur un jour UTC (les sondes « non branché » sont exclues). */
+export interface DailyCount {
+  service: SystalinkService;
+  /** AAAA-MM-JJ, UTC */
+  date: string;
+  total: number;
+  ok: number;
+}
+
+const percent = (ok: number, total: number) =>
+  total === 0 ? null : Math.round((ok / total) * 1000) / 10;
+
+/** Y5 : disponibilité sur `days` jours jusqu'à `now` inclus, jours sans sonde compris (null). */
+export function history(counts: DailyCount[], days: number, now: Date) {
+  const dates = Array.from({ length: days }, (_, i) =>
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (days - 1 - i)))
+      .toISOString()
+      .slice(0, 10),
+  );
+  return {
+    days,
+    services: SERVICES.map((service) => {
+      const mine = counts.filter((c) => c.service === service);
+      const daily = dates.map((date) => {
+        const c = mine.find((x) => x.date === date);
+        return { date, uptimePercent: percent(c?.ok ?? 0, c?.total ?? 0), checks: c?.total ?? 0 };
+      });
+      const total = daily.reduce((n, d) => n + d.checks, 0);
+      const ok = mine.filter((c) => dates.includes(c.date)).reduce((n, c) => n + c.ok, 0);
+      return { service, uptimePercent: percent(ok, total), checks: total, daily };
+    }),
+  };
+}

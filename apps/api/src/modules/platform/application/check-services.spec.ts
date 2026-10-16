@@ -14,6 +14,7 @@ describe('CheckServices (Y1, Y5)', () => {
         return 0;
       },
       latest: async () => [],
+      dailyCounts: async () => [],
     };
     const probes: Probe[] = [
       {
