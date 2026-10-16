@@ -94,19 +94,21 @@ export default function Impact() {
               </Card>
             ))}
           </div>
-          <Card className="mt-4 p-5 sm:p-6">
-            <CardHeader title={t('impact.weekly')} />
-            <div className="mt-5">
-              <DualBars
-                data={data.weekly.map((w) => ({
-                  label: formatDate(w.week, lang, { day: 'numeric', month: 'short' }),
-                  a: w.asked,
-                  b: w.resolved,
-                }))}
-                labels={[t('impact.asked'), t('impact.resolvedSeries')]}
-              />
-            </div>
-          </Card>
+          {data.weekly.length > 0 && (
+            <Card className="mt-4 p-5 sm:p-6">
+              <CardHeader title={t('impact.weekly')} />
+              <div className="mt-5">
+                <DualBars
+                  data={data.weekly.map((w) => ({
+                    label: formatDate(w.week, lang, { day: 'numeric', month: 'short' }),
+                    a: w.asked,
+                    b: w.resolved,
+                  }))}
+                  labels={[t('impact.asked'), t('impact.resolvedSeries')]}
+                />
+              </div>
+            </Card>
+          )}
         </>
       )}
     </Page>

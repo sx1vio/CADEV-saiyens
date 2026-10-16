@@ -378,3 +378,21 @@ describe('modification et conflit de version (O4)', () => {
     expect(m.serverText({ body: 'sans version' })).toBeUndefined();
   });
 });
+
+describe('impact (Y2)', () => {
+  it('affiche les chiffres calculés par l’API, jamais des zéros écrits en dur (BUG-032)', () => {
+    expect(
+      m.impact({
+        registeredDevs: 40,
+        questionsAsked: 20,
+        questionsResolved: 12,
+        medianFirstResponseMinutes: 7,
+        countries: 5,
+        projectRooms: 3,
+        verifiedContributions: 2,
+        crossLanguageAnswers: 1,
+        computedAt: at,
+      }),
+    ).toMatchObject({ devs: 40, verifiedContributions: 2, crossLanguage: 1, weekly: [] });
+  });
+});
