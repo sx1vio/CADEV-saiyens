@@ -9,6 +9,7 @@
  */
 import type {
   AdminReportView,
+  ListAuditResponse,
   AnswerView as ApiAnswer,
   DevCard as ApiDevCard,
   ImpactResponse,
@@ -32,6 +33,7 @@ import type {
 } from '@devhub/contracts';
 import type {
   AIStatus,
+  AuditPage,
   AnswerView,
   AppNotification,
   Availability,
@@ -627,6 +629,25 @@ const REPORT_TYPE: Record<AdminReportView['targetType'], Report['targetType']> =
   room_message: 'message',
   user: 'user',
 };
+
+const AUDIT_ACTION = {
+  hide_content: 'hide',
+  restore_content: 'restore',
+  dismiss_report: 'dismiss',
+} as const;
+
+export const auditPage = (r: ListAuditResponse): AuditPage => ({
+  entries: r.data.map((e) => ({
+    id: e.id,
+    action: AUDIT_ACTION[e.action],
+    targetType: REPORT_TYPE[e.targetType],
+    targetId: e.targetId,
+    reason: e.reason,
+    admin: summary(e.admin),
+    createdAt: e.createdAt,
+  })),
+  next: r.page.hasMore ? r.page.nextCursor : null,
+});
 
 export const reportTypeToApi = (t: Report['targetType']): AdminReportView['targetType'] =>
   t === 'message' ? 'room_message' : t;

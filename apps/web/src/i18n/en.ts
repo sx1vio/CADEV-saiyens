@@ -773,6 +773,23 @@ const en: Dict = {
     by: 'Reported by {{name}} {{time}}',
     forbidden: 'Administrators only.',
     status: { open: 'To review', removed: 'Removed', dismissed: 'Dismissed' },
+    tabs: { reports: 'Reports', audit: 'Log' },
+    target: {
+      question: 'Question',
+      answer: 'Answer',
+      room: 'Room',
+      message: 'Message',
+      user: 'Account',
+    },
+    accountHint:
+      'An account cannot be removed from here: dismiss the report or contact the person.',
+    audit: {
+      subtitle: 'Every decision stays on record: who, when, on what and why.',
+      empty: 'No moderation decisions yet.',
+      more: 'Show more',
+      action: { hide: 'Content removed', restore: 'Content restored', dismiss: 'Report dismissed' },
+      by: 'by',
+    },
   },
   settings: {
     title: 'Settings',
@@ -823,6 +840,7 @@ const en: Dict = {
     'not-found': 'Not found.',
     forbidden: "You don't have permission to do that.",
     network_offline: 'This action needs the network.',
+    report_target_not_hideable: 'This kind of report cannot be removed: dismiss it instead.',
     version_conflict: 'This text changed online in the meantime: choose which version to keep.',
     vote_self: "You can't vote for your own answer.",
     'vote_too-new': 'Accounts younger than 24 h cannot vote yet.',

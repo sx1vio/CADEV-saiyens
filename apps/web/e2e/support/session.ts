@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
 
 /** Login GitHub unique par exécution : la base de test peut être réutilisée sans collision. */
@@ -51,3 +52,15 @@ export const queuedActions = (page: Page) =>
         };
       }),
   );
+
+/**
+ * Donne le rôle d'administrateur à un compte, directement en base (comme les tests de l'API) :
+ * aucun écran ne le permet, c'est une décision d'exploitation.
+ */
+export function promoteAdmin(login: string) {
+  if (!/^[a-zA-Z0-9-]+$/.test(login)) throw new Error(`login invalide : ${login}`);
+  execFileSync('pnpm', ['--filter', '@devhub/api', 'exec', 'prisma', 'db', 'execute', '--stdin'], {
+    input: `UPDATE users SET is_admin = true WHERE handle = '${login}';`,
+    stdio: ['pipe', 'ignore', 'inherit'],
+  });
+}

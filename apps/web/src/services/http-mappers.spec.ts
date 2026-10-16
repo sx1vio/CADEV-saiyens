@@ -396,3 +396,37 @@ describe('impact (Y2)', () => {
     ).toMatchObject({ devs: 40, verifiedContributions: 2, crossLanguage: 1, weekly: [] });
   });
 });
+
+describe('journal de modération (M4)', () => {
+  it('convertit les décisions et ne donne un curseur que s’il reste des pages', () => {
+    const entry = {
+      id: '1b4e28ba-2fa1-41d2-883f-0016d3cca427',
+      action: 'dismiss_report' as const,
+      targetType: 'user' as const,
+      targetId: '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b',
+      reason: 'Signalement rejeté',
+      admin: awa,
+      createdAt: at,
+    };
+    expect(m.auditPage({ data: [entry], page: { nextCursor: 'c2', hasMore: true } })).toEqual({
+      entries: [
+        {
+          id: entry.id,
+          action: 'dismiss',
+          targetType: 'user',
+          targetId: entry.targetId,
+          reason: 'Signalement rejeté',
+          admin: m.summary(awa),
+          createdAt: at,
+        },
+      ],
+      next: 'c2',
+    });
+    expect(
+      m.auditPage({
+        data: [{ ...entry, action: 'hide_content', targetType: 'room_message' }],
+        page: { nextCursor: 'c3', hasMore: false },
+      }),
+    ).toMatchObject({ entries: [{ action: 'hide', targetType: 'message' }], next: null });
+  });
+});

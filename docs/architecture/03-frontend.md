@@ -199,17 +199,20 @@ Si le texte change encore pendant ce choix, l'écran se rouvre sur la nouvelle v
 
 Signalement (M1, `components/ReportSheet.tsx`) : une question ou une réponse depuis la page de la question, un **compte** depuis son Passport (bouton drapeau, visible pour un autre compte connecté).
 
+Modération (`pages/Admin.tsx`, administrateurs seulement) : deux onglets. **Signalements** (M1) : retirer le contenu ou classer sans suite ; un compte signalé ne peut qu'être classé (l'API refuse de « masquer » un compte, BUG-036). **Journal** (M4, `GET /admin/audit`) : chaque décision, du plus récente à la plus ancienne, avec l'action, le type de cible, le motif de l'admin et son auteur ; pagination par curseur (« Voir plus »). Le serveur simulé reconstitue le journal à partir des signalements traités.
+
 ## Tests de bout en bout (Playwright)
 
 `pnpm test:e2e` (racine) construit l'API et le front, puis lance `apps/web/e2e/*.e2e.ts` avec Playwright (Chromium). Le front testé est le **build de production** servi par `vite preview`, branché sur l'**API réelle** (`apps/api/dist`) par le proxy `/api` : même origine, comme derrière Caddy. La connexion passe par le faux fournisseur GitHub (`AUTH_FAKE_PROVIDER=true`, `/api/v1/auth/github?login=…`) ; le code de conduite est accepté par l'API pour aller droit au parcours.
 
-| Fichier           | Parcours vérifié                                                                                                                                                                               |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sos.e2e.ts`      | Poser une question (S1), répondre avec un second compte, la réponse arrive chez l'auteur en temps réel, sans rechargement (Y8) ; valider la réponse (S4) ; seul l'auteur voit « M'a débloqué » |
-| `conflict.e2e.ts` | Modifier sa question hors ligne pendant qu'un autre appareil la modifie en ligne : `/sync` répond `conflict`, l'écran compare les deux versions, « Garder la mienne » publie la version 3      |
-| `offline.e2e.ts`  | Rédiger et publier hors ligne (action en file IndexedDB, rien sur le serveur), retour du réseau, `POST /sync` (`applied`), une seule question au final                                         |
-| `report.e2e.ts`   | Signaler un compte depuis son Passport : `POST /reports` avec `targetType: user` et l'UUID du compte ; pas de bouton sur son propre Passport                                                   |
-| `auth.e2e.ts`     | Connexion GitHub avec le service worker actif : la navigation `/api/v1/auth/github` atteint l'API (BUG-028)                                                                                    |
+| Fichier           | Parcours vérifié                                                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sos.e2e.ts`      | Poser une question (S1), répondre avec un second compte, la réponse arrive chez l'auteur en temps réel, sans rechargement (Y8) ; valider la réponse (S4) ; seul l'auteur voit « M'a débloqué »    |
+| `conflict.e2e.ts` | Modifier sa question hors ligne pendant qu'un autre appareil la modifie en ligne : `/sync` répond `conflict`, l'écran compare les deux versions, « Garder la mienne » publie la version 3         |
+| `offline.e2e.ts`  | Rédiger et publier hors ligne (action en file IndexedDB, rien sur le serveur), retour du réseau, `POST /sync` (`applied`), une seule question au final                                            |
+| `report.e2e.ts`   | Signaler un compte depuis son Passport : `POST /reports` avec `targetType: user` et l'UUID du compte ; pas de bouton sur son propre Passport                                                      |
+| `admin.e2e.ts`    | Un compte signalé arrive dans /admin sans « Retirer le contenu » (BUG-036) ; « Classer sans suite » ; la décision apparaît dans l'onglet Journal (M4). L'admin est promu en base (`promoteAdmin`) |
+| `auth.e2e.ts`     | Connexion GitHub avec le service worker actif : la navigation `/api/v1/auth/github` atteint l'API (BUG-028)                                                                                       |
 
 Lancement local (une base dédiée par session, voir [sessions parallèles](../equipe/sessions-paralleles.md)) :
 
