@@ -12,6 +12,7 @@ import { AppModule } from '../src/app.module';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 import { CheckServices } from '../src/modules/platform';
+import { ImpactReader } from '../src/modules/platform/infrastructure/impact.reader';
 import { applyTestEnv } from './env.fixture';
 import { WRITE_HEADERS, signInAs } from './sign-in.helper';
 import { ensureTags } from './tags.fixture';
@@ -166,27 +167,46 @@ describe('écran Systalink et impact (Y1, Y2)', () => {
     }).expect(201);
 
     const res = await request(app.getHttpServer()).get('/api/v1/impact').expect(200);
-    // D'autres fichiers de test créent, masquent ou passent en démo des comptes en parallèle :
-    // seules des assertions vraies quel que soit leur travail sont stables (BUG-023).
-    expect(res.body.questionsAsked).toBeGreaterThanOrEqual(1);
-    expect(res.body.questionsResolved).toBeGreaterThanOrEqual(1);
-    expect(res.body.medianFirstResponseMinutes).toEqual(expect.any(Number));
-    // Valeurs réelles, pas seulement des types (BUG-032) : nos données comptent, la tâche
-    // « déclarée » non ; un aidant sans langue déclarée ne compte pas entre langues.
-    expect(res.body.verifiedContributions).toBeGreaterThanOrEqual(1);
-    expect(res.body.crossLanguageAnswers).toBeGreaterThanOrEqual(1);
-    const verified = await prisma.task.count({
-      where: { verification: 'github_verified', status: 'done' },
-    });
-    expect(res.body.verifiedContributions).toBeLessThanOrEqual(verified);
-    // Le compte de démo et sa question existaient avant le calcul : ils n'y sont pas comptés.
-    const [users, questions] = await Promise.all([
-      prisma.user.count({ where: { deletedAt: null } }),
-      prisma.question.count({ where: { hiddenAt: null } }),
-    ]);
-    expect(res.body.registeredDevs).toBeLessThanOrEqual(users - 1);
-    expect(res.body.questionsAsked).toBeLessThanOrEqual(questions - 1);
     expect(res.headers['cache-control']).toBe('public, max-age=60');
+
+    // BUG-038 : d'autres fichiers créent, masquent et suppriment comptes et questions en
+    // parallèle. L'impact et les totaux attendus sont lus dans une même transaction en lecture
+    // répétable (instantané figé) : on compare par égalité, sans dépendre des autres fichiers.
+    const snap = await prisma.$transaction(
+      async (tx) => {
+        const real = { isDemo: false, deletedAt: null };
+        const impact = await new ImpactReader(prisma).compute(tx);
+        const devs = await tx.user.count({ where: real });
+        const asked = await tx.question.count({ where: { hiddenAt: null, author: real } });
+        const all = await tx.question.count({ where: { hiddenAt: null } });
+        const resolved = await tx.question.count({
+          where: { hiddenAt: null, status: 'resolved', author: real },
+        });
+        const verified = await tx.task.count({
+          where: {
+            status: 'done',
+            verification: 'github_verified',
+            room: { hiddenAt: null, visibility: 'public' },
+            assignee: real,
+          },
+        });
+        return { impact, devs, asked, all, resolved, verified };
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
+    expect(snap.impact).toMatchObject({
+      registeredDevs: snap.devs,
+      questionsAsked: snap.asked,
+      questionsResolved: snap.resolved,
+      verifiedContributions: snap.verified,
+      medianFirstResponseMinutes: expect.any(Number),
+    });
+    // Le compte de démo et sa question existent : ils ne sont pas comptés.
+    expect(snap.all).toBeGreaterThan(snap.asked);
+    // Nos données : une contribution vérifiée (la « déclarée » ne compte pas), un échange
+    // entre langues (réponse validée en anglais à une question en français).
+    expect(snap.impact.verifiedContributions).toBeGreaterThanOrEqual(1);
+    expect(snap.impact.crossLanguageAnswers).toBeGreaterThanOrEqual(1);
   });
 
   it('GET /status/history : disponibilité par jour ; « non branché » exclu ; jours bornés', async () => {

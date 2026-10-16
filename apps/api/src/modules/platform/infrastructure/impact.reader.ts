@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { ImpactResponse } from '@devhub/contracts';
+import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 
 const CACHE_MS = 60_000;
@@ -13,7 +14,14 @@ export class ImpactReader {
 
   async impact(): Promise<ImpactResponse> {
     if (this.cache && Date.now() - this.cache.at < CACHE_MS) return this.cache.value;
-    const rows = await this.prisma.$queryRaw<
+    const value = await this.compute(this.prisma);
+    this.cache = { at: Date.now(), value };
+    return value;
+  }
+
+  /** Calcul sans cache, sur la connexion fournie (une transaction pour les tests, BUG-038). */
+  async compute(db: Pick<Prisma.TransactionClient, '$queryRaw'>): Promise<ImpactResponse> {
+    const rows = await db.$queryRaw<
       Array<{
         devs: number;
         asked: number;
@@ -72,7 +80,6 @@ export class ImpactReader {
       crossLanguageAnswers: row.cross,
       computedAt: new Date().toISOString(),
     };
-    this.cache = { at: Date.now(), value };
     return value;
   }
 }
