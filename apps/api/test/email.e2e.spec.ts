@@ -46,7 +46,8 @@ describe('e-mail récapitulatif des notifications (Y3)', () => {
       .useValue({
         configured: true,
         send: async (m: MailMessage) => {
-          if (failNext) {
+          // Base partagée avec les autres fichiers : la panne ne vise que l'e-mail d'Awa.
+          if (failNext && m.to === `awa-${suffix}@example.test`) {
             failNext = false;
             throw new Error('SMTP injoignable');
           }
