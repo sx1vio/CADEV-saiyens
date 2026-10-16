@@ -1,22 +1,28 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Patch,
   Post,
+  Res,
   UnprocessableEntityException,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import type { Prisma } from '../../../generated/prisma/client';
 import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-key.decorator';
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { trustSignals } from '../domain/trust';
+import { AccountDeletion } from '../infrastructure/account-deletion';
+import { SESSION_COOKIE, baseCookie } from './cookies';
 import {
   type CodeOfConductResponse,
   CodeOfConductResponseDto,
+  DeleteMeRequestDto,
   MeResponseDto,
   type MeResponse,
   UpdateMeRequestDto,
@@ -29,7 +35,34 @@ export class MeController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly idempotency: IdempotencyService,
+    private readonly deletion: AccountDeletion,
   ) {}
+
+  /**
+   * A3 : suppression du compte par anonymisation (05-modele-donnees.md), déconnexion partout.
+   * La personne retape son handle. Pas de clé d'idempotence : un second appel n'a plus de
+   * session et reçoit 401.
+   */
+  @Delete()
+  @HttpCode(204)
+  async remove(
+    @CurrentUser() auth: AuthenticatedUser,
+    @Body() body: DeleteMeRequestDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const me = await this.prisma.user.findUniqueOrThrow({
+      where: { id: auth.userId },
+      select: { handle: true },
+    });
+    if (body.confirmHandle.toLowerCase() !== me.handle.toLowerCase()) {
+      throw new UnprocessableEntityException({
+        code: 'account.confirmation_mismatch',
+        title: 'Type your handle to confirm the deletion',
+      });
+    }
+    await this.deletion.anonymize(auth.userId);
+    res.clearCookie(SESSION_COOKIE, baseCookie);
+  }
 
   @Get()
   @ApiOkResponse({ type: MeResponseDto })
