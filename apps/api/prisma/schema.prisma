@@ -841,3 +841,17 @@ model NewsIngestRun {
 
   @@map("news_ingest_runs")
 }
+
+/// Idée B : renvoi d'un développeur vers Systalink depuis DevHub (bouton « Déployer sur
+/// Systalink »). Aucune donnée personnelle hors l'identifiant du compte, s'il est connecté.
+model SystalinkReferral {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  target    String   @db.VarChar(20)
+  source    String   @db.VarChar(20)
+  roomId    String?  @map("room_id") @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([createdAt])
+  @@map("systalink_referrals")
+}
