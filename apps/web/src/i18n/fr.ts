@@ -212,6 +212,7 @@ const fr = {
     profileTitle: 'Où codes-tu ?',
     profileText: 'Pour te mettre en relation avec des devs proches de ton fuseau horaire.',
     country: 'Pays',
+    countryPlaceholder: 'Choisis ton pays',
     city: 'Ville',
     timezone: 'Fuseau horaire',
     languages: 'Langues dans lesquelles tu peux aider',

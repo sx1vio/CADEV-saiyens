@@ -214,6 +214,7 @@ const en: Dict = {
     profileTitle: 'Where do you code?',
     profileText: 'So we can connect you with devs near your time zone.',
     country: 'Country',
+    countryPlaceholder: 'Choose your country',
     city: 'City',
     timezone: 'Time zone',
     languages: 'Languages you can help in',
