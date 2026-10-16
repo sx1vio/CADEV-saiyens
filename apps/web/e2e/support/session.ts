@@ -17,8 +17,12 @@ export const writeHeaders = (page: Page) => ({
  * (M3) est accepté par l'API : l'onboarding n'est pas l'objet de ces parcours.
  */
 export async function signIn(page: Page, login: string, returnTo = '/sos') {
-  await page.goto(`/api/v1/auth/github?login=${login}&returnTo=${encodeURIComponent(returnTo)}`);
-  await expect(page).toHaveURL(new RegExp(`${returnTo.replace(/\//g, '\\/')}`));
+  const landing = await page.goto(
+    `/api/v1/auth/github?login=${login}&returnTo=${encodeURIComponent(returnTo)}`,
+  );
+  // Destination de la redirection du serveur : l'application envoie ensuite un compte neuf vers
+  // /bienvenue tant que le code de conduite n'est pas accepté (course selon la vitesse).
+  expect(landing?.url()).toMatch(new RegExp(`${returnTo.replace(/\//g, '\\/')}`));
   const res = await page.request.post('/api/v1/me/code-of-conduct', {
     headers: writeHeaders(page),
   });

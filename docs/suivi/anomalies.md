@@ -81,6 +81,7 @@ Modèle à copier :
 | [BUG-036](#bug-036) | Modération : « Retirer le contenu » proposé pour un compte signalé                       | Mineure    | Corrigé  | Joachim (session B)       |
 | [BUG-037](#bug-037) | 06-api.md exige une clé d'idempotence sur trois routes qui n'en demandent pas            | Cosmétique | Corrigé  | Joachim (session A)       |
 | [BUG-038](#bug-038) | Test d'impact instable quand d'autres tests suppriment des données                       | Mineure    | Corrigé  | Joachim                   |
+| [BUG-039](#bug-039) | e2e : la connexion attend /sos alors que l'app part vers /bienvenue                      | Mineure    | Corrigé  | Sylvio                    |
 
 ## Anomalies ouvertes
 
@@ -183,6 +184,20 @@ Modèle à copier :
 | Correction             | 2026-10-16, par Joachim (session B)                                                                                                                                                                                                                                                                                                                                                                                                      |
 | Correctif appliqué     | Cause : la carte proposait les deux décisions quel que soit le type de cible, et le code d'erreur n'était pas traduit. Solution : `pages/Admin.tsx` n'affiche plus « Retirer le contenu » pour un compte (une aide explique quoi faire) ; `report.target_not_hideable` est traduit (fr, en) ; le type de cible est traduit (« Compte », « Réponse »…). Test : `apps/web/e2e/admin.e2e.ts`.                                               |
 | Référence              | Branche `feat/web-admin-audit`                                                                                                                                                                                                                                                                                                                                                                                                           |
+
+### BUG-039
+
+| Champ                  | Valeur                                                                                                                                                                                                                                                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre                  | e2e : la connexion attend `/sos` alors que l'application part déjà vers `/bienvenue`                                                                                                                                                                                        |
+| Description            | Observé (16 octobre, essai local de `pnpm test:e2e` sur `main`, sans `CI`) : `offline.e2e.ts` échoue dans `signIn` avec « Expected pattern: /\/sos/, Received: http://localhost:5174/bienvenue ». Attendu : des parcours e2e stables. En CI, `retries: 1` masquait l'échec. |
+| Étapes de reproduction | Aléatoire, selon la vitesse : `pnpm test:e2e` sur une machine lente ; un compte neuf est envoyé vers `/bienvenue` (code de conduite) avant que le test ne l'accepte par l'API.                                                                                              |
+| Gravité                | Mineure : test instable, sans effet sur le produit                                                                                                                                                                                                                          |
+| Statut                 | Corrigé                                                                                                                                                                                                                                                                     |
+| Détection              | 2026-10-16, par Sylvio (Claude)                                                                                                                                                                                                                                             |
+| Correction             | 2026-10-16, par Sylvio (Claude)                                                                                                                                                                                                                                             |
+| Correctif appliqué     | Même correctif que #145 pour `auth.e2e.ts`, appliqué à l'outil partagé `e2e/support/session.ts` : `signIn` vérifie la destination de la redirection du serveur (`response.url()`), plus l'URL finale de la page. Vérifié : 5 parcours × 2 passages, 10 sur 10.              |
+| Référence              | Branche `test/web-e2e-sign-in`                                                                                                                                                                                                                                              |
 
 ### BUG-037
 
