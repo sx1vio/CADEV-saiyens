@@ -613,8 +613,9 @@ export const impact = (i: ImpactResponse): ImpactStats => ({
   questionsResolved: i.questionsResolved,
   medianFirstResponseMinutes: i.medianFirstResponseMinutes,
   countries: i.countries,
-  verifiedContributions: 0,
-  crossLanguage: 0,
+  verifiedContributions: i.verifiedContributions,
+  crossLanguage: i.crossLanguageAnswers,
+  // Pas de série hebdomadaire dans l'API : le graphique est masqué plutôt que vide.
   weekly: [],
   source: 'live',
 });
