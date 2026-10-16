@@ -188,4 +188,33 @@ describe('écran Systalink et impact (Y1, Y2)', () => {
     expect(res.body.questionsAsked).toBeLessThanOrEqual(questions - 1);
     expect(res.headers['cache-control']).toBe('public, max-age=60');
   });
+
+  it('GET /status/history : disponibilité par jour ; « non branché » exclu ; jours bornés', async () => {
+    const day = new Date(Date.now() - 2 * 86_400_000);
+    const at = (h: number) =>
+      new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), h));
+    const date = at(0).toISOString().slice(0, 10);
+    await prisma.statusCheck.deleteMany({
+      where: { service: 'backup', checkedAt: { gte: at(0), lt: at(24) } },
+    });
+    await prisma.statusCheck.createMany({
+      data: [
+        { service: 'backup', ok: true, checkedAt: at(1) },
+        { service: 'backup', ok: true, checkedAt: at(2) },
+        { service: 'backup', ok: false, checkedAt: at(3) },
+        { service: 'backup', ok: false, detail: { configured: false }, checkedAt: at(4) },
+      ],
+    });
+    const res = await request(app.getHttpServer()).get('/api/v1/status/history?days=7').expect(200);
+    expect(res.headers['cache-control']).toBe('public, max-age=300');
+    expect(res.body.days).toBe(7);
+    const backup = res.body.services.find((s: { service: string }) => s.service === 'backup');
+    expect(backup.daily).toHaveLength(7);
+    expect(backup.daily.find((d: { date: string }) => d.date === date)).toEqual({
+      date,
+      uptimePercent: 66.7,
+      checks: 3,
+    });
+    await request(app.getHttpServer()).get('/api/v1/status/history?days=31').expect(400);
+  });
 });
