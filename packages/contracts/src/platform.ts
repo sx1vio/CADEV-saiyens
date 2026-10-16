@@ -45,3 +45,27 @@ export const ImpactResponse = z.object({
   computedAt: z.iso.datetime(),
 });
 export type ImpactResponse = z.infer<typeof ImpactResponse>;
+
+/** GET /api/v1/status/history?days=7 (Y5) : disponibilité par service et par jour (UTC). */
+export const StatusHistoryQuery = z.object({
+  days: z.coerce.number().int().min(1).max(30).default(7),
+});
+export type StatusHistoryQuery = z.infer<typeof StatusHistoryQuery>;
+
+/** Part des sondes réussies (0 à 100, une décimale) ; null sans sonde utile ce jour-là. */
+const Uptime = z.number().min(0).max(100).nullable();
+
+export const StatusHistoryResponse = z.object({
+  days: z.number().int(),
+  services: z.array(
+    z.object({
+      service: SystalinkService,
+      uptimePercent: Uptime,
+      checks: z.number().int(),
+      daily: z.array(
+        z.object({ date: z.iso.date(), uptimePercent: Uptime, checks: z.number().int() }),
+      ),
+    }),
+  ),
+});
+export type StatusHistoryResponse = z.infer<typeof StatusHistoryResponse>;
