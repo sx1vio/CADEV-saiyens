@@ -531,6 +531,7 @@ export function passport(p: PassportResponse, proofs: ProofsResponse | null): Pa
     proofs: events.map((e) => proof(u.handle, e)),
     heatmap: [...perDay].map(([date, count]) => ({ date, count })),
     countryRank: null,
+    accountId: p.user.id,
   };
 }
 

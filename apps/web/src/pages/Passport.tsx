@@ -9,6 +9,7 @@ import {
   Mail,
   MapPin,
   Share2,
+  Flag,
   Sparkles,
   Star,
   Undo2,
@@ -19,6 +20,7 @@ import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { DemoBadge } from '@/components/domain';
+import { ReportSheet } from '@/components/ReportSheet';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CodeBlock } from '@/components/ui/code';
 import { Heatmap, LevelBadge, ScoreBar } from '@/components/ui/data';
@@ -50,6 +52,7 @@ export default function Passport() {
   const { data: status } = useQuery('status:lite', () => api.getStatus());
   const [proofSkill, setProofSkill] = useState<SkillView | null>(null);
   const [contact, setContact] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [tab, setTab] = useState<'overview' | 'skills' | 'projects' | 'activity'>('overview');
   const certResults = usePlatform((st) => st.certResults);
 
@@ -156,7 +159,19 @@ export default function Passport() {
               onClick={share}
               aria-label={t('passport.share')}
             />
+            {me && !isMe && (
+              <Button
+                variant="secondary"
+                icon={<Flag />}
+                onClick={() => setReporting(true)}
+                aria-label={t('common.report')}
+              />
+            )}
           </div>
+          <ReportSheet
+            target={reporting ? { type: 'user', id: p.accountId, label: u.displayName } : null}
+            onClose={() => setReporting(false)}
+          />
           <ul className="flex flex-col gap-1.5 text-[13.5px] text-muted">
             {(u.city || u.country) && (
               <li className="flex items-center gap-2">

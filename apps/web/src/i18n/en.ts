@@ -45,6 +45,7 @@ const en: Dict = {
     or: 'or',
     new: 'New',
     reportTitle: 'Report this content',
+    reportUserTitle: 'Report this account',
     reportReason: 'Why?',
     reportPlaceholder: 'Spam, offensive content, leaked secret…',
     reportSent: 'Report sent. An administrator will review it.',
