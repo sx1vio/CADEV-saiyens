@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { QuestionCard } from '@/components/domain';
 import { useTags } from '@/components/TagPicker';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/primitives';
 import { ServiceHeader } from '@/platform/ui';
 import { Segmented } from '@/components/ui/segmented';
@@ -62,16 +62,21 @@ export default function SosList() {
         title="Entraide"
         subtitle="Décris ton blocage : une piste arrive en quelques secondes, puis l’aide d’un dev qui a déjà résolu le même problème."
         actions={
-          me && (
-            <Button
-              variant="primary"
-              icon={<Zap />}
-              onClick={() => setAsk(true)}
-              className="hidden sm:inline-flex"
-            >
-              {t('nav.ask')}
-            </Button>
-          )
+          <div className="flex gap-2">
+            <ButtonLink to="/systalink/aide" variant="secondary" className="hidden sm:inline-flex">
+              {t('systalinkHelp.link')}
+            </ButtonLink>
+            {me && (
+              <Button
+                variant="primary"
+                icon={<Zap />}
+                onClick={() => setAsk(true)}
+                className="hidden sm:inline-flex"
+              >
+                {t('nav.ask')}
+              </Button>
+            )}
+          </div>
         }
       />
       <div className="mt-5" />

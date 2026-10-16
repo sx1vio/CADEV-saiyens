@@ -703,6 +703,20 @@ const fr = {
     badgeHint: 'Affiche ton score dans ton README GitHub.',
     reverted: 'annulé',
   },
+  systalinkHelp: {
+    title: 'Aide Systalink',
+    subtitle:
+      "Héberger, déployer, configurer chez Systalink : la communauté répond, et les réponses validées forment la FAQ. Une bonne réponse rapporte des Proof XP, comme dans l'entraide.",
+    ask: 'Poser une question sur Systalink',
+    docs: 'Documentation Systalink',
+    faq: 'Réponses validées',
+    faqEmpty: 'Aucune réponse validée pour le moment.',
+    open: "En attente d'aide",
+    openEmpty: 'Aucune question en attente. Bravo à la communauté !',
+    deployText:
+      'Pas encore en ligne ? Déploie ton projet chez Systalink, puis prouve-le dans ta salle.',
+    link: 'Aide Systalink',
+  },
   deployment: {
     title: 'En production',
     intro:

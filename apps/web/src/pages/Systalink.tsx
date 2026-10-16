@@ -3,6 +3,7 @@ import {
   Database,
   HardDrive,
   Info,
+  LifeBuoy,
   Rocket,
   Mail,
   RefreshCw,
@@ -186,6 +187,13 @@ function Ecosystem() {
         <div className="flex flex-wrap gap-2">
           <DeployToSystalink from="systalink" variant="primary" />
           <DeployToSystalink from="systalink" to="orion" />
+          <Link
+            to="/systalink/aide"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-strong px-3.5 text-[13px] font-semibold text-fg hover:bg-surface-2"
+          >
+            <LifeBuoy className="size-4" />
+            {t('systalinkHelp.link')}
+          </Link>
         </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">

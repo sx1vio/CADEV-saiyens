@@ -96,6 +96,7 @@ const pages = {
   leaderboard: () => import('@/pages/Leaderboard'),
   passport: () => import('@/pages/Passport'),
   systalink: () => import('@/pages/Systalink'),
+  systalinkHelp: () => import('@/pages/SystalinkHelp'),
   impact: () => import('@/pages/Impact'),
   rules: () => import('@/pages/Rules'),
   admin: () => import('@/pages/Admin'),
@@ -304,6 +305,7 @@ export const router = createBrowserRouter([
       { path: 'classement', lazy: lazy('leaderboard') },
       { path: 'u/:handle', lazy: lazy('passport') },
       { path: 'systalink', lazy: lazy('systalink') },
+      { path: 'systalink/aide', lazy: lazy('systalinkHelp') },
       { path: 'impact', lazy: lazy('impact') },
       { path: 'regles', lazy: lazy('rules') },
       {

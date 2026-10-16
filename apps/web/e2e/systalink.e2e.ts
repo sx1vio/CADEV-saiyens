@@ -58,3 +58,16 @@ test('preuve « en production sur Systalink » et bouton de déploiement', async
   expect(go.status()).toBe(302);
   expect(go.headers().location).toContain('https://platform.systalink.com/serverless');
 });
+
+/** Idée C : l'aide Systalink, publique ; « Poser une question » pré-remplit l'étiquette. */
+test('aide Systalink : FAQ publique et question pré-étiquetée', async ({ page }) => {
+  await signIn(page, uniqueLogin('sysaide'));
+  await page.goto('/systalink/aide');
+  await expect(page.getByRole('heading', { name: 'Aide Systalink', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Réponses validées' })).toBeVisible();
+  await page.getByRole('button', { name: 'Poser une question sur Systalink' }).click();
+  const ask = page.getByRole('dialog');
+  await expect(ask).toBeVisible();
+  await expect(ask.getByRole('button', { name: 'Systalink ×' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/systalink-help.png', fullPage: true });
+});

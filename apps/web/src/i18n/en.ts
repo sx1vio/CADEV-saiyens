@@ -691,6 +691,19 @@ const en: Dict = {
     badgeHint: 'Show your score in your GitHub README.',
     reverted: 'reverted',
   },
+  systalinkHelp: {
+    title: 'Systalink help',
+    subtitle:
+      'Hosting, deploying, configuring at Systalink: the community answers, and accepted answers become the FAQ. A good answer earns Proof XP, as in SOS Dev.',
+    ask: 'Ask a question about Systalink',
+    docs: 'Systalink documentation',
+    faq: 'Accepted answers',
+    faqEmpty: 'No accepted answer yet.',
+    open: 'Waiting for help',
+    openEmpty: 'No question waiting. Well done, community!',
+    deployText: 'Not online yet? Deploy your project at Systalink, then prove it in your room.',
+    link: 'Systalink help',
+  },
   deployment: {
     title: 'In production',
     intro:
