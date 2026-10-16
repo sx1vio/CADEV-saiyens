@@ -8,6 +8,7 @@ const me = {
   avatarUrl: null,
   email: 'awa@example.test',
   emailVerified: true,
+  emailNotifications: true,
   bio: null,
   country: 'CI',
   timezone: 'Africa/Abidjan',
