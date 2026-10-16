@@ -56,6 +56,13 @@ export const JOBS = {
     options: { retryLimit: 0, expireInSeconds: 30 },
     cron: '*/5 * * * *',
   },
+  /** Y3 : e-mail récapitulatif des notifications non lues depuis 2 min (une par personne). */
+  notificationsEmail: {
+    name: 'notifications.email',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 120 },
+    cron: '*/2 * * * *',
+  },
 } as const;
 
 export type JobName = (typeof JOBS)[keyof typeof JOBS]['name'];

@@ -180,6 +180,8 @@ model User {
   wantLearnTagIds  String[]  @default([]) @map("want_learn_tag_ids") @db.Uuid // PR10, 5 max
   privacy          Json      @default("{}") // PR14 : { unlisted, hideCountry, hideTimezone, hideAvailability, hideStats } (lu par resolvePrivacy, qui accepte aussi { country: false, … })
   doNotDisturb     Boolean   @default(false) @map("do_not_disturb")
+  /// Y3 : e-mail récapitulatif des notifications non lues (désabonnement en un clic).
+  emailNotifications Boolean @default(true) @map("email_notifications")
   onboardingIntent String?   @map("onboarding_intent") // T3
   uiLang           Lang      @default(fr) @map("ui_lang")
   communityId      String?   @map("community_id") @db.Uuid // D5
