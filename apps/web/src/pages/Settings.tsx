@@ -10,7 +10,6 @@ import { Card, CardHeader, Field, Input, Textarea } from '@/components/ui/primit
 import { Segmented } from '@/components/ui/segmented';
 import { setLanguage, useLang, type AppLang } from '@/i18n';
 import { invalidate } from '@/lib/query';
-import { useNetwork, type SimMode } from '@/offline/network';
 import { api } from '@/services';
 import { useSession, useUI, type Theme } from '@/stores/app';
 import { Page } from './_layout';
@@ -22,8 +21,6 @@ export default function Settings() {
   const me = useSession((s) => s.user)!;
   const setUser = useSession((s) => s.setUser);
   const { theme, setTheme, startTour } = useUI();
-  const sim = useNetwork((s) => s.sim);
-  const setSim = useNetwork((s) => s.setSim);
   const [name, setName] = useState(me.displayName);
   const [bio, setBio] = useState(me.bio);
   const [busy, setBusy] = useState(false);
@@ -91,19 +88,6 @@ export default function Settings() {
               items={[
                 { value: 'fr', label: 'Français', icon: <Languages /> },
                 { value: 'en', label: 'English' },
-              ]}
-            />
-          </Row>
-          <Row label={t('network.simulator')} hint={t('network.simHint')}>
-            <Segmented<SimMode>
-              label={t('network.simulator')}
-              size="sm"
-              value={sim}
-              onChange={setSim}
-              items={[
-                { value: 'off', label: t('network.simOff') },
-                { value: 'offline', label: t('network.simOffline') },
-                { value: '2g', label: t('network.sim2gLabel') },
               ]}
             />
           </Row>

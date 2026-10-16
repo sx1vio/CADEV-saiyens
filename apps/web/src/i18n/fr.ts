@@ -110,20 +110,13 @@ const fr = {
     pending_other: '{{count}} actions en attente',
     syncing: 'Synchronisation…',
     error: 'Erreur de synchronisation',
-    simulated: 'Mode simulé',
-    sim2g: '2G simulée',
     bannerOffline: 'Tu es hors ligne. Tu peux lire et écrire : tout partira au retour du réseau.',
-    bannerSim: 'Réseau coupé par le simulateur.',
-    bannerSimAction: 'Rétablir',
     centerTitle: 'Centre de synchronisation',
     centerSubtitle: 'Ce qui partira dès que le réseau revient. Tu peux annuler avant l’envoi.',
     centerEmpty: 'Tout est synchronisé.',
     lastSync: 'Dernière synchro : {{sent}} envoyée(s), {{failed}} en échec',
-    simulator: 'Simulateur de réseau',
-    simOff: 'Réel',
-    simOffline: 'Hors ligne',
-    sim2gLabel: '2G lente',
-    simHint: 'Teste le mode hors ligne sans couper ton Wi-Fi.',
+    centerHint:
+      'Tu peux lire et écrire même sans réseau : ce que tu fais attend ici et part au retour de la connexion.',
     syncNow: 'Synchroniser maintenant',
     type: {
       question: 'Question',
@@ -175,7 +168,7 @@ const fr = {
     why3Text: 'Trouve des contributeurs par compétence prouvée, pas par CV.',
     offlineTitle: 'Hors ligne d’abord',
     offlineText:
-      'Lis, écris et réponds sans réseau. Tout se synchronise au retour de la connexion. Essaie : coupe le réseau avec le simulateur.',
+      'Lis, écris et réponds sans réseau. Tout se synchronise au retour de la connexion.',
     offlineCta: 'Tester le mode hors ligne',
     systalinkTitle: 'Hébergé chez Systalink',
     systalinkText: 'Application, base de données, sauvegardes et e-mails tournent chez Systalink.',
@@ -279,8 +272,7 @@ const fr = {
     s4Text:
       "Chaque aide validée, chaque PR fusionnée et chaque certification deviennent des preuves. C'est ton CV, mais vérifiable : les entreprises le voient quand tu postules.",
     s5Title: 'Même sans réseau',
-    s5Text:
-      "Tu peux lire et écrire hors ligne. Ici, tu vois ce qui attend d'être envoyé. Essaie le simulateur !",
+    s5Text: "Tu peux lire et écrire hors ligne. Ici, tu vois ce qui attend d'être envoyé.",
     s6Title: 'Le raccourci des pros',
     s6Text: 'Ctrl + K (ou ⌘ + K) : tout DevHub au bout des doigts.',
   },
