@@ -137,7 +137,7 @@ export default function Onboarding() {
                   <Field label={t('onboarding.country')} htmlFor="ob-country">
                     <select
                       id="ob-country"
-                      value={country}
+                      value={country ?? ''}
                       onChange={(e) => {
                         setCountry(e.target.value);
                         const c = COUNTRIES.find((x) => x.code === e.target.value);
@@ -145,6 +145,10 @@ export default function Onboarding() {
                       }}
                       className="h-11 rounded-[8px] border border-line bg-inset px-3 text-[15px] text-fg shadow-inset sm:h-10 sm:text-sm"
                     >
+                      {/* BUG-027 : sans pays connu, un choix vide explicite plutôt qu'un « Bénin » non retenu */}
+                      <option value="" disabled>
+                        {t('onboarding.countryPlaceholder')}
+                      </option>
                       {COUNTRIES.map((c) => (
                         <option key={c.code} value={c.code}>
                           {c[lang]}
