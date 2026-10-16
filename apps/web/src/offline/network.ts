@@ -1,6 +1,6 @@
 /**
  * Hors ligne d'abord (CDC §6.5, O1-O3, O5, O8, O9).
- * - État réseau réel (navigator.onLine) + simulateur (O5 : hors ligne ou 2G), aussi pilotable par ?net=offline|2g
+ * - État réseau réel (navigator.onLine) + simulateur (O5 : hors ligne ou 2G), aussi pilotable par ?net=offline|2g|off (réglage gardé jusqu’à ?net=off ou au bouton)
  * - File d'attente IndexedDB : chaque action a un UUID (client_id), elle est rejouée dans l'ordre,
  *   avec reprise progressive en cas d'échec, sans doublon (le serveur est idempotent sur client_id).
  */
@@ -44,8 +44,13 @@ const qdb = () =>
   }));
 
 function initialSim(): SimMode {
+  // BUG-031 : ?net=offline|2g tient jusqu'à ce qu'on le désactive (bouton ou ?net=off),
+  // comme quand on l'active depuis l'interface ; sinon un rechargement vidait la file par surprise.
   const p = new URLSearchParams(location.search).get('net');
-  if (p === 'offline' || p === '2g') return p;
+  if (p === 'offline' || p === '2g' || p === 'off') {
+    storageSet('dh-net-sim', p === 'off' ? null : p);
+    return p;
+  }
   const s = storageGet('dh-net-sim');
   return s === 'offline' || s === '2g' ? s : 'off';
 }
