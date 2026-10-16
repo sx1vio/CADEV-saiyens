@@ -53,6 +53,7 @@ export const UpdateMeRequest = z
     canHelpTagSlugs: z.array(z.string().trim().toLowerCase()).max(5),
     wantLearnTagSlugs: z.array(z.string().trim().toLowerCase()).max(5),
     doNotDisturb: z.boolean(),
+    emailNotifications: z.boolean(),
     privacy: Privacy,
   })
   .partial()

@@ -13,6 +13,8 @@ export const MeResponse = z.object({
   timezone: z.string().nullable(),
   languages: z.array(z.enum(['fr', 'en'])),
   uiLang: z.enum(['fr', 'en']),
+  /** Y3 : récapitulatif par e-mail des notifications non lues. */
+  emailNotifications: z.boolean(),
   lookingFor: z.string().nullable(),
   githubLinked: z.boolean(),
   githubCreatedAt: z.iso.datetime().nullable(),
