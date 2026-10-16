@@ -210,7 +210,7 @@ La suppression est une **anonymisation**, pas une suppression en cascade, pour n
 3. Les questions, réponses et messages restent, attribués au compte anonymisé.
 4. `xp_events` reste (journal) mais le Passport anonymisé n'est plus accessible (404).
 
-Le traitement est un cas d'usage unique et transactionnel, testé.
+Le traitement est un cas d'usage unique et transactionnel, testé (`AccountDeletion`, `DELETE /api/v1/me`). La personne retape son handle (`confirmHandle`) ; le cookie de session est effacé et toutes les sessions sont supprimées. Les lectures des questions ne filtrent donc pas les auteurs supprimés (BUG-035) : seul le Passport répond 404.
 
 ## Migrations
 
