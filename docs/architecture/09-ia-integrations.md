@@ -193,6 +193,8 @@ Les +15 XP sont attribués à la clôture dans les deux cas. La **source** est t
 - Mention « Envoyé via Systalink Mail » en pied (Y6).
 - En développement : `MailpitAdapter` ou capture locale, aucun e-mail réel envoyé.
 
+Implémenté (16 octobre) dans `apps/api/src/modules/notifications` : `SmtpMailer` (nodemailer ; sans `SMTP_HOST`, rien ne part et rien n'est marqué envoyé), gabarits FR et EN du récapitulatif (`domain/email.ts`, contenu échappé), job `notifications.email` toutes les 2 minutes, jeton de désabonnement signé (HMAC dérivé de `SESSION_SECRET`), `GET` et `POST /api/v1/unsubscribe` (le POST en un clic est exempté de la vérification d'origine par `@AllowCrossOrigin()`, seule exception), préférence `emailNotifications` dans `PATCH /me`. En local : Mailpit (`SMTP_HOST=localhost`, `SMTP_PORT=1025`).
+
 ## 4. Telegram et Web Push (Y7, P1)
 
 - **Telegram** : bot officiel ; jumelage par lien à usage unique `https://t.me/<bot>?start=<jeton>` ; le bot n'envoie que des sollicitations SOS Dev et des réponses.

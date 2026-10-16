@@ -36,9 +36,9 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 19      | 2        | 0       | 90 %        | 100 %      |
-| P1        | 14     | 3       | 3        | 8       | 21 %        | 43 %       |
+| P1        | 14     | 3       | 4        | 7       | 21 %        | 50 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **22**  | **5**    | **10**  | **59 %**    | **73 %**   |
+| **Total** | **37** | **22**  | **6**    | **9**   | **59 %**    | **76 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -53,7 +53,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                          |
 | Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                          |
 | Hors ligne (O)          | 4         | 3       | 1        | `█████████░` O1, O2, O3 fait; O4 en cours         |
-| Systalink et impact (Y) | 4         | 2       | 0        | `█████░░░░░` Y1, Y2 fait                          |
+| Systalink et impact (Y) | 4         | 2       | 1        | `██████░░░░` Y1, Y2 fait; Y3 en cours             |
 | Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                              |
 | Langues (I)             | 1         | 0       | 1        | `█████░░░░░` I1 en cours                          |
 
@@ -167,12 +167,12 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Systalink, impact, notifications, stockage (Y)
 
-| ID  | Issue | Exigence                                 | Prio | Statut    | Responsable | Référence           | Commentaire                                                                                                                              |
-| --- | ----- | ---------------------------------------- | ---- | --------- | ----------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Y1  | #45   | État des services et dernière sauvegarde | P0   | `Terminé` | Emmanuel    | PR #115             | Validé en réel le 15 oct. (session C, API et front de main) : sondes réelles ; sauvegarde et e-mail à brancher en production             |
-| Y2  | #46   | Écran d'impact                           | P1   | `Terminé` | Emmanuel    | PR #115, #131, #141 | Chiffres réels uniquement : contributions vérifiées et échanges entre langues (#131, #141) ; série hebdomadaire masquée faute de données |
-| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `À faire` | Emmanuel    |                     | Mailpit prêt en local                                                                                                                    |
-| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire` | Emmanuel    |                     | Si le produit est accepté (#2)                                                                                                           |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence                  | Commentaire                                                                                                                                                                                  |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Y1  | #45   | État des services et dernière sauvegarde | P0   | `Terminé`  | Emmanuel    | PR #115                    | Validé en réel le 15 oct. (session C, API et front de main) : sondes réelles ; sauvegarde et e-mail à brancher en production                                                                 |
+| Y2  | #46   | Écran d'impact                           | P1   | `Terminé`  | Emmanuel    | PR #115, #131, #141        | Chiffres réels uniquement : contributions vérifiées et échanges entre langues (#131, #141) ; série hebdomadaire masquée faute de données                                                     |
+| Y3  | #47   | E-mails via la messagerie Systalink      | P1   | `En cours` | Emmanuel    | `feat/email-notifications` | API faite : récapitulatif des notifications non lues toutes les 2 min, désabonnement en un clic ; reste les identifiants SMTP Systalink (#2) et l'interrupteur dans les réglages (session B) |
+| Y4  | #48   | Stockage objet Systalink                 | P2   | `À faire`  | Emmanuel    |                            | Si le produit est accepté (#2)                                                                                                                                                               |
 
 ### Modération (M) et langues (I)
 
