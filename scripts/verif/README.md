@@ -28,3 +28,4 @@ API=http://localhost:3002 node scripts/verif/share-preview.mjs  # R7 : aperçus,
 | `conflict.mjs`       | Conflit de version (O4) : « Garder celle en ligne » sur une question, fusion sur une réponse, droits |
 | `report-user.mjs`    | Signaler un compte depuis son Passport, traitement dans /admin (BUG-036)                             |
 | `delete-account.mjs` | Suppression du compte (A3) : confirmation, protections, anonymisation, reconnexion                   |
+| `phone-offline.mjs`  | Jalon 3 en émulation Moto G4 : vraie coupure, rechargement hors ligne, synchronisation sans doublon  |
