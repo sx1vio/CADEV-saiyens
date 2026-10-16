@@ -63,6 +63,14 @@ export const JOBS = {
     options: { retryLimit: 0, expireInSeconds: 120 },
     cron: '*/2 * * * *',
   },
+  /** Idée A (Systalink) : disponibilité des applications en production, toutes les 30 minutes. */
+  deploymentCheck: {
+    name: 'rooms.deployment-check',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 600 },
+    queue: { policy: 'exclusive' },
+    cron: '*/30 * * * *',
+  },
 } as const;
 
 export type JobName = (typeof JOBS)[keyof typeof JOBS]['name'];

@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
+import { IdentityModule } from '../identity';
 import { CheckServices } from './application/check-services';
 import { PlatformController } from './http/platform.controller';
+import { SystalinkController } from './http/systalink.controller';
+import { EcosystemReader } from './infrastructure/ecosystem.reader';
 import { ImpactReader } from './infrastructure/impact.reader';
 import { PrismaStatusStore } from './infrastructure/prisma-status.store';
 import { BackupProbe, DatabaseProbe, MailProbe, VpsProbe } from './infrastructure/probes';
@@ -9,13 +12,15 @@ import { STATUS_STORE } from './tokens';
 
 // Module platform (propriétaire : Emmanuel) : écran Systalink (sondes réelles) et impact (Y1, Y2).
 @Module({
-  controllers: [PlatformController],
+  imports: [IdentityModule],
+  controllers: [PlatformController, SystalinkController],
   providers: [
     VpsProbe,
     DatabaseProbe,
     BackupProbe,
     MailProbe,
     ImpactReader,
+    EcosystemReader,
     StatusCheckJob,
     { provide: STATUS_STORE, useClass: PrismaStatusStore },
     {

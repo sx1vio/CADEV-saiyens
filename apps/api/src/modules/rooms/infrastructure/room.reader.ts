@@ -7,22 +7,39 @@ import type {
   TaskView,
   ListRoomsQuery,
   ListRoomsResponse,
+  RoomDeployment,
   RoomDetail,
   RoomSummary,
 } from '@devhub/contracts';
 import type { Prisma } from '../../../generated/prisma/client';
 import { afterCursor, decodeCursor, encodeCursor } from '../../../infrastructure/http/cursor';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { uptime } from '../domain/deployment';
 
 const author = { select: { handle: true, displayName: true, avatarUrl: true, isDemo: true } };
 const SEARCH_LIMIT = 200;
 
 const summaryInclude = {
   owner: author,
+  deployment: true,
   _count: { select: { members: true, tasks: { where: { status: 'open' as const } } } },
 } satisfies Prisma.RoomInclude;
 
 type RoomRow = Prisma.RoomGetPayload<{ include: typeof summaryInclude }>;
+type DeploymentRow = NonNullable<RoomRow['deployment']>;
+
+/** Vue publique d'une preuve de déploiement (sans le jeton). */
+export function deploymentView(d: DeploymentRow): RoomDeployment {
+  return {
+    url: d.url,
+    status: d.verifiedAt ? 'verified' : 'pending',
+    hostedOnSystalink: d.verifiedAt !== null && d.hostedOnSystalink,
+    verifiedAt: d.verifiedAt?.toISOString() ?? null,
+    lastCheckAt: d.lastCheckAt?.toISOString() ?? null,
+    lastUp: d.lastUp,
+    uptime: uptime(d.checksUp, d.checksTotal),
+  };
+}
 
 // Lecture des salles (CQRS léger). Une salle « non listée » n'apparaît pas dans les listes
 // publiques mais reste accessible par son code ; une salle masquée par la modération jamais.
@@ -227,6 +244,7 @@ export class RoomReader {
           }
         : null,
       demoUrl: r.demoUrl,
+      deployment: r.deployment ? deploymentView(r.deployment) : null,
       owner: r.owner,
       memberCount: r._count.members,
       openTaskCount: r._count.tasks,

@@ -49,6 +49,20 @@ export const EnvSchema = z
     SMTP_USER: optional(z.string()),
     SMTP_PASSWORD: optional(z.string()),
     MAIL_FROM: z.string().min(3).default('DevHub Africa <notifications@devhub.africa>'),
+    // Idée A : plages réseau de Systalink (CIDR IPv4, séparées par des virgules). Une application
+    // dont l'adresse y tombe est « en production sur Systalink ». À confirmer avec Systalink.
+    SYSTALINK_IP_RANGES: z.preprocess(
+      (v) => (v === '' ? undefined : v),
+      z
+        .string()
+        .default('102.203.220.0/22')
+        .transform((v) =>
+          v
+            .split(',')
+            .map((r) => r.trim())
+            .filter(Boolean),
+        ),
+    ),
     // R7 : index.html construit du front, enrichi des balises de partage (défaut : ./web/index.html).
     WEB_INDEX_HTML: optional(z.string()),
   })

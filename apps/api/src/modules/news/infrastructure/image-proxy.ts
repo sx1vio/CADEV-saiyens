@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { isIP } from 'node:net';
 import { join } from 'node:path';
 import sharp from 'sharp';
+import { isPrivateAddress } from '../../../infrastructure/http/public-address';
 
 // Proxy d'images des actualités : redimensionne, convertit en WebP et met en cache sur disque.
 // - Économie de data : une vignette de 640 px pèse ~40 Ko au lieu de ~600 Ko.
@@ -15,29 +15,7 @@ const MAX_BYTES = 15 * 1024 * 1024;
 
 export class ImageRejectedError extends Error {}
 
-export function isPrivateAddress(ip: string): boolean {
-  if (isIP(ip) === 4) {
-    const [a = 0, b = 0] = ip.split('.').map(Number);
-    return (
-      a === 10 ||
-      a === 127 ||
-      a === 0 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 100 && b >= 64 && b <= 127)
-    );
-  }
-  const v6 = ip.toLowerCase();
-  return (
-    v6 === '::1' ||
-    v6 === '::' ||
-    v6.startsWith('fc') ||
-    v6.startsWith('fd') ||
-    v6.startsWith('fe80') ||
-    v6.startsWith('::ffff:')
-  );
-}
+export { isPrivateAddress };
 
 /** Largeur servie : la plus proche parmi quelques tailles fixes (cache efficace). */
 export const snapWidth = (w = 640) =>

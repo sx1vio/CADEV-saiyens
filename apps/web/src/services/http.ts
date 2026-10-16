@@ -38,6 +38,9 @@ import type {
   UpdateAnswerResponse,
   UpdateMeRequest,
   UpdateQuestionResponse,
+  DeploymentChallenge,
+  SystalinkEcosystemResponse,
+  VerifyDeploymentResponse,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
 import { claimApiReadCache, clearApiReadCache, releaseApiReadCache } from '@/offline/api-cache';
@@ -49,7 +52,7 @@ const BASE = `${(import.meta.env.VITE_API_URL as string | undefined)?.replace(/\
 type Query = Record<string, string | number | boolean | undefined>;
 
 async function call<T>(
-  method: 'GET' | 'POST' | 'PATCH',
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT',
   path: string,
   body?: unknown,
   idempotencyKey?: string,
@@ -402,6 +405,15 @@ export const httpApi: DevHubApi = {
       ),
     ),
   requestFeedback: async () => unavailable(),
+  getDeployment: (roomId) =>
+    get<DeploymentChallenge>(`/rooms/${roomId}/deployment`).catch((e: unknown) => {
+      if (e instanceof DomainError && e.code === 'not_found') return null;
+      throw e;
+    }),
+  setDeployment: (roomId, url) =>
+    call<DeploymentChallenge>('PUT', `/rooms/${roomId}/deployment`, { url }),
+  verifyDeployment: (roomId) =>
+    post<VerifyDeploymentResponse>(`/rooms/${roomId}/deployment/verify`),
 
   discoverDevs: async (f) => {
     const offset = Math.round(-new Date().getTimezoneOffset() / 60);
@@ -465,4 +477,5 @@ export const httpApi: DevHubApi = {
 
   getStatus: async () => m.status(await get<StatusResponse>('/status')),
   getImpact: async () => m.impact(await get<ImpactResponse>('/impact')),
+  getEcosystem: () => get<SystalinkEcosystemResponse>('/systalink/ecosystem'),
 };

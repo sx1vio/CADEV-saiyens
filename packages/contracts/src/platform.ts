@@ -69,3 +69,47 @@ export const StatusHistoryResponse = z.object({
   ),
 });
 export type StatusHistoryResponse = z.infer<typeof StatusHistoryResponse>;
+
+// ─────────────── Écosystème Systalink (idées A et B) ───────────────
+
+/** Destinations du bouton « Déployer sur Systalink » (liste fermée côté serveur). */
+export const SystalinkTarget = z.enum(['deploy', 'orion', 'server']);
+export type SystalinkTarget = z.infer<typeof SystalinkTarget>;
+/** Écran d'où part le renvoi : mesure de ce que DevHub apporte à Systalink. */
+export const SystalinkSource = z.enum(['room', 'templates', 'build', 'systalink', 'help']);
+export type SystalinkSource = z.infer<typeof SystalinkSource>;
+
+/** GET /api/v1/go/systalink : compte le renvoi, puis redirige (302) vers Systalink. */
+export const GoSystalinkQuery = z.object({
+  to: SystalinkTarget.default('deploy'),
+  from: SystalinkSource.default('systalink'),
+  /** Code de la salle d'où part le renvoi : son dépôt GitHub accompagne le lien. */
+  room: z
+    .string()
+    .regex(/^[a-z0-9]{4,16}$/)
+    .optional(),
+});
+export type GoSystalinkQuery = z.infer<typeof GoSystalinkQuery>;
+
+/** GET /api/v1/systalink/ecosystem : ce que la communauté apporte à Systalink, public. */
+export const SystalinkEcosystemResponse = z.object({
+  referrals: z.object({
+    total: z.number().int(),
+    last30Days: z.number().int(),
+    bySource: z.array(z.object({ source: SystalinkSource, count: z.number().int() })),
+  }),
+  /** Salles publiques dont l'application est vérifiée en production sur Systalink. */
+  roomsOnSystalink: z.number().int(),
+  /** Les plus récentes, pour la vitrine de l'écran /systalink. */
+  showcase: z.array(
+    z.object({
+      code: z.string(),
+      name: z.string(),
+      url: z.string(),
+      uptime: z.number().min(0).max(1).nullable(),
+      verifiedAt: z.iso.datetime(),
+    }),
+  ),
+  computedAt: z.iso.datetime(),
+});
+export type SystalinkEcosystemResponse = z.infer<typeof SystalinkEcosystemResponse>;

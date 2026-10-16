@@ -152,3 +152,70 @@ export interface MessageWriter {
   }): Promise<{ id: string }>;
   touch(roomId: string, at: Date): Promise<void>;
 }
+
+// ─────────────── Preuve « en production » (idée A, Systalink) ───────────────
+
+export interface DeploymentState {
+  roomId: string;
+  url: string;
+  token: string;
+  verifiedAt: Date | null;
+  hostedOnSystalink: boolean;
+}
+
+export interface DeploymentRoom {
+  id: string;
+  ownerId: string;
+  stackTagIds: string[];
+  hidden: boolean;
+}
+
+export interface DeploymentStore {
+  findRoom(roomId: string): Promise<DeploymentRoom | null>;
+  roleOf(roomId: string, userId: string): Promise<RoomRole | null>;
+  find(roomId: string): Promise<DeploymentState | null>;
+  /** Nouvelle URL ; `reset` : autre application, la vérification et les sondes repartent de zéro. */
+  save(d: { roomId: string; url: string; token: string; reset: boolean }): Promise<void>;
+  markVerified(
+    roomId: string,
+    v: { at: Date; hostedOnSystalink: boolean; hostIp: string | null },
+  ): Promise<void>;
+  recordCheck(
+    roomId: string,
+    c: {
+      at: Date;
+      up: boolean;
+      latencyMs: number | null;
+      hostedOnSystalink: boolean;
+      hostIp: string | null;
+    },
+  ): Promise<void>;
+  listVerified(): Promise<Array<{ roomId: string; url: string }>>;
+}
+
+/** Une transaction : écritures et Proof XP ensemble. */
+export interface DeploymentUnitOfWork {
+  run<T>(fn: (store: DeploymentStore, tx: unknown) => Promise<T>): Promise<T>;
+}
+
+export interface ProbeResponse {
+  status: number;
+  /** Début du corps (quelques Ko au plus). */
+  body: string;
+  /** Adresses IP résolues pour l'hôte de l'URL. */
+  ips: string[];
+  latencyMs: number;
+}
+
+/** Appel HTTP d'une URL publique (anti-SSRF) ; lève DeploymentUnreachableError. */
+export interface DeploymentProbe {
+  fetch(url: string): Promise<ProbeResponse>;
+}
+
+/** Implémenté par AwardXp (module reputation) : +10 XP au créateur, une fois par salle. */
+export interface DeploymentReputationPort {
+  deploymentVerified(
+    input: { roomId: string; ownerId: string; tagIds: string[] },
+    tx?: unknown,
+  ): Promise<{ events: unknown[] }>;
+}

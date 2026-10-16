@@ -85,7 +85,7 @@ En-têtes renvoyés : `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset
 
 ## Liste des endpoints
 
-Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm** = administrateur. **Id** = `Idempotency-Key` obligatoire. Trois écritures n'en demandent pas, car les rejouer ne change rien : `POST /auth/logout` (session déjà révoquée), `POST /me/code-of-conduct` (date d'acceptation conservée), `DELETE /me` (un second appel n'a plus de session et reçoit 401). Les identifiants d'user stories renvoient au cahier des charges.
+Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm** = administrateur. **Id** = `Idempotency-Key` obligatoire. Trois écritures n'en demandent pas, car les rejouer ne change rien : `POST /auth/logout` (session déjà révoquée), `POST /me/code-of-conduct` (date d'acceptation conservée), `DELETE /me` (un second appel n'a plus de session et reçoit 401), `PUT /rooms/:id/deployment` (PUT idempotent par nature) et `POST /rooms/:id/deployment/verify` (rejouable : les Proof XP sont uniques par salle). Les identifiants d'user stories renvoient au cahier des charges.
 
 ### Authentification et compte (`identity`)
 
@@ -141,26 +141,29 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 ### Salles de projet (`rooms`)
 
-| Méthode et chemin                     | Accès              | Rôle                                                                        | US       |
-| ------------------------------------- | ------------------ | --------------------------------------------------------------------------- | -------- |
-| `GET /rooms?tag=&state=&q=&role=`     | Pub                | Liste et recherche                                                          | D1       |
-| `POST /rooms`                         | Co, Id             | Créer (dépôt vérifié via l'API GitHub)                                      | R1       |
-| `POST /rooms/draft-from-repo`         | Co                 | Proposition de description, stack et tâches depuis le README                | R12 (P1) |
-| `GET /rooms/:code`                    | Pub                | Fiche de salle                                                              | R1       |
-| `PATCH /rooms/:id`                    | Co (owner), Id     | Modifier                                                                    | R1       |
-| `POST /rooms/:id/join`                | Co, Id             | Demander à rejoindre                                                        | R3       |
-| `POST /join-requests/:id/decide`      | Co (owner), Id     | Accepter ou refuser                                                         | R3       |
-| `GET /rooms/:id/tasks`                | Pub                | Tâches                                                                      | R2       |
-| `POST /rooms/:id/tasks`               | Co (membre), Id    | Créer une tâche                                                             | R2       |
-| `POST /rooms/:id/tasks/import-issues` | Co (owner), Id     | Importer les issues GitHub                                                  | R2       |
-| `POST /tasks/:id/take`                | Co (membre), Id    | Prendre une tâche                                                           | R2       |
-| `POST /tasks/:id/submit`              | Co (assigné), Id   | Passer en revue avec un lien de PR                                          | R2       |
-| `POST /tasks/:id/complete`            | Co (owner), Id     | Terminer : vérification GitHub, +15 XP                                      | R8, R9   |
-| `GET /rooms/:id/messages?cursor=`     | Co (membre)        | Discussion                                                                  | R4 (P1)  |
-| `POST /rooms/:id/messages`            | Co (membre), Id    | Message ou « Point du jour »                                                | R4, R14  |
-| `POST /rooms/:id/ai/tasks`            | Co (owner), Id     | Propositions de tâches depuis la discussion (jamais créées sans validation) | R5 (P1)  |
-| `POST /rooms/:id/feedback-requests`   | Co (membre), Id    | Demander un retour ou une revue                                             | R6 (P1)  |
-| `POST /feedback-requests/:id/confirm` | Co (demandeur), Id | Confirmer la revue : +8 XP au relecteur                                     | R6       |
+| Méthode et chemin                     | Accès                  | Rôle                                                                                                            | US          |
+| ------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------- | ----------- |
+| `GET /rooms?tag=&state=&q=&role=`     | Pub                    | Liste et recherche                                                                                              | D1          |
+| `POST /rooms`                         | Co, Id                 | Créer (dépôt vérifié via l'API GitHub)                                                                          | R1          |
+| `POST /rooms/draft-from-repo`         | Co                     | Proposition de description, stack et tâches depuis le README                                                    | R12 (P1)    |
+| `GET /rooms/:code`                    | Pub                    | Fiche de salle                                                                                                  | R1          |
+| `PATCH /rooms/:id`                    | Co (owner), Id         | Modifier                                                                                                        | R1          |
+| `POST /rooms/:id/join`                | Co, Id                 | Demander à rejoindre                                                                                            | R3          |
+| `POST /join-requests/:id/decide`      | Co (owner), Id         | Accepter ou refuser                                                                                             | R3          |
+| `GET /rooms/:id/tasks`                | Pub                    | Tâches                                                                                                          | R2          |
+| `POST /rooms/:id/tasks`               | Co (membre), Id        | Créer une tâche                                                                                                 | R2          |
+| `POST /rooms/:id/tasks/import-issues` | Co (owner), Id         | Importer les issues GitHub                                                                                      | R2          |
+| `POST /tasks/:id/take`                | Co (membre), Id        | Prendre une tâche                                                                                               | R2          |
+| `POST /tasks/:id/submit`              | Co (assigné), Id       | Passer en revue avec un lien de PR                                                                              | R2          |
+| `POST /tasks/:id/complete`            | Co (owner), Id         | Terminer : vérification GitHub, +15 XP                                                                          | R8, R9      |
+| `GET /rooms/:id/messages?cursor=`     | Co (membre)            | Discussion                                                                                                      | R4 (P1)     |
+| `POST /rooms/:id/messages`            | Co (membre), Id        | Message ou « Point du jour »                                                                                    | R4, R14     |
+| `POST /rooms/:id/ai/tasks`            | Co (owner), Id         | Propositions de tâches depuis la discussion (jamais créées sans validation)                                     | R5 (P1)     |
+| `POST /rooms/:id/feedback-requests`   | Co (membre), Id        | Demander un retour ou une revue                                                                                 | R6 (P1)     |
+| `POST /feedback-requests/:id/confirm` | Co (demandeur), Id     | Confirmer la revue : +8 XP au relecteur                                                                         | R6          |
+| `GET /rooms/:id/deployment`           | Co (owner, maintainer) | Preuve « en production » : état et jeton à publier                                                              | Systalink A |
+| `PUT /rooms/:id/deployment`           | Co (owner, maintainer) | URL publique de l'application ; une autre origine reçoit un nouveau jeton                                       | Systalink A |
+| `POST /rooms/:id/deployment/verify`   | Co (owner, maintainer) | Lit le jeton (`/.well-known/devhub-proof.txt` ou `<meta name="devhub-proof">`) ; sur Systalink, +10 XP une fois | Systalink A |
 
 ### Découverte (`discovery`)
 
@@ -185,17 +188,19 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 ### Systalink, impact, modération
 
-| Méthode et chemin                | Accès   | Rôle                                                                                                      | US      |
-| -------------------------------- | ------- | --------------------------------------------------------------------------------------------------------- | ------- |
-| `GET /status`                    | Pub     | État réel des services Systalink, latence, dernière sauvegarde                                            | Y1, Y6  |
-| `GET /status/history?days=7`     | Pub     | Disponibilité sur 7 jours                                                                                 | Y5 (P1) |
-| `GET /impact`                    | Pub     | Devs inscrits, questions résolues, temps médian de première réponse humaine, pays, échanges entre langues | Y2, Y9  |
-| `GET /live-feed`                 | Pub     | Flux anonymisé de la page d'accueil publique                                                              | T1      |
-| `POST /demo/session`             | Pub     | Session d'essai sans compte dans le bac à sable                                                           | T2      |
-| `POST /reports`                  | Co, Id  | Signaler un contenu                                                                                       | M1      |
-| `GET /admin/reports`             | Adm     | File de modération                                                                                        | M1      |
-| `POST /admin/reports/:id/action` | Adm, Id | Masquer, restaurer, annuler des XP, rejeter (journalisé)                                                  | M1, M4  |
-| `GET /admin/audit`               | Adm     | Journal d'audit                                                                                           | M4 (P1) |
+| Méthode et chemin                   | Accès   | Rôle                                                                                                             | US             |
+| ----------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------- | -------------- |
+| `GET /status`                       | Pub     | État réel des services Systalink, latence, dernière sauvegarde                                                   | Y1, Y6         |
+| `GET /status/history?days=7`        | Pub     | Disponibilité sur 7 jours                                                                                        | Y5 (P1)        |
+| `GET /impact`                       | Pub     | Devs inscrits, questions résolues, temps médian de première réponse humaine, pays, échanges entre langues        | Y2, Y9         |
+| `GET /live-feed`                    | Pub     | Flux anonymisé de la page d'accueil publique                                                                     | T1             |
+| `POST /demo/session`                | Pub     | Session d'essai sans compte dans le bac à sable                                                                  | T2             |
+| `POST /reports`                     | Co, Id  | Signaler un contenu                                                                                              | M1             |
+| `GET /admin/reports`                | Adm     | File de modération                                                                                               | M1             |
+| `POST /admin/reports/:id/action`    | Adm, Id | Masquer, restaurer, annuler des XP, rejeter (journalisé)                                                         | M1, M4         |
+| `GET /admin/audit`                  | Adm     | Journal d'audit                                                                                                  | M4 (P1)        |
+| `GET /go/systalink?to=&from=&room=` | Pub     | Compte le renvoi, puis 302 vers une page Systalink de la liste fermée (`deploy`, `orion`, `server`) avec `utm_*` | Systalink B    |
+| `GET /systalink/ecosystem`          | Pub     | Renvois vers Systalink, salles en production chez Systalink, vitrine                                             | Systalink A, B |
 
 ### Actualités (`news`)
 

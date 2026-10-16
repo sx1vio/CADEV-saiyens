@@ -836,6 +836,26 @@ export const localApi: DevHubApi = {
     };
   },
 
+  // Idée A : la vérification exige l'API réelle (lecture de l'application déployée).
+  async getDeployment() {
+    return null;
+  },
+  async setDeployment() {
+    throw new DomainError('feature.unavailable');
+  },
+  async verifyDeployment() {
+    throw new DomainError('feature.unavailable');
+  },
+
+  async getEcosystem() {
+    return {
+      referrals: { total: 0, last30Days: 0, bySource: [] },
+      roomsOnSystalink: 0,
+      showcase: [],
+      computedAt: new Date().toISOString(),
+    };
+  },
+
   async getImpact() {
     return read((e) => {
       const live = e.s.users.filter((u) => !u.deletedAt && !u.isAdmin);

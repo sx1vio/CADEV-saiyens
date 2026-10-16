@@ -2,6 +2,7 @@ import { Check, LayoutTemplate, Star, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import { DeployToSystalink } from '@/components/systalink';
 import { Button } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/overlay';
 import { CodeBlock } from '@/components/ui/code';
@@ -123,6 +124,7 @@ function TemplateDetail({ tpl, onClose }: { tpl: Template; onClose: () => void }
         >
           Copier la commande
         </Button>
+        <DeployToSystalink from="templates" className="h-10" />
         <Button
           variant="primary"
           icon={<Wand2 />}

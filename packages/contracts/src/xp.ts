@@ -8,6 +8,7 @@ export const XpEventKind = z.enum([
   'code_review_given',
   'project_demo_shared',
   'question_resolved',
+  'deployment_verified',
   // P2 (X6, R13, S15) : prévus dans la base, pas encore attribués.
   'difficulty_bonus',
   'mentoring',

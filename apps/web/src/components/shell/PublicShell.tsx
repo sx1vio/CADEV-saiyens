@@ -16,16 +16,28 @@ const LINKS = [
   { to: '/apprendre', label: 'Apprendre' },
 ];
 
-/** Logo : un mot en monospace, sans décor. */
+/** Logo : « Dev » fin, « Hub » gras, invite de terminal « >_ ». */
 export function Logo({ className }: { className?: string }) {
   return (
     <span
+      aria-label="DevHub"
       className={cn(
-        'inline-flex items-baseline font-mono text-[18px] font-bold tracking-[-0.04em] text-fg',
+        'inline-flex items-baseline text-[21px] leading-none tracking-[-0.03em] text-fg',
         className,
       )}
     >
-      devhub
+      <span aria-hidden className="font-light">
+        Dev
+      </span>
+      <span
+        aria-hidden
+        className="font-extrabold text-[color:color-mix(in_oklab,currentColor_86%,#8fb3e8)]"
+      >
+        Hub
+      </span>
+      <span aria-hidden className="ml-[3px] font-mono text-[0.4em] font-semibold opacity-75">
+        &gt;_
+      </span>
     </span>
   );
 }

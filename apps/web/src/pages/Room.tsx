@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
+import { DeploymentCard } from '@/components/DeploymentCard';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { DemoBadge, errorText, RoomIcon, UserLink } from '@/components/domain';
 import { GitHubIcon } from '@/components/icons';
@@ -124,6 +125,7 @@ export default function Room() {
           ))}
         </div>
       </Card>
+      <DeploymentCard room={room} manager={isOwner} />
       {room.wantedRoles.length > 0 && (
         <Card className="p-4">
           <CardHeader title={t('room.wantedRoles')} />
@@ -230,6 +232,12 @@ export default function Room() {
                   >
                     {t('projects.demo')} <ExternalLink className="size-3.5" />
                   </a>
+                )}
+                {room.deployment?.status === 'verified' && room.deployment.hostedOnSystalink && (
+                  <Badge tone="success" size="sm">
+                    <BadgeCheck />
+                    {t('deployment.onSystalink')}
+                  </Badge>
                 )}
                 <span className="inline-flex items-center gap-2 text-subtle">
                   <AvatarStack people={room.members} size={24} />

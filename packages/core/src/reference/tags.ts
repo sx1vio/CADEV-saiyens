@@ -61,6 +61,8 @@ const ROWS: ReadonlyArray<readonly [slug: string, label: string, aliases: readon
   ['machine-learning', 'Machine learning', ['ml', 'ai', 'Jupyter Notebook']],
   ['pwa', 'PWA', ['service-worker', 'workbox']],
   ['tailwind', 'Tailwind CSS', ['tailwindcss']],
+  // Idée C : entraide sur l'hébergement Systalink (FAQ publique /systalink/aide).
+  ['systalink', 'Systalink', ['datacloud', 'orion', 'ispmanager']],
 ];
 
 export const TAG_REFERENCE: readonly ReferenceTag[] = ROWS.map(([slug, label, aliases]) => ({

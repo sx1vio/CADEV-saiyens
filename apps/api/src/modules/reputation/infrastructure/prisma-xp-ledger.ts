@@ -15,6 +15,7 @@ const CAPPED_KINDS = (
     'code_review_given',
     'project_demo_shared',
     'question_resolved',
+    'deployment_verified',
   ] as XpKind[]
 ).filter(isCapped);
 

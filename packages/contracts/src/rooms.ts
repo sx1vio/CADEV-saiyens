@@ -39,6 +39,44 @@ export const RoomMemberView = z.object({
   joinedAt: z.iso.datetime(),
 });
 
+/** Preuve « en production » d'une salle (Systalink, idée A) : l'URL sert le jeton de la salle. */
+export const RoomDeployment = z.object({
+  url: z.string(),
+  /** pending : jeton pas encore trouvé à l'URL ; verified : l'URL sert le jeton de la salle. */
+  status: z.enum(['pending', 'verified']),
+  /** Adresse de l'application dans les plages réseau de Systalink, à la dernière vérification. */
+  hostedOnSystalink: z.boolean(),
+  verifiedAt: z.iso.datetime().nullable(),
+  lastCheckAt: z.iso.datetime().nullable(),
+  /** Dernière sonde de disponibilité : l'application a répondu. */
+  lastUp: z.boolean().nullable(),
+  /** Part des sondes réussies depuis la vérification (0 à 1), null sans sonde. */
+  uptime: z.number().min(0).max(1).nullable(),
+});
+export type RoomDeployment = z.infer<typeof RoomDeployment>;
+
+export const DEPLOYMENT_PROOF_PATH = '/.well-known/devhub-proof.txt';
+
+/** PUT /api/v1/rooms/:id/deployment : l'URL publique de l'application (créateur, mainteneurs). */
+export const SetDeploymentRequest = z.object({ url: httpsUrl });
+export type SetDeploymentRequest = z.infer<typeof SetDeploymentRequest>;
+
+/** Réponse réservée aux gestionnaires de la salle : le jeton à publier pour prouver la mise en ligne. */
+export const DeploymentChallenge = RoomDeployment.extend({
+  token: z.string(),
+  /** Fichier à servir à la racine de l'application, ou balise <meta name="devhub-proof">. */
+  proofPath: z.literal(DEPLOYMENT_PROOF_PATH),
+});
+export type DeploymentChallenge = z.infer<typeof DeploymentChallenge>;
+
+/** POST /api/v1/rooms/:id/deployment/verify */
+export const VerifyDeploymentResponse = z.object({
+  deployment: RoomDeployment,
+  /** +10 Proof XP accordées par cette vérification (première fois, sur Systalink). */
+  xpAwarded: z.boolean(),
+});
+export type VerifyDeploymentResponse = z.infer<typeof VerifyDeploymentResponse>;
+
 export const RoomSummary = z.object({
   id: z.uuid(),
   /** Code d'invitation, utilisé dans l'URL publique /p/:code. */
@@ -50,6 +88,7 @@ export const RoomSummary = z.object({
   stack: z.array(QuestionTag),
   repo: z.object({ fullName: z.string(), url: z.string(), verified: z.boolean() }).nullable(),
   demoUrl: z.string().nullable(),
+  deployment: RoomDeployment.nullable(),
   owner: PublicAuthor,
   memberCount: z.number().int(),
   openTaskCount: z.number().int(),

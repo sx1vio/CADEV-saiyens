@@ -115,6 +115,7 @@ describe('salles et tâches', () => {
     stack: [{ slug: 'nodejs', label: 'Node.js' }],
     repo: { fullName: 'awa/paylink', url: 'https://github.com/awa/paylink', verified: true },
     demoUrl: null,
+    deployment: null,
     owner: awa,
     memberCount: 2,
     openTaskCount: 1,
