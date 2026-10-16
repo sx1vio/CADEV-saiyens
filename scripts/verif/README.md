@@ -13,15 +13,18 @@ node scripts/verif/offline-read.mjs <id-question>  # O1 : build + vite preview (
 API=http://localhost:3002 node scripts/verif/share-preview.mjs  # R7 : aperçus, injection, PR14
 ```
 
-| Script              | Ce qu'il vérifie                                                                          |
-| ------------------- | ----------------------------------------------------------------------------------------- |
-| `onboarding.mjs`    | Les 5 étapes de `/bienvenue` (BUG-027), pays, fuseau et code de conduite enregistrés      |
-| `sos.mjs`           | Question, secret masqué, piste IA, réponse en direct, validation, Proof XP, notifications |
-| `offline-read.mjs`  | Lecture hors ligne des pages ouvertes, vidage du cache (session, changement de compte)    |
-| `offline-write.mjs` | Rédaction hors ligne (`?net=offline`), file IndexedDB, `POST /sync` sans doublon          |
-| `share-preview.mjs` | Balises de partage `/u/:handle` et `/p/:code`, échappement, `hideStats`                   |
-| `rooms.mjs`         | Salle liée à un dépôt, adhésion, tâche prise puis clôturée avec PR vérifiée, +15 XP       |
-| `rooms-rights.mjs`  | Droits des salles côté serveur (non-membre, membre, anonyme, en-tête CSRF)                |
-| `screens.mjs`       | Passport, découverte, classement, /systalink, /impact comparés à l'API                    |
-| `moderation.mjs`    | Signalement depuis l'interface, retrait par un admin, journal `admin_actions`             |
-| `realtime.mjs`      | Réception en direct d'une réponse selon le moment de sa publication (BUG-033)             |
+| Script               | Ce qu'il vérifie                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `onboarding.mjs`     | Les 5 étapes de `/bienvenue` (BUG-027), pays, fuseau et code de conduite enregistrés                 |
+| `sos.mjs`            | Question, secret masqué, piste IA, réponse en direct, validation, Proof XP, notifications            |
+| `offline-read.mjs`   | Lecture hors ligne des pages ouvertes, vidage du cache (session, changement de compte)               |
+| `offline-write.mjs`  | Rédaction hors ligne (`?net=offline`), file IndexedDB, `POST /sync` sans doublon                     |
+| `share-preview.mjs`  | Balises de partage `/u/:handle` et `/p/:code`, échappement, `hideStats`                              |
+| `rooms.mjs`          | Salle liée à un dépôt, adhésion, tâche prise puis clôturée avec PR vérifiée, +15 XP                  |
+| `rooms-rights.mjs`   | Droits des salles côté serveur (non-membre, membre, anonyme, en-tête CSRF)                           |
+| `screens.mjs`        | Passport, découverte, classement, /systalink, /impact comparés à l'API                               |
+| `moderation.mjs`     | Signalement depuis l'interface, retrait par un admin, journal `admin_actions`                        |
+| `realtime.mjs`       | Réception en direct d'une réponse selon le moment de sa publication (BUG-033)                        |
+| `conflict.mjs`       | Conflit de version (O4) : « Garder celle en ligne » sur une question, fusion sur une réponse, droits |
+| `report-user.mjs`    | Signaler un compte depuis son Passport, traitement dans /admin (BUG-036)                             |
+| `delete-account.mjs` | Suppression du compte (A3) : confirmation, protections, anonymisation, reconnexion                   |
