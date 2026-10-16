@@ -26,7 +26,6 @@ export class QuestionReader {
     const rows = await this.prisma.question.findMany({
       where: {
         hiddenAt: null,
-        author: { deletedAt: null },
         ...(query.status ? { status: query.status } : {}),
         ...(query.tag ? { tags: { some: { tag: { slug: query.tag } } } } : {}),
         ...(query.mine ? { authorId: viewerId ?? '00000000-0000-0000-0000-000000000000' } : {}),
@@ -69,7 +68,7 @@ export class QuestionReader {
 
   async detail(id: string): Promise<QuestionDetail | null> {
     const q = await this.prisma.question.findFirst({
-      where: { id, hiddenAt: null, author: { deletedAt: null } },
+      where: { id, hiddenAt: null },
       include: {
         author,
         tags,

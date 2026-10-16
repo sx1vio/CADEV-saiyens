@@ -36,6 +36,8 @@ export const ERROR_CODES = [
   'task.already_taken',
   'task.invalid_status',
   'task.pr_invalid',
+  // Compte
+  'account.confirmation_mismatch',
   // Modération
   'report.target_not_found',
   'report.target_not_hideable',

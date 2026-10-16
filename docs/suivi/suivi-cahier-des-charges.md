@@ -36,9 +36,9 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 19      | 2        | 0       | 90 %        | 100 %      |
-| P1        | 14     | 2       | 3        | 9       | 14 %        | 36 %       |
+| P1        | 14     | 2       | 4        | 8       | 14 %        | 43 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | **21**  | **5**    | **11**  | **57 %**    | **70 %**   |
+| **Total** | **37** | **21**  | **6**    | **10**  | **57 %**    | **73 %**   |
 
 « Engagé » = terminé + en cours.
 
@@ -46,7 +46,7 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 
 | Module                  | Exigences | Terminé | En cours | Avancement                                        |
 | ----------------------- | --------- | ------- | -------- | ------------------------------------------------- |
-| Auth (A)                | 3         | 1       | 0        | `███░░░░░░░` A1 fait                              |
+| Auth (A)                | 3         | 1       | 1        | `█████░░░░░` A1 fait; A3 en cours                 |
 | Profil et Passport (PR) | 4         | 3       | 0        | `████████░░` PR1, PR2, PR3 fait                   |
 | SOS Dev (S)             | 7         | 3       | 1        | `█████░░░░░` S1, S2, S4 fait; S3 en cours         |
 | Salles de projet (R)    | 8         | 5       | 1        | `███████░░░` R1, R2, R3, R7, R8 fait; R4 en cours |
@@ -101,11 +101,11 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Auth (A)
 
-| ID  | Issue | Exigence                   | Prio | Statut    | Responsable | Référence | Commentaire                                                                                                                      |
-| --- | ----- | -------------------------- | ---- | --------- | ----------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| A1  | #14   | Connexion avec GitHub      | P0   | `Terminé` | Caleb       | PR #95    | OAuth avec `state`, cookie HttpOnly, jeton chiffré AES-GCM ; 8 tests e2e. Pas encore testé avec une vraie application OAuth (#7) |
-| A2  | #15   | Connexion GitLab ou Google | P1   | `À faire` | Caleb       |           | Le front de #97 les affiche « bientôt »                                                                                          |
-| A3  | #16   | Supprimer mon compte       | P1   | `À faire` | Caleb       |           |                                                                                                                                  |
+| ID  | Issue | Exigence                   | Prio | Statut     | Responsable | Référence             | Commentaire                                                                                                                                              |
+| --- | ----- | -------------------------- | ---- | ---------- | ----------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | #14   | Connexion avec GitHub      | P0   | `Terminé`  | Caleb       | PR #95                | OAuth avec `state`, cookie HttpOnly, jeton chiffré AES-GCM ; 8 tests e2e. Pas encore testé avec une vraie application OAuth (#7)                         |
+| A2  | #15   | Connexion GitLab ou Google | P1   | `À faire`  | Caleb       |                       | Le front de #97 les affiche « bientôt »                                                                                                                  |
+| A3  | #16   | Supprimer mon compte       | P1   | `En cours` | Caleb       | `feat/delete-account` | API faite : `DELETE /me` avec confirmation du handle, anonymisation transactionnelle, déconnexion partout ; bouton dans les réglages à faire (session B) |
 
 ### Profil et Passport (PR)
 
