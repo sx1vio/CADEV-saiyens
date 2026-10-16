@@ -19,7 +19,9 @@ test('la connexion GitHub passe par le serveur même avec le service worker acti
     res?.request().redirectedFrom(),
     'redirigée par l’API, pas servie par le cache',
   ).toBeTruthy();
-  await expect(page).toHaveURL(/\/sos$/);
+  // Destination de la redirection du serveur ; l'application peut ensuite envoyer un compte neuf
+  // vers /bienvenue (code de conduite), ce qui n'est pas l'objet de ce test.
+  expect(res?.url()).toMatch(/\/sos$/);
 
   const me = await page.request.get('/api/v1/me');
   expect(me.ok()).toBeTruthy();
