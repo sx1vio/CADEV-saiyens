@@ -8,7 +8,8 @@ export type XpKind =
   | 'task_completed'
   | 'code_review_given'
   | 'project_demo_shared'
-  | 'question_resolved';
+  | 'question_resolved'
+  | 'deployment_verified';
 
 export const XP_POINTS: Record<XpKind, number> = {
   answer_accepted: 10,
@@ -18,6 +19,8 @@ export const XP_POINTS: Record<XpKind, number> = {
   code_review_given: 8,
   project_demo_shared: 5,
   question_resolved: 1,
+  /** Application d'une salle vérifiée en production sur l'infrastructure Systalink, une fois par salle. */
+  deployment_verified: 10,
 };
 
 export const XP_LIMITS = {

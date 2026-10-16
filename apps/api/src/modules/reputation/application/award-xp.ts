@@ -210,6 +210,24 @@ export class AwardXp {
     );
   }
 
+  /** Idée A : application de la salle vérifiée en production sur Systalink. +10, une seule fois par salle. */
+  deploymentVerified(
+    input: { roomId: string; ownerId: string; tagIds: string[] },
+    tx?: unknown,
+  ): Promise<AwardResult> {
+    return this.single(
+      {
+        userId: input.ownerId,
+        kind: 'deployment_verified',
+        sourceType: 'room',
+        sourceId: input.roomId,
+        tagIds: input.tagIds,
+        counterpartId: null,
+      },
+      tx,
+    );
+  }
+
   /** X2 : un abus confirmé produit un événement d'annulation, jamais une suppression. */
   revert(eventId: string, reason: string, tx?: unknown): Promise<StoredXpEvent> {
     return this.uow.run(async (ledger) => {

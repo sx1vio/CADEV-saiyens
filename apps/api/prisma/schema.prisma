@@ -134,6 +134,7 @@ enum XpKind {
   code_review_given // +8
   project_demo_shared // +5, une fois par projet
   question_resolved // +1, auteur
+  deployment_verified // +10, application en production sur Systalink, une fois par salle
   difficulty_bonus // +5 (X6, P2)
   mentoring // +3 (R13, P2)
   still_resolved // +2 (S15, P2)
@@ -493,11 +494,35 @@ model Room {
   messages         RoomMessage[]
   feedbackRequests FeedbackRequest[]
   questions        Question[]
+  deployment       RoomDeployment?
 
   @@index([visibility, lastActivityAt(sort: Desc)])
   @@index([search], type: Gin, map: "rooms_search_idx")
   @@index([stackTagIds], type: Gin, map: "rooms_stack_idx")
   @@map("rooms")
+}
+
+/// Preuve « en production » d'une salle : l'URL sert le jeton, hébergement Systalink détecté
+/// par l'adresse IP (SYSTALINK_IP_RANGES), disponibilité sondée par le worker.
+model RoomDeployment {
+  roomId            String    @id @map("room_id") @db.Uuid
+  url               String
+  token             String
+  verifiedAt        DateTime? @map("verified_at") @db.Timestamptz
+  hostedOnSystalink Boolean   @default(false) @map("hosted_on_systalink")
+  hostIp            String?   @map("host_ip")
+  lastCheckAt       DateTime? @map("last_check_at") @db.Timestamptz
+  lastUp            Boolean?  @map("last_up")
+  lastLatencyMs     Int?      @map("last_latency_ms")
+  checksTotal       Int       @default(0) @map("checks_total")
+  checksUp          Int       @default(0) @map("checks_up")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([verifiedAt])
+  @@map("room_deployments")
 }
 
 model RoomMember {
