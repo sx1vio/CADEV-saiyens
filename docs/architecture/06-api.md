@@ -174,14 +174,14 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 ### Synchronisation, notifications, temps réel
 
-| Méthode et chemin                 | Accès  | Rôle                                                                             | US     |
-| --------------------------------- | ------ | -------------------------------------------------------------------------------- | ------ |
-| `POST /sync`                      | Co     | Lot d'actions hors ligne (voir [04](04-hors-ligne-sync.md#4-endpoint-post-sync)) | O2     |
-| `GET /events`                     | Co     | Flux **Server-Sent Events** (voir [07](07-taches-fond-temps-reel.md))            | S3, Y8 |
-| `GET /notifications?cursor=`      | Co     | Notifications                                                                    | S3     |
-| `POST /notifications/read`        | Co, Id | Marquer comme lues                                                               | —      |
-| `PATCH /me/notification-settings` | Co, Id | E-mail, désabonnement, Telegram, Web Push                                        | Y3, Y7 |
-| `GET /unsubscribe?token=`         | Pub    | Désabonnement en un clic depuis un e-mail                                        | Y3     |
+| Méthode et chemin                  | Accès  | Rôle                                                                                        | US     |
+| ---------------------------------- | ------ | ------------------------------------------------------------------------------------------- | ------ |
+| `POST /sync`                       | Co     | Lot d'actions hors ligne (voir [04](04-hors-ligne-sync.md#4-endpoint-post-sync))            | O2     |
+| `GET /events`                      | Co     | Flux **Server-Sent Events** (voir [07](07-taches-fond-temps-reel.md))                       | S3, Y8 |
+| `GET /notifications?cursor=`       | Co     | Notifications                                                                               | S3     |
+| `POST /notifications/read`         | Co, Id | Marquer comme lues                                                                          | —      |
+| `PATCH /me` (`emailNotifications`) | Co, Id | E-mail récapitulatif oui ou non (Telegram et Web Push : P2)                                 | Y3, Y7 |
+| `GET`, `POST /unsubscribe?token=`  | Pub    | Désabonnement en un clic depuis un e-mail (POST : RFC 8058, sans en-tête CSRF, jeton signé) | Y3     |
 
 ### Systalink, impact, modération
 

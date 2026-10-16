@@ -46,6 +46,9 @@ export const EnvSchema = z
     BACKUP_STATUS_URL: optional(z.string()),
     SMTP_HOST: optional(z.string()),
     SMTP_PORT: z.coerce.number().int().positive().default(587),
+    SMTP_USER: optional(z.string()),
+    SMTP_PASSWORD: optional(z.string()),
+    MAIL_FROM: z.string().min(3).default('DevHub Africa <notifications@devhub.africa>'),
     // R7 : index.html construit du front, enrichi des balises de partage (défaut : ./web/index.html).
     WEB_INDEX_HTML: optional(z.string()),
   })
