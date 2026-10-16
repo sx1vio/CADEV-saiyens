@@ -37,28 +37,32 @@ Questions auxquelles la plateforme doit répondre :
 
 ## État actuel
 
-| Élément                                                                | État                                                                                                                                                                                                                 |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cahier des charges                                                     | ✅ Reçu et analysé (v3 + propositions v3.1)                                                                                                                                                                          |
-| Phase 0 — Analyse                                                      | ✅ Terminée ; Sylvio m'a délégué toutes les décisions (`docs/decisions.md`)                                                                                                                                          |
-| Stack technique                                                        | ✅ React 19 + Vite + TS PWA (Kotlin Multiplatform étudié et écarté)                                                                                                                                                  |
-| Mascotte Djeli + visuel 3D                                             | ✅ 6 images générées (Higgsfield)                                                                                                                                                                                    |
-| Projet front                                                           | ✅ Dans `apps/web/` du monorepo (08/10/2026), build OK, testé de bout en bout avec l’API NestJS                                                                                                                      |
-| Design system (tokens, composants, thèmes sombre/clair)                | ✅ Charte « Drivery » : clair, barre latérale noire, pilules, cartes grises, police Inter (06/10/2026)                                                                                                               |
-| Services de l’écosystème                                               | ✅ Fil, communautés, emplois, certifications, skills IA, vidéos, apprendre, guide « Créer avec l’IA », templates (06/10/2026, données de démo)                                                                       |
-| Shell (rail, colonne repliable, onglets mobiles, Ctrl+K, visite Djeli) | ✅                                                                                                                                                                                                                   |
-| Écrans (17)                                                            | ✅ Tous en place, vérifiés en captures 375 / 1440 px                                                                                                                                                                 |
-| Hors ligne (file IndexedDB, simulateur, centre de synchro, SW)         | ✅ Testé : écriture hors ligne → rechargement → synchronisation sans doublon                                                                                                                                         |
-| Poids de l'accueil                                                     | 🟡 312 Ko en mode local (≈ 290 Ko attendus avec l'API : le serveur local de démo n'est plus chargé)                                                                                                                  |
-| Revue (768 / 1280 px, contrastes thème clair)                          | ✅                                                                                                                                                                                                                   |
-| Intégration à `main`                                                   | 🟡 PR ouverte depuis `feat/web-platform` (08/10/2026), en attente de relecture                                                                                                                                       |
-| Backend                                                                | 🟡 Actualités, vidéos et proxy d’images portés dans l’API NestJS (module `news`, 08/10/2026) ; connexion par le module `identity` de Caleb ; les services de la plateforme (posts, emplois, certifs…) restent locaux |
-| Démo / pitch                                                           | ⏳ Pas commencé                                                                                                                                                                                                      |
+| Élément                                                                         | État                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cahier des charges                                                              | ✅ Reçu et analysé (v3 + propositions v3.1)                                                                                                                                                                          |
+| Phase 0 — Analyse                                                               | ✅ Terminée ; Sylvio m'a délégué toutes les décisions (`docs/decisions.md`)                                                                                                                                          |
+| Stack technique                                                                 | ✅ React 19 + Vite + TS PWA (Kotlin Multiplatform étudié et écarté)                                                                                                                                                  |
+| Mascotte Djeli + visuel 3D                                                      | ✅ 6 images générées (Higgsfield)                                                                                                                                                                                    |
+| Projet front                                                                    | ✅ Dans `apps/web/` du monorepo (08/10/2026), build OK, testé de bout en bout avec l’API NestJS                                                                                                                      |
+| Design system (tokens, composants, thèmes sombre/clair)                         | ✅ Charte « Drivery » : clair, barre latérale noire, pilules, cartes grises, police Inter (06/10/2026)                                                                                                               |
+| Services de l’écosystème                                                        | ✅ Fil, communautés, emplois, certifications, skills IA, vidéos, apprendre, guide « Créer avec l’IA », templates (06/10/2026, données de démo)                                                                       |
+| Shell (rail, colonne repliable, onglets mobiles, Ctrl+K, visite Djeli)          | ✅                                                                                                                                                                                                                   |
+| Écrans (17)                                                                     | ✅ Tous en place, vérifiés en captures 375 / 1440 px                                                                                                                                                                 |
+| Hors ligne (file IndexedDB, centre de synchro, SW ; simulateur retiré le 16/10) | ✅ Testé : écriture hors ligne → rechargement → synchronisation sans doublon                                                                                                                                         |
+| Poids de l'accueil                                                              | 🟡 312 Ko en mode local (≈ 290 Ko attendus avec l'API : le serveur local de démo n'est plus chargé)                                                                                                                  |
+| Revue (768 / 1280 px, contrastes thème clair)                                   | ✅                                                                                                                                                                                                                   |
+| Intégration à `main`                                                            | 🟡 PR ouverte depuis `feat/web-platform` (08/10/2026), en attente de relecture                                                                                                                                       |
+| Backend                                                                         | 🟡 Actualités, vidéos et proxy d’images portés dans l’API NestJS (module `news`, 08/10/2026) ; connexion par le module `identity` de Caleb ; les services de la plateforme (posts, emplois, certifs…) restent locaux |
+| Intégration Systalink (A, B, C)                                                 | ✅ Preuve « en production », bouton « Déployer sur Systalink » compté, aide Systalink (16/10/2026)                                                                                                                   |
+| Démo / pitch                                                                    | ⏳ Pas commencé                                                                                                                                                                                                      |
 
 ---
 
 ## Reste à faire
 
+- [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
+- [ ] Confirmer avec Systalink (cadev@systalink.com) leurs plages IP (`SYSTALINK_IP_RANGES`), un lien de déploiement préparé et un éventuel programme de crédits ou de commission
+- [ ] Supprimer la branche `sylvio-frontend` (BUG-004, BUG-005)
 - [ ] Partager les types de `src/services/` avec le rôle 2 pour aligner le contrat d'API
 - [ ] Tester sur un vrai téléphone d'entrée de gamme, réseau coupé (CDC O1-O3)
 - [ ] Partager `src/services/api.ts` + `types.ts` + `local/engine.ts` avec le rôle 2 (contrat d'API et règles)
@@ -77,6 +81,10 @@ Questions auxquelles la plateforme doit répondre :
 
 ## Fait
 
+- [x] Audit de toutes les branches ; `main` vérifiée de bout en bout (16/10/2026)
+- [x] Correctifs BUG-027, BUG-039, test e-mail Y3 ; simulateur de réseau retiré (16/10/2026)
+- [x] Systalink A (preuve « en production », +10 XP), B (déploiement compté, écosystème, vitrine), C (aide Systalink) (16/10/2026)
+- [x] Nouveau logo DevHub (16/10/2026)
 - [x] Accueil en fil unique façon Facebook, landing et connexion/inscription épurées, matière « Retail-X » sur toute la plateforme (08/10/2026)
 - [x] Front déplacé dans `apps/web` du monorepo, branché sur l’API NestJS ; backend Fastify porté en module `news` (08/10/2026)
 - [x] Premier commit et push de `sylvio-frontend` (06/10/2026)
@@ -144,6 +152,24 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 16/10/2026 — Audit des branches, correctifs, Systalink au cœur de la plateforme (A, B, C), nouveau logo
+
+- **Demande de Sylvio** : récupérer le travail des autres branches et vérifier que tout est bien fait ; trouver comment rendre chaque utilisateur bénéfique à Systalink (« la plateforme doit fonctionner grâce à eux, leur être rentable et utile »). Puis : corriger, faire A, B, C, tenir le suivi ; héberger et déployer à la fin.
+- **Audit (toutes les branches)** : `main` saine (format, lint 0 erreur, typage, 431 tests, build). Branches actives hors `main` : `feat/web-admin-audit` (#145, CI verte) et `feat/email-notifications` (chim31, sans PR). Les autres sont déjà fusionnées. **Point bloquant relevé** : le déploiement n'est pas activé (variable `DEPLOY_ENABLED` absente) ; pas d'URL de production. Sylvio : « on va héberger et déployer à la fin ».
+- **Outillage local** : Node 24 + pnpm (corepack) et PostgreSQL 16 embarqué dans le dossier temporaire de Claude (pas de Docker sur la machine).
+- **Correctifs** :
+  - BUG-039 (nouveau) : course dans l'outil e2e `signIn` (compte neuf envoyé vers `/bienvenue`) ; corrigé (#146, et repris sur `feat/systalink`).
+  - Test e-mail Y3 instable (panne SMTP simulée qui tombait sur le compte d'un autre fichier) : correctif proposé à chim31 (#147, vers sa branche).
+  - BUG-027 : onboarding, choix vide « Choisis ton pays » (#148).
+  - **Simulateur de réseau retiré** (décision de Sylvio : « une plateforme normale ») : plus de mode avion ni de 2G simulés ; le vrai hors ligne reste. BUG-031 rejeté, O5 écarté (#150 ; #149 fermée).
+  - BUG-024 (poids de l'accueil) : laissé de côté, décision de Sylvio (« tu fais trop attention au poids »).
+- **Systalink, idée A — preuve « en production »** : une salle donne l'URL de son application, qui sert un jeton (fichier `/.well-known/devhub-proof.txt` ou balise meta). Si l'adresse est dans les plages Systalink (`SYSTALINK_IP_RANGES`, `102.203.220.0/22` par défaut, **à confirmer avec Systalink**), badge « En production sur Systalink » et +10 Proof XP une fois. Le worker sonde la disponibilité toutes les 30 min. Carte « En production » dans la salle.
+- **Idée B — « Déployer sur Systalink »** : bouton compté par l'API (`/go/systalink`, liste fermée de destinations avec `utm_*`) dans la salle, les templates, le guide « Créer avec l'IA » (étape déploiement, Orion pour les sites) et `/systalink`, qui affiche maintenant ce que la communauté apporte à Systalink et une vitrine des projets qui y tournent.
+- **Idée C — aide Systalink** : étiquette de référence `systalink` ; page publique `/systalink/aide` (FAQ des réponses validées, questions en attente, question pré-étiquetée), liée depuis l'entraide et `/systalink`.
+- **Logo** : « Dev » fin, « Hub » gras, invite `>_` (maquette de Sylvio).
+- **Méthode** : Sylvio ne veut plus une PR par sujet : une branche `feat/systalink`, commits et push, puis tout est ramené sur `main` à la fin.
+- **Pistes suivantes (pitch, accord Systalink nécessaire)** : programme « dev partenaire » (commission sur l'hébergement des clients), crédits Systalink gagnés par les Proof XP, aperçus de PR déployés, certification pratique Systalink, badge « Équipe Systalink » sur les réponses.
 
 ### 14/10/2026 — Fusion de toutes les PR dans `main`
 

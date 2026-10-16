@@ -234,9 +234,12 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 
 Travail présent dans les PR ouvertes mais classé **roadmap** (« à présenter, pas à coder ») par le cahier des charges v3 (§3). À arbitrer par le rôle 1 (Caleb) avant fusion.
 
-| Élément                                                              | PR       | Classement dans le CDC v3                                                                  |
-| -------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------ |
-| Fil d'actualités réelles (module API `news`, 72 sources, vidéos)     | #96, #97 | Roadmap : « Fil d'actualité Dev Pulse »                                                    |
-| Emplois, certifications                                              | #96, #97 | Roadmap : « Offres d'emploi », « certifications »                                          |
-| Skills et outils IA, guide « Créer avec l'IA », templates, apprendre | #96, #97 | Roadmap : « Hub de skills », « parcours d'apprentissage », « assistant de création d'app » |
-| Communautés, fil façon Reddit                                        | #96, #97 | Roadmap : « Stack Spaces »                                                                 |
+| Élément                                                                                      | PR               | Classement dans le CDC v3                                                                  |
+| -------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------ |
+| Fil d'actualités réelles (module API `news`, 72 sources, vidéos)                             | #96, #97         | Roadmap : « Fil d'actualité Dev Pulse »                                                    |
+| Emplois, certifications                                                                      | #96, #97         | Roadmap : « Offres d'emploi », « certifications »                                          |
+| Skills et outils IA, guide « Créer avec l'IA », templates, apprendre                         | #96, #97         | Roadmap : « Hub de skills », « parcours d'apprentissage », « assistant de création d'app » |
+| Communautés, fil façon Reddit                                                                | #96, #97         | Roadmap : « Stack Spaces »                                                                 |
+| Systalink A : preuve « en production sur Systalink » (+10 XP), disponibilité sondée          | `feat/systalink` | Renforce le critère Systalink (40 %)                                                       |
+| Systalink B : bouton « Déployer sur Systalink » compté, écosystème et vitrine sur /systalink | `feat/systalink` | Renforce le critère Systalink (40 %)                                                       |
+| Systalink C : aide Systalink dans SOS Dev (étiquette, FAQ publique /systalink/aide)          | `feat/systalink` | Renforce le critère Systalink (40 %)                                                       |
