@@ -132,6 +132,7 @@ export class MeController {
             canHelpTagIds: ids(body.canHelpTagSlugs),
             wantLearnTagIds: ids(body.wantLearnTagSlugs),
             doNotDisturb: body.doNotDisturb,
+            emailNotifications: body.emailNotifications,
             privacy: body.privacy
               ? ({ ...(current.privacy as object), ...body.privacy } as Prisma.InputJsonValue)
               : undefined,
@@ -158,6 +159,7 @@ export class MeController {
       timezone: u.timezone,
       languages: u.languages,
       uiLang: u.uiLang,
+      emailNotifications: u.emailNotifications,
       lookingFor: u.lookingFor,
       githubLinked: u.githubId !== null,
       githubCreatedAt: u.githubCreatedAt?.toISOString() ?? null,
