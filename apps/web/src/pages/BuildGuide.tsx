@@ -17,6 +17,7 @@ import {
 import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { DeployToSystalink } from '@/components/systalink';
 import { GUIDE, TRACKS } from '@/platform/data/guide';
 import { usePlatform } from '@/platform/store';
 import type { GuideStep } from '@/platform/types';
@@ -415,6 +416,20 @@ function StepView({
           })}
         </ul>
       </section>
+
+      {step.id === 'deploy' && (
+        <section className="mt-8 rounded-[10px] border border-line bg-surface-2 p-4">
+          <h3 className="text-[15px] font-semibold text-fg">Héberge-la chez Systalink</h3>
+          <p className="mt-1 text-[14px] text-muted">
+            Datacenter à Dakar, paiement par mobile money. Une fois en ligne, prouve-le dans ta
+            salle de projet (carte « En production ») : +10 Proof XP.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <DeployToSystalink from="build" variant="primary" />
+            <DeployToSystalink from="build" to="orion" />
+          </div>
+        </section>
+      )}
 
       {step.resources.length > 0 && (
         <section className="mt-8">

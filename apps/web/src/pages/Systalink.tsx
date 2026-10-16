@@ -3,6 +3,7 @@ import {
   Database,
   HardDrive,
   Info,
+  Rocket,
   Mail,
   RefreshCw,
   Server,
@@ -11,10 +12,12 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ErrorState } from '@/components/djeli';
+import { DeployToSystalink } from '@/components/systalink';
 import { PageHeader } from '@/components/domain';
 import { Button } from '@/components/ui/button';
 import { Badge, Card, IconChip, Skeleton, StatusDot } from '@/components/ui/primitives';
 import { relativeTime, useLang } from '@/i18n';
+import { Link } from 'react-router';
 import { useQuery } from '@/lib/query';
 import { api, type ServiceStatus } from '@/services';
 import { Page } from './_layout';
@@ -160,8 +163,81 @@ export default function Systalink() {
               </div>
             </section>
           ))}
+          <Ecosystem />
         </>
       )}
     </Page>
+  );
+}
+
+/** Idées A et B : ce que DevHub apporte à Systalink, mesuré en direct. */
+function Ecosystem() {
+  const { t } = useTranslation();
+  const lang = useLang();
+  const { data } = useQuery('systalink:ecosystem', () => api.getEcosystem());
+  if (!data) return null;
+  return (
+    <section className="mt-8">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="label-caps">{t('systalink.ecosystemTitle')}</h2>
+          <p className="mt-1 text-[13px] text-muted">{t('systalink.ecosystemText')}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <DeployToSystalink from="systalink" variant="primary" />
+          <DeployToSystalink from="systalink" to="orion" />
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Card className="p-5">
+          <p className="text-[13px] text-muted">{t('systalink.roomsOnSystalink')}</p>
+          <p className="mt-1 text-[28px] font-semibold tabular text-fg">{data.roomsOnSystalink}</p>
+        </Card>
+        <Card className="p-5">
+          <p className="text-[13px] text-muted">{t('systalink.referrals')}</p>
+          <p className="mt-1 text-[28px] font-semibold tabular text-fg">{data.referrals.total}</p>
+          <p className="text-xs text-subtle">
+            {t('systalink.referrals30', { count: data.referrals.last30Days })}
+          </p>
+        </Card>
+      </div>
+      <h3 className="label-caps mt-6 mb-3">{t('systalink.showcase')}</h3>
+      {data.showcase.length === 0 ? (
+        <p className="rounded-[10px] border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
+          {t('systalink.showcaseEmpty')}
+        </p>
+      ) : (
+        <div className="dh-stagger grid gap-3 sm:grid-cols-2">
+          {data.showcase.map((r) => (
+            <Card key={r.code} className="flex items-start gap-3.5 p-4">
+              <IconChip tone="success">
+                <Rocket />
+              </IconChip>
+              <div className="min-w-0 flex-1">
+                <Link to={`/p/${r.code}`} className="font-semibold text-fg hover:underline">
+                  {r.name}
+                </Link>
+                <a
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block truncate font-mono text-xs text-blue-text hover:underline"
+                >
+                  {r.url}
+                </a>
+                <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-subtle">
+                  {r.uptime !== null && (
+                    <span>
+                      {t('systalink.uptime', { value: Math.round(r.uptime * 1000) / 10 })}
+                    </span>
+                  )}
+                  <span>{t('systalink.checked', { time: relativeTime(r.verifiedAt, lang) })}</span>
+                </p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

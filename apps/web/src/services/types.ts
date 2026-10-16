@@ -179,6 +179,8 @@ export interface Room {
   repoFullName: string;
   repoVerified: boolean;
   demoUrl?: string;
+  /** Preuve « en production » (idée A, Systalink) */
+  deployment?: RoomDeployment | null;
   /** Bannière de la salle (comme la bannière d'un serveur Discord) */
   coverUrl?: string | null;
   inviteCode: string;
@@ -188,6 +190,38 @@ export interface Room {
   wantedRoles: string[];
   createdAt: ISODate;
   lastActivityAt: ISODate;
+}
+
+/** GET /systalink/ecosystem (idées A et B) */
+export interface SystalinkEcosystem {
+  referrals: { total: number; last30Days: number; bySource: { source: string; count: number }[] };
+  roomsOnSystalink: number;
+  showcase: {
+    code: string;
+    name: string;
+    url: string;
+    uptime: number | null;
+    verifiedAt: ISODate;
+  }[];
+  computedAt: ISODate;
+}
+
+/** Preuve « en production » d'une salle : l'URL sert le jeton de la salle. */
+export interface RoomDeployment {
+  url: string;
+  status: 'pending' | 'verified';
+  hostedOnSystalink: boolean;
+  verifiedAt: ISODate | null;
+  lastCheckAt: ISODate | null;
+  lastUp: boolean | null;
+  /** 0 à 1, null sans sonde */
+  uptime: number | null;
+}
+
+/** Réservé au créateur : le jeton à publier dans l'application. */
+export interface DeploymentChallenge extends RoomDeployment {
+  token: string;
+  proofPath: string;
 }
 
 export interface RoomMember {
@@ -251,6 +285,7 @@ export type XPKind =
   | 'code-review'
   | 'project-demo'
   | 'question-resolved'
+  | 'deployment-verified'
   | 'revert';
 
 /** Journal append-only (CDC §6.3) */

@@ -284,6 +284,7 @@ export function roomItem(r: RoomSummary): RoomListItem {
     repoFullName: r.repo?.fullName ?? '',
     repoVerified: r.repo?.verified ?? false,
     demoUrl: r.demoUrl ?? undefined,
+    deployment: r.deployment ?? null,
     coverUrl: null,
     inviteCode: r.code,
     visibility: r.visibility === 'public' ? 'public' : 'private',
@@ -436,6 +437,7 @@ const XP_KIND: Record<ProofsResponse['events'][number]['kind'], XPKind> = {
   task_completed: 'contribution-accepted',
   code_review_given: 'code-review',
   project_demo_shared: 'project-demo',
+  deployment_verified: 'deployment-verified',
   question_resolved: 'question-resolved',
   difficulty_bonus: 'answer-accepted',
   mentoring: 'answer-helpful',
@@ -515,6 +517,7 @@ export function passport(p: PassportResponse, proofs: ProofsResponse | null): Pa
         stack: [],
         repo: r.repoFullName ? { fullName: r.repoFullName, url: '', verified: true } : null,
         demoUrl: null,
+        deployment: null,
         owner: {
           handle: u.handle,
           displayName: u.displayName,

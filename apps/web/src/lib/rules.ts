@@ -13,6 +13,7 @@ export const XP: Record<Exclude<XPKind, 'revert'>, number> = {
   'contribution-accepted': 15,
   'code-review': 8,
   'project-demo': 5,
+  'deployment-verified': 10,
   'question-resolved': 1,
 };
 

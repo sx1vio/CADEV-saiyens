@@ -688,6 +688,7 @@ const fr = {
       'contribution-accepted': 'Contribution acceptée',
       'code-review': 'Revue de code',
       'project-demo': 'Projet partagé avec démo',
+      'deployment-verified': 'Application en production sur Systalink',
       'question-resolved': 'Question résolue',
       revert: 'Annulation (abus confirmé)',
     },
@@ -701,6 +702,28 @@ const fr = {
     badge: 'Badge README',
     badgeHint: 'Affiche ton score dans ton README GitHub.',
     reverted: 'annulé',
+  },
+  deployment: {
+    title: 'En production',
+    intro:
+      'Prouve que ton application tourne vraiment : indique son adresse, publie le jeton de la salle, puis vérifie. Sur Systalink : +10 Proof XP.',
+    onSystalink: 'En production sur Systalink',
+    live: 'En ligne (hors Systalink)',
+    uptime: 'Disponibilité',
+    lastCheck: 'Dernière sonde',
+    notYet: 'à venir',
+    url: "Adresse publique de l'application",
+    save: "Enregistrer l'adresse",
+    howTo: 'Publie ce jeton dans un fichier à cette adresse :',
+    orMeta: 'Ou ajoute cette balise dans la page d’accueil :',
+    metaLabel: 'Balise <head>',
+    verify: 'Vérifier maintenant',
+    reverify: 'Vérifier à nouveau',
+    copied: 'Copié',
+    verifiedXp: 'En production sur Systalink : +10 Proof XP !',
+    verifiedSystalink: 'Vérifiée : en production sur Systalink.',
+    verifiedElsewhere: 'Vérifiée. Héberge-la chez Systalink pour gagner +10 Proof XP.',
+    moveToSystalink: 'Héberge-la chez Systalink pour afficher le badge et gagner +10 Proof XP.',
   },
   systalink: {
     title: 'Hébergé chez Systalink',
@@ -718,6 +741,21 @@ const fr = {
       pending: 'À brancher',
     },
     refresh: 'Rafraîchir',
+    cta: {
+      deploy: 'Déployer sur Systalink',
+      orion: 'Créer mon site avec Orion',
+      server: 'Serveur cloud à Dakar',
+    },
+    ecosystemTitle: 'Ce que la communauté apporte à Systalink',
+    ecosystemText:
+      'Chaque projet mis en production et chaque déploiement lancé depuis DevHub, mesurés en direct.',
+    referrals: 'Déploiements lancés depuis DevHub',
+    referrals30: '{{count}} ces 30 derniers jours',
+    roomsOnSystalink: 'Projets en production sur Systalink',
+    showcase: 'Ils tournent chez Systalink',
+    showcaseEmpty:
+      'Aucun projet vérifié pour le moment. Sois le premier : ouvre ta salle, onglet « En production ».',
+    uptime: 'Disponibilité {{value}} %',
     host: 'Hôte',
     localNote:
       "L'API n'est pas encore branchée : seuls l'hébergeur de cette page et le stockage de ton navigateur sont mesurés. Les autres services s'afficheront via GET /status.",
@@ -765,6 +803,11 @@ const fr = {
       review: ['Revue de code donnée', '+8', 'Confirmée par le demandeur'],
       demo: ['Projet partagé avec démo en ligne', '+5', 'Une fois par projet'],
       resolved: ['Question résolue (auteur)', '+1', 'Encourage la clôture'],
+      deployment: [
+        'Application vérifiée en production sur Systalink',
+        '+10',
+        'Une fois par salle : l’application sert le jeton de la salle',
+      ],
     },
     scoreTitle: 'Score de compétence',
     scoreText:
@@ -844,6 +887,10 @@ const fr = {
     auth_required: 'Connecte-toi pour faire ça.',
     'not-found': 'Introuvable.',
     forbidden: "Tu n'as pas les droits pour faire ça.",
+    deployment_proof_missing:
+      'L’application répond, mais ne sert pas le jeton de la salle (fichier /.well-known/devhub-proof.txt ou balise meta).',
+    deployment_unreachable:
+      'L’application ne répond pas, ou son adresse n’est pas publique (https obligatoire).',
     network_offline: 'Cette action a besoin du réseau.',
     version_conflict: 'Ce texte a changé en ligne entre-temps : choisis la version à garder.',
     vote_self: 'Tu ne peux pas voter pour ta propre réponse.',

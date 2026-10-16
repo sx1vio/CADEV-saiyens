@@ -10,6 +10,7 @@ import type {
   HomeFeed,
   ID,
   ImpactStats,
+  SystalinkEcosystem,
   JoinRequest,
   LeaderboardRow,
   NewQuestionInput,
@@ -33,6 +34,8 @@ import type {
   User,
   UserSummary,
   Answer,
+  DeploymentChallenge,
+  RoomDeployment,
   FeedbackRequest,
   OfflineAction,
   QuestionText,
@@ -127,6 +130,10 @@ export interface DevHubApi {
     clientId: ID,
   ): Promise<RoomMessage>;
   requestFeedback(roomId: ID, kind: FeedbackRequest['kind']): Promise<FeedbackRequest>;
+  /** Idée A (Systalink) : preuve « en production », réservée au créateur et aux mainteneurs. */
+  getDeployment(roomId: ID): Promise<DeploymentChallenge | null>;
+  setDeployment(roomId: ID, url: string): Promise<DeploymentChallenge>;
+  verifyDeployment(roomId: ID): Promise<{ deployment: RoomDeployment; xpAwarded: boolean }>;
 
   /* Découverte — /discover, /leaderboard, /u/:handle */
   discoverDevs(filters: DiscoverFilters): Promise<DevCard[]>;
@@ -157,4 +164,6 @@ export interface DevHubApi {
   /* Systalink et impact — /status, /impact */
   getStatus(): Promise<SystemStatus>;
   getImpact(): Promise<ImpactStats>;
+  /** Idées A et B : renvois vers Systalink, projets en production chez Systalink. */
+  getEcosystem(): Promise<SystalinkEcosystem>;
 }
