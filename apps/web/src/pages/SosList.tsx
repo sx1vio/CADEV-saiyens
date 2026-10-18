@@ -59,8 +59,8 @@ export default function SosList() {
   return (
     <Page>
       <ServiceHeader
-        title="Entraide"
-        subtitle="Décris ton blocage : une piste arrive en quelques secondes, puis l’aide d’un dev qui a déjà résolu le même problème."
+        title={t('navEntry.help')}
+        subtitle={t('mvp.sosSubtitle')}
         actions={
           <div className="flex gap-2">
             <ButtonLink to="/systalink/aide" variant="secondary" className="hidden sm:inline-flex">

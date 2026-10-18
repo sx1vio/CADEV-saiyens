@@ -52,40 +52,42 @@ import * as Popover from '@radix-ui/react-popover';
 
 /** Logo cliquable vers l’accueil. */
 function Logo() {
+  const { t } = useTranslation();
   return (
-    <Link to="/" className="flex shrink-0 items-center" aria-label="DevHub, accueil">
+    <Link to="/" className="flex shrink-0 items-center" aria-label={t('pub.homeAria')}>
       <Wordmark />
     </Link>
   );
 }
 
 function useCreateActions() {
+  const { t } = useTranslation();
   const nav = useNavigate();
   const setAsk = useUI((s) => s.setAsk);
   return [
     {
       icon: PenSquare,
-      label: 'Publier un post',
-      hint: 'Fil et communautés',
+      label: t('navEntry.createPost'),
+      hint: t('navEntry.createPostHint'),
       run: () => nav('/publier'),
     },
-    { icon: Zap, label: 'Je suis bloqué', hint: 'Demander de l’aide', run: () => setAsk(true) },
+    { icon: Zap, label: t('nav.ask'), hint: t('navEntry.askHint'), run: () => setAsk(true) },
     {
       icon: Briefcase,
-      label: 'Publier une offre',
-      hint: 'Espace entreprise',
+      label: t('navEntry.createJob'),
+      hint: t('navEntry.createJobHint'),
       run: () => nav('/emplois/publier'),
     },
     {
       icon: FolderPlus,
-      label: 'Ouvrir un projet',
-      hint: 'Trouver des contributeurs',
+      label: t('navEntry.createRoom'),
+      hint: t('navEntry.createRoomHint'),
       run: () => nav('/projets/nouvelle'),
     },
     {
       icon: Wand2,
-      label: 'Créer une app avec l’IA',
-      hint: 'Guide étape par étape',
+      label: t('navEntry.createApp'),
+      hint: t('navEntry.createAppHint'),
       run: () => nav('/creer'),
     },
   ];
@@ -98,9 +100,10 @@ function CreateSheet({
   open: boolean;
   onOpenChange: (o: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const actions = useCreateActions();
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} title="Créer">
+    <Sheet open={open} onOpenChange={onOpenChange} title={t('navEntry.create')}>
       <div className="flex flex-col gap-1.5">
         {actions.map((a) => (
           <button
@@ -147,7 +150,9 @@ function SideItem({
   /** Tiroir mobile : cibles tactiles de 44 px */
   tall?: boolean;
 }) {
+  const { t } = useTranslation();
   const Icon = entry.icon;
+  const label = t(entry.label);
   return (
     <Link
       to={entry.to}
@@ -162,7 +167,7 @@ function SideItem({
     >
       <Icon className="size-[18px] shrink-0" />
       <span className="flex-1 truncate">
-        {entry.short && entry.label.length > 22 ? entry.short : entry.label}
+        {entry.short && label.length > 22 ? t(entry.short) : label}
       </span>
       {!!count && (
         <span className="grid h-[22px] min-w-[22px] place-items-center rounded-full bg-badge px-1.5 text-[11px] font-semibold text-white tabular">
@@ -192,8 +197,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   // Trois groupes : l'essentiel, puis Explorer et Créer.
   const groups: NavGroup[] = [
     { items: MAIN_NAV },
-    { label: 'Explorer', items: EXPLORE_NAV },
-    { label: 'Créer', items: [...CREATE_NAV, ...(me?.isAdmin ? [ADMIN_NAV] : [])] },
+    { label: t('navEntry.explore'), items: EXPLORE_NAV },
+    { label: t('navEntry.create'), items: [...CREATE_NAV, ...(me?.isAdmin ? [ADMIN_NAV] : [])] },
   ];
   const iconBtn =
     'relative grid size-9 place-items-center rounded-full text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-2 focus-visible:outline-accent';
@@ -259,7 +264,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             trigger={
               <button
                 type="button"
-                aria-label="Créer"
+                aria-label={t('navEntry.create')}
                 data-tour="ask"
                 className="lg-tint grid size-10 shrink-0 place-items-center rounded-full"
               >
@@ -308,10 +313,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       {/* Action clé de la plateforme, en encart (seulement s'il reste de la hauteur) */}
       {me && (
         <div className="dh-glow mt-3 hidden rounded-[10px] p-3.5 [@media(min-height:1000px)]:block">
-          <p className="text-[13.5px] leading-snug font-semibold">Bloqué sur un bug ?</p>
-          <p className="mt-0.5 text-[12px] leading-snug text-white/80">
-            Une piste en quelques secondes, puis un dev qui a déjà résolu le même problème.
-          </p>
+          <p className="text-[13.5px] leading-snug font-semibold">{t('navEntry.promoTitle')}</p>
+          <p className="mt-0.5 text-[12px] leading-snug text-white/80">{t('navEntry.promoText')}</p>
           <button
             type="button"
             onClick={() => {
@@ -592,10 +595,11 @@ function DemoSwitcher() {
    ================================================================ */
 
 function TabBar({ onCreate }: { onCreate: () => void }) {
+  const { t } = useTranslation();
   const tabs = [MAIN_NAV[0], MAIN_NAV[3], null, EXPLORE_NAV[2], EXPLORE_NAV[1]];
   return (
     <nav
-      aria-label="Navigation"
+      aria-label={t('navEntry.navAria')}
       className="fixed inset-x-3 bottom-3 z-40 dh-ink rounded-[10px] pb-safe shadow-lg sm:hidden"
     >
       <div className="grid h-16 grid-cols-5 items-center">
@@ -622,7 +626,7 @@ function TabBar({ onCreate }: { onCreate: () => void }) {
                   >
                     <tab.icon className="size-[19px]" />
                   </span>
-                  {tab.short}
+                  {t(tab.short ?? tab.label)}
                 </>
               )}
             </NavLink>
@@ -631,7 +635,7 @@ function TabBar({ onCreate }: { onCreate: () => void }) {
               <button
                 type="button"
                 onClick={onCreate}
-                aria-label="Créer"
+                aria-label={t('navEntry.create')}
                 data-tour="ask-mobile"
                 className="grid size-11 place-items-center rounded-full bg-white text-black active:scale-95"
               >

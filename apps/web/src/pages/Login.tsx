@@ -17,17 +17,17 @@ import djeli from '@/assets/djeli/laptop.webp';
 
 const COPY = {
   login: {
-    title: 'Bon retour',
-    text: 'Connecte-toi pour retrouver ton fil, tes questions et ton profil.',
-    switchText: 'Pas encore de compte ?',
-    switchLabel: 'Créer un compte',
+    title: 'pub.loginTitle',
+    text: 'pub.loginText',
+    switchText: 'pub.loginSwitchText',
+    switchLabel: 'pub.createAccount',
     switchTo: '/inscription',
   },
   signup: {
-    title: 'Crée ton compte',
-    text: 'Ton profil se remplit tout seul depuis tes dépôts publics. Aucun mot de passe.',
-    switchText: 'Déjà un compte ?',
-    switchLabel: 'Se connecter',
+    title: 'pub.signupTitle',
+    text: 'pub.signupText',
+    switchText: 'pub.signupSwitchText',
+    switchLabel: 'pub.signIn',
     switchTo: '/connexion',
   },
 } as const;
@@ -60,7 +60,7 @@ export default function Login() {
   // Retour d'OAuth : le serveur a ouvert une session, on récupère le profil et on importe les compétences.
   const handled = useRef(false);
   useEffect(() => {
-    if (params.get('erreur')) toast.error('La connexion a échoué ou a été annulée. Réessaie.');
+    if (params.get('erreur')) toast.error(t('pub.authFailed'));
     if (params.get('oauth') !== 'ok' || handled.current) return;
     handled.current = true;
     setBusy(true);
@@ -117,15 +117,13 @@ export default function Login() {
     <div className="flex min-h-dvh gap-3 bg-canvas p-3">
       {/* Panneau de marque : une phrase, une illustration. Rien d'autre à lire. */}
       <aside className="dh-ink relative hidden w-[42%] max-w-[560px] flex-col overflow-hidden rounded-[10px] p-10 lg:flex">
-        <Link to="/" aria-label="DevHub, accueil" className="w-fit [&_span]:text-white">
+        <Link to="/" aria-label={t('pub.homeAria')} className="w-fit [&_span]:text-white">
           <Logo />
         </Link>
         <p className="mt-auto max-w-sm text-[30px] leading-[1.15] font-bold tracking-[-0.02em]">
-          Le fil des développeurs.
+          {t('pub.brandLine')}
         </p>
-        <p className="mt-3 max-w-sm text-[15px] text-white/60">
-          Actu, entraide et un profil qui prouve ce que tu sais faire.
-        </p>
+        <p className="mt-3 max-w-sm text-[15px] text-white/60">{t('pub.brandText')}</p>
         <img
           src={djeli}
           alt=""
@@ -135,7 +133,7 @@ export default function Login() {
 
       <main id="main" className="flex flex-1 flex-col px-3 py-4 sm:px-8">
         <div className="flex items-center justify-between">
-          <Link to="/" className="lg:hidden" aria-label="DevHub, accueil">
+          <Link to="/" className="lg:hidden" aria-label={t('pub.homeAria')}>
             <Logo />
           </Link>
           <Link
@@ -149,9 +147,9 @@ export default function Login() {
 
         <div className="dh-page mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-10">
           <h1 className="text-[32px] leading-[1.1] font-bold tracking-[-0.02em] text-fg">
-            {copy.title}
+            {t(copy.title)}
           </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted">{copy.text}</p>
+          <p className="mt-2 text-[15px] leading-relaxed text-muted">{t(copy.text)}</p>
 
           {!found && !manual && (
             <div className="mt-8 flex flex-col gap-3">
@@ -163,7 +161,7 @@ export default function Login() {
                 onClick={github}
               >
                 <BrandLogo name="GitHub" size={18} mono />
-                Continuer avec GitHub
+                {t('pub.continueGithub')}
               </Button>
               <Button
                 variant="secondary"
@@ -172,7 +170,7 @@ export default function Login() {
                 disabled={busy}
                 onClick={demo}
               >
-                Visiter sans compte
+                {t('pub.visit')}
               </Button>
 
               <button
@@ -181,7 +179,7 @@ export default function Login() {
                 onClick={() => setOthers((o) => !o)}
                 className="mt-1 inline-flex items-center justify-center gap-1 text-[13px] font-medium text-subtle hover:text-fg"
               >
-                Autres méthodes
+                {t('pub.otherMethods')}
                 <ChevronDown
                   className={cn('size-4 transition-transform', others && 'rotate-180')}
                 />
@@ -199,12 +197,14 @@ export default function Login() {
                       variant="secondary"
                       className="justify-center"
                       disabled={!providers?.[p]}
-                      title={providers?.[p] ? undefined : 'Bientôt disponible'}
+                      title={providers?.[p] ? undefined : t('pub.comingSoon')}
                     >
                       <BrandLogo name={label} size={16} />
                       {label}
                       {!providers?.[p] && (
-                        <span className="text-[12px] font-normal text-subtle">· bientôt</span>
+                        <span className="text-[12px] font-normal text-subtle">
+                          {t('pub.soonShort')}
+                        </span>
                       )}
                     </Button>
                   ))}
@@ -215,10 +215,7 @@ export default function Login() {
 
           {manual && !found && (
             <form onSubmit={importProfile} className="mt-8 flex flex-col gap-3">
-              <p className="text-[13px] text-muted">
-                La connexion GitHub n’est pas encore active sur ce serveur : on importe ton profil
-                public à la place.
-              </p>
+              <p className="text-[13px] text-muted">{t('pub.githubOff')}</p>
               <Field label={t('auth.githubLabel')} htmlFor="gh" error={error}>
                 <Input
                   id="gh"
@@ -241,7 +238,7 @@ export default function Login() {
                 onClick={() => setManual(false)}
                 className="text-[13px] font-medium text-muted hover:text-fg"
               >
-                Retour
+                {t('common.back')}
               </button>
             </form>
           )}
@@ -253,7 +250,7 @@ export default function Login() {
                 <div className="min-w-0">
                   <p className="truncate text-[16px] font-bold text-fg">{found.displayName}</p>
                   <p className="truncate text-[13px] text-muted">
-                    @{found.handle} · {found.publicRepos} dépôts publics
+                    @{found.handle} · {t('pub.publicRepos', { count: found.publicRepos })}
                   </p>
                 </div>
               </div>
@@ -291,14 +288,14 @@ export default function Login() {
           )}
 
           <p className="mt-8 text-center text-[14px] text-muted">
-            {copy.switchText}{' '}
+            {t(copy.switchText)}{' '}
             <Link to={copy.switchTo} className="font-semibold text-fg hover:underline">
-              {copy.switchLabel}
+              {t(copy.switchLabel)}
             </Link>
           </p>
           <p className="mt-6 text-center text-[12px] leading-relaxed text-subtle">
             <Lock className="mr-1.5 inline size-3.5 align-[-2px]" />
-            Lecture seule de ton profil public. On n’écrit jamais dans tes dépôts.
+            {t('pub.readOnly')}
           </p>
         </div>
       </main>
