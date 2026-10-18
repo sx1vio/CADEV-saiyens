@@ -25,6 +25,9 @@ export default function Settings() {
   const [bio, setBio] = useState(me.bio);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [typedHandle, setTypedHandle] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const handleMatches = typedHandle.trim().toLowerCase() === me.handle.toLowerCase();
 
   return (
     <Page className="max-w-3xl">
@@ -163,12 +166,21 @@ export default function Settings() {
             <Button
               variant="danger"
               icon={<Trash2 />}
+              disabled={!handleMatches}
+              loading={deleting}
               onClick={async () => {
-                await api.deleteMe();
-                setUser(null);
-                invalidate('');
-                toast.success(t('settings.deleted'));
-                nav('/');
+                setDeleting(true);
+                try {
+                  await api.deleteMe(typedHandle.trim());
+                  setUser(null);
+                  invalidate('');
+                  toast.success(t('settings.deleted'));
+                  nav('/');
+                } catch (e) {
+                  toast.error(errorText(t, e));
+                } finally {
+                  setDeleting(false);
+                }
               }}
             >
               {t('settings.deleteAccount')}
@@ -176,7 +188,16 @@ export default function Settings() {
           </>
         }
       >
-        <span />
+        <Field label={t('settings.deleteTypeHandle', { handle: me.handle })} htmlFor="st-handle">
+          <Input
+            id="st-handle"
+            value={typedHandle}
+            onChange={(e) => setTypedHandle(e.target.value)}
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
+          />
+        </Field>
       </Sheet>
     </Page>
   );

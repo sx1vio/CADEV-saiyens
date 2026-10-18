@@ -37,6 +37,7 @@ import type {
   TaskView,
   UpdateAnswerResponse,
   UpdateMeRequest,
+  DeleteMeRequest,
   UpdateQuestionResponse,
   DeploymentChallenge,
   SystalinkEcosystemResponse,
@@ -52,7 +53,7 @@ const BASE = `${(import.meta.env.VITE_API_URL as string | undefined)?.replace(/\
 type Query = Record<string, string | number | boolean | undefined>;
 
 async function call<T>(
-  method: 'GET' | 'POST' | 'PATCH' | 'PUT',
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   path: string,
   body?: unknown,
   idempotencyKey?: string,
@@ -187,7 +188,14 @@ export const httpApi: DevHubApi = {
     if (input.codeOfConductAcceptedAt) await post('/me/code-of-conduct');
     return sessionOrThrow();
   },
-  deleteMe: async () => unavailable(),
+  deleteMe: async (confirmHandle) => {
+    const body: DeleteMeRequest = { confirmHandle };
+    try {
+      await call('DELETE', '/me', body);
+    } finally {
+      await clearApiReadCache();
+    }
+  },
   setMySkills: async (slugs) => {
     await call('PATCH', '/me', { canHelpTagSlugs: slugs.slice(0, 5) });
   },
