@@ -81,7 +81,10 @@ export function CommandPalette() {
 
   const pages = useMemo(
     () => [
-      ...ALL_NAV.filter((e) => e.to !== '/admin' || me?.isAdmin),
+      ...ALL_NAV.filter((e) => e.to !== '/admin' || me?.isAdmin).map((e) => ({
+        ...e,
+        label: t(e.label),
+      })),
       ...(me ? [{ to: `/u/${me.handle}`, icon: UserRound, label: t('nav.myPassport') }] : []),
     ],
     [t, me],
@@ -124,14 +127,14 @@ export function CommandPalette() {
                 </Command.Item>
                 <Command.Item value="publier post publish" onSelect={() => go('/publier')}>
                   <PenSquare />
-                  Publier un post
+                  {t('navEntry.createPost')}
                 </Command.Item>
                 <Command.Item
                   value="offre emploi publier job"
                   onSelect={() => go('/emplois/publier')}
                 >
                   <Briefcase />
-                  Publier une offre d’emploi
+                  {t('navEntry.createJobLong')}
                 </Command.Item>
                 <Command.Item
                   value="new room nouvelle salle"
@@ -182,7 +185,7 @@ export function CommandPalette() {
               {q.length > 1 && (
                 <>
                   {!!news?.length && (
-                    <Command.Group heading="Actualités">
+                    <Command.Group heading={t('navEntry.groupNews')}>
                       {news.map((x) => (
                         <Command.Item
                           key={x.id}
@@ -201,7 +204,7 @@ export function CommandPalette() {
                       ))}
                     </Command.Group>
                   )}
-                  <Command.Group heading="Fil">
+                  <Command.Group heading={t('navEntry.groupFeed')}>
                     {POSTS.map((x) => (
                       <Command.Item
                         key={x.id}
@@ -213,7 +216,7 @@ export function CommandPalette() {
                       </Command.Item>
                     ))}
                   </Command.Group>
-                  <Command.Group heading="Emplois">
+                  <Command.Group heading={t('navEntry.groupJobs')}>
                     {JOBS.map((x) => (
                       <Command.Item
                         key={x.id}
@@ -227,7 +230,7 @@ export function CommandPalette() {
                       </Command.Item>
                     ))}
                   </Command.Group>
-                  <Command.Group heading="Skills & plugins">
+                  <Command.Group heading={t('navEntry.groupSkills')}>
                     {SKILLS.map((x) => (
                       <Command.Item
                         key={x.id}
@@ -239,7 +242,7 @@ export function CommandPalette() {
                       </Command.Item>
                     ))}
                   </Command.Group>
-                  <Command.Group heading="Vidéos">
+                  <Command.Group heading={t('navEntry.groupVideos')}>
                     {VIDEOS.map((x) => (
                       <Command.Item
                         key={x.id}
@@ -251,7 +254,7 @@ export function CommandPalette() {
                       </Command.Item>
                     ))}
                   </Command.Group>
-                  <Command.Group heading="Apprendre et certifications">
+                  <Command.Group heading={t('navEntry.groupLearn')}>
                     {PATHS.map((x) => (
                       <Command.Item
                         key={x.id}

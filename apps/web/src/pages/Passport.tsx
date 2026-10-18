@@ -252,15 +252,15 @@ export default function Passport() {
         {/* -------- Contenu -------- */}
         <div className="min-w-0 flex-1">
           <nav
-            aria-label="Sections du profil"
+            aria-label={t('mvp.passportSectionsAria')}
             className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0"
           >
             {(
               [
-                ['overview', 'Aperçu', null],
-                ['skills', 'Compétences', p.skills.length],
-                ['projects', 'Projets', p.rooms.length],
-                ['activity', 'Activité', proofs.length],
+                ['overview', t('mvp.passportOverview'), null],
+                ['skills', t('passport.skills'), p.skills.length],
+                ['projects', t('passport.rooms'), p.rooms.length],
+                ['activity', t('mvp.passportActivity'), proofs.length],
               ] as const
             ).map(([k, label, n]) => (
               <button
@@ -306,7 +306,7 @@ export default function Passport() {
                   label={t('passport.stats.unblocked')}
                   value={p.stats.devsUnblocked}
                   cube={CUBE.orange}
-                  note={`${p.stats.answersAccepted} réponses validées`}
+                  note={t('mvp.passportAccepted', { count: p.stats.answersAccepted })}
                 />
                 <StatCard
                   label={t('passport.stats.median')}
@@ -316,19 +316,21 @@ export default function Passport() {
                       : '—'
                   }
                   cube={CUBE.purple}
-                  note="avant la première réponse"
+                  note={t('mvp.passportBeforeFirst')}
                 />
                 <StatCard
                   label={t('passport.stats.contributions')}
                   value={p.stats.contributions}
                   cube={CUBE.green}
-                  note={`${p.rooms.length} projets`}
+                  note={t('mvp.passportProjects', { count: p.rooms.length })}
                 />
               </div>
 
               {p.rooms.length > 0 && (
                 <section>
-                  <h2 className="mb-2 text-[14px] font-medium text-fg">Projets épinglés</h2>
+                  <h2 className="mb-2 text-[14px] font-medium text-fg">
+                    {t('mvp.passportPinned')}
+                  </h2>
                   <div className="grid gap-3 md:grid-cols-2">
                     {p.rooms.slice(0, 4).map((r) => (
                       <PinnedProject key={r.id} room={r} />

@@ -26,18 +26,18 @@ import { Ago } from '@/platform/ui';
 const PILLARS = [
   {
     icon: Newspaper,
-    title: 'Reste à jour',
-    text: 'Un seul fil pour l’actu IA, tech et dev, tirée de plus de 70 sources, en français et en anglais.',
+    title: 'pub.pillarNewsTitle',
+    text: 'pub.pillarNewsText',
   },
   {
     icon: LifeBuoy,
-    title: 'Débloque-toi',
-    text: 'Une piste en quelques secondes, puis l’aide d’un dev qui a déjà résolu le même problème.',
+    title: 'pub.pillarHelpTitle',
+    text: 'pub.pillarHelpText',
   },
   {
     icon: BadgeCheck,
-    title: 'Prouve ce que tu sais',
-    text: 'Ton profil se remplit depuis GitHub, tes certifications et ton aide. Les recruteurs le voient.',
+    title: 'pub.pillarProveTitle',
+    text: 'pub.pillarProveText',
   },
 ];
 
@@ -71,23 +71,25 @@ export default function Landing() {
       <section className="grid items-center gap-12 pt-10 pb-16 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pt-20">
         <div>
           <h1 className="text-[40px] leading-[1.08] font-bold tracking-[-0.02em] text-fg sm:text-[56px]">
-            Le fil des développeurs.
+            {t('pub.brandLine')}
           </h1>
           <p className="mt-5 max-w-md text-[17px] leading-relaxed text-muted">
-            L’actualité tech qui compte, de l’aide quand tu bloques, et un profil qui prouve ce que
-            tu sais faire.
+            {t('pub.heroText')}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink to="/inscription" variant="primary" size="lg">
               <BrandLogo name="GitHub" size={18} mono />
-              Créer un compte
+              {t('pub.createAccount')}
             </ButtonLink>
-            <Button variant="secondary" size="lg" loading={busy} onClick={tryDemo}>
-              Visiter sans compte
-              <ArrowRight />
-            </Button>
+            {/* Les comptes de démonstration n'existent qu'avec le serveur simulé (ADR-0016). */}
+            {api.mode === 'local' && (
+              <Button variant="secondary" size="lg" loading={busy} onClick={tryDemo}>
+                {t('pub.visit')}
+                <ArrowRight />
+              </Button>
+            )}
           </div>
-          <p className="mt-4 text-[13px] text-subtle">Gratuit, sans publicité.</p>
+          <p className="mt-4 text-[13px] text-subtle">{t('pub.free')}</p>
         </div>
 
         {/* Preuve : un vrai article du fil, tel qu'il apparaît dans la plateforme */}
@@ -120,13 +122,13 @@ export default function Landing() {
               )}
               <footer className="flex items-center justify-around px-2 py-2.5 text-[13px] font-semibold text-muted">
                 <span className="inline-flex items-center gap-1.5">
-                  <ExternalLink className="size-4" /> Lire
+                  <ExternalLink className="size-4" /> {t('pub.read')}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Bookmark className="size-4" /> Enregistrer
+                  <Bookmark className="size-4" /> {t('pub.save')}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Share2 className="size-4" /> Partager
+                  <Share2 className="size-4" /> {t('pub.share')}
                 </span>
               </footer>
             </article>
@@ -143,8 +145,8 @@ export default function Landing() {
             <span className="grid size-11 place-items-center rounded-[10px] bg-accent-soft text-accent-text">
               <p.icon className="size-5" />
             </span>
-            <h2 className="mt-5 text-[17px] font-bold tracking-[-0.02em] text-fg">{p.title}</h2>
-            <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{p.text}</p>
+            <h2 className="mt-5 text-[17px] font-bold tracking-[-0.02em] text-fg">{t(p.title)}</h2>
+            <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{t(p.text)}</p>
           </div>
         ))}
       </section>
@@ -153,14 +155,12 @@ export default function Landing() {
       <section className="dh-ink mt-16 flex flex-col items-start gap-6 rounded-[10px] p-8 sm:flex-row sm:items-center sm:p-10">
         <div className="flex-1">
           <h2 className="text-[26px] leading-tight font-bold tracking-[-0.02em] sm:text-[32px]">
-            Rejoins la communauté.
+            {t('pub.ctaTitle')}
           </h2>
-          <p className="mt-2 max-w-lg text-[15px] text-white/65">
-            Connecte GitHub : ton profil est prêt en une minute.
-          </p>
+          <p className="mt-2 max-w-lg text-[15px] text-white/65">{t('pub.ctaText')}</p>
         </div>
         <ButtonLink to="/inscription" variant="secondary" size="lg">
-          Créer un compte
+          {t('pub.createAccount')}
           <ArrowRight />
         </ButtonLink>
       </section>

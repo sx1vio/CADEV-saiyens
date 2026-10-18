@@ -54,11 +54,11 @@ export default function Leaderboard() {
             {data.slice(1, 4).map((r, i) => (
               <StatCard
                 key={r.country}
-                label={`${i + 2}e · ${countryName(r.country, lang).toLowerCase()}`}
+                label={`${t('mvp.rankN', { n: i + 2 })} · ${countryName(r.country, lang).toLowerCase()}`}
                 value={formatNumber(r.xp, lang)}
                 cube={[CUBE.orange, CUBE.purple, CUBE.green][i]}
                 delta={`${r.resolved}`}
-                note="questions résolues"
+                note={t('passport.stats.resolved')}
               />
             ))}
           </div>
@@ -103,7 +103,7 @@ export default function Leaderboard() {
                   </span>
                   <span className="hidden text-[13px] sm:block">
                     <b className="font-semibold text-fg tabular">{r.resolved}</b>{' '}
-                    <span className="text-subtle">résolues</span>
+                    <span className="text-subtle">{t('mvp.resolvedShort')}</span>
                   </span>
                   <span className="text-right text-[13px]">
                     <b className="font-semibold text-fg tabular">{formatNumber(r.xp, lang)}</b>{' '}
@@ -111,7 +111,7 @@ export default function Leaderboard() {
                   </span>
                   <Link
                     to="/regles"
-                    aria-label="Détail du calcul"
+                    aria-label={t('leaderboard.how')}
                     className="grid size-9 place-items-center rounded-full text-fg hover:bg-canvas"
                   >
                     <MoreHorizontal className="size-5" />
