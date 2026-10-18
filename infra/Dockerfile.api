@@ -6,16 +6,22 @@ WORKDIR /repo
 
 FROM base AS build
 COPY . .
+# `prisma generate` lit DATABASE_URL (prisma.config.ts) mais ne se connecte pas : valeur factice, build seulement.
+ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @devhub/api... build
 RUN pnpm --filter @devhub/web... build          # index.html nécessaire aux aperçus Open Graph (ADR-0012)
-RUN pnpm deploy --filter @devhub/api --prod /out
+RUN pnpm deploy --legacy --filter @devhub/api --prod /out
 
 FROM node:24-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out ./
 COPY --from=build /repo/apps/web/dist/index.html ./web/index.html
+# pnpm 10 n'exécute pas le postinstall de Prisma : on télécharge ici le moteur de migration, pour que
+# `prisma migrate deploy` (deploy.sh) marche sans internet et sans écrire dans node_modules au runtime.
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build node_modules/.bin/prisma -v \
+  && rm -rf /root/.cache/prisma
 USER node
 EXPOSE 3000
 # Les migrations sont lancées par deploy.sh avant le démarrage (prisma migrate deploy).
