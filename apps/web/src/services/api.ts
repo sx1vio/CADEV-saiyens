@@ -69,7 +69,8 @@ export interface DevHubApi {
   listDemoAccounts(): Promise<UserSummary[]>;
   logout(): Promise<void>;
   updateMe(input: ProfileInput): Promise<User>;
-  deleteMe(): Promise<void>;
+  /** A3 : anonymise le compte ; `confirmHandle` est le pseudo retapé par la personne. */
+  deleteMe(confirmHandle: string): Promise<void>;
   setMySkills(slugs: string[]): Promise<void>;
 
   /* Référentiels */

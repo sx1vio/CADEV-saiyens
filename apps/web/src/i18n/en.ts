@@ -857,6 +857,7 @@ const en: Dict = {
     deleteAccount: 'Delete my account',
     deleteText: 'Your personal data is erased; your contributions stay, anonymised.',
     deleteConfirm: 'Permanently delete my account?',
+    deleteTypeHandle: 'To confirm, type your handle: {{handle}}',
     deleted: 'Account deleted.',
     saved: 'Profile saved.',
     mode: 'Data source',

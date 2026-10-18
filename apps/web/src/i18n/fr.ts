@@ -881,6 +881,7 @@ const fr = {
     deleteAccount: 'Supprimer mon compte',
     deleteText: 'Tes données personnelles sont effacées ; tes contributions restent, anonymisées.',
     deleteConfirm: 'Supprimer définitivement mon compte ?',
+    deleteTypeHandle: 'Pour confirmer, tape ton pseudo : {{handle}}',
     deleted: 'Compte supprimé.',
     saved: 'Profil enregistré.',
     mode: 'Source des données',
