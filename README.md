@@ -14,7 +14,16 @@ GitHub montre ce que tu as construit. DevHub Africa montre ce que tu sais faire,
 
 ## État du projet
 
-🚧 **En développement (8 octobre 2026, Jalon 1).** API NestJS en place : connexion GitHub, sessions, profil importé depuis GitHub, compétences, Proof XP et leurs garde-fous, piste IA (S2). Le front PWA est en revue. Pas encore déployé sur Systalink. État détaillé : [`context.md`](context.md), [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md) et [avancement par personne](docs/equipe/organisation.md#réaffectations-et-avancement). Gel du code le 22 octobre, soumission le 24 octobre.
+🚧 **En développement (18 octobre 2026).** Le code est sur `main`, l'URL de production n'est pas encore en ligne. Gel du code le 22 octobre, soumission le 24 octobre.
+
+| Partie                 | État                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API et worker (NestJS) | Connexion GitHub et sessions, profil importé, compétences, Proof XP et garde-fous, piste IA, SOS Dev (questions, réponses, votes, validation), matching, synchronisation hors ligne `POST /sync`, temps réel (SSE), salles, tâches et PR vérifiée par GitHub, Passport, découverte, modération, écrans Systalink et impact, e-mails SMTP |
+| Front PWA (`apps/web`) | Fusionné. Les écrans du MVP parlent à l'API réelle ; les services de l'écosystème (emplois, certifications, communautés…) sont des aperçus de démonstration, signalés par un bandeau                                                                                                                                                     |
+| Hors ligne             | File d'actions IndexedDB, rejeu sans doublon, centre de synchronisation. Test sur téléphone réel encore à faire                                                                                                                                                                                                                          |
+| Déploiement Systalink  | Images Docker, Compose, Caddy, scripts de déploiement et de sauvegarde prêts ; VPS, secrets et OAuth GitHub de production à brancher                                                                                                                                                                                                     |
+
+Détail : [`context.md`](context.md), [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md), [registre des anomalies](docs/suivi/anomalies.md) et [avancement par personne](docs/equipe/organisation.md#réaffectations-et-avancement).
 
 ## Documentation
 
@@ -62,11 +71,12 @@ pnpm --filter @devhub/api exec prisma migrate deploy
 pnpm db:seed
 pnpm --filter @devhub/api dev                          # API
 pnpm --filter @devhub/api dev:worker                   # worker (autre terminal)
+pnpm --filter @devhub/web dev                          # front (autre terminal)
 ```
 
 - API : http://localhost:3000/api/v1, documentation OpenAPI sur `/api/docs`
 - Connexion sans application GitHub : http://localhost:3000/api/v1/auth/github?login=awa-dev
-- Front : http://localhost:5173, une fois `apps/web` fusionné (PR #97)
+- Front : http://localhost:5173 (Vite renvoie `/api` vers l'API). Pour parler à l'API réelle plutôt qu'au serveur simulé du navigateur, lancer avec `VITE_API_MODE=http`
 
 Chaque étape est détaillée, avec les problèmes fréquents, dans le [guide de démarrage](docs/guides/demarrage.md).
 
