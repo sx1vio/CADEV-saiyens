@@ -163,15 +163,17 @@ export default function Login() {
                 <BrandLogo name="GitHub" size={18} mono />
                 {t('pub.continueGithub')}
               </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="w-full justify-center"
-                disabled={busy}
-                onClick={demo}
-              >
-                {t('pub.visit')}
-              </Button>
+              {api.mode === 'local' && (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="w-full justify-center"
+                  disabled={busy}
+                  onClick={demo}
+                >
+                  {t('pub.visit')}
+                </Button>
+              )}
 
               <button
                 type="button"

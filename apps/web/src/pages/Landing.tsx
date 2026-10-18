@@ -81,10 +81,13 @@ export default function Landing() {
               <BrandLogo name="GitHub" size={18} mono />
               {t('pub.createAccount')}
             </ButtonLink>
-            <Button variant="secondary" size="lg" loading={busy} onClick={tryDemo}>
-              {t('pub.visit')}
-              <ArrowRight />
-            </Button>
+            {/* Les comptes de démonstration n'existent qu'avec le serveur simulé (ADR-0016). */}
+            {api.mode === 'local' && (
+              <Button variant="secondary" size="lg" loading={busy} onClick={tryDemo}>
+                {t('pub.visit')}
+                <ArrowRight />
+              </Button>
+            )}
           </div>
           <p className="mt-4 text-[13px] text-subtle">{t('pub.free')}</p>
         </div>
