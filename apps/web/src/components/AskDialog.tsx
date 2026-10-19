@@ -86,8 +86,8 @@ export function AskDialog() {
 
   const detected = useMemo(() => detectTags(`${title}\n${code}\n${body}`), [title, code, body]);
   const secrets = useMemo(
-    () => maskSecrets(`${code}\n${body}\n${tried}`).found,
-    [code, body, tried],
+    () => maskSecrets([title, code, body, tried, expected, environment, reproUrl].join('\n')).found,
+    [title, code, body, tried, expected, environment, reproUrl],
   );
   const quality = questionQuality({ title, body, tried, codeSnippet: code, environment, tagIds });
 
