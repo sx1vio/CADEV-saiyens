@@ -1,4 +1,4 @@
-import { Languages, Map, Moon, RotateCcw, Sun, Trash2 } from 'lucide-react';
+import { BellOff, Languages, Mail, Map, Moon, RotateCcw, Sun, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -24,6 +24,7 @@ export default function Settings() {
   const [name, setName] = useState(me.displayName);
   const [bio, setBio] = useState(me.bio);
   const [busy, setBusy] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [typedHandle, setTypedHandle] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -113,6 +114,48 @@ export default function Settings() {
             </span>
           </Row>
         </Card>
+
+        {/* Y3 : seule l'API envoie des e-mails ; le serveur local n'a rien à régler. */}
+        {api.mode === 'http' && (
+          <Card className="p-5 sm:p-6">
+            <Row
+              label={t('settings.emailNotifications')}
+              hint={
+                me.hasEmail
+                  ? t('settings.emailNotificationsText')
+                  : t('settings.emailNotificationsNoEmail')
+              }
+            >
+              <Segmented<'on' | 'off'>
+                label={t('settings.emailNotifications')}
+                size="sm"
+                value={me.emailNotifications ? 'on' : 'off'}
+                onChange={async (v) => {
+                  if (emailBusy) return;
+                  setEmailBusy(true);
+                  try {
+                    setUser(await api.updateMe({ emailNotifications: v === 'on' }));
+                    toast.success(
+                      t(
+                        v === 'on'
+                          ? 'settings.emailNotificationsOn'
+                          : 'settings.emailNotificationsOff',
+                      ),
+                    );
+                  } catch (e) {
+                    toast.error(errorText(t, e));
+                  } finally {
+                    setEmailBusy(false);
+                  }
+                }}
+                items={[
+                  { value: 'on', label: t('settings.emailOn'), icon: <Mail /> },
+                  { value: 'off', label: t('settings.emailOff'), icon: <BellOff /> },
+                ]}
+              />
+            </Row>
+          </Card>
+        )}
 
         {api.mode === 'local' && me.isDemo && (
           <Card className="p-5 sm:p-6">

@@ -53,6 +53,10 @@ export interface User {
   /** PR11 : inscrit avant le 22 oct. 2026 */
   isFounder: boolean;
   emailVerified: boolean;
+  /** Y3 : récapitulatif par e-mail des notifications non lues (API seulement). */
+  emailNotifications?: boolean;
+  /** Y3 : le compte a une adresse e-mail, sans laquelle aucun récapitulatif ne part. */
+  hasEmail?: boolean;
   /** Préférence T3 : pourquoi je viens */
   intent?: 'get-help' | 'help' | 'find-project' | 'start-project';
   codeOfConductAcceptedAt?: ISODate;
@@ -562,6 +566,7 @@ export interface ProfileInput {
   wantsToLearn?: ID[];
   intent?: User['intent'];
   codeOfConductAcceptedAt?: ISODate;
+  emailNotifications?: boolean;
 }
 
 /* ---------- File hors ligne (O2) ---------- */

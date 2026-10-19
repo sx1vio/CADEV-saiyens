@@ -963,6 +963,15 @@ const en: Dict = {
     mode: 'Data source',
     modeLocal: 'Local server (IndexedDB)',
     modeHttp: 'DevHub API',
+    emailNotifications: 'Receive emails',
+    emailNotificationsText:
+      'A digest of your unread notifications, sent to your account address. Every email also has an unsubscribe link.',
+    emailNotificationsNoEmail:
+      'No email address is known for your GitHub account: no email can be sent for now.',
+    emailOn: 'On',
+    emailOff: 'Off',
+    emailNotificationsOn: 'Emails turned on.',
+    emailNotificationsOff: 'Emails turned off.',
   },
   conflict: {
     title: 'Version conflict',

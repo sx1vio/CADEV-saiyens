@@ -157,6 +157,8 @@ export function user(me: MeResponse, passport?: PassportResponse | null): User {
     isDemo: me.isDemo,
     isFounder: me.trust.founder,
     emailVerified: me.emailVerified,
+    emailNotifications: me.emailNotifications,
+    hasEmail: me.email !== null,
     codeOfConductAcceptedAt: me.codeOfConductAcceptedAt ?? undefined,
   };
 }
