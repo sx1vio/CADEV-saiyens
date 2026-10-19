@@ -136,7 +136,8 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `POST /answers/:id/accept`                         | Co (auteur de la question), Id | Valider : question résolue, Proof XP attribués                    | S4, X1     |
 | `POST /questions/:id/pair`                         | Co, Id                         | Proposer un créneau de pair programming                           | S5 (P1)    |
 | `POST /pair-sessions/:id/respond`                  | Co, Id                         | Accepter ou refuser                                               | S5 (P1)    |
-| `POST /questions/:id/translate?lang=`              | Co, Id                         | Traduction IA à la demande (mise en cache)                        | S10        |
+| `POST /questions/:id/translate?lang=`              | Co                             | Traduction IA à la demande (mise en cache), code laissé intact    | S10        |
+| `POST /answers/:id/translate?lang=`                | Co                             | Idem pour une réponse (sans titre)                                | S10        |
 | `POST /tags/detect`                                | Co                             | Affinage IA des étiquettes détectées localement                   | S9         |
 
 ### Salles de projet (`rooms`)
