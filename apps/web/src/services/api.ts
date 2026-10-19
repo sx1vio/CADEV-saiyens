@@ -11,6 +11,7 @@ import type {
   HomeFeed,
   ID,
   ImpactStats,
+  StatusHistory,
   SystalinkEcosystem,
   JoinRequest,
   LeaderboardRow,
@@ -167,6 +168,8 @@ export interface DevHubApi {
 
   /* Systalink et impact — /status, /impact */
   getStatus(): Promise<SystemStatus>;
+  /** Y5 : null sans historique mesuré (serveur simulé), plutôt qu'une courbe inventée. */
+  getStatusHistory(days: number): Promise<StatusHistory | null>;
   getImpact(): Promise<ImpactStats>;
   /** Idées A et B : renvois vers Systalink, projets en production chez Systalink. */
   getEcosystem(): Promise<SystalinkEcosystem>;
