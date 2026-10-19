@@ -10,6 +10,7 @@ export class FakeLlmAdapter implements LlmPort {
 
   async complete(request: LlmRequest): Promise<LlmResult> {
     this.requests.push(request);
+    if (request.task === 'translate') return demoTranslation(request);
     const title = request.userContent.find((p) => p.label === 'title')?.text ?? '';
     const fr = request.system.includes('en français');
     const text = fr
@@ -17,6 +18,23 @@ export class FakeLlmAdapter implements LlmPort {
       : `**Demo hint** (no AI key configured).\n\n1. **Likely causes**: to be determined for "${title}".\n2. **To check**: the exact error message and the version in use.`;
     return { ok: true, text, inputTokens: 0, outputTokens: 0, latencyMs: 0 };
   }
+}
+
+/**
+ * Traduction de démonstration : le texte reste l'original, précédé d'une mention qui le dit.
+ * Elle respecte le format attendu (JSON, repères [[CODE_n]] intacts) pour tester tout le parcours.
+ */
+function demoTranslation(request: LlmRequest): LlmResult {
+  const part = (label: string) => request.userContent.find((p) => p.label === label)?.text;
+  const toFrench = request.system.includes('into French');
+  const note = toFrench
+    ? "_Traduction de démonstration : aucune clé d'IA n'est configurée, le texte ci-dessous est l'original._"
+    : '_Demo translation: no AI key is configured, the text below is the original._';
+  const text = JSON.stringify({
+    title: part('title') ?? null,
+    body: `${note}\n\n${part('body') ?? ''}`,
+  });
+  return { ok: true, text, inputTokens: 0, outputTokens: 0, latencyMs: 0 };
 }
 
 /** IA désactivée (production sans clé) : la question part directement aux devs (ai_status = skipped). */

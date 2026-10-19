@@ -1,7 +1,7 @@
 // Ports du module ai (docs/architecture/09-ia-integrations.md). Le modèle de langage est appelé
 // uniquement côté serveur, derrière LlmPort ; le contenu utilisateur n'est jamais une instruction.
 
-export type AiTaskKind = 'hint';
+export type AiTaskKind = 'hint' | 'translate';
 
 /** Contenu fourni par un utilisateur : toujours encadré et présenté au modèle comme une donnée. */
 export interface UntrustedInput {
@@ -53,7 +53,7 @@ export interface AiRequestRecord {
   inputHash: string;
   promptVer: string;
   status: AiRequestStatus;
-  output: { hint: string } | null;
+  output: { hint: string } | TranslatedText | null;
   inputTokens?: number;
   outputTokens?: number;
   latencyMs?: number;
@@ -69,5 +69,49 @@ export interface HintStore {
   findCachedHint(inputHash: string, promptVer: string): Promise<string | null>;
   /** Écrit le résultat seulement si la question attend encore sa piste ; renvoie false sinon. */
   saveHint(questionId: string, status: HintStatus, hint: string | null): Promise<boolean>;
+  recordRequest(record: AiRequestRecord): Promise<void>;
+}
+
+// ─── Pont bilingue (S10) ───
+
+export type TranslatableType = 'question' | 'answer';
+
+/** Texte traduit : titre pour une question, null pour une réponse. Type (pas interface) : écrit tel quel en JSON. */
+export type TranslatedText = {
+  title: string | null;
+  body: string;
+};
+
+/** Contenu tel que la traduction le lit. `lang` : langue déclarée (question), null pour une réponse. */
+export interface TranslationSource extends TranslatedText {
+  type: TranslatableType;
+  id: string;
+  lang: 'fr' | 'en' | null;
+}
+
+export interface StoredTranslation extends TranslatedText {
+  sourceHash: string;
+  createdAt: Date;
+}
+
+export interface TranslationStore {
+  /** null si le contenu n'existe pas ou a été masqué par la modération. */
+  findSource(type: TranslatableType, id: string): Promise<TranslationSource | null>;
+  findTranslation(
+    type: TranslatableType,
+    id: string,
+    lang: 'fr' | 'en',
+  ): Promise<StoredTranslation | null>;
+  /** Remplace la traduction précédente (le texte source a changé). */
+  saveTranslation(
+    type: TranslatableType,
+    id: string,
+    lang: 'fr' | 'en',
+    sourceHash: string,
+    text: TranslatedText,
+  ): Promise<Date>;
+  countModelCallsSince(userId: string, since: Date): Promise<number>;
+  /** Dernière traduction réussie de la même entrée (autre contenu au texte identique). */
+  findCachedTranslation(inputHash: string, promptVer: string): Promise<TranslatedText | null>;
   recordRequest(record: AiRequestRecord): Promise<void>;
 }
