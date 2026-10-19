@@ -235,4 +235,35 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
       'Je prends la doc demain.',
     ]);
   });
+
+  it('R5 : l’IA propose des tâches depuis la discussion, sans rien créer (membres seulement)', async () => {
+    const suggest = (who: keyof typeof handle, body: object = {}) =>
+      request(app.getHttpServer())
+        .post(`/api/v1/rooms/${roomId}/tasks/suggest`)
+        .set(WRITE_HEADERS)
+        .set('Cookie', cookie.get(who)!)
+        .send(body);
+    const before = (await get(`/api/v1/rooms/${roomId}/tasks`).expect(200)).body.data.length;
+
+    await suggest('kwame').expect(403);
+    await suggest('moussa', { lang: 'de' }).expect(400);
+
+    // Faux modèle (aucune clé en test) : une proposition marquée « démonstration ».
+    const first = await suggest('moussa').expect(200);
+    expect(first.body).toEqual({
+      status: 'done',
+      data: [{ title: 'Tâche de démonstration', description: expect.any(String), level: 'easy' }],
+    });
+    const again = await suggest('awa').expect(200);
+    expect(again.body.status).toBe('cached');
+    const en = await suggest('awa', { lang: 'en' }).expect(200);
+    expect(en.body.data[0].title).toBe('Demo task');
+
+    const after = (await get(`/api/v1/rooms/${roomId}/tasks`).expect(200)).body.data.length;
+    expect(after).toBe(before);
+    const logged = await prisma.aiRequest.count({
+      where: { kind: 'room_tasks', user: { handle: { in: [handle.moussa, handle.awa] } } },
+    });
+    expect(logged).toBe(3);
+  });
 });

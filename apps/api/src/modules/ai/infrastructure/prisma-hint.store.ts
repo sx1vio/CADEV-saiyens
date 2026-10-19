@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type { AiRequestRecord, HintQuestion, HintStatus, HintStore } from '../domain/ports';
 
@@ -62,7 +63,7 @@ export class PrismaHintStore implements HintStore {
     return count > 0;
   }
 
-  async recordRequest(record: AiRequestRecord): Promise<void> {
+  async recordRequest(record: AiRequestRecord<unknown>): Promise<void> {
     await this.prisma.aiRequest.create({
       data: {
         userId: record.userId,
@@ -70,7 +71,7 @@ export class PrismaHintStore implements HintStore {
         inputHash: record.inputHash,
         promptVer: record.promptVer,
         status: record.status,
-        output: record.output ?? undefined,
+        output: (record.output ?? undefined) as Prisma.InputJsonValue | undefined,
         inputTokens: record.inputTokens,
         outputTokens: record.outputTokens,
         latencyMs: record.latencyMs,

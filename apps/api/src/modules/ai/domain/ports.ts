@@ -1,7 +1,7 @@
 // Ports du module ai (docs/architecture/09-ia-integrations.md). Le modèle de langage est appelé
 // uniquement côté serveur, derrière LlmPort ; le contenu utilisateur n'est jamais une instruction.
 
-export type AiTaskKind = 'hint';
+export type AiTaskKind = 'hint' | 'room_tasks';
 
 /** Contenu fourni par un utilisateur : toujours encadré et présenté au modèle comme une donnée. */
 export interface UntrustedInput {
@@ -47,13 +47,14 @@ export interface HintQuestion {
 /** Statuts de ai_requests : ok, error, timeout, refusal (appels réels) ; cache et quota (sans appel). */
 export type AiRequestStatus = 'ok' | 'error' | 'timeout' | 'refusal' | 'cache' | 'quota';
 
-export interface AiRequestRecord {
+/** Ligne de ai_requests ; `Output` dépend de l'usage (piste : { hint }, R5 : { tasks }). */
+export interface AiRequestRecord<Output = { hint: string }> {
   userId: string;
   kind: AiTaskKind;
   inputHash: string;
   promptVer: string;
   status: AiRequestStatus;
-  output: { hint: string } | null;
+  output: Output | null;
   inputTokens?: number;
   outputTokens?: number;
   latencyMs?: number;
@@ -70,4 +71,19 @@ export interface HintStore {
   /** Écrit le résultat seulement si la question attend encore sa piste ; renvoie false sinon. */
   saveHint(questionId: string, status: HintStatus, hint: string | null): Promise<boolean>;
   recordRequest(record: AiRequestRecord): Promise<void>;
+}
+
+/** Tâche proposée depuis une discussion de salle (R5) : une proposition, jamais une écriture. */
+export interface RoomTaskSuggestion {
+  title: string;
+  description: string | null;
+  level: 'first_step' | 'easy' | 'medium' | 'hard';
+}
+
+export interface RoomTasksStore {
+  /** Appels réellement envoyés au modèle par cet utilisateur depuis `since` (quota horaire commun). */
+  countModelCallsSince(userId: string, since: Date): Promise<number>;
+  /** Dernières propositions réussies pour la même discussion et la même version de prompt. */
+  findCachedTasks(inputHash: string, promptVer: string): Promise<RoomTaskSuggestion[] | null>;
+  recordRequest(record: AiRequestRecord<{ tasks: RoomTaskSuggestion[] }>): Promise<void>;
 }
