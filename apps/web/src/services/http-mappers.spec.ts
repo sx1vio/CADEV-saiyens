@@ -421,6 +421,27 @@ describe('modification et conflit de version (O4)', () => {
   });
 });
 
+describe('historique de disponibilité (Y5)', () => {
+  it('un jour sans sonde reste null (« pas de mesure »), jamais 100 %', () => {
+    const h = m.statusHistory({
+      days: 2,
+      services: [
+        {
+          service: 'backup',
+          uptimePercent: 66.7,
+          checks: 3,
+          daily: [
+            { date: '2026-10-17', uptimePercent: null, checks: 0 },
+            { date: '2026-10-18', uptimePercent: 66.7, checks: 3 },
+          ],
+        },
+      ],
+    });
+    expect(h.services[0]).toMatchObject({ id: 'backup', name: 'Sauvegarde cloud' });
+    expect(h.services[0]!.daily.map((d) => d.uptimePercent)).toEqual([null, 66.7]);
+  });
+});
+
 describe('impact (Y2)', () => {
   it('affiche les chiffres calculés par l’API, jamais des zéros écrits en dur (BUG-032)', () => {
     expect(

@@ -26,6 +26,7 @@ import type {
   QuestionSummary,
   RoomDetail as ApiRoomDetail,
   RoomSummary,
+  StatusHistoryResponse,
   StatusResponse,
   SyncAction,
   SyncResult,
@@ -59,6 +60,7 @@ import type {
   ServiceStatus,
   SkillView,
   SyncOutcome,
+  StatusHistory,
   SystemStatus,
   Tag,
   Task,
@@ -592,6 +594,17 @@ const SERVICE_STATE: Record<StatusResponse['services'][number]['state'], Service
     not_configured: 'pending',
     unknown: 'pending',
   };
+
+export const statusHistory = (h: StatusHistoryResponse): StatusHistory => ({
+  days: h.days,
+  services: h.services.map((x) => ({
+    id: x.service,
+    name: SERVICE_NAME[x.service],
+    uptimePercent: x.uptimePercent,
+    checks: x.checks,
+    daily: x.daily,
+  })),
+});
 
 export function status(s: StatusResponse, now = new Date()): SystemStatus {
   return {

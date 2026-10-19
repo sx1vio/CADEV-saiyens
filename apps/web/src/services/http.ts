@@ -32,6 +32,7 @@ import type {
   ProofsResponse,
   QuestionDetail as ApiQuestionDetail,
   RoomDetail as ApiRoomDetail,
+  StatusHistoryResponse,
   StatusResponse,
   SyncResponse,
   TaskView,
@@ -495,6 +496,8 @@ export const httpApi: DevHubApi = {
   },
 
   getStatus: async () => m.status(await get<StatusResponse>('/status')),
+  getStatusHistory: async (days) =>
+    m.statusHistory(await get<StatusHistoryResponse>('/status/history', { days })),
   getImpact: async () => m.impact(await get<ImpactResponse>('/impact')),
   getEcosystem: () => get<SystalinkEcosystemResponse>('/systalink/ecosystem'),
 };

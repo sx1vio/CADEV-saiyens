@@ -847,6 +847,10 @@ export const localApi: DevHubApi = {
     throw new DomainError('feature.unavailable');
   },
 
+  async getStatusHistory() {
+    return null;
+  },
+
   async getEcosystem() {
     return {
       referrals: { total: 0, last30Days: 0, bySource: [] },

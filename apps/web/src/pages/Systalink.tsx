@@ -20,7 +20,8 @@ import { Badge, Card, IconChip, Skeleton, StatusDot } from '@/components/ui/prim
 import { relativeTime, useLang } from '@/i18n';
 import { Link } from 'react-router';
 import { useQuery } from '@/lib/query';
-import { api, type ServiceStatus } from '@/services';
+import { cn } from '@/lib/utils';
+import { api, type ServiceStatus, type StatusHistory } from '@/services';
 import { Page } from './_layout';
 
 const ICONS: Record<ServiceStatus['id'], typeof Server> = {
@@ -164,10 +165,115 @@ export default function Systalink() {
               </div>
             </section>
           ))}
+          <UptimeHistory />
           <Ecosystem />
         </>
       )}
     </Page>
+  );
+}
+
+/** Seuils de couleur d'une journée : 99 % et plus vert, 95 % et plus orange, en dessous rouge. */
+const uptimeTone = (v: number) => (v >= 99 ? 'bg-success' : v >= 95 ? 'bg-warning' : 'bg-danger');
+
+/**
+ * Y5 : disponibilité sur 7 jours, une barre par jour (UTC). Un jour sans sonde est dessiné en
+ * pointillés et annoncé « pas de mesure » : il ne compte jamais comme 100 %.
+ */
+function UptimeHistory() {
+  const { t } = useTranslation();
+  const lang = useLang();
+  const { data } = useQuery('status:history:7', () => api.getStatusHistory(7));
+  if (!data) return null;
+  const pct = new Intl.NumberFormat(lang, { maximumFractionDigits: 1 });
+  const day = new Intl.DateTimeFormat(lang, { weekday: 'short', timeZone: 'UTC' });
+  const full = new Intl.DateTimeFormat(lang, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  });
+  const value = (v: number | null) =>
+    v === null ? t('systalink.history.noData') : `${pct.format(v)} %`;
+
+  return (
+    <section className="mt-8">
+      <h2 className="label-caps">{t('systalink.history.title', { count: data.days })}</h2>
+      <p className="mt-1 mb-3 text-[13px] text-muted">{t('systalink.history.text')}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {data.services.map((s) => (
+          <ServiceHistory
+            key={s.id}
+            service={s}
+            value={value}
+            dayLabel={(d) => day.format(new Date(`${d}T00:00:00Z`))}
+            fullLabel={(d) => full.format(new Date(`${d}T00:00:00Z`))}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ServiceHistory({
+  service: s,
+  value,
+  dayLabel,
+  fullLabel,
+}: {
+  service: StatusHistory['services'][number];
+  value: (v: number | null) => string;
+  dayLabel: (date: string) => string;
+  fullLabel: (date: string) => string;
+}) {
+  const { t } = useTranslation();
+  const Icon = ICONS[s.id];
+  return (
+    <Card className="p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 font-semibold text-fg">
+          <Icon className="size-4 text-muted" />
+          {t(`systalink.history.names.${s.id}`, { defaultValue: s.name })}
+        </p>
+        <p className="text-sm tabular text-fg">
+          <span className="sr-only">{t('systalink.history.week')} : </span>
+          {value(s.uptimePercent)}
+        </p>
+      </div>
+      <ol className="mt-3 grid grid-cols-7 gap-1.5" aria-label={t('systalink.history.daily')}>
+        {s.daily.map((d) => {
+          const label = `${fullLabel(d.date)} : ${value(d.uptimePercent)}${
+            d.uptimePercent === null
+              ? ''
+              : ` (${t('systalink.history.checks', { count: d.checks })})`
+          }`;
+          return (
+            <li key={d.date} className="flex flex-col items-center gap-1" title={label}>
+              <span className="sr-only">{label}</span>
+              <div
+                aria-hidden
+                className={cn(
+                  'relative flex h-14 w-full items-end overflow-hidden rounded-[6px]',
+                  d.uptimePercent === null
+                    ? 'border border-dashed border-line-strong'
+                    : 'bg-surface-2',
+                )}
+              >
+                {d.uptimePercent !== null && (
+                  <div
+                    className={cn('w-full rounded-[6px]', uptimeTone(d.uptimePercent))}
+                    style={{ height: `${Math.max(d.uptimePercent, 4)}%` }}
+                  />
+                )}
+              </div>
+              <span aria-hidden className="text-[11px] text-subtle">
+                {dayLabel(d.date)}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </Card>
   );
 }
 

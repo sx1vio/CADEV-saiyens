@@ -827,6 +827,22 @@ const en: Dict = {
     latency: 'Latency',
     lastBackup: 'Last backup',
     checked: 'Checked {{time}}',
+    history: {
+      title_one: 'Uptime over {{count}} day',
+      title_other: 'Uptime over {{count}} days',
+      text: 'Share of successful checks each day (UTC). Dashed: no measurement that day, which does not count as a day without an outage.',
+      noData: 'no data',
+      week: 'Over the period',
+      daily: 'Uptime per day',
+      checks_one: '{{count}} check',
+      checks_other: '{{count}} checks',
+      names: {
+        vps: 'VPS',
+        database: 'Database',
+        backup: 'Cloud backup',
+        mail: 'Business email',
+      },
+    },
     status: { up: 'Operational', degraded: 'Degraded', down: 'Down', pending: 'To connect' },
     refresh: 'Refresh',
     cta: {

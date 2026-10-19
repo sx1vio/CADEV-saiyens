@@ -841,6 +841,22 @@ const fr = {
     latency: 'Latence',
     lastBackup: 'Dernière sauvegarde',
     checked: 'Vérifié {{time}}',
+    history: {
+      title_one: 'Disponibilité sur {{count}} jour',
+      title_other: 'Disponibilité sur {{count}} jours',
+      text: 'Part des sondes réussies chaque jour (UTC). En pointillés : aucune mesure ce jour-là, ce qui ne compte pas comme une journée sans panne.',
+      noData: 'pas de mesure',
+      week: 'Sur la période',
+      daily: 'Disponibilité par jour',
+      checks_one: '{{count}} sonde',
+      checks_other: '{{count}} sondes',
+      names: {
+        vps: 'VPS',
+        database: 'Base de données',
+        backup: 'Sauvegarde cloud',
+        mail: 'Messagerie pro',
+      },
+    },
     status: {
       up: 'Opérationnel',
       degraded: 'Dégradé',

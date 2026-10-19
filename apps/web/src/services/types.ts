@@ -482,6 +482,21 @@ export interface SystemStatus {
   source: 'live' | 'local';
 }
 
+/**
+ * Y5 — GET /status/history : disponibilité par service et par jour (UTC). `uptimePercent` vaut
+ * null quand aucune sonde utile n'a tourné ce jour-là : « pas de mesure », jamais 100 %.
+ */
+export interface StatusHistory {
+  days: number;
+  services: {
+    id: ServiceStatus['id'];
+    name: string;
+    uptimePercent: number | null;
+    checks: number;
+    daily: { date: string; uptimePercent: number | null; checks: number }[];
+  }[];
+}
+
 export interface ImpactStats {
   devs: number;
   questionsResolved: number;
