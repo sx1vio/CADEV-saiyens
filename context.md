@@ -2,7 +2,7 @@
 
 > **Source de vérité partagée** de tous les intervenants (humains et agents IA). À lire au début de chaque session de travail, à mettre à jour avant de clôturer une action (nouvelle fonctionnalité, décision, pivot, correction majeure).
 >
-> Dernière mise à jour : **14 octobre 2026** (jour du Jalon 2), par Joachim GOEH-AKUE.
+> Dernière mise à jour : **19 octobre 2026** (J-3 avant le gel), par Joachim GOEH-AKUE.
 
 ## Sommaire
 
@@ -50,55 +50,46 @@ Référence : [cahier des charges v3](docs/Cahier_des_charges_v3_DevHub_Africa.p
 
 Détail exigence par exigence : [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md). Bugs et écarts : [registre des anomalies](docs/suivi/anomalies.md).
 
+**En résumé au 19 octobre** : les 21 exigences P0 sont terminées ; 29 exigences v3 sur 37 sont fusionnées (78 %), 3 sont en cours. `main` est entièrement vert sur une base neuve (format, lint, typecheck, build ; tests API, core, web, contrats). Ce qui manque surtout n'est plus du code : la mise en ligne sur Systalink et les comptes réels.
+
 ### Fait (fusionné sur `main`)
 
-| Élément                                                                                                                       | Référence          |
-| ----------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Monorepo pnpm + Turborepo, commitlint, Prettier, Husky                                                                        | ADR-0001           |
-| Architecture complète documentée, 13 ADR proposés, guides d'équipe                                                            | `docs/`            |
-| CI GitHub Actions (format, typecheck, tests, build, sécurité), Docker Compose, Caddy, scripts de déploiement et de sauvegarde | ADR-0011, `infra/` |
-| API NestJS 11 + worker pg-boss, Prisma 7, migration initiale, 52 étiquettes de référence                                      | PR #94, issue #3   |
-| **A1** Connexion GitHub, sessions par cookie, `GET /me`, chiffrement du jeton GitHub                                          | PR #95, issue #14  |
-| **PR11, M3** Signaux de confiance, acceptation du code de conduite                                                            | PR #98             |
-| **PR1, X3** Import du profil GitHub, compétences proposées, score G résistant aux dépôts vides (BUG-010 corrigé)              | PR #99             |
-| **#5** Paquets `@devhub/core` (scores, barème XP, `maskSecrets`) et `@devhub/contracts`                                       | PR #101            |
-| **X1, X2** Proof XP : `AwardXp`, garde-fous, journal public `GET /u/:handle/proofs`, barème `GET /rules/xp`                   | PR #102            |
-| **S2, M2** Module `ai` : piste IA, quota, cache, protection contre l'injection                                                | PR #104            |
-| Outillage : ESLint actif avec frontières d'architecture, hooks Git, Node 24 imposé ### En cours (PR ouvertes)                 |
+| Lot                                                                                                      | Exigences                 | PR                                                   |
+| -------------------------------------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------- |
+| Socle : monorepo, CI, Docker, Caddy, API NestJS + worker, Prisma, ADR 0001 à 0020                        | —                         | #94, #100, #103, #105                                |
+| Connexion GitHub, profil importé, signaux de confiance, code de conduite, suppression du compte          | A1, A3, PR1, PR11, M3     | #95, #98, #99, #138, #151                            |
+| Proof XP, barème public, scores par compétence                                                           | X1, X2                    | #101, #102                                           |
+| SOS Dev : question, piste IA, matching, réponses, validation, questions similaires, « sans réponse »     | S1 à S4, S7, S16, X4, S11 | #104, #106 à #108, #160                              |
+| Temps réel SSE, synchronisation hors ligne, écran de conflit, masquage des secrets                       | Y8, O1 à O4, O8, O9       | #109, #110, #118, #119, #135, #157                   |
+| Salles : création, dépôt lié, tâches, discussion, PR vérifiée, invitation riche, Kanban                  | R1 à R4, R7 à R9, R11     | #111 à #113, #116, #122                              |
+| Passport public et preuves ; découverte et classement                                                    | PR2, PR3, PR10, D1, D2    | #113, #114                                           |
+| Systalink et impact : état des services, impact, e-mails, historique de disponibilité, intégration A/B/C | Y1, Y2, Y3, Y5, Y6        | #115, #131, #140, #141, #155, #156, `feat/systalink` |
+| Modération et journal d'audit                                                                            | M1, M4                    | #115, #129, #145                                     |
+| Front branché sur l'API réelle, FR/EN, thème sombre                                                      | I1, T4                    | #116 à #154                                          |
 
-| PR   | Contenu                                                                                                                              | Auteur  | Exigences                             |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------------------------- |
-| #105 | ADR 0001 à 0013 acceptés, ADR 0014 à 0019 (XP, base, périmètre du MVP, tri v3.1, pile front, gouvernance)                            | Caleb   | #1                                    |
-| (S1) | Module `sos` : `POST /questions` idempotent, liste et fiche publiques, recherche plein texte ; service d'idempotence partagé         | Joachim | S1, S2 (déclenchement), O2 (côté API) |
-| #97  | `apps/web` (PWA de Sylvio) : à retravailler selon l'ADR-0016 (navigation du MVP, pas de `news`, mode local réservé au développement) | Sylvio  | I1, O1-O3                             |
+### En cours (19 octobre)
 
-### Plan jusqu'au gel du 22 octobre
+Mandat du 14 octobre, renouvelé le 19 : Joachim avance **toutes** les tâches restantes (les siennes d'abord), avec quatre sessions Claude Code qu'il supervise ; il relit et fusionne leurs PR quand la CI est verte.
 
-État réel par jalon, exigence par exigence : [cahier de livraison](https://claude.ai/artifact/6aWU3KSVDkfH8qdDF8zpj3) (mis à jour le 14 octobre).
+| Exigence                                                                                 | État                                      | Où                                           |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
+| R5 L'IA transforme une discussion en tâches                                              | PR ouverte                                | #158 (Joachim)                               |
+| S10 Pont bilingue FR ↔ EN                                                                | PR ouverte, correctif du quota IA demandé | #159 (session ad)                            |
+| R6 Demander une revue de code                                                            | Codé et testé, PR à ouvrir                | `feat/rooms-review-request` (session f9)     |
+| PR4 Disponible pour une mission, Contacter                                               | API poussée, front à faire                | `feat/passport-mission-contact` (session 7b) |
+| S6 Fiche cherchable ; S5 pair programming                                                | À démarrer                                | session 9d                                   |
+| PR14 Confidentialité (réglages web), X5 barème lu depuis l'API, S14 lien de reproduction | Partiels                                  | sessions ad et f9                            |
 
-Mandat du 14 octobre : Joachim avance **toutes** les tâches restantes (les siennes et celles de l'équipe), une PR par fonctionnalité, dans l'ordre du parcours de démo.
+Restent hors périmètre du gel, sauf temps libre : A2 (GitLab, Google), D3 et Y4 (P2), PR5, PR6, D4, Y9.
 
-| Ordre | Lot                                                               | Exigences          | Statut                                |
-| ----- | ----------------------------------------------------------------- | ------------------ | ------------------------------------- |
-| 1     | Poser une question, idempotence                                   | S1, O2 (API)       | PR #106                               |
-| 2     | Répondre, voter, valider (+ XP), notifications dans l'application | S4                 | PR #107                               |
-| 3     | Matching et notifications dans l'application                      | S3, X4             | PR #108                               |
-| 3b    | Temps réel SSE (notifications et pages de question)               | Y8                 | PR #109                               |
-| 4     | Synchronisation hors ligne `POST /sync`                           | O2                 | PR #110                               |
-| 5     | Salles de projet : créer, rejoindre, tâches, PR vérifiée          | R1, R2, R3, R8, R9 | PR #111, #112                         |
-| 6     | Passport public et preuves                                        | PR2, PR3           | PR #113                               |
-| 7     | Découverte et classement                                          | D1, D2             | PR #114                               |
-| 8     | Écrans Systalink et impact, modération                            | Y1, Y2, M1         | PR #115                               |
-| 9     | Front : intégration des écrans du MVP sur l'API réelle            | I1, O1-O4          | En cours (`feat/web-api-integration`) |
+### Bloquants hors code (équipe)
 
-Décision du 14 octobre ([ADR-0020](docs/adr/0020-services-ecosysteme-conserves.md)) : on garde #97 (fil d'actualités en accueil, services de l'écosystème dans les menus) ; les écrans sans serveur affichent un bandeau « Aperçu ». Validation du rôle 1 (Caleb) à confirmer.
-
-Bloquants hors code, qui demandent une personne de l'équipe : URL de production et VPS (#6, Emmanuel), application OAuth GitHub et clé IA (#7), base Systalink (#9, ADR-0015), invitations (#10, Caleb).
-
-; l'URL de production dépend de #6, #7 et #9.
-
-- **Jalon 2 (14 oct.)** : parcours SOS Dev de bout en bout (S1 à S4), piste IA (S2, rôle 5 : fusionnée dans #104), 30+ devs invités. S1 (Florent) doit déclencher le job `ai.hint`.
-- `packages/core` et `packages/contracts` : en place depuis #101 (Caleb).
+| Sujet                                                                                                      | Issue         | Qui               |
+| ---------------------------------------------------------------------------------------------------------- | ------------- | ----------------- |
+| URL de production sur le VPS Systalink, base retenue                                                       | #6, #9        | Emmanuel, Sylvio  |
+| Application OAuth GitHub réelle et clé IA plafonnée (S2, R5 et S10 ne sont essayés qu'avec le faux modèle) | #7            | Joachim, Emmanuel |
+| Identifiants SMTP Systalink, plages IP (`SYSTALINK_IP_RANGES`)                                             | #2            | Caleb             |
+| 30+ devs invités, test externe, deck et vidéo                                                              | #10, #12, #13 | Caleb             |
 
 ## 4. Décisions techniques et fonctionnelles
 
@@ -172,7 +163,7 @@ Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à id
 | 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                                          | Emmanuel, Joachim               |
 | 5   | L'étape `lint` de la CI n'exécutait aucune vérification : **corrigé dans #103**, à fusionner                                                          | Fausse impression de qualité                            | Emmanuel (relecture)            |
 | 7   | Aucune réponse de Systalink consignée (#2) : barème, produits acceptés, base managée (règle de choix : ADR-0015)                                      | Critère Systalink à 40 %                                | Caleb                           |
-| 9   | Aucune clé d'IA n'existe encore (#7) : S2 n'a été essayé qu'avec le faux modèle                                                                       | Démo de S2                                              | Joachim, Emmanuel               |
+| 9   | Aucune clé d'IA n'existe encore (#7) : S2, R5 et S10 n'ont été essayés qu'avec le faux modèle                                                         | Démo de l'IA                                            | Joachim, Emmanuel               |
 
 ## 8. Carte de la documentation
 
@@ -198,14 +189,18 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 
 ## 9. Historique
 
-| Date       | Évolution                                                                                                                        |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-05 | Cahier des charges v3 ; propositions v3.1 ; monorepo pnpm + Turborepo                                                            |
-| 2026-10-06 | Architecture complète, ADR 0001 à 0013 proposés, guides d'équipe, CI, Docker Compose, Caddy                                      |
-| 2026-10-07 | API NestJS + Prisma 7 + migration initiale (#94) ; connexion GitHub, sessions, `GET /me` (#95)                                   |
-| 2026-10-08 | PR ouvertes : front `apps/web` (#96, #97), confiance et code de conduite (#98), import GitHub (#99)                              |
-| 2026-10-08 | Création de `context.md`, du suivi du cahier des charges, du registre des anomalies et du guide de démarrage                     |
-| 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104) |
-| 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                          |
-| 2026-10-09 | Fusion de #100 et #103 ; ADR 0001 à 0013 acceptés ; ADR 0014 à 0019 (XP, base, périmètre, tri v3.1, front, dépôt)                |
-| 2026-10-14 | Reprise : Joachim mandaté pour finir toutes les tâches ; S1 (`sos`) et service d'idempotence partagé                             |
+| Date       | Évolution                                                                                                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-05 | Cahier des charges v3 ; propositions v3.1 ; monorepo pnpm + Turborepo                                                                                                                             |
+| 2026-10-06 | Architecture complète, ADR 0001 à 0013 proposés, guides d'équipe, CI, Docker Compose, Caddy                                                                                                       |
+| 2026-10-07 | API NestJS + Prisma 7 + migration initiale (#94) ; connexion GitHub, sessions, `GET /me` (#95)                                                                                                    |
+| 2026-10-08 | PR ouvertes : front `apps/web` (#96, #97), confiance et code de conduite (#98), import GitHub (#99)                                                                                               |
+| 2026-10-08 | Création de `context.md`, du suivi du cahier des charges, du registre des anomalies et du guide de démarrage                                                                                      |
+| 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104)                                                                  |
+| 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                                                                                           |
+| 2026-10-09 | Fusion de #100 et #103 ; ADR 0001 à 0013 acceptés ; ADR 0014 à 0019 (XP, base, périmètre, tri v3.1, front, dépôt)                                                                                 |
+| 2026-10-14 | Reprise : Joachim mandaté pour finir toutes les tâches ; S1 (`sos`) et service d'idempotence partagé                                                                                              |
+| 2026-10-14 | Fusion de #106 à #116 : SOS Dev de bout en bout, temps réel, synchronisation, salles, Passport, découverte, impact, front intégré                                                                 |
+| 2026-10-16 | A3, Y5, journal d'audit, Systalink A/B/C, simulateur de réseau retiré ; BUG-033 à BUG-039                                                                                                         |
+| 2026-10-18 | #151 à #154 : suppression du compte côté web, image Docker de production, écrans traduits                                                                                                         |
+| 2026-10-19 | Vérification complète de `main` (tout vert) ; suivi remis à l'état réel (P0 100 %) ; quatre sessions Claude supervisées ; fusion de #155 à #157 et #160 ; R5 (#158), S10 (#159) ; BUG-040 corrigé |
