@@ -19,6 +19,8 @@ export const Availability = z.object({
     )
     .max(14)
     .optional(),
+  /** PR4 : « Disponible pour une mission », masqué avec le reste des disponibilités (PR14). */
+  mission: z.boolean().optional(),
 });
 export type Availability = z.infer<typeof Availability>;
 
@@ -114,3 +116,13 @@ export const PassportResponse = z.object({
   ),
 });
 export type PassportResponse = z.infer<typeof PassportResponse>;
+
+/**
+ * POST /api/v1/u/:handle/contact (PR4) : message relayé par une notification, puis par le
+ * récapitulatif e-mail (Y3) si la personne l'accepte. Aucune adresse n'est jamais montrée.
+ */
+export const ContactRequest = z.object({ message: z.string().trim().min(10).max(500) });
+export type ContactRequest = z.infer<typeof ContactRequest>;
+
+export const ContactResponse = z.object({ sentAt: z.iso.datetime() });
+export type ContactResponse = z.infer<typeof ContactResponse>;

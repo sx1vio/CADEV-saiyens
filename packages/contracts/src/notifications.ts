@@ -11,6 +11,7 @@ export const NotificationType = z.enum([
   'join.request', // R3 : demande pour rejoindre ta salle
   'join.decided', // R3 : ta demande a été acceptée ou refusée
   'task.completed', // R8 : ta contribution est acceptée
+  'contact.request', // PR4 : un dev t'écrit depuis ton Passport
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 
