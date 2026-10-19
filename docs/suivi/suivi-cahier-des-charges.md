@@ -126,7 +126,7 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 | S4  | #24   | Répondre, voter, valider               | P0   | `Terminé`  | Florent     | PR #107                  | Validé en réel le 14 oct. (2e compte, validation, +10 XP et +3 de rapidité)                              |
 | S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                          |                                                                                                          |
 | S6  | #26   | Question résolue = fiche cherchable    | P1   | `À faire`  | Florent     |                          |                                                                                                          |
-| S7  | #27   | Questions similaires avant publication | P1   | `À faire`  | Florent     |                          |                                                                                                          |
+| S7  | #27   | Questions similaires avant publication | P1   | `En cours` | Florent     | `fix/web-similar`        | 3 max., ignorables, aussi sur la fiche                                                                   |
 
 ### Salles de projet (R)
 
