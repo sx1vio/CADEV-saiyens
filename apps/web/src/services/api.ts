@@ -142,6 +142,8 @@ export interface DevHubApi {
   discoverDevs(filters: DiscoverFilters): Promise<DevCard[]>;
   leaderboard(): Promise<LeaderboardRow[]>;
   getPassport(handle: string): Promise<Passport>;
+  /** PR4 — POST /u/:handle/contact : message relayé par notification puis par e-mail (Y3). */
+  contactDev(handle: string, message: string): Promise<void>;
 
   /* Notifications */
   listNotifications(): Promise<AppNotification[]>;

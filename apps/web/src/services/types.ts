@@ -319,7 +319,8 @@ export type NotificationType =
   | 'join-accepted'
   | 'task-done'
   | 'claim'
-  | 'pair';
+  | 'pair'
+  | 'contact';
 
 export interface AppNotification {
   id: ID;

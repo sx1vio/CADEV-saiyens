@@ -193,7 +193,10 @@ export const httpApi: DevHubApi = {
     if (input.languages?.length) body.languages = input.languages;
     if (input.lookingFor !== undefined) body.lookingFor = m.lookingForToApi(input.lookingFor);
     if (input.availability !== undefined)
-      body.availability = { now: input.availability.status === 'now' };
+      body.availability = {
+        now: input.availability.status === 'now',
+        mission: input.availability.forMission,
+      };
     if (input.canHelpWith !== undefined) body.canHelpTagSlugs = input.canHelpWith.slice(0, 5);
     if (input.wantsToLearn !== undefined) body.wantLearnTagSlugs = input.wantsToLearn.slice(0, 5);
     if (input.emailNotifications !== undefined) body.emailNotifications = input.emailNotifications;
@@ -442,6 +445,7 @@ export const httpApi: DevHubApi = {
       country: f.country ? f.country.toUpperCase() : undefined,
       tz: f.timezone === 'near' ? offset : undefined,
       available: f.availability === 'now' ? true : undefined,
+      mission: f.availability === 'mission' ? true : undefined,
       lookingFor: f.lookingFor,
       limit: 50,
     });
@@ -462,6 +466,10 @@ export const httpApi: DevHubApi = {
       ),
     ]);
     return m.passport(p, proofs);
+  },
+
+  contactDev: async (handle, message) => {
+    await post(`/u/${encodeURIComponent(handle)}/contact`, { message });
   },
 
   listNotifications: async () => {

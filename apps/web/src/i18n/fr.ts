@@ -146,6 +146,7 @@ const fr = {
     'task-done': 'Ta contribution « {{task}} » est validée : +{{points}} Proof XP',
     claim: '{{helper}} examine ta question',
     pair: '{{host}} te propose une session de pair programming',
+    contact: '{{byName}} t’a écrit : « {{message}} »',
   },
   network: {
     online: 'En ligne',
@@ -743,7 +744,15 @@ const fr = {
     shareCopied: 'Lien du Passport copié.',
     contact: 'Contacter',
     contactHint: "Le message est relayé par e-mail, sans exposer l'adresse.",
-    contactSoon: "Le relais e-mail passe par la messagerie Systalink : il s'activera avec l'API.",
+    contactMessage: 'Ton message',
+    contactRules:
+      '10 à 500 caractères. N’y mets pas d’informations privées : partage ton contact seulement si tu le souhaites.',
+    contactPlaceholder: 'Présente-toi et explique la mission en quelques lignes.',
+    contactSend: 'Envoyer',
+    contactSent: 'Message envoyé à {{name}}.',
+    contactLogin:
+      'Connecte-toi pour écrire à ce dev : ton message lui arrive en notification et par e-mail, sans montrer d’adresse.',
+    contactLoginCta: 'Me connecter',
     mission: 'Disponible pour une mission',
     available: { now: 'Disponible maintenant', today: 'Disponible aujourd’hui', busy: 'Occupé' },
     skills: 'Compétences',
@@ -1012,6 +1021,11 @@ const fr = {
     emailOff: 'Désactivés',
     emailNotificationsOn: 'E-mails activés.',
     emailNotificationsOff: 'E-mails désactivés.',
+    mission: 'Disponible pour une mission',
+    missionText: 'Affiché sur ton Passport et dans le filtre « Pour une mission » de Découvrir.',
+    missionYes: 'Oui',
+    missionNo: 'Non',
+    missionSaved: 'Disponibilité enregistrée.',
   },
   conflict: {
     title: 'Conflit de version',

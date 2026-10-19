@@ -131,7 +131,7 @@ export const availabilityFromApi = (
 ): Availability => ({
   status: a?.now ? 'now' : 'busy',
   slots: (a?.slots ?? []).map((s) => `${DAYS[s.day]} ${s.from}-${s.to}`),
-  forMission,
+  forMission: forMission || a?.mission === true,
 });
 
 export function user(me: MeResponse, passport?: PassportResponse | null): User {
@@ -400,6 +400,7 @@ const NOTIF: Record<NotificationView['type'], NotificationType> = {
   'join.request': 'join-request',
   'join.decided': 'join-accepted',
   'task.completed': 'task-done',
+  'contact.request': 'contact',
 };
 
 /** Les libellés du front attendent `author`, `title`, `room`, `task`, `user`, `points`. */
@@ -564,7 +565,11 @@ export function devCard(d: ApiDevCard): DevCard {
               ? 'confirmed'
               : 'beginner',
     })),
-    availability: { status: d.availableNow ? 'now' : 'busy', slots: [], forMission: false },
+    availability: {
+      status: d.availableNow ? 'now' : 'busy',
+      slots: [],
+      forMission: d.availableForMission,
+    },
     languages: [],
     utcOffset: utcOffset(d.timezone),
     lookingFor: lookingForFromApi(d.lookingFor),
