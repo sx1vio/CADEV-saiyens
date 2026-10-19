@@ -568,6 +568,12 @@ export interface NewTaskInput {
   level: TaskLevel;
 }
 
+/** R5 : tâches proposées par l'IA depuis la discussion de la salle, à relire avant de les créer. */
+export interface TaskSuggestions {
+  status: 'done' | 'cached' | 'empty' | 'quota' | 'disabled' | 'failed';
+  tasks: NewTaskInput[];
+}
+
 export interface ProfileInput {
   displayName?: string;
   bio?: string;

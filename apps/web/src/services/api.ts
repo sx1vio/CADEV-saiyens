@@ -32,6 +32,7 @@ import type {
   SystemStatus,
   Tag,
   Task,
+  TaskSuggestions,
   TaskStatus,
   User,
   UserSummary,
@@ -120,6 +121,7 @@ export interface DevHubApi {
   requestJoin(roomId: ID, message: string): Promise<JoinRequest>;
   respondJoin(requestId: ID, accept: boolean): Promise<JoinRequest>;
   createTask(roomId: ID, input: NewTaskInput): Promise<Task>;
+  suggestTasks(roomId: ID): Promise<TaskSuggestions>;
   takeTask(taskId: ID): Promise<Task>;
   moveTask(taskId: ID, status: TaskStatus): Promise<Task>;
   completeTask(
