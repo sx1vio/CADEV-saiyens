@@ -663,10 +663,10 @@ const fr = {
       created: 'Publiée',
       status: {
         done: 'La discussion ne contient pas de travail à transformer en tâche pour l’instant.',
-        empty: 'La discussion est vide : écrivez d’abord ce qu’il reste à faire.',
-        quota: 'Limite d’utilisation de l’IA atteinte pour cette heure. Réessayez plus tard.',
+        empty: 'La discussion est vide : écris d’abord ce qu’il reste à faire.',
+        quota: 'Limite d’utilisation de l’IA atteinte pour cette heure. Réessaie plus tard.',
         disabled: 'L’IA n’est pas configurée sur ce serveur.',
-        failed: 'L’IA n’a pas pu répondre. Réessayez dans un instant.',
+        failed: 'L’IA n’a pas pu répondre. Réessaie dans un instant.',
       },
     },
     newTask: 'Nouvelle tâche',
