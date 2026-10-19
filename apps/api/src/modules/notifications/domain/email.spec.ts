@@ -53,4 +53,21 @@ describe('renderDigest (Y3)', () => {
       'https://devhub.africa/projets',
     );
   });
+
+  it('PR4 : le message relayé suit la ligne, échappé, avec un lien vers le Passport de l’expéditeur', () => {
+    const mail = renderDigest(
+      [
+        {
+          type: 'contact.request',
+          payload: { by: 'moussa', byName: 'Moussa', message: 'Mission <b>React</b> à Dakar ?' },
+        },
+      ],
+      input,
+    );
+    expect(mail.subject).toBe("Moussa (@moussa) t'a écrit depuis ton Passport");
+    expect(mail.text).toContain('« Mission <b>React</b> à Dakar ? »');
+    expect(mail.text).toContain('https://devhub.africa/u/moussa');
+    expect(mail.html).toContain('<q>Mission &lt;b&gt;React&lt;/b&gt; à Dakar ?</q>');
+    expect(mail.text).not.toMatch(/@[\w.-]+\.[a-z]{2,}/);
+  });
 });
