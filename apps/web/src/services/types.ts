@@ -385,6 +385,15 @@ export interface MatchView extends MatchEvent {
   helper: UserSummary;
 }
 
+/** S10 : traduction IA d'une question ou d'une réponse, affichée « Traduit automatiquement ». */
+export interface Translation {
+  /** Titre traduit (question seulement). */
+  title: string | null;
+  body: string;
+  /** Faux modèle (aucune clé d'IA) : le texte reste l'original, avec une mention. */
+  demo: boolean;
+}
+
 export interface QuestionDetail extends QuestionListItem {
   answers: AnswerView[];
   matches: MatchView[];

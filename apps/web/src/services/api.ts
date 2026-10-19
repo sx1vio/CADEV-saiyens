@@ -41,6 +41,8 @@ import type {
   OfflineAction,
   QuestionText,
   SyncOutcome,
+  Lang,
+  Translation,
 } from './types';
 
 export type QuestionTab = 'for-me' | 'unanswered' | 'resolved' | 'all' | 'mine';
@@ -107,7 +109,8 @@ export interface DevHubApi {
   claim(questionId: ID): Promise<void>;
   proposePair(questionId: ID, startsAt: string, videoLink: string): Promise<PairSession>;
   respondPair(pairId: ID, accept: boolean): Promise<PairSession>;
-  translate(text: string, to: 'fr' | 'en'): Promise<string>;
+  /** S10 : traduction IA côté serveur, mise en cache ; jamais en mode local. */
+  translate(target: { type: 'question' | 'answer'; id: ID }, to: Lang): Promise<Translation>;
 
   /* Salles — /rooms, /tasks */
   listRooms(opts?: { tag?: string; q?: string; mine?: boolean }): Promise<RoomListItem[]>;
