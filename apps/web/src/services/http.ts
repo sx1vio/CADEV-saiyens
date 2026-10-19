@@ -100,6 +100,17 @@ const unavailable = (): never => {
 /** La recherche plein texte exige au moins 2 caractères (06-api.md). */
 const search = (q?: string) => (q && q.trim().length >= 2 ? q.trim().slice(0, 200) : undefined);
 
+/** S7 : questions proches d'un texte, la question courante exclue. */
+async function similar(text: string, excludeId?: string) {
+  const q = m.similarSearch(text);
+  if (!q) return [];
+  const res = await get<ListQuestionsResponse>('/questions', { q, limit: m.SIMILAR_LIMIT + 1 });
+  return res.data
+    .filter((x) => x.id !== excludeId)
+    .slice(0, m.SIMILAR_LIMIT)
+    .map(m.questionItem);
+}
+
 const uiLang = (): 'fr' | 'en' => (document.documentElement.lang === 'en' ? 'en' : 'fr');
 
 const QUESTION_TAB: Record<QuestionTab, Query> = {
@@ -235,14 +246,13 @@ export const httpApi: DevHubApi = {
         limit: 50,
       })
     ).data.map(m.questionItem),
-  getQuestion: async (id) => m.questionDetail(await get<ApiQuestionDetail>(`/questions/${id}`)),
-  similarQuestions: async (text) => {
-    const q = search(text);
-    if (!q) return [];
-    return (await get<ListQuestionsResponse>('/questions', { q, limit: 5 })).data.map(
-      m.questionItem,
-    );
+  getQuestion: async (id) => {
+    const q = m.questionDetail(await get<ApiQuestionDetail>(`/questions/${id}`));
+    // S7 : un échec de la recherche ne doit jamais empêcher d'afficher la fiche.
+    const related = await similar(q.title, id).catch(() => []);
+    return { ...q, similar: related };
   },
+  similarQuestions: (text) => similar(text),
   createQuestion: async (input, clientId) => {
     const res = await post<AskQuestionResponse>(
       '/questions',

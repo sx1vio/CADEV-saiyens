@@ -668,6 +668,20 @@ export const report = (r: AdminReportView): Report & { reporter: UserSummary } =
   reporter: summary(r.reporter),
 });
 
+/** S7 : au plus trois questions similaires, avant de publier comme sur une fiche. */
+export const SIMILAR_LIMIT = 3;
+
+/**
+ * S7 : requête « l'un des mots » pour la recherche plein texte (`websearch_to_tsquery`).
+ * Un titre entier exigerait tous ses mots à la fois ; on garde les mots d'au moins 4 signes,
+ * sans doublon, reliés par « or ». Rien d'exploitable : `undefined`.
+ */
+export function similarSearch(text: string): string | undefined {
+  const words = text.toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}_.+#-]{3,}/gu) ?? [];
+  const unique = [...new Set(words)].slice(0, 8);
+  return unique.length ? unique.join(' or ') : undefined;
+}
+
 /** Gabarit guidé (S8) : les rubriques facultatives rejoignent le corps de la question. */
 export function questionBody(i: NewQuestionInput): string {
   const parts = [i.body.trim()];

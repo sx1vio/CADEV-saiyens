@@ -431,3 +431,20 @@ describe('journal de modération (M4)', () => {
     ).toMatchObject({ entries: [{ action: 'hide', targetType: 'message' }], next: null });
   });
 });
+
+describe('questions similaires (S7)', () => {
+  it('cherche l’un des mots significatifs du titre, sans doublon', () => {
+    expect(m.similarSearch('Nginx renvoie 502 derrière Docker, nginx')).toBe(
+      'nginx or renvoie or derrière or docker',
+    );
+  });
+
+  it('écarte les mots courts et les opérateurs de recherche', () => {
+    expect(m.similarSearch('le -v de "git"')).toBeUndefined();
+    expect(m.similarSearch('docker-compose -rm')).toBe('docker-compose');
+  });
+
+  it('trois suggestions au maximum', () => {
+    expect(m.SIMILAR_LIMIT).toBe(3);
+  });
+});
