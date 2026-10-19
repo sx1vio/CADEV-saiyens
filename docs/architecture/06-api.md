@@ -102,15 +102,16 @@ Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm
 
 ### Passport et réputation (`passport`, `reputation`)
 
-| Méthode et chemin              | Accès  | Rôle                                                                                                              | US             |
-| ------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------- | -------------- |
-| `GET /u/:handle`               | Pub    | Passport public : identité, compétences (G + P), statistiques, projets, signaux de confiance                      | PR2, PR7, PR11 |
-| `GET /u/:handle/proofs?tag=`   | Pub    | Chronologie des preuves, filtrable par étiquette ; chaque ligne renvoie à sa source                               | PR3, X1        |
-| `GET /u/:handle/activity`      | Pub    | Carte de chaleur de l'entraide sur 26 semaines                                                                    | PR8 (P1)       |
-| `POST /u/:handle/endorsements` | Co, Id | Recommandation adossée à une interaction vérifiée                                                                 | PR9 (P1)       |
-| `GET /me/skills`               | Co     | Mes compétences : score, niveau, part GitHub (G, dépôts qualifiés) et part plateforme (P), date du dernier import | PR1, PR7       |
-| `POST /me/github/refresh`      | Co, Id | Réimport du profil GitHub (1 par heure, sinon `429` avec `Retry-After`) ; renvoie les compétences                 | PR1            |
-| `GET /rules/xp`                | Pub    | Barème, plafonds et formules (alimente `/regles`)                                                                 | X5             |
+| Méthode et chemin              | Accès  | Rôle                                                                                                                                                                        | US             |
+| ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `GET /u/:handle`               | Pub    | Passport public : identité, compétences (G + P), statistiques, projets, signaux de confiance                                                                                | PR2, PR7, PR11 |
+| `GET /u/:handle/proofs?tag=`   | Pub    | Chronologie des preuves, filtrable par étiquette ; chaque ligne renvoie à sa source                                                                                         | PR3, X1        |
+| `GET /u/:handle/activity`      | Pub    | Carte de chaleur de l'entraide sur 26 semaines                                                                                                                              | PR8 (P1)       |
+| `POST /u/:handle/contact`      | Co, Id | Message relayé par une notification `contact.request`, puis par le récapitulatif e-mail (Y3) ; aucune adresse montrée ; 5 messages par expéditeur et par 24 h (429 au-delà) | PR4 (P1)       |
+| `POST /u/:handle/endorsements` | Co, Id | Recommandation adossée à une interaction vérifiée                                                                                                                           | PR9 (P1)       |
+| `GET /me/skills`               | Co     | Mes compétences : score, niveau, part GitHub (G, dépôts qualifiés) et part plateforme (P), date du dernier import                                                           | PR1, PR7       |
+| `POST /me/github/refresh`      | Co, Id | Réimport du profil GitHub (1 par heure, sinon `429` avec `Retry-After`) ; renvoie les compétences                                                                           | PR1            |
+| `GET /rules/xp`                | Pub    | Barème, plafonds et formules (alimente `/regles`)                                                                                                                           | X5             |
 
 Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
@@ -167,13 +168,13 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 ### Découverte (`discovery`)
 
-| Méthode et chemin                                             | Accès | Rôle                                                                | US         |
-| ------------------------------------------------------------- | ----- | ------------------------------------------------------------------- | ---------- |
-| `GET /discover/devs?tag=&tz=&available=&lookingFor=&country=` | Pub   | Recherche de devs (filtres combinables, respecte le mode non listé) | D1         |
-| `GET /discover/rooms?…`                                       | Pub   | Recherche de salles                                                 | D1         |
-| `GET /discover/suggestions`                                   | Co    | « Devs à rencontrer » avec leur raison                              | D6 (P1)    |
-| `GET /leaderboard?scope=country\|community&season=`           | Pub   | Classement (calcul transparent, lié au journal)                     | D2, D5, D7 |
-| `GET /leaderboard/map`                                        | Pub   | Agrégats par pays pour la carte                                     | D4 (P1)    |
+| Méthode et chemin                                                      | Accès | Rôle                                                                                                                         | US         |
+| ---------------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `GET /discover/devs?tag=&tz=&available=&mission=&lookingFor=&country=` | Pub   | Recherche de devs (filtres combinables, respecte le mode non listé) ; `mission=true` : « Disponible pour une mission » (PR4) | D1, PR4    |
+| `GET /discover/rooms?…`                                                | Pub   | Recherche de salles                                                                                                          | D1         |
+| `GET /discover/suggestions`                                            | Co    | « Devs à rencontrer » avec leur raison                                                                                       | D6 (P1)    |
+| `GET /leaderboard?scope=country\|community&season=`                    | Pub   | Classement (calcul transparent, lié au journal)                                                                              | D2, D5, D7 |
+| `GET /leaderboard/map`                                                 | Pub   | Agrégats par pays pour la carte                                                                                              | D4 (P1)    |
 
 ### Synchronisation, notifications, temps réel
 
