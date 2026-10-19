@@ -30,13 +30,11 @@ type Record = AiRequestRecord<{ tasks: RoomTaskSuggestion[] }>;
 
 class MemoryStore implements RoomTasksStore {
   records: Record[] = [];
+  private seq = 0;
   constructor(
     private readonly callsInLastHour = 0,
     readonly cache = new Map<string, RoomTaskSuggestion[]>(),
   ) {}
-  async countModelCallsSince() {
-    return this.callsInLastHour;
-  }
   async findCachedTasks(inputHash: string, promptVer: string) {
     return this.cache.get(`${inputHash}:${promptVer}`) ?? null;
   }
@@ -45,6 +43,33 @@ class MemoryStore implements RoomTasksStore {
     if (record.status === 'ok' && record.output) {
       this.cache.set(`${record.inputHash}:${record.promptVer}`, record.output.tasks);
     }
+  }
+  // Mémoire synchrone : la réservation est atomique par construction.
+  async reserveModelCall(base: Pick<Record, 'userId' | 'kind' | 'inputHash' | 'promptVer'>) {
+    const used =
+      this.callsInLastHour +
+      this.records.filter((r) => r.status !== 'cache' && r.status !== 'quota').length;
+    if (used >= settings.hourlyQuotaPerUser) return null;
+    this.records.push({
+      ...base,
+      status: 'pending',
+      output: null,
+      id: String(++this.seq),
+    } as Record);
+    return String(this.seq);
+  }
+  async finishModelCall(
+    id: string,
+    result: Omit<Record, 'userId' | 'kind' | 'inputHash' | 'promptVer'>,
+  ) {
+    const r = this.records.find((x) => (x as { id?: string }).id === id)!;
+    Object.assign(r, result);
+    if (r.status === 'ok' && r.output) {
+      this.cache.set(`${r.inputHash}:${r.promptVer}`, r.output.tasks);
+    }
+  }
+  async releaseModelCall(id: string) {
+    this.records = this.records.filter((x) => (x as { id?: string }).id !== id);
   }
 }
 
@@ -107,6 +132,32 @@ describe('SuggestRoomTasks (R5)', () => {
     expect(outcome.status).toBe('quota');
     expect(llm.requests).toHaveLength(0);
     expect(store.records[0]!.status).toBe('quota');
+  });
+
+  it('requêtes parallèles : le quota n’est jamais dépassé', async () => {
+    const store = new MemoryStore();
+    const llm = new FakeLlmAdapter();
+    const suggest = new SuggestRoomTasks(store, llm, settings);
+    const outcomes = await Promise.all(
+      Array.from({ length: 6 }, (_, i) =>
+        suggest.execute('awa', discussion({ messages: [`Message ${i}`] })),
+      ),
+    );
+    expect(llm.requests).toHaveLength(settings.hourlyQuotaPerUser);
+    expect(outcomes.filter((o) => o.status === 'quota')).toHaveLength(3);
+  });
+
+  it('compte dans le quota un appel qui lève une exception', async () => {
+    const store = new MemoryStore();
+    const throwing: LlmPort = {
+      complete: async () => {
+        throw new Error('panne réseau');
+      },
+    };
+    await expect(
+      new SuggestRoomTasks(store, throwing, settings).execute('awa', discussion()),
+    ).rejects.toThrow('panne réseau');
+    expect(store.records.map((r) => r.status)).toEqual(['error']);
   });
 
   it('ne propose rien quand la sortie du modèle est invalide', async () => {

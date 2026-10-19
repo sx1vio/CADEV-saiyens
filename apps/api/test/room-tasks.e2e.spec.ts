@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
+import { PrismaRoomTasksStore } from '../src/modules/ai/infrastructure/prisma-room-tasks.store';
 import { applyTestEnv } from './env.fixture';
 import { WRITE_HEADERS, signInAs } from './sign-in.helper';
 import { ensureTags } from './tags.fixture';
@@ -250,10 +251,11 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
 
     // Faux modèle (aucune clé en test) : une proposition marquée « démonstration ».
     const first = await suggest('moussa').expect(200);
-    expect(first.body).toEqual({
-      status: 'done',
-      data: [{ title: 'Tâche de démonstration', description: expect.any(String), level: 'easy' }],
-    });
+    // « cached » si la même discussion a déjà été analysée sur cette base (suite relancée).
+    expect(['done', 'cached']).toContain(first.body.status);
+    expect(first.body.data).toEqual([
+      { title: 'Tâche de démonstration', description: expect.any(String), level: 'easy' },
+    ]);
     const again = await suggest('awa').expect(200);
     expect(again.body.status).toBe('cached');
     const en = await suggest('awa', { lang: 'en' }).expect(200);
@@ -264,6 +266,25 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
     const logged = await prisma.aiRequest.count({
       where: { kind: 'room_tasks', user: { handle: { in: [handle.moussa, handle.awa] } } },
     });
-    expect(logged).toBe(3);
+    expect(logged).toBeGreaterThanOrEqual(3);
+  });
+
+  it('R5 : la réservation du quota tient face à des requêtes simultanées (verrou PostgreSQL)', async () => {
+    const store = app.get(PrismaRoomTasksStore);
+    const user = await prisma.user.findUniqueOrThrow({ where: { handle: handle.kwame } });
+    const base = {
+      userId: user.id,
+      kind: 'room_tasks' as const,
+      inputHash: `race-${suffix}`,
+      promptVer: 'room_tasks@1',
+    };
+    const since = new Date(Date.now() - 60 * 60 * 1000);
+    const ids = await Promise.all(
+      Array.from({ length: 6 }, () => store.reserveModelCall(base, since, 3)),
+    );
+    expect(ids.filter(Boolean)).toHaveLength(3);
+    await store.releaseModelCall(ids.find(Boolean)!);
+    expect(await store.reserveModelCall(base, since, 3)).not.toBeNull();
+    expect(await store.reserveModelCall(base, since, 3)).toBeNull();
   });
 });

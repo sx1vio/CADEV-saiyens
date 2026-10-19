@@ -57,43 +57,59 @@ export class SuggestRoomTasks {
       return { status: 'cached', tasks: cached };
     }
 
+    // Route synchrone : des requêtes parallèles ne doivent pas passer le quota ensemble. L'appel
+    // est réservé (ligne « pending ») sous verrou avant de partir au modèle.
     const since = new Date(this.now().getTime() - HOUR_MS);
-    if (
-      (await this.store.countModelCallsSince(userId, since)) >= this.settings.hourlyQuotaPerUser
-    ) {
+    const reservation = await this.store.reserveModelCall(
+      base,
+      since,
+      this.settings.hourlyQuotaPerUser,
+    );
+    if (!reservation) {
       await this.store.recordRequest({ ...base, status: 'quota', output: null });
       return { status: 'quota', tasks: [] };
     }
 
-    const result = await this.llm.complete({
-      task: 'room_tasks',
-      promptVersion: ROOM_TASKS_PROMPT_VERSION,
-      system: roomTasksSystemPrompt(input.lang),
-      userContent: roomTasksUserContent(input),
-      maxTokens: ROOM_TASKS_MAX_TOKENS,
-      timeoutMs: this.settings.timeoutMs,
-    });
+    let finished = false;
+    try {
+      const result = await this.llm.complete({
+        task: 'room_tasks',
+        promptVersion: ROOM_TASKS_PROMPT_VERSION,
+        system: roomTasksSystemPrompt(input.lang),
+        userContent: roomTasksUserContent(input),
+        maxTokens: ROOM_TASKS_MAX_TOKENS,
+        timeoutMs: this.settings.timeoutMs,
+      });
 
-    if (!result.ok) {
-      if (result.reason === 'disabled') return { status: 'disabled', tasks: [] };
-      await this.store.recordRequest({
-        ...base,
-        status: result.reason,
-        output: null,
+      if (!result.ok) {
+        if (result.reason === 'disabled') {
+          await this.store.releaseModelCall(reservation);
+          finished = true;
+          return { status: 'disabled', tasks: [] };
+        }
+        await this.store.finishModelCall(reservation, {
+          status: result.reason,
+          output: null,
+          latencyMs: result.latencyMs,
+        });
+        finished = true;
+        return { status: 'failed', tasks: [] };
+      }
+
+      const tasks = parseRoomTasks(result.text);
+      await this.store.finishModelCall(reservation, {
+        status: tasks ? 'ok' : 'error',
+        output: tasks ? { tasks } : null,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
         latencyMs: result.latencyMs,
       });
-      return { status: 'failed', tasks: [] };
+      finished = true;
+      return tasks ? { status: 'done', tasks } : { status: 'failed', tasks: [] };
+    } finally {
+      // Une exception imprévue compte quand même dans le quota.
+      if (!finished)
+        await this.store.finishModelCall(reservation, { status: 'error', output: null });
     }
-
-    const tasks = parseRoomTasks(result.text);
-    await this.store.recordRequest({
-      ...base,
-      status: tasks ? 'ok' : 'error',
-      output: tasks ? { tasks } : null,
-      inputTokens: result.inputTokens,
-      outputTokens: result.outputTokens,
-      latencyMs: result.latencyMs,
-    });
-    return tasks ? { status: 'done', tasks } : { status: 'failed', tasks: [] };
   }
 }
