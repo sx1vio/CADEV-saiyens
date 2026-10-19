@@ -30,6 +30,47 @@ describe('identifiants du mode http', () => {
   });
 });
 
+describe('préférence e-mail (Y3)', () => {
+  const me = {
+    id: '00000000-0000-4000-8000-000000000001',
+    handle: 'awa',
+    displayName: 'Awa',
+    avatarUrl: null,
+    email: 'awa@example.org',
+    emailVerified: true,
+    bio: null,
+    country: 'CI',
+    timezone: 'Africa/Abidjan',
+    languages: ['fr' as const],
+    uiLang: 'fr' as const,
+    emailNotifications: false,
+    lookingFor: null,
+    githubLinked: true,
+    githubCreatedAt: null,
+    codeOfConductAcceptedAt: null,
+    isAdmin: false,
+    isDemo: false,
+    createdAt: at,
+    trust: {
+      githubLinked: true,
+      githubAccountYears: null,
+      emailVerified: true,
+      demo: false,
+      founder: true,
+    },
+  };
+
+  it('GET /me : la préférence et la présence d’une adresse arrivent, jamais l’adresse elle-même', () => {
+    const u = m.user(me);
+    expect(u).toMatchObject({ emailNotifications: false, hasEmail: true });
+    expect(u).not.toHaveProperty('email');
+    expect(m.user({ ...me, email: null, emailNotifications: true })).toMatchObject({
+      emailNotifications: true,
+      hasEmail: false,
+    });
+  });
+});
+
 describe('questions', () => {
   const detail = {
     id: 'q1',

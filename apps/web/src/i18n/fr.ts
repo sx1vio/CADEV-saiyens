@@ -987,6 +987,15 @@ const fr = {
     mode: 'Source des données',
     modeLocal: 'Serveur local (IndexedDB)',
     modeHttp: 'API DevHub',
+    emailNotifications: 'Recevoir les e-mails',
+    emailNotificationsText:
+      'Un récapitulatif de tes notifications non lues, envoyé à l’adresse de ton compte. Chaque e-mail contient aussi un lien de désabonnement.',
+    emailNotificationsNoEmail:
+      'Aucune adresse e-mail n’est connue pour ton compte GitHub : aucun e-mail ne peut partir pour l’instant.',
+    emailOn: 'Activés',
+    emailOff: 'Désactivés',
+    emailNotificationsOn: 'E-mails activés.',
+    emailNotificationsOff: 'E-mails désactivés.',
   },
   conflict: {
     title: 'Conflit de version',
