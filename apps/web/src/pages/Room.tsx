@@ -25,7 +25,7 @@ import { DemoBadge, errorText, RoomIcon, UserLink } from '@/components/domain';
 import { GitHubIcon } from '@/components/icons';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Markdown } from '@/components/ui/code';
-import { DropMenu, MenuItem, Sheet, useMedia } from '@/components/ui/overlay';
+import { DropMenu, MenuItem, Sheet } from '@/components/ui/overlay';
 import {
   Avatar,
   AvatarStack,
@@ -70,7 +70,6 @@ export default function Room() {
   const me = useSession((s) => s.user);
   const [params, setParams] = useSearchParams();
   const tab = (params.get('tab') as Tab) || 'tasks';
-  const lg = useMedia('(min-width: 1024px)');
   const {
     data: room,
     error,
@@ -310,29 +309,27 @@ export default function Room() {
         </div>
       </header>
 
-      {!lg && (
-        <Segmented<Tab>
-          label={room.name}
-          className="mt-6"
-          value={tab}
-          glow
-          onChange={(v) => setParams({ tab: v }, { replace: true })}
-          items={[
-            { value: 'tasks', label: t('room.tabs.tasks'), count: room.openTasks },
-            { value: 'discussion', label: t('room.tabs.discussion') },
-            { value: 'members', label: t('room.tabs.members') },
-            ...(isOwner
-              ? [
-                  {
-                    value: 'requests' as Tab,
-                    label: t('room.tabs.requests'),
-                    count: room.requests.length,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      )}
+      <Segmented<Tab>
+        label={room.name}
+        className="mt-6"
+        value={tab}
+        glow
+        onChange={(v) => setParams({ tab: v }, { replace: true })}
+        items={[
+          { value: 'tasks', label: t('room.tabs.tasks'), count: room.openTasks },
+          { value: 'discussion', label: t('room.tabs.discussion') },
+          { value: 'members', label: t('room.tabs.members') },
+          ...(isOwner
+            ? [
+                {
+                  value: 'requests' as Tab,
+                  label: t('room.tabs.requests'),
+                  count: room.requests.length,
+                },
+              ]
+            : []),
+        ]}
+      />
 
       <div key={tab} className="dh-page mt-6">
         {tab === 'tasks' && <Kanban room={room} />}
