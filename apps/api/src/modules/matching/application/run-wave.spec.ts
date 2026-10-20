@@ -95,6 +95,22 @@ describe('RunWave (S3, X4)', () => {
     expect(n.sent[0]?.payload).toMatchObject({ questionId: 'q1', title: 'nginx 502', wave: 1 });
   });
 
+  it('S10 : avec la traduction, un dev anglophone compte pour L = 0,5 et la raison le dit', async () => {
+    // Autre fuseau : la raison « même fuseau » ne prend pas l'une des places affichées.
+    const pool = [helper('kwame', { languages: ['en'], offsetMinutes: 600 })];
+    const without = new MemoryStore(question(), pool);
+    await new RunWave(without, notifier(), () => now).first('q1');
+    const withTranslation = new MemoryStore(question(), pool);
+    await new RunWave(withTranslation, notifier(), () => now, true).first('q1');
+
+    expect(withTranslation.events[0]!.score).toBeGreaterThan(without.events[0]!.score);
+    expect(withTranslation.events[0]?.reasons).toContainEqual({
+      code: 'translated',
+      params: { lang: 'fr' },
+    });
+    expect(without.events[0]?.reasons.map((r) => r.code)).not.toContain('translated');
+  });
+
   it('moins de 3 éligibles : ouverte à toute la stack', async () => {
     const store = new MemoryStore(question(), [
       helper('a'),

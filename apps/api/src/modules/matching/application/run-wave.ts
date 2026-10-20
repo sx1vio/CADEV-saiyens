@@ -19,6 +19,8 @@ export class RunWave {
     private readonly store: MatchingStore,
     private readonly notifier: MatchNotifier,
     private readonly now: () => Date = () => new Date(),
+    /** S10 : la traduction IA répond ; un dev qui ne parle pas la langue compte pour L = 0,5. */
+    private readonly translationAvailable = false,
   ) {}
 
   first(questionId: string): Promise<WaveOutcome> {
@@ -53,6 +55,8 @@ export class RunWave {
       },
       candidates,
       regime,
+      MATCHING.helpersPerWave,
+      this.translationAvailable,
     );
 
     const label = new Map(question.tags.map((t) => [t.id, t.label]));

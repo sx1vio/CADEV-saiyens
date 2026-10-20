@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { EmptyState, ErrorState } from '@/components/djeli';
+import { FeedbackRow } from '@/components/FeedbackRequests';
 import { PageHeader, RoomCard } from '@/components/domain';
 import { ButtonLink } from '@/components/ui/button';
 import { Input, Skeleton } from '@/components/ui/primitives';
 import { Segmented } from '@/components/ui/segmented';
 import { useQuery } from '@/lib/query';
 import { api } from '@/services';
+import { cn } from '@/lib/utils';
 import { useSession } from '@/stores/app';
 import { Page } from './_layout';
 
@@ -16,10 +18,16 @@ export default function Projects() {
   const { t } = useTranslation();
   const me = useSession((s) => s.user);
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'mine' && me ? 'mine' : 'all';
+  const tab =
+    params.get('tab') === 'reviews'
+      ? 'reviews'
+      : params.get('tab') === 'mine' && me
+        ? 'mine'
+        : 'all';
   const [q, setQ] = useState('');
-  const { data, error, refresh } = useQuery(`rooms:${tab}:${me?.id ?? ''}`, () =>
-    api.listRooms({ mine: tab === 'mine' }),
+  const { data, error, refresh } = useQuery(
+    tab === 'reviews' ? null : `rooms:${tab}:${me?.id ?? ''}`,
+    () => api.listRooms({ mine: tab === 'mine' }),
   );
   const list = (data ?? []).filter(
     (r) =>
@@ -43,19 +51,18 @@ export default function Projects() {
         }
       />
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        {me && (
-          <Segmented
-            label={t('projects.title')}
-            value={tab}
-            onChange={(v) => setParams(v === 'mine' ? { tab: 'mine' } : {}, { replace: true })}
-            glow
-            items={[
-              { value: 'all', label: t('projects.tabs.all') },
-              { value: 'mine', label: t('projects.tabs.mine') },
-            ]}
-          />
-        )}
-        <div className="relative flex-1 sm:max-w-sm">
+        <Segmented
+          label={t('projects.title')}
+          value={tab}
+          onChange={(v) => setParams(v === 'all' ? {} : { tab: v }, { replace: true })}
+          glow
+          items={[
+            { value: 'all', label: t('projects.tabs.all') },
+            ...(me ? [{ value: 'mine' as const, label: t('projects.tabs.mine') }] : []),
+            { value: 'reviews', label: t('projects.tabs.reviews') },
+          ]}
+        />
+        <div className={cn('relative flex-1 sm:max-w-sm', tab === 'reviews' && 'hidden')}>
           <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-subtle" />
           <Input
             type="search"
@@ -68,7 +75,9 @@ export default function Projects() {
         </div>
       </div>
       <div className="mt-6">
-        {error ? (
+        {tab === 'reviews' ? (
+          <ReviewFeed />
+        ) : error ? (
           <ErrorState error={error} onRetry={refresh} />
         ) : !data ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -97,5 +106,55 @@ export default function Projects() {
         )}
       </div>
     </Page>
+  );
+}
+
+/** R6 : flux de la stack, demandes de retour et de revue ouvertes. */
+function ReviewFeed() {
+  const { t } = useTranslation();
+  const me = useSession((s) => s.user);
+  const tags = useQuery('tags', () => api.listTags());
+  const mySlugs = (tags.data ?? [])
+    .filter((x) => me?.canHelpWith.includes(x.id))
+    .map((x) => x.slug);
+  const [scope, setScope] = useState<'stack' | 'all'>('stack');
+  const filtered = scope === 'stack' && mySlugs.length > 0;
+  const { data, error, refresh } = useQuery(
+    me && !tags.data ? null : `feedback:${filtered ? mySlugs.join(',') : 'all'}`,
+    () => api.listFeedbackRequests({ tags: filtered ? mySlugs : undefined }),
+  );
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted">{t('feedback.feedHint')}</p>
+      {mySlugs.length > 0 && (
+        <Segmented
+          size="sm"
+          label={t('projects.tabs.reviews')}
+          value={scope}
+          onChange={setScope}
+          items={[
+            { value: 'stack', label: t('feedback.myStack') },
+            { value: 'all', label: t('feedback.allStacks') },
+          ]}
+        />
+      )}
+      {error ? (
+        <ErrorState error={error} onRetry={refresh} />
+      ) : !data ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 rounded-[10px]" />
+          ))}
+        </div>
+      ) : data.length === 0 ? (
+        <EmptyState pose="point" title={t('feedback.feedEmpty')} />
+      ) : (
+        <ul className="dh-stagger grid gap-3 md:grid-cols-2">
+          {data.map((f) => (
+            <FeedbackRow key={f.id} item={f} showRoom />
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -27,6 +27,11 @@ export const ERROR_CODES = [
   'xp.self_vote',
   'version_conflict',
   'sync.dependency_failed',
+  // Pont bilingue (S10) et IA
+  'translation.same_language',
+  'translation.failed',
+  'ai.quota_exceeded',
+  'ai.unavailable',
   // Salles de projet
   'room.repo_not_found',
   'room.repo_private',
@@ -36,6 +41,10 @@ export const ERROR_CODES = [
   'task.already_taken',
   'task.invalid_status',
   'task.pr_invalid',
+  'feedback.already_open',
+  'feedback.already_taken',
+  'feedback.self_review',
+  'feedback.invalid_status',
   // Compte
   'account.confirmation_mismatch',
   // Modération
