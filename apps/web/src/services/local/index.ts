@@ -623,6 +623,10 @@ export const localApi: DevHubApi = {
   async respondJoin(requestId, accept) {
     return write((e, me) => e.respondJoin(requestId, me.id, accept, Date.now()));
   },
+  async suggestTasks() {
+    // R5 passe par le modèle côté serveur : pas d'équivalent dans le mode local.
+    throw new DomainError('feature.unavailable');
+  },
   async createTask(roomId, input) {
     return write((e, me) => e.createTask(roomId, me.id, input, Date.now()));
   },

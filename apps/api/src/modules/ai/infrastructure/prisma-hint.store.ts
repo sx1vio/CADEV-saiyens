@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type { AiRequestRecord, HintQuestion, HintStatus, HintStore } from '../domain/ports';
 
-/** Statuts de ai_requests qui correspondent à un appel réel au modèle (comptés dans le quota). */
-const MODEL_CALL_STATUSES = ['ok', 'error', 'timeout', 'refusal'];
+/**
+ * Statuts de ai_requests qui correspondent à un appel au modèle, fait ou en cours (« pending »,
+ * réservé par R5), comptés dans le quota horaire commun.
+ */
+export const MODEL_CALL_STATUSES = ['ok', 'error', 'timeout', 'refusal', 'pending'];
 
 @Injectable()
 export class PrismaHintStore implements HintStore {
@@ -62,7 +66,7 @@ export class PrismaHintStore implements HintStore {
     return count > 0;
   }
 
-  async recordRequest(record: AiRequestRecord): Promise<void> {
+  async recordRequest(record: AiRequestRecord<unknown>): Promise<void> {
     await this.prisma.aiRequest.create({
       data: {
         userId: record.userId,
@@ -70,7 +74,7 @@ export class PrismaHintStore implements HintStore {
         inputHash: record.inputHash,
         promptVer: record.promptVer,
         status: record.status,
-        output: record.output ?? undefined,
+        output: (record.output ?? undefined) as Prisma.InputJsonValue | undefined,
         inputTokens: record.inputTokens,
         outputTokens: record.outputTokens,
         latencyMs: record.latencyMs,

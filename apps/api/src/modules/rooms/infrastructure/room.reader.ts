@@ -223,6 +223,27 @@ export class RoomReader {
       : null;
   }
 
+  /** R5 : derniers messages visibles (du plus ancien au plus récent) et titres des tâches non closes. */
+  async discussionForAi(roomId: string, limit: number) {
+    const [messages, tasks] = await Promise.all([
+      this.prisma.roomMessage.findMany({
+        where: { roomId, hiddenAt: null },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit,
+        select: { body: true },
+      }),
+      this.prisma.task.findMany({
+        where: { roomId, status: { not: 'done' } },
+        orderBy: { createdAt: 'asc' },
+        select: { title: true },
+      }),
+    ]);
+    return {
+      messages: messages.reverse().map((m) => m.body),
+      existingTasks: tasks.map((t) => t.title),
+    };
+  }
+
   async roomRepo(roomId: string) {
     return this.prisma.room.findUnique({
       where: { id: roomId },
