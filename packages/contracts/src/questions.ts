@@ -21,14 +21,14 @@ export const QUESTION_LIMITS = {
 } as const;
 
 /**
- * S14 : sites de reproduction acceptés (10-securite.md). Le domaine lui-même ou l'un de ses
- * sous-domaines (ex. `abc.stackblitz.io`), en HTTPS seulement.
+ * S14 : sites de reproduction acceptés (10-securite.md) : les pages d'**éditeur**, comparées
+ * exactement (ou précédées de `www.`). Aucun sous-domaine : les domaines d'aperçu hébergé
+ * (`*.csb.app`, `*.stackblitz.io`, `*.codesandbox.io`, `*.github.io`, `*.repl.co`) publient
+ * n'importe quelle page et servent à l'hameçonnage.
  */
 export const REPRO_HOSTS = [
   'stackblitz.com',
-  'stackblitz.io',
   'codesandbox.io',
-  'csb.app',
   'replit.com',
   'gist.github.com',
   'github.com',
@@ -39,15 +39,15 @@ export const REPRO_HOSTS = [
 export const REPRO_URL_MAX = 500;
 
 /**
- * Vrai si `value` est un lien HTTPS vers un site de reproduction accepté. L'hôte doit être suivi
- * de `/`, `?`, `#` ou de la fin : ni identifiants (`user@`), ni port, ni espace.
+ * Vrai si `value` est un lien HTTPS vers un site de reproduction accepté (hôte exact). L'hôte doit
+ * être suivi de `/`, `?`, `#` ou de la fin : ni identifiants (`user@`), ni port, ni espace.
  */
 export function isReproUrl(value: string): boolean {
   const m = /^https:\/\/([A-Za-z0-9.-]+)(?:[/?#]\S*)?$/.exec(value);
   if (!m) return false;
   const host = m[1]!.toLowerCase();
   if (host.startsWith('.') || host.includes('..')) return false;
-  return REPRO_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  return REPRO_HOSTS.some((h) => host === h || host === `www.${h}`);
 }
 
 /** Lien de reproduction (S14) : vide = absent. */

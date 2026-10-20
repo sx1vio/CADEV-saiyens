@@ -11,6 +11,10 @@ describe('liens de reproduction (S14)', () => {
     for (const url of [
       'https://stackblitz.com/edit/x',
       'https://abc.csb.app/',
+      'https://x.stackblitz.io/',
+      'https://evil.codesandbox.io/',
+      'https://user.github.io/',
+      'https://www.codepen.io/awa/pen/abc',
       'https://gist.github.com/awa/1',
       'http://codesandbox.io/s/x',
       'https://github.com@evil.example/x',

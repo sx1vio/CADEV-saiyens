@@ -68,12 +68,12 @@ describe('contrats', () => {
     expect(new Set(ERROR_CODES).size).toBe(ERROR_CODES.length);
   });
 
-  it('S14 : liens de reproduction acceptés (HTTPS, liste blanche, sous-domaines)', () => {
+  it('S14 : liens de reproduction acceptés (HTTPS, éditeurs en liste exacte)', () => {
     for (const ok of [
       'https://stackblitz.com/edit/x',
-      'https://abc.stackblitz.io',
+      'https://stackblitz.com/edit/vite-hmr-bug',
       'https://codesandbox.io/s/x?file=/a.ts',
-      'https://xyz.csb.app/',
+      'https://www.codepen.io/awa/pen/abc',
       'https://replit.com/@awa/demo',
       'https://gist.github.com/awa/1',
       'https://github.com/awa/repo/issues/1',
@@ -92,6 +92,13 @@ describe('contrats', () => {
       'https://.github.com/x',
       'javascript:alert(1)',
       'https://github.com/a b',
+      // Aperçus hébergés : n'importe qui y publie une page (hameçonnage).
+      'https://abc.csb.app/',
+      'https://x.stackblitz.io/',
+      'https://evil.codesandbox.io/',
+      'https://user.github.io/',
+      'https://demo.awa.repl.co/',
+      'https://api.github.com/x',
     ]) {
       expect(isReproUrl(ko)).toBe(false);
     }

@@ -76,6 +76,10 @@ describe('lien de reproduction (S14)', () => {
   it('refuse un domaine hors liste, le HTTP simple et les identifiants dans l’hôte', async () => {
     for (const url of [
       'https://evil.example.com/repro',
+      'https://abc.csb.app/',
+      'https://x.stackblitz.io/',
+      'https://evil.codesandbox.io/',
+      'https://user.github.io/',
       'http://codesandbox.io/s/abc',
       'https://github.com@evil.example.com/x',
       'https://notgithub.com/x',
