@@ -12,6 +12,7 @@ import type {
   ListAuditResponse,
   AnswerView as ApiAnswer,
   DevCard as ApiDevCard,
+  FeedbackRequestView,
   ImpactResponse,
   JoinRequestView,
   LeaderboardResponse,
@@ -40,6 +41,7 @@ import type {
   AppNotification,
   Availability,
   DevCard,
+  FeedbackRequestItem,
   ImpactStats,
   JoinRequest,
   LeaderboardRow,
@@ -378,9 +380,39 @@ export const joinRequest = (r: JoinRequestView): JoinRequest & { user: UserSumma
   user: summary(r.user),
 });
 
+const FEEDBACK_STATUS: Record<FeedbackRequestView['status'], FeedbackRequestItem['status']> = {
+  open: 'open',
+  in_progress: 'in-progress',
+  done: 'done',
+  cancelled: 'cancelled',
+};
+
+/** R6 : les comptes sont identifiés par leur pseudo côté front (comme `summary`). */
+export const feedbackRequest = (f: FeedbackRequestView): FeedbackRequestItem => ({
+  id: f.id,
+  roomId: f.room.id,
+  kind: f.kind === 'code_review' ? 'code-review' : 'feedback',
+  status: FEEDBACK_STATUS[f.status],
+  url: f.url,
+  note: f.note,
+  requesterId: f.requester.handle,
+  reviewerId: f.reviewer?.handle ?? null,
+  createdAt: f.createdAt,
+  confirmedAt: f.confirmedAt,
+  requester: summary(f.requester),
+  reviewer: f.reviewer ? summary(f.reviewer) : null,
+  room: f.room,
+  tags: f.stack.map(tag),
+});
+
 export function roomDetail(
   r: ApiRoomDetail,
-  extra: { tasks: TaskView[]; messages: MessageView[]; requests: JoinRequestView[] },
+  extra: {
+    tasks: TaskView[];
+    messages: MessageView[];
+    requests: JoinRequestView[];
+    feedback?: FeedbackRequestView[];
+  },
 ): RoomDetail {
   const role = r.viewer?.role;
   return {
@@ -398,7 +430,7 @@ export function roomDetail(
           : r.viewer?.joinRequest === 'pending'
             ? 'pending'
             : 'none',
-    feedbackRequests: [],
+    feedbackRequests: (extra.feedback ?? []).map(feedbackRequest),
   };
 }
 
@@ -409,6 +441,10 @@ const NOTIF: Record<NotificationView['type'], NotificationType> = {
   'join.request': 'join-request',
   'join.decided': 'join-accepted',
   'task.completed': 'task-done',
+  'feedback.requested': 'feedback-requested',
+  'feedback.taken': 'feedback-taken',
+  'feedback.confirmed': 'feedback-confirmed',
+  'feedback.cancelled': 'feedback-cancelled',
 };
 
 /** Les libellés du front attendent `author`, `title`, `room`, `task`, `user`, `points`. */
@@ -423,6 +459,9 @@ export function notification(n: NotificationView, userId: string): AppNotificati
   if (p.by !== undefined) payload.author = str(p.by);
   if (p.roomName !== undefined) payload.room = str(p.roomName);
   if (p.taskTitle !== undefined) payload.task = str(p.taskTitle);
+  if (p.kind === 'code_review') payload.kind = 'code-review';
+  // « feedback-confirmed_zero » : un simple retour ne rapporte pas de Proof XP.
+  if (n.type === 'feedback.confirmed') payload.count = Number(p.points ?? 0);
   return {
     id: n.id,
     userId,

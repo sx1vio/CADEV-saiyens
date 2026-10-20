@@ -77,7 +77,7 @@ Jamais un pourcentage de compatibilité sans méthode (§6.2). On affiche **au p
 | Présélection SQL (200 candidats), écriture des `match_events` et notifications `match.request` | `apps/api/src/modules/matching/infrastructure/prisma-matching.store.ts`                                                       |
 | Vague 1, escalade, « Je m'en occupe »                                                          | `apps/api/src/modules/matching/application/run-wave.ts`, jobs `matching.run` (envoyé par S1) et `matching.escalate` (+15 min) |
 
-Une vague déjà envoyée n'est jamais rejouée (nouvel essai d'un job) : `wavesDone`. Les raisons enregistrées portent le libellé des étiquettes (`{ code: "github_repos", params: { count: 6, tag: "Kubernetes" } }`). La langue vaut 0,5 seulement quand la traduction (S10) sera active ; elle vaut 0 en attendant.
+Une vague déjà envoyée n'est jamais rejouée (nouvel essai d'un job) : `wavesDone`. Les raisons enregistrées portent le libellé des étiquettes (`{ code: "github_repos", params: { count: 6, tag: "Kubernetes" } }`). La langue vaut 0,5 quand la traduction (S10) répond : vraie clé d'IA, ou faux modèle hors production. En production sans clé, elle vaut 0 (`aiAvailable`, module `ai`).
 
 ### Escalade à 15 minutes
 

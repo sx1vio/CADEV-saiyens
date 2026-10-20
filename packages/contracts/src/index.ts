@@ -2,6 +2,7 @@
 export * from './answers';
 export * from './discovery';
 export * from './errors';
+export * from './feedback';
 export * from './me';
 export * from './moderation';
 export * from './notifications';
@@ -12,4 +13,5 @@ export * from './rooms';
 export * from './skills';
 export * from './sync';
 export * from './tasks';
+export * from './translations';
 export * from './xp';

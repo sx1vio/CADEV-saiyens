@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ENV } from '../../infrastructure/config/config.module';
+import type { Env } from '../../infrastructure/config/env';
+import { aiAvailable } from '../ai';
 import { IdentityModule } from '../identity';
 import { NotificationsModule, Notifier } from '../notifications';
 import { ClaimQuestion, RunWave } from './application/run-wave';
@@ -18,8 +21,9 @@ import { MatchingJobs } from './jobs/matching.jobs';
     MatchingActions,
     {
       provide: RunWave,
-      inject: [PrismaMatchingStore, Notifier],
-      useFactory: (store: PrismaMatchingStore, notifier: Notifier) => new RunWave(store, notifier),
+      inject: [PrismaMatchingStore, Notifier, ENV],
+      useFactory: (store: PrismaMatchingStore, notifier: Notifier, env: Env) =>
+        new RunWave(store, notifier, undefined, aiAvailable(env)),
     },
     {
       provide: ClaimQuestion,
