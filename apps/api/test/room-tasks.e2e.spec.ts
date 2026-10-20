@@ -237,7 +237,7 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
     ]);
   });
 
-  it('R5 : l’IA propose des tâches depuis la discussion, sans rien créer (membres seulement)', async () => {
+  it('R5 : l’IA propose des tâches depuis la discussion, sans rien créer (créateur seulement)', async () => {
     const suggest = (who: keyof typeof handle, body: object = {}) =>
       request(app.getHttpServer())
         .post(`/api/v1/rooms/${roomId}/tasks/suggest`)
@@ -246,11 +246,13 @@ describe('tâches et discussion des salles (R2, R4, R8, R9)', () => {
         .send(body);
     const before = (await get(`/api/v1/rooms/${roomId}/tasks`).expect(200)).body.data.length;
 
-    await suggest('kwame').expect(403);
-    await suggest('moussa', { lang: 'de' }).expect(400);
+    expect((await suggest('kwame').expect(403)).body.code).toBe('room.not_member');
+    // CDC R5 : « validées par le créateur » ; un simple membre ne lance pas l'analyse.
+    expect((await suggest('moussa').expect(403)).body.code).toBe('forbidden');
+    await suggest('awa', { lang: 'de' }).expect(400);
 
     // Faux modèle (aucune clé en test) : une proposition marquée « démonstration ».
-    const first = await suggest('moussa').expect(200);
+    const first = await suggest('awa').expect(200);
     // « cached » si la même discussion a déjà été analysée sur cette base (suite relancée).
     expect(['done', 'cached']).toContain(first.body.status);
     expect(first.body.data).toEqual([

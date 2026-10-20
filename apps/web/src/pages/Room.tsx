@@ -404,9 +404,12 @@ function Kanban({ room }: { room: RoomDetail }) {
         <p className="text-sm text-muted">{t('projects.openTasks', { count: room.openTasks })}</p>
         {isMember && (
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" icon={<Sparkles />} onClick={openSuggest}>
-              {t('room.suggest.open')}
-            </Button>
+            {/* R5 : tâches « validées par le créateur » (CDC) ; l'API refuse aux simples membres. */}
+            {isOwner && (
+              <Button variant="secondary" size="sm" icon={<Sparkles />} onClick={openSuggest}>
+                {t('room.suggest.open')}
+              </Button>
+            )}
             <Button
               variant="primary"
               size="sm"
