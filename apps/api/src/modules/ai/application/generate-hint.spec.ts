@@ -57,7 +57,10 @@ class MemoryHintStore implements HintStore {
   async recordRequest(record: AiRequestRecord) {
     this.records.push(record);
     if (record.status === 'ok' && record.output) {
-      this.cache.set(`${record.inputHash}:${record.promptVer}`, record.output.hint);
+      this.cache.set(
+        `${record.inputHash}:${record.promptVer}`,
+        (record.output as { hint: string }).hint,
+      );
     }
   }
 }
@@ -111,7 +114,10 @@ describe('GenerateHint (S2)', () => {
     const first = new MemoryHintStore([question()]);
     await run(first, new FakeLlmAdapter());
     const cache = new Map(
-      first.records.map((r) => [`${r.inputHash}:${r.promptVer}`, r.output!.hint]),
+      first.records.map((r) => [
+        `${r.inputHash}:${r.promptVer}`,
+        (r.output as { hint: string }).hint,
+      ]),
     );
     const second = new MemoryHintStore([question()], 0, cache);
     const llm = new FakeLlmAdapter();

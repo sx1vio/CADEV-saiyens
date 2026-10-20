@@ -530,7 +530,11 @@ const en: Dict = {
     pairAccept: 'Accept',
     pairDecline: 'Decline',
     join: 'Join',
-    translate: 'Translate',
+    translate: 'Translate to English',
+    showOriginal: 'Show original',
+    showTranslation: 'Show translation',
+    machineTranslated: 'Machine translated',
+    translationDemo: 'Demo: no AI key configured, the text stays the original.',
     translateUnavailable:
       'Translation is done by the server (AI). It will be enabled once the API is connected.',
     similar: 'Similar questions',
@@ -1062,6 +1066,10 @@ const en: Dict = {
       'GitHub is rate limiting: try again in a few minutes, or try without an account.',
     github_network: "Can't reach GitHub. Check your connection.",
     'translate_server-only': 'Translation will be enabled with the API.',
+    translation_same_language: 'This text is already in English.',
+    translation_failed: 'Translation did not go through. Try again in a moment.',
+    ai_quota_exceeded: 'You reached the AI limit for this hour. Try again later.',
+    ai_unavailable: 'AI is not available right now.',
   },
   activity: {
     resolved: 'unblocked',

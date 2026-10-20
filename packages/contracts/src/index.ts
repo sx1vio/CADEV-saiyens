@@ -12,4 +12,5 @@ export * from './rooms';
 export * from './skills';
 export * from './sync';
 export * from './tasks';
+export * from './translations';
 export * from './xp';

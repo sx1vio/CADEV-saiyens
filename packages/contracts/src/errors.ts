@@ -27,6 +27,11 @@ export const ERROR_CODES = [
   'xp.self_vote',
   'version_conflict',
   'sync.dependency_failed',
+  // Pont bilingue (S10) et IA
+  'translation.same_language',
+  'translation.failed',
+  'ai.quota_exceeded',
+  'ai.unavailable',
   // Salles de projet
   'room.repo_not_found',
   'room.repo_private',

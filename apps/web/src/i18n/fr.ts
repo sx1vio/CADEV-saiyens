@@ -536,7 +536,11 @@ const fr = {
     pairAccept: 'Accepter',
     pairDecline: 'Décliner',
     join: 'Rejoindre',
-    translate: 'Traduire',
+    translate: 'Traduire en français',
+    showOriginal: "Voir l'original",
+    showTranslation: 'Voir la traduction',
+    machineTranslated: 'Traduit automatiquement',
+    translationDemo: "Démo : aucune clé d'IA configurée, le texte reste l'original.",
     translateUnavailable:
       "La traduction est faite par le serveur (IA). Elle s'activera dès que l'API sera branchée.",
     similar: 'Questions similaires',
@@ -1086,6 +1090,10 @@ const fr = {
       'GitHub limite les requêtes : réessaie dans quelques minutes, ou essaie sans compte.',
     github_network: 'Impossible de joindre GitHub. Vérifie ta connexion.',
     'translate_server-only': "La traduction s'activera avec l'API.",
+    translation_same_language: 'Ce texte est déjà en français.',
+    translation_failed: "La traduction n'a pas abouti. Réessaie dans un instant.",
+    ai_quota_exceeded: "Tu as atteint la limite d'IA pour cette heure. Réessaie plus tard.",
+    ai_unavailable: "L'IA n'est pas disponible pour le moment.",
   },
   activity: {
     resolved: 'a débloqué',

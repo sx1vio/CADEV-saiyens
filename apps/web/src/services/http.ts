@@ -37,6 +37,7 @@ import type {
   SuggestTasksResponse,
   SyncResponse,
   TaskView,
+  TranslationResponse,
   UpdateAnswerResponse,
   UpdateMeRequest,
   DeleteMeRequest,
@@ -323,7 +324,12 @@ export const httpApi: DevHubApi = {
   },
   proposePair: async () => unavailable(),
   respondPair: async () => unavailable(),
-  translate: async () => unavailable(),
+  translate: async (target, to) => {
+    const t = await post<TranslationResponse>(
+      `/${target.type === 'question' ? 'questions' : 'answers'}/${target.id}/translate?lang=${to}`,
+    );
+    return { title: t.title, body: t.body, demo: t.demo };
+  },
 
   listRooms: async (opts = {}) =>
     (
