@@ -273,12 +273,31 @@ export interface RoomMessage {
   createdAt: ISODate;
 }
 
+/** R6 : demande de retour ou de revue de code, visible dans le flux de la stack. */
 export interface FeedbackRequest {
   id: ID;
   roomId: ID;
   kind: 'feedback' | 'code-review';
-  status: 'open' | 'done';
+  status: 'open' | 'in-progress' | 'done' | 'cancelled';
+  /** Lien à relire : PR, commit ou démo (https). */
+  url: string | null;
+  note: string | null;
+  requesterId: ID;
+  reviewerId: ID | null;
   createdAt: ISODate;
+  confirmedAt: ISODate | null;
+}
+
+export interface FeedbackRequestItem extends FeedbackRequest {
+  requester: UserSummary;
+  reviewer: UserSummary | null;
+  room: { id: ID; code: string; name: string };
+  tags: Tag[];
+}
+
+export interface FeedbackInput {
+  url?: string | null;
+  note?: string | null;
 }
 
 export type XPKind =
@@ -318,6 +337,10 @@ export type NotificationType =
   | 'join-request'
   | 'join-accepted'
   | 'task-done'
+  | 'feedback-requested'
+  | 'feedback-taken'
+  | 'feedback-confirmed'
+  | 'feedback-cancelled'
   | 'claim'
   | 'pair';
 
@@ -389,6 +412,15 @@ export interface MatchView extends MatchEvent {
   helper: UserSummary;
 }
 
+/** S10 : traduction IA d'une question ou d'une réponse, affichée « Traduit automatiquement ». */
+export interface Translation {
+  /** Titre traduit (question seulement). */
+  title: string | null;
+  body: string;
+  /** Faux modèle (aucune clé d'IA) : le texte reste l'original, avec une mention. */
+  demo: boolean;
+}
+
 export interface QuestionDetail extends QuestionListItem {
   answers: AnswerView[];
   matches: MatchView[];
@@ -437,7 +469,7 @@ export interface RoomDetail extends RoomListItem {
   messages: (RoomMessage & { author: UserSummary })[];
   requests: (JoinRequest & { user: UserSummary })[];
   myMembership: 'owner' | 'member' | 'pending' | 'none';
-  feedbackRequests: FeedbackRequest[];
+  feedbackRequests: FeedbackRequestItem[];
 }
 
 export interface DiscoverFilters {
@@ -566,6 +598,12 @@ export interface NewTaskInput {
   title: string;
   description: string;
   level: TaskLevel;
+}
+
+/** R5 : tâches proposées par l'IA depuis la discussion de la salle, à relire avant de les créer. */
+export interface TaskSuggestions {
+  status: 'done' | 'cached' | 'empty' | 'quota' | 'disabled' | 'failed';
+  tasks: NewTaskInput[];
 }
 
 export interface ProfileInput {

@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
+import { AiModule } from '../ai';
 import { GithubModule } from '../github';
 import { IdentityModule } from '../identity';
 import { NotificationsModule, Notifier } from '../notifications';
@@ -9,8 +10,11 @@ import { AwardXp, ReputationModule } from '../reputation';
 import { Rooms } from './application/rooms';
 import type { DeploymentProbe } from './domain/ports';
 import { Deployments } from './application/deployments';
+import { FeedbackRequests } from './application/feedback';
 import { RoomMessages, Tasks } from './application/tasks';
 import { DeploymentController } from './http/deployment.controller';
+import { FeedbackActions } from './http/feedback.actions';
+import { FeedbackController } from './http/feedback.controller';
 import { RoomsActions } from './http/rooms.actions';
 import { RoomsController } from './http/rooms.controller';
 import { TasksActions } from './http/tasks.actions';
@@ -24,15 +28,17 @@ import { DeploymentCheckJob } from './jobs/deployment-check.job';
 import { VerifyPrJob } from './jobs/verify-pr.job';
 import { DEPLOYMENT_PROBE } from './tokens';
 
-// Module rooms (propriétaire : Joachim, rôle 5) : salles de projet liées à GitHub (R1 à R9).
+// Module rooms (propriétaire : Joachim, rôle 5) : salles de projet liées à GitHub (R1 à R9),
+// tâches proposées par l'IA (R5), demandes de retour et de revue de code (R6).
 @Module({
-  imports: [IdentityModule, GithubModule, ReputationModule, NotificationsModule],
-  controllers: [RoomsController, TasksController, DeploymentController],
+  imports: [IdentityModule, GithubModule, ReputationModule, NotificationsModule, AiModule],
+  controllers: [RoomsController, TasksController, DeploymentController, FeedbackController],
   providers: [
     RoomReader,
     GithubRepoVerifier,
     RoomsActions,
     TasksActions,
+    FeedbackActions,
     GithubPrVerifier,
     VerifyPrJob,
     DeploymentCheckJob,
@@ -60,6 +66,11 @@ import { DEPLOYMENT_PROBE } from './tokens';
       provide: Tasks,
       inject: [AwardXp, Notifier],
       useFactory: (xp: AwardXp, notifier: Notifier) => new Tasks(xp, notifier),
+    },
+    {
+      provide: FeedbackRequests,
+      inject: [AwardXp, Notifier],
+      useFactory: (xp: AwardXp, notifier: Notifier) => new FeedbackRequests(xp, notifier),
     },
     {
       provide: Rooms,

@@ -85,7 +85,7 @@ En-têtes renvoyés : `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset
 
 ## Liste des endpoints
 
-Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm** = administrateur. **Id** = `Idempotency-Key` obligatoire. Trois écritures n'en demandent pas, car les rejouer ne change rien : `POST /auth/logout` (session déjà révoquée), `POST /me/code-of-conduct` (date d'acceptation conservée), `DELETE /me` (un second appel n'a plus de session et reçoit 401), `PUT /rooms/:id/deployment` (PUT idempotent par nature) et `POST /rooms/:id/deployment/verify` (rejouable : les Proof XP sont uniques par salle). Les identifiants d'user stories renvoient au cahier des charges.
+Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm** = administrateur. **Id** = `Idempotency-Key` obligatoire. Trois écritures n'en demandent pas, car les rejouer ne change rien : `POST /auth/logout` (session déjà révoquée), `POST /me/code-of-conduct` (date d'acceptation conservée), `DELETE /me` (un second appel n'a plus de session et reçoit 401), `PUT /rooms/:id/deployment` (PUT idempotent par nature) `POST /rooms/:id/deployment/verify` (rejouable : les Proof XP sont uniques par salle) et `POST /rooms/:id/tasks/suggest` (n'écrit rien : simple proposition de l'IA, mise en cache). Les identifiants d'user stories renvoient au cahier des charges.
 
 ### Authentification et compte (`identity`)
 
@@ -136,34 +136,41 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `POST /answers/:id/accept`                         | Co (auteur de la question), Id | Valider : question résolue, Proof XP attribués                    | S4, X1     |
 | `POST /questions/:id/pair`                         | Co, Id                         | Proposer un créneau de pair programming                           | S5 (P1)    |
 | `POST /pair-sessions/:id/respond`                  | Co, Id                         | Accepter ou refuser                                               | S5 (P1)    |
-| `POST /questions/:id/translate?lang=`              | Co, Id                         | Traduction IA à la demande (mise en cache)                        | S10        |
+| `POST /questions/:id/translate?lang=`              | Co                             | Traduction IA à la demande (mise en cache), code laissé intact    | S10        |
+| `POST /answers/:id/translate?lang=`                | Co                             | Idem pour une réponse (sans titre)                                | S10        |
 | `POST /tags/detect`                                | Co                             | Affinage IA des étiquettes détectées localement                   | S9         |
 
 ### Salles de projet (`rooms`)
 
-| Méthode et chemin                     | Accès                  | Rôle                                                                                                            | US          |
-| ------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------- | ----------- |
-| `GET /rooms?tag=&state=&q=&role=`     | Pub                    | Liste et recherche                                                                                              | D1          |
-| `POST /rooms`                         | Co, Id                 | Créer (dépôt vérifié via l'API GitHub)                                                                          | R1          |
-| `POST /rooms/draft-from-repo`         | Co                     | Proposition de description, stack et tâches depuis le README                                                    | R12 (P1)    |
-| `GET /rooms/:code`                    | Pub                    | Fiche de salle                                                                                                  | R1          |
-| `PATCH /rooms/:id`                    | Co (owner), Id         | Modifier                                                                                                        | R1          |
-| `POST /rooms/:id/join`                | Co, Id                 | Demander à rejoindre                                                                                            | R3          |
-| `POST /join-requests/:id/decide`      | Co (owner), Id         | Accepter ou refuser                                                                                             | R3          |
-| `GET /rooms/:id/tasks`                | Pub                    | Tâches                                                                                                          | R2          |
-| `POST /rooms/:id/tasks`               | Co (membre), Id        | Créer une tâche                                                                                                 | R2          |
-| `POST /rooms/:id/tasks/import-issues` | Co (owner), Id         | Importer les issues GitHub                                                                                      | R2          |
-| `POST /tasks/:id/take`                | Co (membre), Id        | Prendre une tâche                                                                                               | R2          |
-| `POST /tasks/:id/submit`              | Co (assigné), Id       | Passer en revue avec un lien de PR                                                                              | R2          |
-| `POST /tasks/:id/complete`            | Co (owner), Id         | Terminer : vérification GitHub, +15 XP                                                                          | R8, R9      |
-| `GET /rooms/:id/messages?cursor=`     | Co (membre)            | Discussion                                                                                                      | R4 (P1)     |
-| `POST /rooms/:id/messages`            | Co (membre), Id        | Message ou « Point du jour »                                                                                    | R4, R14     |
-| `POST /rooms/:id/ai/tasks`            | Co (owner), Id         | Propositions de tâches depuis la discussion (jamais créées sans validation)                                     | R5 (P1)     |
-| `POST /rooms/:id/feedback-requests`   | Co (membre), Id        | Demander un retour ou une revue                                                                                 | R6 (P1)     |
-| `POST /feedback-requests/:id/confirm` | Co (demandeur), Id     | Confirmer la revue : +8 XP au relecteur                                                                         | R6          |
-| `GET /rooms/:id/deployment`           | Co (owner, maintainer) | Preuve « en production » : état et jeton à publier                                                              | Systalink A |
-| `PUT /rooms/:id/deployment`           | Co (owner, maintainer) | URL publique de l'application ; une autre origine reçoit un nouveau jeton                                       | Systalink A |
-| `POST /rooms/:id/deployment/verify`   | Co (owner, maintainer) | Lit le jeton (`/.well-known/devhub-proof.txt` ou `<meta name="devhub-proof">`) ; sur Systalink, +10 XP une fois | Systalink A |
+| Méthode et chemin                     | Accès                           | Rôle                                                                                                              | US          |
+| ------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------- |
+| `GET /rooms?tag=&state=&q=&role=`     | Pub                             | Liste et recherche                                                                                                | D1          |
+| `POST /rooms`                         | Co, Id                          | Créer (dépôt vérifié via l'API GitHub)                                                                            | R1          |
+| `POST /rooms/draft-from-repo`         | Co                              | Proposition de description, stack et tâches depuis le README                                                      | R12 (P1)    |
+| `GET /rooms/:code`                    | Pub                             | Fiche de salle                                                                                                    | R1          |
+| `PATCH /rooms/:id`                    | Co (owner), Id                  | Modifier                                                                                                          | R1          |
+| `POST /rooms/:id/join`                | Co, Id                          | Demander à rejoindre                                                                                              | R3          |
+| `POST /join-requests/:id/decide`      | Co (owner), Id                  | Accepter ou refuser                                                                                               | R3          |
+| `GET /rooms/:id/tasks`                | Pub                             | Tâches                                                                                                            | R2          |
+| `POST /rooms/:id/tasks`               | Co (membre), Id                 | Créer une tâche                                                                                                   | R2          |
+| `POST /rooms/:id/tasks/import-issues` | Co (owner), Id                  | Importer les issues GitHub                                                                                        | R2          |
+| `POST /rooms/:id/tasks/suggest`       | Co (membre)                     | L'IA propose jusqu'à 5 tâches depuis les 40 derniers messages ; rien n'est créé (`{ lang }` → `{ status, data }`) | R5 (P1)     |
+| `POST /tasks/:id/take`                | Co (membre), Id                 | Prendre une tâche                                                                                                 | R2          |
+| `POST /tasks/:id/submit`              | Co (assigné), Id                | Passer en revue avec un lien de PR                                                                                | R2          |
+| `POST /tasks/:id/complete`            | Co (owner), Id                  | Terminer : vérification GitHub, +15 XP                                                                            | R8, R9      |
+| `GET /rooms/:id/messages?cursor=`     | Co (membre)                     | Discussion                                                                                                        | R4 (P1)     |
+| `POST /rooms/:id/messages`            | Co (membre), Id                 | Message ou « Point du jour »                                                                                      | R4, R14     |
+| `POST /rooms/:id/ai/tasks`            | Co (owner), Id                  | Propositions de tâches depuis la discussion (jamais créées sans validation)                                       | R5 (P1)     |
+| `GET /rooms/:id/feedback-requests`    | Pub                             | Demandes de retour et de revue de la salle (annulées exclues), visibles comme la salle                            | R6 (P1)     |
+| `POST /rooms/:id/feedback-requests`   | Co (membre), Id                 | Demander un retour ou une revue (lien https et note facultatifs) ; notifie les autres membres                     | R6 (P1)     |
+| `GET /feedback-requests?tags=`        | Pub                             | Flux de la stack : demandes ouvertes des salles publiques, filtrables par étiquettes                              | R6          |
+| `GET /feedback-requests/:id`          | Pub                             | Une demande, visible comme sa salle                                                                               | R6          |
+| `POST /feedback-requests/:id/take`    | Co (autre que le demandeur), Id | Prendre la demande ; notifie le demandeur                                                                         | R6          |
+| `POST /feedback-requests/:id/confirm` | Co (demandeur), Id              | Confirmer la revue : +8 XP au relecteur pour une revue de code (0 pour un simple retour, barème §6.3)             | R6          |
+| `POST /feedback-requests/:id/cancel`  | Co (demandeur), Id              | Retirer la demande tant qu'elle n'est pas confirmée                                                               | R6          |
+| `GET /rooms/:id/deployment`           | Co (owner, maintainer)          | Preuve « en production » : état et jeton à publier                                                                | Systalink A |
+| `PUT /rooms/:id/deployment`           | Co (owner, maintainer)          | URL publique de l'application ; une autre origine reçoit un nouveau jeton                                         | Systalink A |
+| `POST /rooms/:id/deployment/verify`   | Co (owner, maintainer)          | Lit le jeton (`/.well-known/devhub-proof.txt` ou `<meta name="devhub-proof">`) ; sur Systalink, +10 XP une fois   | Systalink A |
 
 ### Découverte (`discovery`)
 
@@ -237,6 +244,7 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | `POST /sync`, `PATCH /questions/:id`, `PATCH /answers/:id`                                                                                | Fait | #110 (O2)                                                                                                                |
 | `POST /rooms`, `GET /rooms`, `GET /rooms/:code`, `POST /rooms/:id/join`, `GET /rooms/:id/join-requests`, `POST /join-requests/:id/decide` | Fait | #111 (R1, R3)                                                                                                            |
 | Tâches (`/rooms/:id/tasks`, `import-issues`, `/tasks/:id/take`, `submit`, `complete`), `GET`/`POST /rooms/:id/messages`                   | Fait | #112, #113 (R2, R4, R8, R9)                                                                                              |
+| `POST /rooms/:id/tasks/suggest`                                                                                                           | Fait | `feat/room-ai-tasks` (R5)                                                                                                |
 | `PATCH /me`, `GET /u/:handle`                                                                                                             | Fait | #113 (PR2, PR14)                                                                                                         |
 | `GET /discover/devs`, `GET /leaderboard`                                                                                                  | Fait | #114 (D1, D2)                                                                                                            |
 | `GET /news`, `GET /news/home`, `GET /videos`, `GET /news/sources`                                                                         | Fait | #97 (module `news`, hors du périmètre fixé par ADR-0016)                                                                 |
