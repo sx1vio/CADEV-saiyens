@@ -4,8 +4,10 @@ import {
   CheckCircle2,
   Clock3,
   CloudUpload,
+  Download,
   FolderGit2,
   HandHelping,
+  ImageDown,
   Mail,
   MapPin,
   Share2,
@@ -30,7 +32,13 @@ import { duration, formatDate, formatNumber, relativeTime, useLang } from '@/i18
 import { countryName, formatUtc } from '@/lib/geo';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
-import { api, type Passport as PassportT, type SkillView, type XPEvent } from '@/services';
+import {
+  api,
+  proofCardUrl,
+  type Passport as PassportT,
+  type SkillView,
+  type XPEvent,
+} from '@/services';
 import { useSession } from '@/stores/app';
 import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
@@ -52,6 +60,7 @@ export default function Passport() {
   const { data: status } = useQuery('status:lite', () => api.getStatus());
   const [proofSkill, setProofSkill] = useState<SkillView | null>(null);
   const [contact, setContact] = useState(false);
+  const [card, setCard] = useState(false);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [reporting, setReporting] = useState(false);
@@ -170,6 +179,40 @@ export default function Passport() {
               />
             )}
           </div>
+          {/* PR5 : la Proof Card est générée par l'API ; le serveur local n'en produit pas. */}
+          {isMe && api.mode === 'http' && (
+            <Button variant="ghost" size="sm" icon={<ImageDown />} onClick={() => setCard(true)}>
+              {t('passport.share')}
+            </Button>
+          )}
+          <Sheet
+            open={card}
+            onOpenChange={setCard}
+            title={t('passport.cardTitle')}
+            description={t('passport.cardText')}
+            footer={
+              <>
+                <Button
+                  variant="secondary"
+                  icon={<Download />}
+                  onClick={() => window.location.assign(proofCardUrl(u.handle, lang, true))}
+                >
+                  {t('passport.cardDownload')}
+                </Button>
+                <Button variant="primary" icon={<Share2 />} onClick={share}>
+                  {t('common.share')}
+                </Button>
+              </>
+            }
+          >
+            <img
+              src={proofCardUrl(u.handle, lang)}
+              alt={t('passport.cardAlt', { name: u.displayName })}
+              width={1200}
+              height={630}
+              className="aspect-[1200/630] h-auto w-full rounded-[10px] bg-surface-3"
+            />
+          </Sheet>
           <ReportSheet
             target={reporting ? { type: 'user', id: p.accountId, label: u.displayName } : null}
             onClose={() => setReporting(false)}

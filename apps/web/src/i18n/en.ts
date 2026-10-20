@@ -800,6 +800,11 @@ const en: Dict = {
   passport: {
     share: 'Share my card',
     shareCopied: 'Passport link copied.',
+    cardTitle: 'Your Proof Card',
+    cardText:
+      'The image shown with your Passport link on WhatsApp, LinkedIn or X. It updates with your proofs and follows your privacy settings.',
+    cardDownload: 'Download',
+    cardAlt: '{{name}}’s Proof Card',
     contact: 'Contact',
     contactHint: 'The message is relayed by email without exposing the address.',
     contactMessage: 'Your message',
