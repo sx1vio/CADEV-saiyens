@@ -102,6 +102,13 @@ export function describe(
               : `Your feedback on ${str(p.roomName)} was confirmed`,
         url: rooms,
       };
+    case 'feedback.cancelled':
+      return {
+        line: fr
+          ? `${str(p.by)} a retiré sa demande de relecture sur ${str(p.roomName)}`
+          : `${str(p.by)} withdrew their review request on ${str(p.roomName)}`,
+        url: rooms,
+      };
     default:
       return { line: fr ? 'Nouvelle notification' : 'New notification', url: appUrl };
   }

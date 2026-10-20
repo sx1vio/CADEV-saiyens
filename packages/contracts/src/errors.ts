@@ -36,6 +36,10 @@ export const ERROR_CODES = [
   'task.already_taken',
   'task.invalid_status',
   'task.pr_invalid',
+  'feedback.already_open',
+  'feedback.already_taken',
+  'feedback.self_review',
+  'feedback.invalid_status',
   // Compte
   'account.confirmation_mismatch',
   // Modération

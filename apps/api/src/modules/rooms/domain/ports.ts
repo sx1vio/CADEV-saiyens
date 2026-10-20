@@ -272,7 +272,7 @@ export interface FeedbackNotifier {
   notify(
     notifications: Array<{
       userId: string;
-      type: 'feedback.requested' | 'feedback.taken' | 'feedback.confirmed';
+      type: 'feedback.requested' | 'feedback.taken' | 'feedback.confirmed' | 'feedback.cancelled';
       payload: Record<string, unknown>;
     }>,
     tx?: unknown,

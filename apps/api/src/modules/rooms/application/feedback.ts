@@ -49,11 +49,13 @@ export class FeedbackRequests {
       throw new FeedbackAlreadyOpenError();
     }
     const note = input.note ? maskSecrets(input.note).text : null;
+    // Un jeton collé dans un lien (?token=…) est masqué comme dans la note (§10).
+    const url = input.url ? maskSecrets(input.url).text : null;
     const created = await writer.create({
       roomId: room.id,
       requesterId: input.actorId,
       kind: input.kind,
-      url: input.url,
+      url,
       note,
     });
     await writer.touch(room.id, this.now());
@@ -172,11 +174,33 @@ export class FeedbackRequests {
     return { roomId: room.id, points, withheld };
   }
 
-  async cancel(writer: FeedbackWriter, input: { id: string; actorId: string }) {
+  /** Le demandeur retire sa demande ; un relecteur déjà engagé est prévenu. */
+  async cancel(writer: FeedbackWriter, tx: unknown, input: { id: string; actorId: string }) {
     const fr = await writer.lock(input.id);
     if (!fr) throw new FeedbackNotFoundError();
+    const room = await writer.findRoom(fr.roomId);
+    if (!room || room.hidden) throw new FeedbackNotFoundError();
     assertCanCancel(fr, input.actorId);
     await writer.cancel(fr.id);
-    return { roomId: fr.roomId };
+    if (fr.reviewerId) {
+      await this.notifier.notify(
+        [
+          {
+            userId: fr.reviewerId,
+            type: 'feedback.cancelled',
+            payload: {
+              feedbackRequestId: fr.id,
+              roomId: room.id,
+              roomName: room.name,
+              code: room.inviteCode,
+              kind: fr.kind,
+              by: await writer.displayName(input.actorId),
+            },
+          },
+        ],
+        tx,
+      );
+    }
+    return { roomId: room.id };
   }
 }

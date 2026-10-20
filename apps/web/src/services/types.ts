@@ -340,6 +340,7 @@ export type NotificationType =
   | 'feedback-requested'
   | 'feedback-taken'
   | 'feedback-confirmed'
+  | 'feedback-cancelled'
   | 'claim'
   | 'pair';
 

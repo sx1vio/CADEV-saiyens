@@ -435,6 +435,7 @@ const NOTIF: Record<NotificationView['type'], NotificationType> = {
   'feedback.requested': 'feedback-requested',
   'feedback.taken': 'feedback-taken',
   'feedback.confirmed': 'feedback-confirmed',
+  'feedback.cancelled': 'feedback-cancelled',
 };
 
 /** Les libellés du front attendent `author`, `title`, `room`, `task`, `user`, `points`. */

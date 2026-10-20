@@ -148,6 +148,7 @@ const fr = {
     'feedback-taken': '{{author}} relit {{room}}',
     'feedback-confirmed': 'Ta relecture de {{room}} est confirmée (+{{points}} Proof XP)',
     'feedback-confirmed_zero': 'Ton retour sur {{room}} est confirmé',
+    'feedback-cancelled': '{{author}} a retiré sa demande de relecture sur {{room}}',
     claim: '{{helper}} examine ta question',
     pair: '{{host}} te propose une session de pair programming',
   },

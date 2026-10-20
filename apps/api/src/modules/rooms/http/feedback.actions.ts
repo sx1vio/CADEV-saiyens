@@ -156,7 +156,7 @@ export class FeedbackActions {
     body: () => ({}),
     execute: async (tx, userId, p): Promise<WriteResult<{ id: string }>> => {
       try {
-        const { roomId } = await this.feedback.cancel(new PrismaFeedbackWriter(tx), {
+        const { roomId } = await this.feedback.cancel(new PrismaFeedbackWriter(tx), tx, {
           id: p.id,
           actorId: userId,
         });

@@ -149,6 +149,7 @@ const en: Dict = {
     'feedback-taken': '{{author}} is reviewing {{room}}',
     'feedback-confirmed': 'Your review of {{room}} is confirmed (+{{points}} Proof XP)',
     'feedback-confirmed_zero': 'Your feedback on {{room}} is confirmed',
+    'feedback-cancelled': '{{author}} withdrew their review request on {{room}}',
     claim: '{{helper}} is looking at your question',
     pair: '{{host}} suggests a pair programming session',
   },

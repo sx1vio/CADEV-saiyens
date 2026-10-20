@@ -157,7 +157,7 @@ describe('demander un retour ou une revue de code (R6)', () => {
     expect(confirmed[0]!.payload).toMatchObject({ points: 8 });
   });
 
-  it('un retour simple ne rapporte pas de Proof XP ; le demandeur peut annuler', async () => {
+  it('un retour simple ne rapporte pas de Proof XP ; le demandeur peut annuler, le relecteur est prévenu', async () => {
     const fb = await post('moussa', `/api/v1/rooms/${roomId}/feedback-requests`, {
       kind: 'feedback',
     }).expect(201);
@@ -167,7 +167,11 @@ describe('demander un retour ou une revue de code (R6)', () => {
 
     const other = await post('moussa', `/api/v1/rooms/${roomId}/feedback-requests`, {
       kind: 'feedback',
+      url: `https://kora.example.sn/demo?token=${token}`,
     }).expect(201);
+    // Un jeton collé dans le lien est masqué comme dans la note (§10).
+    expect(other.body.url).not.toContain(token);
+    await post('kwame', `/api/v1/feedback-requests/${other.body.id}/take`).expect(200);
     expect(
       (await post('awa', `/api/v1/feedback-requests/${other.body.id}/cancel`).expect(403)).body
         .code,
@@ -175,6 +179,9 @@ describe('demander un retour ou une revue de code (R6)', () => {
     const cancelled = await post('moussa', `/api/v1/feedback-requests/${other.body.id}/cancel`);
     expect(cancelled.status).toBe(200);
     expect(cancelled.body.status).toBe('cancelled');
+    // Le relecteur déjà engagé est prévenu.
+    const told = await notifications('kwame', 'feedback.cancelled');
+    expect(told[0]!.payload).toMatchObject({ feedbackRequestId: other.body.id });
     const room = await get(`/api/v1/rooms/${roomId}/feedback-requests`).expect(200);
     expect(room.body.data.map((f: { id: string }) => f.id)).not.toContain(other.body.id);
   });

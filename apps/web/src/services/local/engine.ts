@@ -927,6 +927,15 @@ export class Engine {
     if (f.status !== 'open' && f.status !== 'in-progress')
       throw new DomainError('feedback.invalid_status');
     f.status = 'cancelled';
+    if (f.reviewerId) {
+      const r = this.room(f.roomId);
+      this.notify(
+        f.reviewerId,
+        'feedback-cancelled',
+        { room: r.name, code: r.inviteCode, author: this.summaryById(actorId).displayName },
+        Date.now(),
+      );
+    }
     return this.feedbackItem(f);
   }
 
