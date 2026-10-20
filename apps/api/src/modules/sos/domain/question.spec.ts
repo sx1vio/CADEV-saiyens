@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { maskDraft, retryAfterSeconds } from './question';
+import { maskDraft, maskReproUrl, retryAfterSeconds } from './question';
 
 // Faux secrets construits à l'exécution (BUG-012) : jamais de littéral au format réel dans le dépôt.
 const fakeGithub = ['ghp', 'a1'.repeat(18)].join('_');
@@ -35,5 +35,28 @@ describe('retryAfterSeconds (anti-spam, 10 questions par heure)', () => {
   it('à la limite : attendre que la plus ancienne des 10 sorte de la fenêtre', () => {
     const recent = [50, 45, 40, 30, 25, 20, 15, 10, 5, 1].map(minutesAgo);
     expect(retryAfterSeconds(recent, 10, now)).toBe(10 * 60);
+  });
+});
+
+describe('maskReproUrl (S14)', () => {
+  it('garde un lien sans secret tel quel', () => {
+    const url = 'https://stackblitz.com/edit/demo?file=src/main.ts';
+    expect(maskReproUrl(url)).toEqual({ url, count: 0 });
+  });
+
+  it('retire la requête et l’ancre quand elles portent un secret', () => {
+    expect(maskReproUrl(`https://gist.github.com/awa/1?token=${fakeGithub}#x`)).toEqual({
+      url: 'https://gist.github.com/awa/1',
+      count: 1,
+    });
+  });
+
+  it('retire le lien si le chemin lui-même contient un secret', () => {
+    expect(maskReproUrl(`https://github.com/awa/${fakeGithub}`).url).toBeNull();
+  });
+
+  it('absent ou vide : null', () => {
+    expect(maskReproUrl(null)).toEqual({ url: null, count: 0 });
+    expect(maskReproUrl(undefined)).toEqual({ url: null, count: 0 });
   });
 });

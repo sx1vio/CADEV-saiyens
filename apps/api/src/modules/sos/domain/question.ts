@@ -18,6 +18,24 @@ export interface QuestionDraft {
   title: string;
   body: string;
   codeSnippet: string | null;
+  /** S14 : lien de reproduction, déjà validé par le contrat (HTTPS, liste blanche). */
+  reproUrl?: string | null;
+}
+
+/**
+ * S14 : un lien de reproduction qui porte un secret (jeton en paramètre, par exemple) perd sa
+ * requête et son ancre ; si le chemin lui-même en contient un, le lien est retiré.
+ */
+export function maskReproUrl(url: string | null | undefined): {
+  url: string | null;
+  count: number;
+} {
+  if (!url) return { url: null, count: 0 };
+  const found = maskSecrets(url).count;
+  if (found === 0) return { url, count: 0 };
+  const { origin, pathname } = new URL(url);
+  const stripped = `${origin}${pathname}`;
+  return { url: maskSecrets(stripped).count === 0 ? stripped : null, count: found };
 }
 
 /**
@@ -28,9 +46,15 @@ export function maskDraft(draft: QuestionDraft): { draft: QuestionDraft; secrets
   const title = maskSecrets(draft.title);
   const body = maskSecrets(draft.body);
   const code = draft.codeSnippet?.trim() ? maskSecrets(draft.codeSnippet) : null;
+  const repro = maskReproUrl(draft.reproUrl);
   return {
-    draft: { title: title.text, body: body.text, codeSnippet: code?.text ?? null },
-    secretsMasked: title.count + body.count + (code?.count ?? 0),
+    draft: {
+      title: title.text,
+      body: body.text,
+      codeSnippet: code?.text ?? null,
+      reproUrl: repro.url,
+    },
+    secretsMasked: title.count + body.count + (code?.count ?? 0) + repro.count,
   };
 }
 

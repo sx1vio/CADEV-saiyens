@@ -124,6 +124,7 @@ export class QuestionReader {
       title: q.title,
       body: q.body,
       codeSnippet: q.codeSnippet,
+      reproUrl: q.reproUrl,
       status: q.status,
       urgency: q.urgency,
       lang: q.lang,
