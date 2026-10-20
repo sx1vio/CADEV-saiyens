@@ -163,7 +163,6 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `POST /tasks/:id/complete`            | Co (owner), Id                  | Terminer : vérification GitHub, +15 XP                                                                                                          | R8, R9      |
 | `GET /rooms/:id/messages?cursor=`     | Co (membre)                     | Discussion                                                                                                                                      | R4 (P1)     |
 | `POST /rooms/:id/messages`            | Co (membre), Id                 | Message ou « Point du jour »                                                                                                                    | R4, R14     |
-| `POST /rooms/:id/ai/tasks`            | Co (owner), Id                  | Propositions de tâches depuis la discussion (jamais créées sans validation)                                                                     | R5 (P1)     |
 | `GET /rooms/:id/feedback-requests`    | Pub                             | Demandes de retour et de revue de la salle (annulées exclues), visibles comme la salle                                                          | R6 (P1)     |
 | `POST /rooms/:id/feedback-requests`   | Co (membre), Id                 | Demander un retour ou une revue (lien https et note facultatifs) ; notifie les autres membres                                                   | R6 (P1)     |
 | `GET /feedback-requests?tags=`        | Pub                             | Flux de la stack : demandes ouvertes des salles publiques, filtrables par étiquettes                                                            | R6          |
@@ -267,6 +266,29 @@ La modération masque (`hidden_at`), ne supprime jamais ; elle clôt d'un coup t
 L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructure/idempotency`) : chaque écriture appelle `idempotency.run(...)` avec la transaction de la requête, et lit la clé avec le décorateur `@IdempotencyKey()`. Les effets hors transaction (jobs) passent par `afterCommit` et ne sont jamais rejoués.
 
 Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/src/infrastructure/actions`) : l'endpoint HTTP et `POST /sync` l'appellent avec la même route canonique et le même corps (`runAction`), donc avec la même empreinte. Une action envoyée seule, puis rejouée dans un lot (ou l'inverse), est reconnue comme doublon. Un conflit de version renvoie `409 version_conflict` avec le champ `server` (version actuelle) ; une limite de débit renvoie `retryAfter` et l'en-tête `Retry-After`.
+
+### Écarts avec le code (vérifiés le 20 octobre, mis à jour après les fusions du jour)
+
+Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre aux contrôleurs de `main` (`apps/api/src/modules/*/http`, `apps/api/src/infrastructure/http`), ces routes n'existent pas encore ([BUG-043](../suivi/anomalies.md#bug-043)). Un appel renvoie `404`.
+
+| Route décrite                                                 | Exigence | État au 20 octobre                                                              |
+| ------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
+| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`)        | A2       | À faire                                                                         |
+| `GET /u/:handle/activity`                                     | PR8      | P2, non codé                                                                    |
+| `POST /u/:handle/endorsements`                                | PR9      | Écarté (ADR-0017)                                                               |
+| `GET /og/u/:handle.png`, `GET /og/p/:code.png`                | PR5      | À faire                                                                         |
+| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg`       | PR6      | À faire                                                                         |
+| `GET /questions/similar`                                      | S7       | Non créée : le front appelle `GET /questions?q=&limit=` (#160)                  |
+| `POST /questions/:id/pair`, `POST /pair-sessions/:id/respond` | S5       | À faire                                                                         |
+| `POST /tags/detect`                                           | S9       | Non créée : la détection se fait seulement dans le navigateur (`lib/detect.ts`) |
+| `POST /rooms/draft-from-repo`                                 | R12      | P2, non codé                                                                    |
+| `PATCH /rooms/:id`                                            | R1       | Non créée : une salle ne se modifie pas après sa création                       |
+| `GET /discover/rooms`                                         | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`        |
+| `GET /discover/suggestions`                                   | D6       | P2, non codé                                                                    |
+| `GET /leaderboard/map`                                        | D4       | À faire                                                                         |
+| `GET /live-feed`, `POST /demo/session`                        | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)           |
+
+Dans l'autre sens, une seule route du code manque aux listes par module : `GET /rooms/:id/join-requests` (demandes en attente, réservée au propriétaire, #111), citée seulement dans le tableau d'état ci-dessus.
 
 ## Exemple complet : poser une question
 
