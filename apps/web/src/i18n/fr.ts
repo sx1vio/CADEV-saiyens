@@ -521,6 +521,7 @@ const fr = {
     resolvedBanner: 'Résolue en {{time}} grâce à {{name}}',
     knowledgeCard:
       'Cette question est maintenant une fiche de connaissance, consultable hors ligne.',
+    seeSolution: 'Voir la solution',
     pairTitle: 'Pair programming',
     pairPropose: 'Proposer une session',
     pairWhen: 'Quand ?',

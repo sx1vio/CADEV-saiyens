@@ -520,6 +520,7 @@ const en: Dict = {
     acceptedToast: 'Question solved! {{name}} earns +{{points}} Proof XP.',
     resolvedBanner: 'Solved in {{time}} thanks to {{name}}',
     knowledgeCard: 'This question is now a knowledge card, available offline.',
+    seeSolution: 'See the solution',
     pairTitle: 'Pair programming',
     pairPropose: 'Suggest a session',
     pairWhen: 'When?',
