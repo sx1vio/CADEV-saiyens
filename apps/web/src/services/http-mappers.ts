@@ -34,6 +34,7 @@ import type {
   SyncResult,
   SuggestedTask,
   TaskView,
+  XpRulesResponse,
 } from '@devhub/contracts';
 import type {
   AIStatus,
@@ -51,6 +52,8 @@ import type {
   MatchView,
   NewQuestionInput,
   NewTaskInput,
+  XpRuleRow,
+  XpRules,
   OfflineAction,
   NotificationType,
   PairSession,
@@ -78,6 +81,7 @@ import type {
   XPKind,
 } from './types';
 import { isReproUrl } from '@/lib/repro';
+import { STATIC_XP_RULES } from '@/lib/rules';
 
 type ApiTag = { slug: string; label: string };
 type ApiRoomState = RoomSummary['state'];
@@ -873,3 +877,36 @@ export const syncOutcome = (r: SyncResult): SyncOutcome =>
             server: serverText((r.data as { server?: unknown } | undefined)?.server),
           }
         : { opId: r.opId, outcome: 'error', code: r.error?.code ?? r.status };
+
+/** X5 : genres de Proof XP de l'API → lignes du barème affiché. */
+const XP_RULE_ROW: Record<string, XpRuleRow> = {
+  answer_accepted: 'accepted',
+  answer_fast_bonus: 'fast',
+  answer_helpful_vote: 'helpful',
+  task_completed: 'contribution',
+  code_review_given: 'review',
+  project_demo_shared: 'demo',
+  question_resolved: 'resolved',
+  deployment_verified: 'deployment',
+};
+
+/** X5 : barème lu depuis l'API ; une ligne absente garde la valeur de repli. */
+export function xpRules(r: XpRulesResponse, fallback: XpRules = STATIC_XP_RULES): XpRules {
+  const points = { ...fallback.points };
+  for (const [kind, value] of Object.entries(r.points)) {
+    const row = XP_RULE_ROW[kind];
+    if (row) points[row] = value;
+  }
+  return {
+    points,
+    dailyCap: r.limits.dailyCap,
+    fastBonusMinutes: r.limits.fastBonusMinutes,
+    helpfulVotesPerAnswer: r.limits.helpfulVotesPerAnswer,
+    validationsPerPairPerWeek: r.limits.validationsPerPairPerWeek,
+    minVoterAccountAgeHours: r.limits.minVoterAccountAgeHours,
+    githubPerRepo: r.scoring.githubPerRepo,
+    githubCap: r.scoring.githubCap,
+    platformCap: r.scoring.platformCap,
+    activeMonths: r.scoring.activeMonths,
+  };
+}

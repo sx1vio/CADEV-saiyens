@@ -691,3 +691,21 @@ export class DomainError extends Error {
     this.server = server;
   }
 }
+
+/** X5 : lignes du barème des Proof XP affichées sur /regles. */
+export type XpRuleRow =
+  'accepted' | 'fast' | 'helpful' | 'contribution' | 'review' | 'demo' | 'resolved' | 'deployment';
+
+/** X5 : barème des Proof XP et garde-fous, lus depuis GET /rules/xp (repli statique hors ligne). */
+export interface XpRules {
+  points: Record<XpRuleRow, number>;
+  dailyCap: number;
+  fastBonusMinutes: number;
+  helpfulVotesPerAnswer: number;
+  validationsPerPairPerWeek: number;
+  minVoterAccountAgeHours: number;
+  githubPerRepo: number;
+  githubCap: number;
+  platformCap: number;
+  activeMonths: number;
+}

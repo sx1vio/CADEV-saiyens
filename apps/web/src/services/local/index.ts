@@ -5,7 +5,7 @@
  */
 import { openDB, type IDBPDatabase } from 'idb';
 import { COUNTRIES, browserTimezone, browserUtcOffset } from '@/lib/geo';
-import { isQualifiedRepo } from '@/lib/rules';
+import { STATIC_XP_RULES, isQualifiedRepo } from '@/lib/rules';
 import { storageGet, storageSet, uuid } from '@/lib/utils';
 import type { DevHubApi, GitHubImport, QuestionTab } from '../api';
 import { DomainError, type ID, type MatchReason, type QuestionListItem, type User } from '../types';
@@ -894,6 +894,9 @@ export const localApi: DevHubApi = {
     };
   },
 
+  async getXpRules() {
+    return STATIC_XP_RULES;
+  },
   async getImpact() {
     return read((e) => {
       const live = e.s.users.filter((u) => !u.deletedAt && !u.isAdmin);

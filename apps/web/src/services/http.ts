@@ -50,6 +50,7 @@ import type {
   DeploymentChallenge,
   SystalinkEcosystemResponse,
   VerifyDeploymentResponse,
+  XpRulesResponse,
 } from '@devhub/contracts';
 import type { DevHubApi, QuestionTab } from './api';
 import { claimApiReadCache, clearApiReadCache, releaseApiReadCache } from '@/offline/api-cache';
@@ -564,5 +565,6 @@ export const httpApi: DevHubApi = {
   getStatusHistory: async (days) =>
     m.statusHistory(await get<StatusHistoryResponse>('/status/history', { days })),
   getImpact: async () => m.impact(await get<ImpactResponse>('/impact')),
+  getXpRules: async () => m.xpRules(await get<XpRulesResponse>('/rules/xp')),
   getEcosystem: () => get<SystalinkEcosystemResponse>('/systalink/ecosystem'),
 };
