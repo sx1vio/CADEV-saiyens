@@ -164,35 +164,35 @@ enum ContentType {
 // ─────────────────────────────── Identité ───────────────────────────────
 
 model User {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  githubId         BigInt?   @unique @map("github_id")
-  handle           String    @unique @db.Citext
-  displayName      String    @map("display_name")
-  email            String?   @unique @db.Citext
-  emailVerified    Boolean   @default(false) @map("email_verified")
-  avatarUrl        String?   @map("avatar_url")
-  bio              String?   @db.VarChar(500)
-  country          String?   @db.Char(2) // ISO 3166-1 alpha-2
-  timezone         String? // identifiant IANA, ex. Africa/Abidjan
-  languages        Lang[]    @default([fr])
-  availability     Json      @default("{}") // { now: bool, slots: [...] } voir doc
-  lookingFor       String?   @map("looking_for")
-  canHelpTagIds    String[]  @default([]) @map("can_help_tag_ids") @db.Uuid // PR10, 5 max
-  wantLearnTagIds  String[]  @default([]) @map("want_learn_tag_ids") @db.Uuid // PR10, 5 max
-  privacy          Json      @default("{}") // PR14 : { unlisted, hideCountry, hideTimezone, hideAvailability, hideStats } (lu par resolvePrivacy, qui accepte aussi { country: false, … })
-  doNotDisturb     Boolean   @default(false) @map("do_not_disturb")
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  githubId           BigInt?   @unique @map("github_id")
+  handle             String    @unique @db.Citext
+  displayName        String    @map("display_name")
+  email              String?   @unique @db.Citext
+  emailVerified      Boolean   @default(false) @map("email_verified")
+  avatarUrl          String?   @map("avatar_url")
+  bio                String?   @db.VarChar(500)
+  country            String?   @db.Char(2) // ISO 3166-1 alpha-2
+  timezone           String? // identifiant IANA, ex. Africa/Abidjan
+  languages          Lang[]    @default([fr])
+  availability       Json      @default("{}") // { now: bool, slots: [...] } voir doc
+  lookingFor         String?   @map("looking_for")
+  canHelpTagIds      String[]  @default([]) @map("can_help_tag_ids") @db.Uuid // PR10, 5 max
+  wantLearnTagIds    String[]  @default([]) @map("want_learn_tag_ids") @db.Uuid // PR10, 5 max
+  privacy            Json      @default("{}") // PR14 : { unlisted, hideCountry, hideTimezone, hideAvailability, hideStats } (lu par resolvePrivacy, qui accepte aussi { country: false, … })
+  doNotDisturb       Boolean   @default(false) @map("do_not_disturb")
   /// Y3 : e-mail récapitulatif des notifications non lues (désabonnement en un clic).
-  emailNotifications Boolean @default(true) @map("email_notifications")
-  onboardingIntent String?   @map("onboarding_intent") // T3
-  uiLang           Lang      @default(fr) @map("ui_lang")
-  communityId      String?   @map("community_id") @db.Uuid // D5
-  githubCreatedAt  DateTime? @map("github_created_at") @db.Timestamptz // signal de confiance PR11
-  cocAcceptedAt    DateTime? @map("coc_accepted_at") @db.Timestamptz // M3
-  isAdmin          Boolean   @default(false) @map("is_admin")
-  isDemo           Boolean   @default(false) @map("is_demo")
-  lastSeenAt       DateTime? @map("last_seen_at") @db.Timestamptz
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz // A3 : anonymisation
+  emailNotifications Boolean   @default(true) @map("email_notifications")
+  onboardingIntent   String?   @map("onboarding_intent") // T3
+  uiLang             Lang      @default(fr) @map("ui_lang")
+  communityId        String?   @map("community_id") @db.Uuid // D5
+  githubCreatedAt    DateTime? @map("github_created_at") @db.Timestamptz // signal de confiance PR11
+  cocAcceptedAt      DateTime? @map("coc_accepted_at") @db.Timestamptz // M3
+  isAdmin            Boolean   @default(false) @map("is_admin")
+  isDemo             Boolean   @default(false) @map("is_demo")
+  lastSeenAt         DateTime? @map("last_seen_at") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz // A3 : anonymisation
 
   community         Community?         @relation(fields: [communityId], references: [id])
   oauthAccounts     OAuthAccount[]
@@ -441,14 +441,15 @@ model MatchEvent {
 }
 
 model PairSession {
-  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  questionId String            @map("question_id") @db.Uuid
-  hostId     String            @map("host_id") @db.Uuid
-  guestId    String            @map("guest_id") @db.Uuid
-  startsAt   DateTime          @map("starts_at") @db.Timestamptz
-  videoLink  String            @map("video_link")
-  status     PairSessionStatus @default(proposed)
-  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId  String            @map("question_id") @db.Uuid
+  hostId      String            @map("host_id") @db.Uuid
+  guestId     String            @map("guest_id") @db.Uuid
+  startsAt    DateTime          @map("starts_at") @db.Timestamptz
+  videoLink   String            @map("video_link")
+  status      PairSessionStatus @default(proposed)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  respondedAt DateTime?         @map("responded_at") @db.Timestamptz // S5 : délai après un refus
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   host     User     @relation("pair_host", fields: [hostId], references: [id])

@@ -1144,6 +1144,8 @@ const en: Dict = {
     pair_invalid_slot: 'Pick an upcoming slot within the next 30 days.',
     pair_own_question: 'This is your own question.',
     pair_already_proposed: 'You already have a pending proposal on this question.',
+    pair_recently_declined:
+      'Your last proposal was declined: wait 24 hours before proposing again on this question.',
     pair_already_answered: 'This proposal has already been answered.',
     'room_name-too-short': 'Name too short.',
     'room_bad-repo': 'Expected repository format: owner/repo',

@@ -149,4 +149,33 @@ describe('créneau de pair programming (S5)', () => {
       404,
     );
   });
+
+  it('après un refus : 409 pendant 24 h, puis la proposition repasse ; question masquée : 404', async () => {
+    const prisma = app.get(PrismaService);
+    const propose = () =>
+      write('kwame', `/api/v1/questions/${questionId}/pair`, {
+        startsAt: inHours(6),
+        videoLink: link,
+      });
+    const first = await propose().expect(201);
+    await write('awa', `/api/v1/pair-sessions/${first.body.id}/respond`, {
+      accept: false,
+    }).expect(200);
+
+    const again = await propose().expect(409);
+    expect(again.body.code).toBe('pair.recently_declined');
+
+    // Le refus date de plus de 24 h : Kwame peut reproposer.
+    await prisma.pairSession.update({
+      where: { id: first.body.id },
+      data: { respondedAt: new Date(Date.now() - 25 * 3600_000) },
+    });
+    const later = await propose().expect(201);
+
+    // La modération masque la question : la proposition en attente ne reçoit plus de réponse.
+    await prisma.question.update({ where: { id: questionId }, data: { hiddenAt: new Date() } });
+    await write('awa', `/api/v1/pair-sessions/${later.body.id}/respond`, {
+      accept: true,
+    }).expect(404);
+  });
 });

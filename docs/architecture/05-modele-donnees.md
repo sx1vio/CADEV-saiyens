@@ -93,7 +93,7 @@ Les créneaux sont exprimés dans le fuseau `users.timezone` ; le calcul du term
 | `answers`       | Réponses                              | `helpful_count` dénormalisé (mis à jour avec le vote, dans la même transaction)                                                                                                   |
 | `votes`         | « Réponse utile »                     | Clé primaire `(answer_id, voter_id)` : un vote par personne. Voter pour sa propre réponse est refusé par le cas d'usage                                                           |
 | `match_events`  | Journal du matching                   | `wave` (1 ou 2 après escalade), `score`, `regime` (`cold_start` ou `normal`, X4), `reasons` (JSON structuré, traduit par le front), `claimed_at` (S11)                            |
-| `pair_sessions` | Créneaux de pair programming (S5, P1) | Lien de visio fourni par l'utilisateur, validé (HTTPS, liste de domaines)                                                                                                         |
+| `pair_sessions` | Créneaux de pair programming (S5, P1) | Lien de visio fourni par l'utilisateur, validé (HTTPS, liste de domaines) ; `responded_at` (date de la réponse, délai de 24 h après un refus)                                     |
 | `translations`  | Traductions IA en cache (S10)         | `source_hash` invalide la traduction si l'original change ; **le code n'est jamais traduit**                                                                                      |
 
 Format de `match_events.reasons` (jamais de pourcentage sans méthode, §6.2) :

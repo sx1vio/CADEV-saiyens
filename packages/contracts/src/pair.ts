@@ -31,6 +31,8 @@ export const PAIR_LIMITS = {
   maxDaysAhead: 30,
   /** Tolérance d'horloge : un créneau « maintenant » saisi il y a peu reste accepté. */
   pastToleranceMinutes: 5,
+  /** Après un refus, le même aidant attend 24 h avant de reproposer sur la même question. */
+  declineCooldownHours: 24,
   videoLinkMax: 300,
 } as const;
 
