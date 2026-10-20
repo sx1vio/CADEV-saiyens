@@ -2,6 +2,7 @@
 export * from './answers';
 export * from './discovery';
 export * from './errors';
+export * from './feedback';
 export * from './me';
 export * from './moderation';
 export * from './notifications';

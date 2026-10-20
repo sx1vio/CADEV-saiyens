@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { DeploymentCard } from '@/components/DeploymentCard';
+import { FeedbackRow, FeedbackSheet } from '@/components/FeedbackRequests';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { DemoBadge, errorText, RoomIcon, UserLink } from '@/components/domain';
 import { GitHubIcon } from '@/components/icons';
@@ -46,6 +47,7 @@ import { cn, uuid } from '@/lib/utils';
 import { enqueue, requireNetwork, useNetwork } from '@/offline/network';
 import {
   api,
+  type FeedbackRequest,
   type NewTaskInput,
   type RoomDetail,
   type TaskLevel,
@@ -87,6 +89,7 @@ export default function Room() {
     `room:${code}`,
   );
   const [joinOpen, setJoinOpen] = useState(false);
+  const [feedbackKind, setFeedbackKind] = useState<FeedbackRequest['kind'] | null>(null);
 
   if (error)
     return (
@@ -133,6 +136,20 @@ export default function Room() {
         </div>
       </Card>
       <DeploymentCard room={room} manager={isOwner} />
+      {(isMember || room.feedbackRequests.length > 0) && (
+        <Card className="p-4">
+          <CardHeader icon={<ShieldQuestion />} title={t('feedback.roomTitle')} />
+          {room.feedbackRequests.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">{t('feedback.roomEmpty')}</p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {room.feedbackRequests.map((f) => (
+                <FeedbackRow key={f.id} item={f} />
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
       {room.wantedRoles.length > 0 && (
         <Card className="p-4">
           <CardHeader title={t('room.wantedRoles')} />
@@ -280,7 +297,7 @@ export default function Room() {
           <Button variant="secondary" icon={<Link2 />} onClick={copyInvite}>
             {t('room.invite')}
           </Button>
-          {isOwner && (
+          {isMember && (
             <DropMenu
               trigger={
                 <Button variant="secondary" icon={<ShieldQuestion />}>
@@ -289,18 +306,7 @@ export default function Room() {
               }
             >
               {(['feedback', 'code-review'] as const).map((k) => (
-                <MenuItem
-                  key={k}
-                  onSelect={async () => {
-                    try {
-                      requireNetwork();
-                      await api.requestFeedback(room.id, k);
-                      toast.success(t('room.feedbackSent'));
-                    } catch (e) {
-                      toast.error(errorText(t, e));
-                    }
-                  }}
-                >
+                <MenuItem key={k} onSelect={() => setFeedbackKind(k)}>
                   {k === 'feedback' ? t('room.feedback') : t('room.review')}
                 </MenuItem>
               ))}
@@ -339,6 +345,13 @@ export default function Room() {
       </div>
 
       <JoinSheet open={joinOpen} onOpenChange={setJoinOpen} roomId={room.id} roomName={room.name} />
+      <FeedbackSheet
+        key={feedbackKind ?? 'closed'}
+        open={feedbackKind !== null}
+        onOpenChange={(o) => !o && setFeedbackKind(null)}
+        roomId={room.id}
+        initialKind={feedbackKind ?? 'code-review'}
+      />
     </WithPanel>
   );
 }

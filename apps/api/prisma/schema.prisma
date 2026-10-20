@@ -610,6 +610,7 @@ model FeedbackRequest {
   reviewerId  String?        @map("reviewer_id") @db.Uuid
   kind        FeedbackKind
   status      FeedbackStatus @default(open)
+  url         String? // lien à relire : PR, commit ou démo (https)
   note        String?
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
   confirmedAt DateTime?      @map("confirmed_at") @db.Timestamptz // déclenche les +8 XP
@@ -619,6 +620,7 @@ model FeedbackRequest {
   reviewer  User? @relation("feedback_reviewer", fields: [reviewerId], references: [id])
 
   @@index([status, createdAt(sort: Desc)])
+  @@index([roomId, createdAt(sort: Desc)])
   @@map("feedback_requests")
 }
 

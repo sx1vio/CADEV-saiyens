@@ -39,7 +39,9 @@ import type {
   Answer,
   DeploymentChallenge,
   RoomDeployment,
+  FeedbackInput,
   FeedbackRequest,
+  FeedbackRequestItem,
   OfflineAction,
   QuestionText,
   SyncOutcome,
@@ -137,7 +139,18 @@ export interface DevHubApi {
     kind: RoomMessage['kind'],
     clientId: ID,
   ): Promise<RoomMessage>;
-  requestFeedback(roomId: ID, kind: FeedbackRequest['kind']): Promise<FeedbackRequest>;
+  /** R6 : un membre demande un retour ou une revue ; les autres membres sont notifiés. */
+  requestFeedback(
+    roomId: ID,
+    kind: FeedbackRequest['kind'],
+    input?: FeedbackInput,
+  ): Promise<FeedbackRequestItem>;
+  /** R6 : flux de la stack, demandes ouvertes des salles publiques (étiquettes : slugs). */
+  listFeedbackRequests(opts?: { tags?: string[] }): Promise<FeedbackRequestItem[]>;
+  takeFeedback(id: ID): Promise<FeedbackRequestItem>;
+  /** Le demandeur confirme : +8 Proof XP au relecteur pour une revue de code. */
+  confirmFeedback(id: ID): Promise<{ request: FeedbackRequestItem; points: number }>;
+  cancelFeedback(id: ID): Promise<FeedbackRequestItem>;
   /** Idée A (Systalink) : preuve « en production », réservée au créateur et aux mainteneurs. */
   getDeployment(roomId: ID): Promise<DeploymentChallenge | null>;
   setDeployment(roomId: ID, url: string): Promise<DeploymentChallenge>;
