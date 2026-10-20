@@ -2,7 +2,7 @@
 
 Ce document suit l'avancement de chaque exigence du [cahier des charges v3](../Cahier_des_charges_v3_DevHub_Africa.pdf) (§5) et des [propositions v3.1](../CDC_v3.1_DevHub_Africa_Propositions.pdf) qui ont une issue. Il complète le tableau GitHub Projects : chaque ligne renvoie à son issue.
 
-> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **19 octobre 2026** (vérification de `main` exigence par exigence, fusion de #155 à #157 et #160).
+> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **20 octobre 2026** (R5 #158, S10 #159 et R6 #162 en PR ouverte, vérifiées avec `gh pr list`).
 
 ## Sommaire
 
@@ -36,39 +36,41 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 21      | 0        | 0       | 100 %       | 100 %      |
-| P1        | 14     | 8       | 3        | 3       | 57 %        | 79 %       |
+| P1        | 14     | 8       | 4        | 2       | 57 %        | 86 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | 29      | 3        | 5       | 78 %        | 86 %       |
+| **Total** | **37** | 29      | 4        | 4       | 78 %        | 89 %       |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                                            |
-| ----------------------- | --------- | ------- | -------- | ----------------------------------------------------- |
-| Auth (A)                | 3         | 2       | 0        | `███████░░░` A1, A3 fait                              |
-| Profil et Passport (PR) | 4         | 3       | 1        | `████████░░` PR1, PR2, PR3 fait; PR4 en cours         |
-| SOS Dev (S)             | 7         | 5       | 1        | `███████░░░` S1, S2, S3, S4, S7 fait; S6 en cours     |
-| Salles de projet (R)    | 8         | 6       | 1        | `████████░░` R1, R2, R3, R4, R7, R8 fait; R6 en cours |
-| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                              |
-| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                              |
-| Hors ligne (O)          | 4         | 4       | 0        | `██████████` O1, O2, O3, O4 fait                      |
-| Systalink et impact (Y) | 4         | 3       | 0        | `████████░░` Y1, Y2, Y3 fait                          |
-| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                                  |
-| Langues (I)             | 1         | 1       | 0        | `██████████` I1 fait                                  |
+| Module                  | Exigences | Terminé | En cours | Avancement                                                |
+| ----------------------- | --------- | ------- | -------- | --------------------------------------------------------- |
+| Auth (A)                | 3         | 2       | 0        | `███████░░░` A1, A3 fait                                  |
+| Profil et Passport (PR) | 4         | 3       | 1        | `████████░░` PR1, PR2, PR3 fait; PR4 en cours             |
+| SOS Dev (S)             | 7         | 5       | 1        | `███████░░░` S1, S2, S3, S4, S7 fait; S6 en cours         |
+| Salles de projet (R)    | 8         | 6       | 2        | `████████░░` R1, R2, R3, R4, R7, R8 fait; R5, R6 en cours |
+| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                                  |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                                  |
+| Hors ligne (O)          | 4         | 4       | 0        | `██████████` O1, O2, O3, O4 fait                          |
+| Systalink et impact (Y) | 4         | 3       | 0        | `████████░░` Y1, Y2, Y3 fait                              |
+| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                                      |
+| Langues (I)             | 1         | 1       | 0        | `██████████` I1 fait                                      |
 
-### Par personne et par session (19 octobre)
+### Par personne et par session (20 octobre)
 
-Mandat du 14 octobre, renouvelé le 19 : Joachim (session superviseure) avance toutes les tâches restantes avec quatre sessions Claude Code, relit et fusionne leurs PR.
+Mandat du 14 octobre, renouvelé le 19 : Joachim avance toutes les tâches restantes avec plusieurs sessions Claude Code. Depuis le 20 octobre, la session superviseure (5f) n'est plus active : la coordination passe par la session 3b, les sessions ouvrent leurs PR sans les fusionner. Répartition annoncée par 3b ; les PR citées sont vérifiées avec `gh`.
 
-| Qui                   | En cours                                                                                | Ensuite                                  |
-| --------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Joachim (superviseur) | R5 (#158) ; relecture et fusion des PR                                                  | Mise à jour de `context.md` et du suivi  |
-| Session f9            | R6 (`feat/rooms-review-request`)                                                        | Onglets de salle au-delà de 1024 px, S14 |
-| Session ad            | S10 (#159), correctif du quota IA                                                       | PR14 (réglages web), X5                  |
-| Session 7b            | PR4 (API poussée, front à faire)                                                        | —                                        |
-| Session 9d            | S6                                                                                      | S5                                       |
-| Équipe (hors code)    | URL Systalink (#6, #9), clé IA et OAuth (#7), invitations (#10), dossier et vidéo (#12) | Gel du code le 22 oct.                   |
+| Qui                | En cours                                                                                | Ensuite                |
+| ------------------ | --------------------------------------------------------------------------------------- | ---------------------- |
+| Joachim            | R5 (#158), S10 (#159), R6 (#162), PR4 (`feat/passport-mission-contact`, PR à ouvrir)    | Fusion avant le gel    |
+| Session 3b         | Coordination ; onglets de salle sur ordinateur (BUG-041, `fix/web-room-tabs-desktop`)   | —                      |
+| Session 3c         | S14 (lien de reproduction)                                                              | —                      |
+| Session 63         | Vérification de S9                                                                      | S16                    |
+| Session 78         | Relecture des PR                                                                        | —                      |
+| Session ad         | PR14 (réglages web)                                                                     | S5                     |
+| Session bd         | Documentation (`context.md`, ce suivi, README, `06-api.md`)                             | —                      |
+| Équipe (hors code) | URL Systalink (#6, #9), clé IA et OAuth (#7), invitations (#10), dossier et vidéo (#12) | Gel du code le 22 oct. |
 
 ## Jalons
 
@@ -112,12 +114,12 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Profil et Passport (PR)
 
-| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence                       | Commentaire                                                                                 |
-| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé`  | Caleb       | #99 (fusionnée)                 | Job `github.import-profile`, au moins 3 compétences                                         |
-| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé`  | Caleb       | PR #113                         | Validé en réel le 15 oct. (session C, API et front de main)                                 |
-| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé`  | Caleb       | PR #113, #102                   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API    |
-| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `En cours` | Caleb       | `feat/passport-mission-contact` | API faite (drapeau mission, `POST /u/:handle/contact` sans adresse exposée) ; front à faire |
+| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence                       | Commentaire                                                                                                              |
+| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé`  | Caleb       | #99 (fusionnée)                 | Job `github.import-profile`, au moins 3 compétences                                                                      |
+| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé`  | Caleb       | PR #113                         | Validé en réel le 15 oct. (session C, API et front de main)                                                              |
+| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé`  | Caleb       | PR #113, #102                   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API                                 |
+| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `En cours` | Caleb       | `feat/passport-mission-contact` | API (drapeau mission, `POST /u/:handle/contact` sans adresse exposée), front et e2e poussés sur la branche ; PR à ouvrir |
 
 ### SOS Dev (S)
 
@@ -133,16 +135,16 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Salles de projet (R)
 
-| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence                   | Commentaire                                                                                                                        |
-| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `Terminé`  | Joachim     | #111                        | Validé en réel le 15 oct. (session C, API et front de main) ; essai avec un vrai dépôt quand #7 sera prêt                          |
-| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `Terminé`  | Joachim     | PR #112, #113               | Validé en réel le 15 oct. (session C, API et front de main) : création, prise par un membre, droits vérifiés (403 aux non-membres) |
-| R3  | #30   | Demander à rejoindre                     | P0   | `Terminé`  | Joachim     | PR #111                     | Validé en réel le 15 oct. (session C, API et front de main) : demande, notifications, acceptation                                  |
-| R4  | #31   | Fil de discussion par salle              | P1   | `Terminé`  | Joachim     | PR #111 à #113              | Membres seulement, ordre serveur, hors ligne via /sync ; onglets de salle à vérifier au-delà de 1024 px (signalé le 19 oct.)       |
-| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `À faire`  | Joachim     |                             | Planning : 18 oct.                                                                                                                 |
-| R6  | #33   | Demander un retour ou une revue de code  | P1   | `En cours` | Joachim     | `feat/rooms-review-request` | Demande de revue (lien + note), prise, confirmation ; +8 XP pour une revue de code ; PR à ouvrir                                   |
-| R7  | #34   | Lien d'invitation riche                  | P1   | `Terminé`  | Joachim     | PR #111, #122               | Validé le 15 oct. (balises échappées, salle masquée → 404) ; image dédiée avec PR5                                                 |
-| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `Terminé`  | Joachim     | PR #112, #113               | Validé en réel le 15 oct. (session C, API et front de main) : clôture, +15 XP                                                      |
+| ID  | Issue | Exigence                                 | Prio | Statut     | Responsable | Référence      | Commentaire                                                                                                                                              |
+| --- | ----- | ---------------------------------------- | ---- | ---------- | ----------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `Terminé`  | Joachim     | #111           | Validé en réel le 15 oct. (session C, API et front de main) ; essai avec un vrai dépôt quand #7 sera prêt                                                |
+| R2  | #29   | Tâches ouvertes avec niveau              | P0   | `Terminé`  | Joachim     | PR #112, #113  | Validé en réel le 15 oct. (session C, API et front de main) : création, prise par un membre, droits vérifiés (403 aux non-membres)                       |
+| R3  | #30   | Demander à rejoindre                     | P0   | `Terminé`  | Joachim     | PR #111        | Validé en réel le 15 oct. (session C, API et front de main) : demande, notifications, acceptation                                                        |
+| R4  | #31   | Fil de discussion par salle              | P1   | `Terminé`  | Joachim     | PR #111 à #113 | Membres seulement, ordre serveur, hors ligne via /sync ; onglets de salle à vérifier au-delà de 1024 px (signalé le 19 oct.)                             |
+| R5  | #32   | L'IA transforme une discussion en tâches | P1   | `En cours` | Joachim     | PR #158        | `POST /rooms/:id/tasks/suggest` : 0 à 5 tâches proposées, publiées une à une par un membre ; quota IA réservé avant l'appel ; faux modèle seulement (#7) |
+| R6  | #33   | Demander un retour ou une revue de code  | P1   | `En cours` | Joachim     | PR #162        | Demande de revue (lien + note), prise, confirmation ; +8 XP pour une revue de code ; flux `GET /feedback-requests?tags=`                                 |
+| R7  | #34   | Lien d'invitation riche                  | P1   | `Terminé`  | Joachim     | PR #111, #122  | Validé le 15 oct. (balises échappées, salle masquée → 404) ; image dédiée avec PR5                                                                       |
+| R8  | #35   | Tâche terminée avec un lien de PR        | P0   | `Terminé`  | Joachim     | PR #112, #113  | Validé en réel le 15 oct. (session C, API et front de main) : clôture, +15 XP                                                                            |
 
 ### Découverte (D)
 
@@ -201,7 +203,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                                                                           |
 | S8   | #61   | Assistant de rédaction et jauge de qualité       | MVP+      | `Terminé`  | Sylvio                        | `AskDialog.tsx`                                                                           |
 | S9   | #62   | Étiquettes détectées depuis l'erreur             | MVP+      | `Terminé`  | Joachim                       | `lib/detect.ts`                                                                           |
-| S10  | #63   | Pont bilingue français et anglais                | MVP+      | `À faire`  | Joachim                       |                                                                                           |
+| S10  | #63   | Pont bilingue français et anglais                | MVP+      | `En cours` | Joachim                       | PR #159 (bouton Traduire, code jamais traduit, L = 0,5 au matching)                       |
 | S11  | #64   | Statut « Je m'en occupe »                        | MVP+      | `Terminé`  | Florent                       | PR #108                                                                                   |
 | O5   | #65   | Simulateur de réseau intégré                     | MVP+      | `Écarté`   | Sylvio                        | Retiré le 16/10 (décision de Sylvio) ; branche `refactor/web-remove-net-simulator`        |
 | R9   | #66   | Contributions vérifiées par GitHub               | MVP+      | `Terminé`  | Joachim                       | PR #112, #113 (PR fusionnée + auteur = assigné ; nouvel essai si GitHub est indisponible) |
@@ -235,7 +237,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 
 ## Travail réalisé hors cahier des charges
 
-Travail présent dans les PR ouvertes mais classé **roadmap** (« à présenter, pas à coder ») par le cahier des charges v3 (§3). À arbitrer par le rôle 1 (Caleb) avant fusion.
+Travail fusionné sur `main` (#97, fusionnée ; #96, fermée au profit de #97 ; `feat/systalink`) mais classé **roadmap** (« à présenter, pas à coder ») par le cahier des charges v3 (§3), ou ajouté pour le critère Systalink. Le cadrage du MVP est tranché par l'[ADR-0016](../adr/0016-perimetre-du-mvp.md).
 
 | Élément                                                                                      | PR               | Classement dans le CDC v3                                                                  |
 | -------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------ |
