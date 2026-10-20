@@ -51,7 +51,9 @@ export default function Landing() {
   const nav = useNavigate();
   const setUser = useSession((s) => s.setUser);
   const [busy, setBusy] = useState(false);
-  const { data: news } = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
+  const { data: news, loading: newsLoading } = useQuery<HomeNews>('news:home:all', () =>
+    fetchHome('all'),
+  );
 
   const tryDemo = async () => {
     setBusy(true);
@@ -96,50 +98,52 @@ export default function Landing() {
           <p className="mt-4 text-[13px] text-subtle">{t('pub.free')}</p>
         </div>
 
-        {/* Preuve : un vrai article du fil, tel qu'il apparaît dans la plateforme */}
-        <div className="relative mx-auto w-full max-w-[460px]">
-          <div
-            aria-hidden
-            className="dh-glow absolute -top-4 right-0 left-10 h-[85%] rotate-[3deg] rounded-[10px] opacity-90 sm:-top-5 sm:-right-4"
-          />
-          {story ? (
-            <article className="dh-card relative overflow-hidden">
-              <header className="flex items-center gap-3 px-5 pt-4">
-                <SourceMark item={story} size={36} />
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold text-fg">{story.sourceName}</p>
-                  <p className="text-[12px] text-subtle">
-                    <Ago iso={story.publishedAt} />
-                  </p>
-                </div>
-              </header>
-              <p className="line-clamp-3 px-5 pt-3 pb-4 text-[16px] leading-snug font-semibold text-fg">
-                {story.title}
-              </p>
-              {story.image && (
-                <img
-                  src={img(story.image, 960) ?? ''}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  className="aspect-[16/9] w-full bg-surface-2 object-cover"
-                />
-              )}
-              <footer className="flex items-center justify-around px-2 py-2.5 text-[13px] font-semibold text-muted">
-                <span className="inline-flex items-center gap-1.5">
-                  <ExternalLink className="size-4" /> {t('pub.read')}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Bookmark className="size-4" /> {t('pub.save')}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Share2 className="size-4" /> {t('pub.share')}
-                </span>
-              </footer>
-            </article>
-          ) : (
-            <Skeleton className="relative h-[400px] rounded-[10px]" />
-          )}
-        </div>
+        {/* Preuve : un vrai article du fil, tel qu'il apparaît dans la plateforme (masqué sans actualité) */}
+        {(story || newsLoading) && (
+          <div className="relative mx-auto w-full max-w-[460px]">
+            <div
+              aria-hidden
+              className="dh-glow absolute -top-4 right-0 left-10 h-[85%] rotate-[3deg] rounded-[10px] opacity-90 sm:-top-5 sm:-right-4"
+            />
+            {story ? (
+              <article className="dh-card relative overflow-hidden">
+                <header className="flex items-center gap-3 px-5 pt-4">
+                  <SourceMark item={story} size={36} />
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-semibold text-fg">{story.sourceName}</p>
+                    <p className="text-[12px] text-subtle">
+                      <Ago iso={story.publishedAt} />
+                    </p>
+                  </div>
+                </header>
+                <p className="line-clamp-3 px-5 pt-3 pb-4 text-[16px] leading-snug font-semibold text-fg">
+                  {story.title}
+                </p>
+                {story.image && (
+                  <img
+                    src={img(story.image, 960) ?? ''}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="aspect-[16/9] w-full bg-surface-2 object-cover"
+                  />
+                )}
+                <footer className="flex items-center justify-around px-2 py-2.5 text-[13px] font-semibold text-muted">
+                  <span className="inline-flex items-center gap-1.5">
+                    <ExternalLink className="size-4" /> {t('pub.read')}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Bookmark className="size-4" /> {t('pub.save')}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Share2 className="size-4" /> {t('pub.share')}
+                  </span>
+                </footer>
+              </article>
+            ) : (
+              <Skeleton className="relative h-[400px] rounded-[10px]" />
+            )}
+          </div>
+        )}
       </section>
 
       <LiveSection />
