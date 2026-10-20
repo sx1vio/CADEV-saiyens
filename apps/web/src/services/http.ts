@@ -120,8 +120,9 @@ async function similar(text: string, excludeId?: string) {
 const uiLang = (): 'fr' | 'en' => (document.documentElement.lang === 'en' ? 'en' : 'fr');
 
 const QUESTION_TAB: Record<QuestionTab, Query> = {
-  'for-me': { status: 'open' },
-  unanswered: { status: 'open', unanswered: true },
+  'for-me': { status: 'open', forMe: true },
+  // S16 : la file « Personne n'a encore répondu », la plus urgente puis la plus ancienne d'abord.
+  unanswered: { status: 'open', unanswered: true, sort: 'waiting' },
   resolved: { status: 'resolved' },
   all: {},
   mine: { mine: true },
@@ -230,8 +231,12 @@ export const httpApi: DevHubApi = {
   getHome: async () => {
     const me = await session();
     const [open, unanswered, mine, rooms] = await Promise.all([
-      get<ListQuestionsResponse>('/questions', { status: 'open', limit: 10 }),
-      get<ListQuestionsResponse>('/questions', { status: 'open', unanswered: true, limit: 10 }),
+      get<ListQuestionsResponse>('/questions', { status: 'open', forMe: true, limit: 10 }),
+      get<ListQuestionsResponse>('/questions', {
+        ...QUESTION_TAB.unanswered,
+        forMe: true,
+        limit: 5,
+      }),
       me ? get<ListQuestionsResponse>('/questions', { mine: true, limit: 10 }) : null,
       get<ListRoomsResponse>('/rooms', { limit: 6 }),
     ]);
