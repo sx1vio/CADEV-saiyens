@@ -14,14 +14,14 @@ GitHub montre ce que tu as construit. DevHub Africa montre ce que tu sais faire,
 
 ## État du projet
 
-🚧 **En développement (18 octobre 2026).** Le code est sur `main`, l'URL de production n'est pas encore en ligne. Gel du code le 22 octobre, soumission le 24 octobre.
+🚧 **En développement (20 octobre 2026).** Le code est sur `main`, l'URL de production n'est pas encore en ligne (#6). Gel du code le jeudi 22 octobre, soumission le 24 octobre. Les 21 exigences P0 du cahier des charges sont fusionnées ; les P1 encore en revue sont listées dans [`context.md`](context.md#en-cours-20-octobre).
 
-| Partie                 | État                                                                                                                                                                                                                                                                                                                                     |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API et worker (NestJS) | Connexion GitHub et sessions, profil importé, compétences, Proof XP et garde-fous, piste IA, SOS Dev (questions, réponses, votes, validation), matching, synchronisation hors ligne `POST /sync`, temps réel (SSE), salles, tâches et PR vérifiée par GitHub, Passport, découverte, modération, écrans Systalink et impact, e-mails SMTP |
-| Front PWA (`apps/web`) | Fusionné. Les écrans du MVP parlent à l'API réelle ; les services de l'écosystème (emplois, certifications, communautés…) sont des aperçus de démonstration, signalés par un bandeau                                                                                                                                                     |
-| Hors ligne             | File d'actions IndexedDB, rejeu sans doublon, centre de synchronisation. Test sur téléphone réel encore à faire                                                                                                                                                                                                                          |
-| Déploiement Systalink  | Images Docker, Compose, Caddy, scripts de déploiement et de sauvegarde prêts ; VPS, secrets et OAuth GitHub de production à brancher                                                                                                                                                                                                     |
+| Partie                 | État                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API et worker (NestJS) | 66 routes. Connexion GitHub et sessions, profil importé, compétences, Proof XP et garde-fous, piste IA, SOS Dev (questions, réponses, votes, validation), matching, synchronisation hors ligne `POST /sync`, temps réel (SSE), salles, tâches et PR vérifiée par GitHub, Passport, découverte, modération, écrans Systalink et impact, e-mails SMTP. L'IA n'a été essayée qu'avec le faux modèle : aucune clé n'existe encore (#7) |
+| Front PWA (`apps/web`) | Fusionné. Les écrans du MVP parlent à l'API réelle ; les services de l'écosystème (emplois, certifications, communautés…) sont des aperçus de démonstration, signalés par un bandeau                                                                                                                                                                                                                                               |
+| Hors ligne             | File d'actions IndexedDB, rejeu sans doublon, centre de synchronisation. Test sur téléphone réel encore à faire                                                                                                                                                                                                                                                                                                                    |
+| Déploiement Systalink  | Images Docker, Compose, Caddy, scripts de déploiement et de sauvegarde prêts ; VPS, secrets et OAuth GitHub de production à brancher                                                                                                                                                                                                                                                                                               |
 
 Détail : [`context.md`](context.md), [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md), [registre des anomalies](docs/suivi/anomalies.md) et [avancement par personne](docs/equipe/organisation.md#réaffectations-et-avancement).
 
@@ -38,28 +38,28 @@ Tout est dans [`docs/`](docs/README.md) :
 
 ## Stack
 
-| Couche            | Technologies                                                                                   |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| Front-end         | PWA React + Vite, Workbox, IndexedDB (Dexie), TanStack Query, i18next (FR/EN), Tailwind        |
-| Back-end          | NestJS (API + worker), Prisma, pg-boss, Server-Sent Events                                     |
-| Données           | PostgreSQL (Systalink)                                                                         |
-| Partagé           | `@devhub/contracts` (schémas zod), `@devhub/core` (règles pures : scores, secrets, étiquettes) |
-| Infrastructure    | VPS Systalink, Docker Compose, Caddy, GitHub Actions                                           |
-| Services externes | OAuth et API GitHub, API Claude (côté serveur)                                                 |
+| Couche            | Technologies                                                                                                                            |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Front-end         | PWA React + Vite (`vite-plugin-pwa`, Workbox), React Router, IndexedDB (`idb`), Zustand, Radix UI, i18next (FR/EN), Tailwind (ADR-0018) |
+| Back-end          | NestJS (API + worker), Prisma, pg-boss, Server-Sent Events                                                                              |
+| Données           | PostgreSQL 16 : base managée Systalink ou PostgreSQL sur le VPS, à décider (ADR-0015, #9)                                               |
+| Partagé           | `@devhub/contracts` (schémas zod), `@devhub/core` (règles pures : scores, secrets, étiquettes)                                          |
+| Infrastructure    | VPS Systalink, Docker Compose, Caddy, GitHub Actions                                                                                    |
+| Services externes | OAuth et API GitHub, API Claude côté serveur (`LLM_API_KEY` vide : faux modèle déterministe)                                            |
 
 ## Produits Systalink utilisés
 
-| Produit          | Usage                                                                         |
-| ---------------- | ----------------------------------------------------------------------------- |
-| VPS              | Héberge l'application, l'API et les tâches de fond                            |
-| Base de données  | Profils, questions, salles, Proof XP, file de tâches                          |
-| Sauvegarde cloud | Sauvegarde quotidienne, restauration testée, date affichée dans l'application |
-| Messagerie pro   | E-mails de notification (SMTP)                                                |
-| Stockage objet   | Avatars et captures, si le produit est accepté par le règlement               |
+| Produit          | Usage                                                           | État au 20 octobre                                                      |
+| ---------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| VPS              | Héberge l'application, l'API et les tâches de fond              | Images Docker, Compose et Caddy prêts ; pas encore en ligne (#6)        |
+| Base de données  | Profils, questions, salles, Proof XP, file de tâches            | Base managée ou PostgreSQL sur le VPS : à décider (#9)                  |
+| Sauvegarde cloud | Sauvegarde quotidienne, date affichée sur l'écran d'état        | Scripts `backup.sh` et `restore.sh` prêts ; restauration à tester (#11) |
+| Messagerie pro   | E-mails de notification (SMTP)                                  | Code fusionné (Y3) ; identifiants SMTP de production à saisir (#2)      |
+| Stockage objet   | Avatars et captures, si le produit est accepté par le règlement | Non codé (Y4, P2)                                                       |
 
 ## Démarrer en local
 
-Prérequis : **Node.js 24**, **pnpm 10** (`corepack enable`), **Docker**.
+Prérequis : **Node.js 24**, **pnpm 10** (`corepack enable` ; sans droits pour l'activer, préfixer chaque commande par `corepack`, par exemple `corepack pnpm install`), **Docker**.
 
 ```bash
 git clone git@github.com:sx1vio/CADEV-saiyens.git
