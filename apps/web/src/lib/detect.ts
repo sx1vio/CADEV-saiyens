@@ -8,7 +8,10 @@
 
 type Pattern = { re: RegExp; tags: string[] };
 
-/** Motifs partagés front/back (dictionnaire à enrichir). Les slugs renvoient au catalogue d'étiquettes. */
+/**
+ * Motifs partagés front/back (dictionnaire à enrichir). Chaque slug existe dans le référentiel
+ * de l'API (`TAG_REFERENCE` de @devhub/core) : sinon la suggestion disparaît sans bruit (S9).
+ */
 export const TAG_PATTERNS: Pattern[] = [
   {
     re: /ModuleNotFoundError|ImportError|Traceback \(most recent call last\)|pip install|\.py\b|venv/i,
@@ -17,7 +20,8 @@ export const TAG_PATTERNS: Pattern[] = [
   { re: /django|manage\.py|ORM|makemigrations/i, tags: ['django', 'python'] },
   { re: /fastapi|uvicorn|pydantic/i, tags: ['fastapi', 'python'] },
   {
-    re: /ECONNREFUSED|ENOTFOUND|EADDRINUSE|node_modules|npm ERR|require\(|process\.env/i,
+    // Codes d'erreur en mots entiers : « ModuleNotFoundError » (Python) contient « eNotFound ».
+    re: /\b(ECONNREFUSED|ENOTFOUND|EADDRINUSE)\b|node_modules|npm ERR|require\(|process\.env/i,
     tags: ['nodejs'],
   },
   { re: /Cannot find module|ERR_MODULE_NOT_FOUND|package\.json/i, tags: ['nodejs'] },
@@ -39,25 +43,25 @@ export const TAG_PATTERNS: Pattern[] = [
   { re: /kubectl|CrashLoopBackOff|ImagePullBackOff|k8s/i, tags: ['kubernetes'] },
   { re: /Gradle|AndroidManifest|adb |Kotlin|ANR/i, tags: ['android', 'kotlin'] },
   { re: /flutter|dart:|pubspec\.yaml|Widget build/i, tags: ['flutter', 'dart'] },
-  { re: /Xcode|CocoaPods|Swift|UIKit/i, tags: ['ios', 'swift'] },
+  { re: /Xcode|CocoaPods|Swift|UIKit/i, tags: ['swift'] },
   { re: /laravel|artisan|Eloquent|composer\.json/i, tags: ['laravel', 'php'] },
   { re: /PHP (Fatal|Warning|Parse) error|\$_POST|\.php\b/i, tags: ['php'] },
   { re: /Spring|@Autowired|NullPointerException|\.java\b|Maven/i, tags: ['java', 'spring'] },
   { re: /panic:|goroutine|go\.mod/i, tags: ['go'] },
   { re: /cargo|borrow checker|rustc|E0\d{3}/i, tags: ['rust'] },
-  { re: /CORS|Access-Control-Allow-Origin|preflight/i, tags: ['http', 'javascript'] },
+  { re: /CORS|Access-Control-Allow-Origin|preflight/i, tags: ['rest-api', 'javascript'] },
   {
     re: /mobile money|MTN MoMo|Orange Money|Wave|Flutterwave|Paystack|CinetPay|FedaPay|Kkiapay/i,
     tags: ['mobile-money'],
   },
   { re: /firebase|firestore|FirebaseError/i, tags: ['firebase'] },
-  { re: /supabase|RLS|row level security/i, tags: ['supabase', 'postgresql'] },
-  { re: /prisma|PrismaClient|P\d{4}/i, tags: ['prisma'] },
+  { re: /supabase|RLS|row level security/i, tags: ['postgresql'] },
+  { re: /prisma|PrismaClient|P\d{4}/i, tags: ['nodejs', 'sql'] },
   { re: /service worker|workbox|IndexedDB|manifest\.webmanifest/i, tags: ['pwa'] },
-  { re: /github actions|workflow|\.github\/workflows/i, tags: ['ci-cd'] },
+  { re: /github actions|workflow|\.github\/workflows/i, tags: ['devops', 'git'] },
   { re: /git (push|pull|rebase|merge)|merge conflict|detached HEAD/i, tags: ['git'] },
   { re: /tailwind|className=/i, tags: ['tailwind', 'css'] },
-  { re: /websocket|socket\.io|ws:\/\//i, tags: ['websocket'] },
+  { re: /websocket|socket\.io|ws:\/\//i, tags: ['javascript'] },
   { re: /graphql|Apollo|resolver/i, tags: ['graphql'] },
   { re: /JWT|OAuth|bcrypt|XSS|CSRF|injection/i, tags: ['security'] },
 ];

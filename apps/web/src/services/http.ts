@@ -9,6 +9,9 @@
  * - Une fonction absente de l'API (hors périmètre du MVP, ADR-0016) lève `feature.unavailable`.
  */
 import type {
+  ConfirmFeedbackResponse,
+  FeedbackRequestView,
+  ListFeedbackRequestsResponse,
   AcceptAnswerResponse,
   AskQuestionResponse,
   CompleteTaskResponse,
@@ -34,8 +37,10 @@ import type {
   RoomDetail as ApiRoomDetail,
   StatusHistoryResponse,
   StatusResponse,
+  SuggestTasksResponse,
   SyncResponse,
   TaskView,
+  TranslationResponse,
   UpdateAnswerResponse,
   UpdateMeRequest,
   DeleteMeRequest,
@@ -115,8 +120,9 @@ async function similar(text: string, excludeId?: string) {
 const uiLang = (): 'fr' | 'en' => (document.documentElement.lang === 'en' ? 'en' : 'fr');
 
 const QUESTION_TAB: Record<QuestionTab, Query> = {
-  'for-me': { status: 'open' },
-  unanswered: { status: 'open', unanswered: true },
+  'for-me': { status: 'open', forMe: true },
+  // S16 : la file « Personne n'a encore répondu », la plus urgente puis la plus ancienne d'abord.
+  unanswered: { status: 'open', unanswered: true, sort: 'waiting' },
   resolved: { status: 'resolved' },
   all: {},
   mine: { mine: true },
@@ -149,7 +155,7 @@ async function room(code: string) {
   const r = await get<ApiRoomDetail>(`/rooms/${encodeURIComponent(code)}`);
   const member = r.viewer?.role != null;
   const manager = r.viewer?.role === 'owner' || r.viewer?.role === 'maintainer';
-  const [tasks, messages, requests] = await Promise.all([
+  const [tasks, messages, requests, feedback] = await Promise.all([
     get<ListTasksResponse>(`/rooms/${r.id}/tasks`).catch(() => ({ data: [] as TaskView[] })),
     member
       ? get<ListMessagesResponse>(`/rooms/${r.id}/messages`, { limit: 100 }).then((x) => x.data)
@@ -157,8 +163,11 @@ async function room(code: string) {
     manager
       ? get<ListJoinRequestsResponse>(`/rooms/${r.id}/join-requests`).then((x) => x.data)
       : Promise.resolve([]),
+    get<ListFeedbackRequestsResponse>(`/rooms/${r.id}/feedback-requests`)
+      .then((x) => x.data)
+      .catch(() => [] as FeedbackRequestView[]),
   ]);
-  return m.roomDetail(r, { tasks: tasks.data, messages, requests });
+  return m.roomDetail(r, { tasks: tasks.data, messages, requests, feedback });
 }
 
 export const httpApi: DevHubApi = {
@@ -193,10 +202,14 @@ export const httpApi: DevHubApi = {
     if (input.languages?.length) body.languages = input.languages;
     if (input.lookingFor !== undefined) body.lookingFor = m.lookingForToApi(input.lookingFor);
     if (input.availability !== undefined)
-      body.availability = { now: input.availability.status === 'now' };
+      body.availability = {
+        now: input.availability.status === 'now',
+        mission: input.availability.forMission,
+      };
     if (input.canHelpWith !== undefined) body.canHelpTagSlugs = input.canHelpWith.slice(0, 5);
     if (input.wantsToLearn !== undefined) body.wantLearnTagSlugs = input.wantsToLearn.slice(0, 5);
     if (input.emailNotifications !== undefined) body.emailNotifications = input.emailNotifications;
+    if (input.privacy !== undefined) body.privacy = input.privacy;
     if (Object.keys(body).length > 0) await call('PATCH', '/me', body);
     if (input.codeOfConductAcceptedAt) await post('/me/code-of-conduct');
     return sessionOrThrow();
@@ -218,8 +231,12 @@ export const httpApi: DevHubApi = {
   getHome: async () => {
     const me = await session();
     const [open, unanswered, mine, rooms] = await Promise.all([
-      get<ListQuestionsResponse>('/questions', { status: 'open', limit: 10 }),
-      get<ListQuestionsResponse>('/questions', { status: 'open', unanswered: true, limit: 10 }),
+      get<ListQuestionsResponse>('/questions', { status: 'open', forMe: true, limit: 10 }),
+      get<ListQuestionsResponse>('/questions', {
+        ...QUESTION_TAB.unanswered,
+        forMe: true,
+        limit: 5,
+      }),
       me ? get<ListQuestionsResponse>('/questions', { mine: true, limit: 10 }) : null,
       get<ListRoomsResponse>('/rooms', { limit: 6 }),
     ]);
@@ -322,7 +339,12 @@ export const httpApi: DevHubApi = {
   },
   proposePair: async () => unavailable(),
   respondPair: async () => unavailable(),
-  translate: async () => unavailable(),
+  translate: async (target, to) => {
+    const t = await post<TranslationResponse>(
+      `/${target.type === 'question' ? 'questions' : 'answers'}/${target.id}/translate?lang=${to}`,
+    );
+    return { title: t.title, body: t.body, demo: t.demo };
+  },
 
   listRooms: async (opts = {}) =>
     (
@@ -378,6 +400,12 @@ export const httpApi: DevHubApi = {
       createdAt: r.decidedAt,
     };
   },
+  suggestTasks: async (roomId) => {
+    const r = await post<SuggestTasksResponse>(`/rooms/${roomId}/tasks/suggest`, {
+      lang: uiLang(),
+    });
+    return { status: r.status, tasks: r.data.map(m.suggestedTask) };
+  },
   createTask: async (roomId, input) =>
     m.task(
       await post<TaskView>(`/rooms/${roomId}/tasks`, {
@@ -424,7 +452,29 @@ export const httpApi: DevHubApi = {
         clientId,
       ),
     ),
-  requestFeedback: async () => unavailable(),
+  requestFeedback: async (roomId, kind, input = {}) =>
+    m.feedbackRequest(
+      await post<FeedbackRequestView>(`/rooms/${roomId}/feedback-requests`, {
+        kind: kind === 'code-review' ? 'code_review' : 'feedback',
+        url: input.url?.trim() || null,
+        note: input.note?.trim() || null,
+      }),
+    ),
+  listFeedbackRequests: async (opts = {}) =>
+    (
+      await get<ListFeedbackRequestsResponse>('/feedback-requests', {
+        tags: opts.tags?.length ? opts.tags.join(',') : undefined,
+        limit: 50,
+      })
+    ).data.map(m.feedbackRequest),
+  takeFeedback: async (id) =>
+    m.feedbackRequest(await post<FeedbackRequestView>(`/feedback-requests/${id}/take`)),
+  confirmFeedback: async (id) => {
+    const r = await post<ConfirmFeedbackResponse>(`/feedback-requests/${id}/confirm`);
+    return { request: m.feedbackRequest(r.request), points: r.points };
+  },
+  cancelFeedback: async (id) =>
+    m.feedbackRequest(await post<FeedbackRequestView>(`/feedback-requests/${id}/cancel`)),
   getDeployment: (roomId) =>
     get<DeploymentChallenge>(`/rooms/${roomId}/deployment`).catch((e: unknown) => {
       if (e instanceof DomainError && e.code === 'not_found') return null;
@@ -442,6 +492,7 @@ export const httpApi: DevHubApi = {
       country: f.country ? f.country.toUpperCase() : undefined,
       tz: f.timezone === 'near' ? offset : undefined,
       available: f.availability === 'now' ? true : undefined,
+      mission: f.availability === 'mission' ? true : undefined,
       lookingFor: f.lookingFor,
       limit: 50,
     });
@@ -462,6 +513,10 @@ export const httpApi: DevHubApi = {
       ),
     ]);
     return m.passport(p, proofs);
+  },
+
+  contactDev: async (handle, message) => {
+    await post(`/u/${encodeURIComponent(handle)}/contact`, { message });
   },
 
   listNotifications: async () => {

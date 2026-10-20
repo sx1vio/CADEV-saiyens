@@ -45,7 +45,7 @@ import { invalidate, useQuery } from '@/lib/query';
 import { useTopic } from '@/services/realtime';
 import { cn, minutesBetween, uuid } from '@/lib/utils';
 import { enqueue, requireNetwork, useNetwork } from '@/offline/network';
-import { api, type AnswerView, type QuestionDetail } from '@/services';
+import { api, type AnswerView, type QuestionDetail, type Translation } from '@/services';
 import { useSession } from '@/stores/app';
 import { WithPanel } from './_layout';
 
@@ -73,6 +73,11 @@ export default function QuestionPage() {
     id: string;
     label: string;
   } | null>(null);
+
+  const translation = useTranslated(
+    { type: 'question', id: q?.id ?? id },
+    q ? `${q.title}\n${q.body}` : '',
+  );
 
   if (error)
     return (
@@ -108,6 +113,8 @@ export default function QuestionPage() {
   const questionEdit = queue.find(
     (x) => x.type === 'edit-question' && x.payload.questionId === q.id,
   );
+  // S10 : une question rédigée dans l'autre langue se lit dans la langue de l'interface.
+  const translatable = q.lang !== lang;
 
   const onAccept = async (a: AnswerView) => {
     try {
@@ -204,7 +211,7 @@ export default function QuestionPage() {
             )}
           </div>
           <h1 className="mt-3 text-[24px] font-semibold leading-tight tracking-[-0.025em] text-fg sm:text-[30px]">
-            {q.title}
+            {translation.shown?.title ?? q.title}
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-subtle">
             <span>{t('question.asked', { time: relativeTime(q.createdAt, lang) })}</span>
@@ -232,6 +239,13 @@ export default function QuestionPage() {
                 })}
               </p>
               <p className="mt-0.5 text-sm text-white/65">{t('question.knowledgeCard')}</p>
+              {/* S6 : la fiche mène d'abord à la solution validée. */}
+              <a
+                href={`#answer-${accepted.id}`}
+                className="mt-2 inline-block text-sm font-semibold text-white underline underline-offset-4"
+              >
+                {t('question.seeSolution')}
+              </a>
             </div>
           </div>
         )}
@@ -240,7 +254,8 @@ export default function QuestionPage() {
 
         {/* Énoncé */}
         <Card className="flex flex-col gap-5 p-5 sm:p-6">
-          <Markdown>{q.body}</Markdown>
+          {translation.shown && <TranslatedNote translation={translation.shown} />}
+          <Markdown>{translation.shown?.body ?? q.body}</Markdown>
           {q.tried && <Section label={t('question.tried')}>{q.tried}</Section>}
           {q.expected && <Section label={t('question.expected')}>{q.expected}</Section>}
           {q.codeSnippet && <CodeBlock code={q.codeSnippet} lang={q.codeLang} />}
@@ -263,18 +278,7 @@ export default function QuestionPage() {
             )}
           </div>
           <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            <Tip label={t('question.translateUnavailable')}>
-              <span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Languages />}
-                  disabled={api.mode === 'local'}
-                >
-                  {t('question.translate')}
-                </Button>
-              </span>
-            </Tip>
+            {translatable && <TranslateButton translation={translation} />}
             <Button
               variant="ghost"
               size="sm"
@@ -328,6 +332,7 @@ export default function QuestionPage() {
                 a={a}
                 canAccept={isAuthor && !resolved && a.author.id !== me?.id}
                 canVote={!!me && a.author.id !== me.id}
+                translatable={translatable}
                 onEdit={
                   me && a.author.id === me.id
                     ? () => setEditing({ kind: 'answer', answer: a, questionTitle: q.title })
@@ -404,6 +409,79 @@ function Section({ label, children }: { label: string; children: string }) {
   );
 }
 
+/**
+ * S10 : traduction à la demande dans la langue de l'interface. L'original reste à un clic, et une
+ * traduction n'est plus affichée dès que le texte d'origine change (modification, temps réel).
+ */
+function useTranslated(target: { type: 'question' | 'answer'; id: string }, source: string) {
+  const { t } = useTranslation();
+  const lang = useLang();
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ source: string; lang: string; value: Translation } | null>(
+    null,
+  );
+  const [original, setOriginal] = useState(false);
+  const current = result && result.source === source && result.lang === lang ? result.value : null;
+
+  const toggle = async () => {
+    if (current) return setOriginal((o) => !o);
+    setBusy(true);
+    try {
+      requireNetwork();
+      const value = await api.translate(target, lang);
+      setResult({ source, lang, value });
+      setOriginal(false);
+    } catch (e) {
+      toast.error(errorText(t, e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { shown: current && !original ? current : null, available: !!current, busy, toggle };
+}
+
+function TranslateButton({ translation }: { translation: ReturnType<typeof useTranslated> }) {
+  const { t } = useTranslation();
+  const label = translation.shown
+    ? t('question.showOriginal')
+    : translation.available
+      ? t('question.showTranslation')
+      : t('question.translate');
+  const button = (
+    <Button
+      variant="ghost"
+      size="sm"
+      icon={<Languages />}
+      loading={translation.busy}
+      disabled={api.mode === 'local'}
+      onClick={() => void translation.toggle()}
+    >
+      {label}
+    </Button>
+  );
+  // Mode local (développement sans API) : la traduction n'existe que côté serveur.
+  if (api.mode !== 'local') return button;
+  return (
+    <Tip label={t('question.translateUnavailable')}>
+      <span>{button}</span>
+    </Tip>
+  );
+}
+
+/** Mention obligatoire d'une traduction IA (09-ia-integrations, « Mentions dans l'interface »). */
+function TranslatedNote({ translation }: { translation: Translation }) {
+  const { t } = useTranslation();
+  return (
+    <p className="mb-2 flex flex-wrap items-center gap-2 text-xs text-subtle">
+      <Badge tone="blue" size="sm">
+        <Languages />
+        {t('question.machineTranslated')}
+      </Badge>
+      {translation.demo && <span>{t('question.translationDemo')}</span>}
+    </p>
+  );
+}
+
 /** S2 : piste marquée comme telle, qui ne bloque jamais la suite. */
 function HintCard({ q }: { q: QuestionDetail }) {
   const { t } = useTranslation();
@@ -454,10 +532,13 @@ function AnswerItem({
   onAccept,
   onEdit,
   onReport,
+  translatable,
 }: {
   a: AnswerView;
   canAccept: boolean;
   canVote: boolean;
+  /** S10 : la discussion est dans l'autre langue que l'interface. */
+  translatable: boolean;
   onAccept: () => void;
   /** Auteur de la réponse : modifier son texte (O4). */
   onEdit?: () => void;
@@ -469,10 +550,12 @@ function AnswerItem({
   const [confirm, setConfirm] = useState(false);
   const [voted, setVoted] = useState(a.votedByMe);
   const [count, setCount] = useState(a.helpfulCount);
+  const translation = useTranslated({ type: 'answer', id: a.id }, a.body);
   return (
     <li
+      id={`answer-${a.id}`}
       className={cn(
-        'relative flex gap-3 rounded-[10px] p-4 sm:p-5',
+        'relative flex scroll-mt-6 gap-3 rounded-[10px] p-4 sm:p-5',
         a.isAccepted ? 'bg-surface-1 ring-2 ring-success/50' : 'bg-surface-1',
       )}
     >
@@ -489,7 +572,8 @@ function AnswerItem({
           )}
         </div>
         <div className="mt-2">
-          <Markdown>{a.body}</Markdown>
+          {translation.shown && <TranslatedNote translation={translation.shown} />}
+          <Markdown>{translation.shown?.body ?? a.body}</Markdown>
         </div>
         {pendingEdit && (
           <div className="mt-2">
@@ -519,6 +603,7 @@ function AnswerItem({
           >
             {t('question.helpful')} · {count}
           </Button>
+          {translatable && <TranslateButton translation={translation} />}
           {onEdit && (
             <Button variant="ghost" size="sm" icon={<Pencil />} onClick={onEdit}>
               {t('question.edit')}

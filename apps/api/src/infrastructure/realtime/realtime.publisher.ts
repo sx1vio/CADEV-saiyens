@@ -23,6 +23,7 @@ export type PublicEvent =
   | 'answer.accepted'
   | 'task.updated'
   | 'room_message.created'
+  | 'feedback.updated'
   | 'content.hidden';
 
 /** Événement public sur un sujet (« question:<id> », « room:<id> ») : les pages ouvertes se rafraîchissent. */

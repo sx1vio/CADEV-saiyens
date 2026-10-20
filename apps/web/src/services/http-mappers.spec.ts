@@ -51,6 +51,13 @@ describe('préférence e-mail (Y3)', () => {
     isAdmin: false,
     isDemo: false,
     createdAt: at,
+    privacy: {
+      unlisted: false,
+      hideCountry: true,
+      hideTimezone: true,
+      hideAvailability: false,
+      hideStats: false,
+    },
     trust: {
       githubLinked: true,
       githubAccountYears: null,
@@ -59,6 +66,16 @@ describe('préférence e-mail (Y3)', () => {
       founder: true,
     },
   };
+
+  it('PR14 : GET /me apporte les réglages de confidentialité tels qu’ils s’appliquent', () => {
+    expect(m.user(me).privacy).toEqual({
+      unlisted: false,
+      hideCountry: true,
+      hideTimezone: true,
+      hideAvailability: false,
+      hideStats: false,
+    });
+  });
 
   it('GET /me : la préférence et la présence d’une adresse arrivent, jamais l’adresse elle-même', () => {
     const u = m.user(me);
@@ -442,6 +459,31 @@ describe('historique de disponibilité (Y5)', () => {
   });
 });
 
+describe('mission et Contacter (PR4)', () => {
+  it('le drapeau mission arrive des disponibilités et des cartes de Découvrir', () => {
+    expect(m.availabilityFromApi({ now: false, mission: true }).forMission).toBe(true);
+    expect(m.availabilityFromApi({ now: true }).forMission).toBe(false);
+    expect(m.availabilityFromApi(null).forMission).toBe(false);
+  });
+
+  it('la notification « contact » garde le message et l’expéditeur', () => {
+    const n = m.notification(
+      {
+        id: 'n9',
+        type: 'contact.request',
+        payload: { senderId: 'x', by: 'moussa', byName: 'Moussa', message: 'Une mission ?' },
+        readAt: null,
+        createdAt: at,
+      },
+      'awa',
+    );
+    expect(n).toMatchObject({
+      type: 'contact',
+      payload: { by: 'moussa', byName: 'Moussa', message: 'Une mission ?' },
+    });
+  });
+});
+
 describe('impact (Y2)', () => {
   it('affiche les chiffres calculés par l’API, jamais des zéros écrits en dur (BUG-032)', () => {
     expect(
@@ -508,5 +550,48 @@ describe('questions similaires (S7)', () => {
 
   it('trois suggestions au maximum', () => {
     expect(m.SIMILAR_LIMIT).toBe(3);
+  });
+});
+
+describe('demandes de retour et de revue (R6)', () => {
+  it('vue de l’API → front : type, statut, comptes identifiés par leur handle', () => {
+    const f = m.feedbackRequest({
+      id: 'f1',
+      kind: 'code_review',
+      status: 'in_progress',
+      url: 'https://github.com/awa/kora/pull/12',
+      note: 'Les erreurs du paiement',
+      room: { id: 'r1', code: 'abcd2345', name: 'Kora' },
+      stack: [{ slug: 'nodejs', label: 'Node.js' }],
+      requester: awa,
+      reviewer: moussa,
+      createdAt: at,
+      confirmedAt: null,
+    });
+    expect(f).toMatchObject({
+      roomId: 'r1',
+      kind: 'code-review',
+      status: 'in-progress',
+      requesterId: 'awa',
+      reviewerId: 'moussa',
+      tags: [{ id: 'nodejs', slug: 'nodejs', label: 'Node.js' }],
+    });
+  });
+
+  it('notification de confirmation : `count` choisit le texte sans Proof XP', () => {
+    const n = m.notification(
+      {
+        id: 'n3',
+        type: 'feedback.confirmed',
+        payload: { roomName: 'Kora', code: 'abcd2345', kind: 'feedback', by: 'Awa', points: 0 },
+        readAt: null,
+        createdAt: at,
+      },
+      'moussa',
+    );
+    expect(n).toMatchObject({
+      type: 'feedback-confirmed',
+      payload: { room: 'Kora', code: 'abcd2345', author: 'Awa', count: 0 },
+    });
   });
 });

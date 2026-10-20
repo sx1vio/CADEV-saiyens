@@ -22,7 +22,9 @@ import {
   type Answer,
   type AppNotification,
   type DevCard,
+  type FeedbackInput,
   type FeedbackRequest,
+  type FeedbackRequestItem,
   type ID,
   type JoinRequest,
   type LeaderboardRow,
@@ -812,12 +814,147 @@ export class Engine {
     return m;
   }
 
-  requestFeedback(roomId: ID, actorId: ID, kind: FeedbackRequest['kind'], now: number) {
+  /** R6 : un membre demande un retour ou une revue ; les autres membres sont notifiés. */
+  requestFeedback(
+    roomId: ID,
+    actorId: ID,
+    kind: FeedbackRequest['kind'],
+    input: FeedbackInput,
+    now: number,
+  ) {
     const r = this.room(roomId);
-    if (r.ownerId !== actorId) throw new DomainError('task.owner-only');
-    const fr: FeedbackRequest = { id: uuid(), roomId, kind, status: 'open', createdAt: iso(now) };
+    if (!this.isMember(roomId, actorId)) throw new DomainError('room.members-only');
+    const pending = this.s.feedback.find(
+      (f) =>
+        f.roomId === roomId &&
+        f.requesterId === actorId &&
+        f.kind === kind &&
+        (f.status === 'open' || f.status === 'in-progress'),
+    );
+    if (pending) throw new DomainError('feedback.already_open');
+    const url = input.url?.trim() || null;
+    if (url && !/^https:\/\/\S+$/.test(url)) throw new DomainError('validation');
+    const note = input.note?.trim() ? maskSecrets(input.note.trim()).text : null;
+    const fr: FeedbackRequest = {
+      id: uuid(),
+      roomId,
+      kind,
+      status: 'open',
+      url,
+      note,
+      requesterId: actorId,
+      reviewerId: null,
+      createdAt: iso(now),
+      confirmedAt: null,
+    };
     this.s.feedback.push(fr);
-    return fr;
+    r.lastActivityAt = iso(now);
+    const by = this.summaryById(actorId).displayName;
+    for (const m of this.s.members.filter((x) => x.roomId === roomId && x.userId !== actorId)) {
+      this.notify(
+        m.userId,
+        'feedback-requested',
+        { room: r.name, code: r.inviteCode, author: by, kind },
+        now,
+      );
+    }
+    return this.feedbackItem(fr);
+  }
+
+  private feedbackOf(id: ID) {
+    const f = this.s.feedback.find((x) => x.id === id);
+    if (!f) throw new DomainError('not_found');
+    return f;
+  }
+
+  takeFeedback(id: ID, actorId: ID, now: number) {
+    const f = this.feedbackOf(id);
+    const r = this.room(f.roomId);
+    if (f.requesterId === actorId) throw new DomainError('feedback.self_review');
+    if (f.status === 'in-progress' && f.reviewerId === actorId) return this.feedbackItem(f);
+    if (f.status === 'in-progress') throw new DomainError('feedback.already_taken');
+    if (f.status !== 'open') throw new DomainError('feedback.invalid_status');
+    f.status = 'in-progress';
+    f.reviewerId = actorId;
+    r.lastActivityAt = iso(now);
+    this.notify(
+      f.requesterId,
+      'feedback-taken',
+      { room: r.name, code: r.inviteCode, author: this.summaryById(actorId).displayName },
+      now,
+    );
+    return this.feedbackItem(f);
+  }
+
+  /** Barème §6.3 : « Revue de code donnée », +8, confirmée par le demandeur. */
+  confirmFeedback(id: ID, actorId: ID, now: number) {
+    const f = this.feedbackOf(id);
+    const r = this.room(f.roomId);
+    if (f.requesterId !== actorId) throw new DomainError('forbidden');
+    if (f.status !== 'in-progress' || !f.reviewerId)
+      throw new DomainError('feedback.invalid_status');
+    f.status = 'done';
+    f.confirmedAt = iso(now);
+    r.lastActivityAt = iso(now);
+    const points =
+      f.kind === 'code-review'
+        ? this.award(
+            f.reviewerId,
+            'code-review',
+            r.tagIds,
+            { sourceType: 'room', sourceId: r.id, sourceLabel: r.name },
+            now,
+          )
+        : 0;
+    this.notify(
+      f.reviewerId,
+      'feedback-confirmed',
+      {
+        room: r.name,
+        code: r.inviteCode,
+        points,
+        count: points,
+        author: this.summaryById(actorId).displayName,
+      },
+      now,
+    );
+    return { request: this.feedbackItem(f), points };
+  }
+
+  cancelFeedback(id: ID, actorId: ID) {
+    const f = this.feedbackOf(id);
+    if (f.requesterId !== actorId) throw new DomainError('forbidden');
+    if (f.status !== 'open' && f.status !== 'in-progress')
+      throw new DomainError('feedback.invalid_status');
+    f.status = 'cancelled';
+    if (f.reviewerId) {
+      const r = this.room(f.roomId);
+      this.notify(
+        f.reviewerId,
+        'feedback-cancelled',
+        { room: r.name, code: r.inviteCode, author: this.summaryById(actorId).displayName },
+        Date.now(),
+      );
+    }
+    return this.feedbackItem(f);
+  }
+
+  feedbackItem(f: FeedbackRequest): FeedbackRequestItem {
+    const r = this.room(f.roomId);
+    // Données d'une ancienne version du mode démo : la demande venait du créateur.
+    const requesterId = f.requesterId ?? r.ownerId;
+    return {
+      ...f,
+      url: f.url ?? null,
+      note: f.note ?? null,
+      requesterId,
+      reviewerId: f.reviewerId ?? null,
+      confirmedAt: f.confirmedAt ?? null,
+      requester: this.summaryById(requesterId),
+      reviewer: f.reviewerId ? this.summaryById(f.reviewerId) : null,
+      room: { id: r.id, code: r.inviteCode, name: r.name },
+      tags: this.tagsOf(r.tagIds),
+    };
   }
 
   roomItem(r: Room): RoomListItem {

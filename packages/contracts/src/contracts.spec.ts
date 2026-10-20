@@ -21,6 +21,13 @@ const me = {
   isAdmin: false,
   isDemo: false,
   createdAt: '2026-10-08T10:00:00.000Z',
+  privacy: {
+    unlisted: false,
+    hideCountry: false,
+    hideTimezone: false,
+    hideAvailability: false,
+    hideStats: false,
+  },
   trust: {
     githubLinked: true,
     githubAccountYears: 6,

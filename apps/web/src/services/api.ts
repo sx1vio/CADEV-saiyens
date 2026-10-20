@@ -32,16 +32,21 @@ import type {
   SystemStatus,
   Tag,
   Task,
+  TaskSuggestions,
   TaskStatus,
   User,
   UserSummary,
   Answer,
   DeploymentChallenge,
   RoomDeployment,
+  FeedbackInput,
   FeedbackRequest,
+  FeedbackRequestItem,
   OfflineAction,
   QuestionText,
   SyncOutcome,
+  Lang,
+  Translation,
 } from './types';
 
 export type QuestionTab = 'for-me' | 'unanswered' | 'resolved' | 'all' | 'mine';
@@ -108,7 +113,8 @@ export interface DevHubApi {
   claim(questionId: ID): Promise<void>;
   proposePair(questionId: ID, startsAt: string, videoLink: string): Promise<PairSession>;
   respondPair(pairId: ID, accept: boolean): Promise<PairSession>;
-  translate(text: string, to: 'fr' | 'en'): Promise<string>;
+  /** S10 : traduction IA côté serveur, mise en cache ; jamais en mode local. */
+  translate(target: { type: 'question' | 'answer'; id: ID }, to: Lang): Promise<Translation>;
 
   /* Salles — /rooms, /tasks */
   listRooms(opts?: { tag?: string; q?: string; mine?: boolean }): Promise<RoomListItem[]>;
@@ -120,6 +126,7 @@ export interface DevHubApi {
   requestJoin(roomId: ID, message: string): Promise<JoinRequest>;
   respondJoin(requestId: ID, accept: boolean): Promise<JoinRequest>;
   createTask(roomId: ID, input: NewTaskInput): Promise<Task>;
+  suggestTasks(roomId: ID): Promise<TaskSuggestions>;
   takeTask(taskId: ID): Promise<Task>;
   moveTask(taskId: ID, status: TaskStatus): Promise<Task>;
   completeTask(
@@ -132,7 +139,18 @@ export interface DevHubApi {
     kind: RoomMessage['kind'],
     clientId: ID,
   ): Promise<RoomMessage>;
-  requestFeedback(roomId: ID, kind: FeedbackRequest['kind']): Promise<FeedbackRequest>;
+  /** R6 : un membre demande un retour ou une revue ; les autres membres sont notifiés. */
+  requestFeedback(
+    roomId: ID,
+    kind: FeedbackRequest['kind'],
+    input?: FeedbackInput,
+  ): Promise<FeedbackRequestItem>;
+  /** R6 : flux de la stack, demandes ouvertes des salles publiques (étiquettes : slugs). */
+  listFeedbackRequests(opts?: { tags?: string[] }): Promise<FeedbackRequestItem[]>;
+  takeFeedback(id: ID): Promise<FeedbackRequestItem>;
+  /** Le demandeur confirme : +8 Proof XP au relecteur pour une revue de code. */
+  confirmFeedback(id: ID): Promise<{ request: FeedbackRequestItem; points: number }>;
+  cancelFeedback(id: ID): Promise<FeedbackRequestItem>;
   /** Idée A (Systalink) : preuve « en production », réservée au créateur et aux mainteneurs. */
   getDeployment(roomId: ID): Promise<DeploymentChallenge | null>;
   setDeployment(roomId: ID, url: string): Promise<DeploymentChallenge>;
@@ -142,6 +160,8 @@ export interface DevHubApi {
   discoverDevs(filters: DiscoverFilters): Promise<DevCard[]>;
   leaderboard(): Promise<LeaderboardRow[]>;
   getPassport(handle: string): Promise<Passport>;
+  /** PR4 — POST /u/:handle/contact : message relayé par notification puis par e-mail (Y3). */
+  contactDev(handle: string, message: string): Promise<void>;
 
   /* Notifications */
   listNotifications(): Promise<AppNotification[]>;

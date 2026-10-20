@@ -28,7 +28,7 @@ export function describe(
   n: PendingNotification,
   lang: EmailLang,
   appUrl: string,
-): { line: string; url: string } {
+): { line: string; url: string; detail?: string } {
   const p = n.payload;
   const fr = lang === 'fr';
   const question = new URL(`/sos/${str(p.questionId)}`, appUrl).toString();
@@ -76,6 +76,48 @@ export function describe(
           : `Your contribution “${str(p.taskTitle)}” was accepted: +${str(p.points)} Proof XP`,
         url: rooms,
       };
+    case 'contact.request':
+      // PR4 : le message suit la ligne ; on répond depuis le Passport de l'expéditeur.
+      return {
+        line: fr
+          ? `${str(p.byName)} (@${str(p.by)}) t'a écrit depuis ton Passport`
+          : `${str(p.byName)} (@${str(p.by)}) wrote to you from your Passport`,
+        url: new URL(`/u/${encodeURIComponent(str(p.by))}`, appUrl).toString(),
+        detail: str(p.message),
+      };
+    case 'feedback.requested':
+      return {
+        line: fr
+          ? `${str(p.by)} demande ${p.kind === 'code_review' ? 'une revue de code' : 'un retour'} sur ${str(p.roomName)}`
+          : `${str(p.by)} asks for ${p.kind === 'code_review' ? 'a code review' : 'feedback'} on ${str(p.roomName)}`,
+        url: rooms,
+      };
+    case 'feedback.taken':
+      return {
+        line: fr
+          ? `${str(p.by)} relit ${str(p.roomName)}`
+          : `${str(p.by)} is reviewing ${str(p.roomName)}`,
+        url: rooms,
+      };
+    case 'feedback.confirmed':
+      return {
+        line:
+          Number(p.points) > 0
+            ? fr
+              ? `Ta revue de ${str(p.roomName)} est confirmée : +${str(p.points)} Proof XP`
+              : `Your review of ${str(p.roomName)} was confirmed: +${str(p.points)} Proof XP`
+            : fr
+              ? `Ton retour sur ${str(p.roomName)} est confirmé`
+              : `Your feedback on ${str(p.roomName)} was confirmed`,
+        url: rooms,
+      };
+    case 'feedback.cancelled':
+      return {
+        line: fr
+          ? `${str(p.by)} a retiré sa demande de relecture sur ${str(p.roomName)}`
+          : `${str(p.by)} withdrew their review request on ${str(p.roomName)}`,
+        url: rooms,
+      };
     default:
       return { line: fr ? 'Nouvelle notification' : 'New notification', url: appUrl };
   }
@@ -98,11 +140,20 @@ export function renderDigest(
   const footer = fr
     ? `Envoyé via Systalink Mail. Ne plus recevoir ces e-mails : ${input.unsubscribeUrl}`
     : `Sent via Systalink Mail. Stop these emails: ${input.unsubscribeUrl}`;
-  const text = [hello, '', ...items.map((i) => `- ${i.line}\n  ${i.url}`), '', footer].join('\n');
+  const text = [
+    hello,
+    '',
+    ...items.map((i) => `- ${i.line}\n${i.detail ? `  « ${i.detail} »\n` : ''}  ${i.url}`),
+    '',
+    footer,
+  ].join('\n');
   const html = [
     `<p>${escapeHtml(hello)}</p>`,
     '<ul>',
-    ...items.map((i) => `<li><a href="${escapeHtml(i.url)}">${escapeHtml(i.line)}</a></li>`),
+    ...items.map(
+      (i) =>
+        `<li><a href="${escapeHtml(i.url)}">${escapeHtml(i.line)}</a>${i.detail ? `<br><q>${escapeHtml(i.detail)}</q>` : ''}</li>`,
+    ),
     '</ul>',
     `<p style="color:#666;font-size:12px">${fr ? 'Envoyé via Systalink Mail.' : 'Sent via Systalink Mail.'} <a href="${escapeHtml(input.unsubscribeUrl)}">${fr ? 'Ne plus recevoir ces e-mails' : 'Unsubscribe'}</a></p>`,
   ].join('\n');
