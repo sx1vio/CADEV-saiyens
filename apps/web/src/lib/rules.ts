@@ -4,7 +4,15 @@
  * - Matching : CDC v3 §6.2 (+ X4 démarrage à froid, S10 langue, PR10 « je peux aider »)
  * Partagées par le serveur local ; le back-end doit appliquer les mêmes.
  */
-import type { Lang, MatchReason, SkillLevel, User, UserSkill, XPKind } from '@/services/types';
+import type {
+  Lang,
+  MatchReason,
+  SkillLevel,
+  User,
+  UserSkill,
+  XPKind,
+  XpRules,
+} from '@/services/types';
 
 export const XP: Record<Exclude<XPKind, 'revert'>, number> = {
   'answer-accepted': 10,
@@ -31,6 +39,29 @@ export const GUARDS = {
   claimExpiryMinutes: 20,
   maxSolicitationsPer24h: 5,
   activeDays: 30,
+};
+
+/** X5 : barème de repli (mode local, hors ligne) ; en ligne, la page lit GET /rules/xp. */
+export const STATIC_XP_RULES: XpRules = {
+  points: {
+    accepted: XP['answer-accepted'],
+    fast: XP['fast-bonus'],
+    helpful: XP['answer-helpful'],
+    contribution: XP['contribution-accepted'],
+    review: XP['code-review'],
+    demo: XP['project-demo'],
+    resolved: XP['question-resolved'],
+    deployment: XP['deployment-verified'],
+  },
+  dailyCap: GUARDS.dailyCap,
+  fastBonusMinutes: GUARDS.fastBonusMinutes,
+  helpfulVotesPerAnswer: GUARDS.maxHelpfulVotesPerAnswer,
+  validationsPerPairPerWeek: GUARDS.maxAcceptsPerPairPerWeek,
+  minVoterAccountAgeHours: GUARDS.minAccountAgeHoursToVote,
+  githubPerRepo: 5,
+  githubCap: 40,
+  platformCap: 60,
+  activeMonths: 24,
 };
 
 export function githubSignal(qualifiedRepos: number) {

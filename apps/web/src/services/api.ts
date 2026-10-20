@@ -47,6 +47,7 @@ import type {
   SyncOutcome,
   Lang,
   Translation,
+  XpRules,
 } from './types';
 
 export type QuestionTab = 'for-me' | 'unanswered' | 'resolved' | 'all' | 'mine';
@@ -191,6 +192,8 @@ export interface DevHubApi {
   /** Y5 : null sans historique mesuré (serveur simulé), plutôt qu'une courbe inventée. */
   getStatusHistory(days: number): Promise<StatusHistory | null>;
   getImpact(): Promise<ImpactStats>;
+  /** X5 : barème public des Proof XP. */
+  getXpRules(): Promise<XpRules>;
   /** Idées A et B : renvois vers Systalink, projets en production chez Systalink. */
   getEcosystem(): Promise<SystalinkEcosystem>;
 }

@@ -673,3 +673,30 @@ describe('pair programming (S5)', () => {
     ).toBe('pair-declined');
   });
 });
+
+describe('barème des Proof XP (X5)', () => {
+  it('les valeurs viennent de GET /rules/xp ; un genre inconnu est ignoré', () => {
+    const r = m.xpRules({
+      points: { answer_accepted: 12, code_review_given: 8, inconnu: 99 },
+      limits: {
+        dailyCap: 70,
+        uncappedKinds: ['answer_fast_bonus'],
+        fastBonusMinutes: 20,
+        helpfulVotesPerAnswer: 4,
+        validationsPerPairPerWeek: 3,
+        minVoterAccountAgeHours: 48,
+      },
+      scoring: {
+        githubPerRepo: 5,
+        githubCap: 40,
+        platformCap: 60,
+        activeMonths: 24,
+        minLanguageShare: 0.1,
+      },
+    });
+    expect(r.points.accepted).toBe(12);
+    expect(r.points.review).toBe(8);
+    expect(r).toMatchObject({ dailyCap: 70, fastBonusMinutes: 20, validationsPerPairPerWeek: 3 });
+    expect(Object.keys(r.points)).not.toContain('inconnu');
+  });
+});
