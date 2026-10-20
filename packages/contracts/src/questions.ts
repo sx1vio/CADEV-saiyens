@@ -87,6 +87,13 @@ export const ListQuestionsQuery = z.object({
   mine: booleanFlag,
   /** Sans réponse (file « Personne n'a encore répondu », S16). */
   unanswered: booleanFlag,
+  /** Mes stacks (connecté) : étiquettes de mes compétences et de « Je peux aider sur » (S16). */
+  forMe: booleanFlag,
+  /**
+   * Ordre : `recent` (le plus récent d'abord) ou `waiting` (S16 : la plus urgente, puis celle qui
+   * attend depuis le plus longtemps). Ignoré avec `q`, triée par pertinence (S6).
+   */
+  sort: z.enum(['recent', 'waiting']).default('recent'),
   cursor: z.string().max(200).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });

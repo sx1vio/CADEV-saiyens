@@ -404,7 +404,8 @@ const fr = {
     forYou: 'Questions de tes stacks',
     forYouEmpty: 'Aucune question ouverte sur tes stacks. Belle journée !',
     unanswered: 'Personne n’a encore répondu',
-    unansweredHint: 'Les plus anciennes et les plus urgentes en premier.',
+    unansweredHint:
+      'Les plus urgentes d’abord, puis celles qui attendent depuis le plus longtemps.',
     unansweredEmpty: 'Toutes les questions ont au moins une réponse.',
     myTasks: 'Mes tâches en cours',
     myTasksEmpty: 'Aucune tâche prise. Trouve une salle qui a besoin de toi.',
