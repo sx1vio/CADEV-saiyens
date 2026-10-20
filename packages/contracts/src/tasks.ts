@@ -68,11 +68,11 @@ export const CompleteTaskResponse = z.object({
 });
 export type CompleteTaskResponse = z.infer<typeof CompleteTaskResponse>;
 
-/** POST /api/v1/rooms/:id/tasks/suggest (R5), membres : langue des tâches proposées. */
+/** POST /api/v1/rooms/:id/tasks/suggest (R5), créateur et mainteneurs : langue des tâches proposées. */
 export const SuggestTasksRequest = z.object({ lang: z.enum(['fr', 'en']).default('fr') });
 export type SuggestTasksRequest = z.infer<typeof SuggestTasksRequest>;
 
-/** Tâche proposée par l'IA : rien n'est créé tant qu'un membre ne la valide pas (POST /tasks). */
+/** Tâche proposée par l'IA : rien n'est créé tant que le créateur ne la valide pas (POST /tasks). */
 export const SuggestedTask = z.object({
   title: z.string().trim().min(3).max(150),
   description: z.string().trim().max(1_000).nullable(),

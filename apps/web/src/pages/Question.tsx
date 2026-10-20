@@ -239,6 +239,13 @@ export default function QuestionPage() {
                 })}
               </p>
               <p className="mt-0.5 text-sm text-white/65">{t('question.knowledgeCard')}</p>
+              {/* S6 : la fiche mène d'abord à la solution validée. */}
+              <a
+                href={`#answer-${accepted.id}`}
+                className="mt-2 inline-block text-sm font-semibold text-white underline underline-offset-4"
+              >
+                {t('question.seeSolution')}
+              </a>
             </div>
           </div>
         )}
@@ -546,8 +553,9 @@ function AnswerItem({
   const translation = useTranslated({ type: 'answer', id: a.id }, a.body);
   return (
     <li
+      id={`answer-${a.id}`}
       className={cn(
-        'relative flex gap-3 rounded-[10px] p-4 sm:p-5',
+        'relative flex scroll-mt-6 gap-3 rounded-[10px] p-4 sm:p-5',
         a.isAccepted ? 'bg-surface-1 ring-2 ring-success/50' : 'bg-surface-1',
       )}
     >
