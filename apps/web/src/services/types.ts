@@ -57,6 +57,8 @@ export interface User {
   emailNotifications?: boolean;
   /** Y3 : le compte a une adresse e-mail, sans laquelle aucun récapitulatif ne part. */
   hasEmail?: boolean;
+  /** PR14 : confidentialité du Passport, appliquée par l'API (API seulement). */
+  privacy?: PrivacySettings;
   /** Préférence T3 : pourquoi je viens */
   intent?: 'get-help' | 'help' | 'find-project' | 'start-project';
   codeOfConductAcceptedAt?: ISODate;
@@ -582,6 +584,18 @@ export interface ProfileInput {
   intent?: User['intent'];
   codeOfConductAcceptedAt?: ISODate;
   emailNotifications?: boolean;
+  /** PR14 : seuls les réglages fournis changent. */
+  privacy?: Partial<PrivacySettings>;
+}
+
+/** PR14 : ce que le Passport public cache. Masquer le pays masque aussi le fuseau. */
+export interface PrivacySettings {
+  /** Absent de la découverte et du classement ; le Passport reste accessible par son lien. */
+  unlisted: boolean;
+  hideCountry: boolean;
+  hideTimezone: boolean;
+  hideAvailability: boolean;
+  hideStats: boolean;
 }
 
 /* ---------- File hors ligne (O2) ---------- */
