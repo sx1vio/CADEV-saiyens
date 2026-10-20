@@ -38,6 +38,7 @@ GET /api/v1/questions?status=open&tag=docker&limit=20&cursor=eyJjIjoiMjAyNi0xMC0
 
 - `limit` vaut 20 par défaut et 50 au maximum.
 - Le curseur est opaque (base64url de la clé de tri), le client ne le construit jamais.
+- Avec une recherche (`q`), les résultats sont triés par **pertinence** (S6) : titre et corps de la question, puis sa réponse acceptée. Le curseur reprend juste après le dernier résultat reçu, dans cet ordre (200 résultats au plus).
 - Il n'y a pas de total, car il est coûteux. Les écrans qui affichent un nombre utilisent un endpoint de statistiques dédié.
 
 ## Erreurs
