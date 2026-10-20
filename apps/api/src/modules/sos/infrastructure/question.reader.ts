@@ -6,11 +6,19 @@ import type {
   QuestionDetail,
   QuestionSummary,
 } from '@devhub/contracts';
-import { afterCursor, decodeCursor, encodeCursor } from '../../../infrastructure/http/cursor';
+import {
+  type Cursor,
+  afterCursor,
+  decodeCursor,
+  encodeCursor,
+} from '../../../infrastructure/http/cursor';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 
 const author = { select: { handle: true, displayName: true, avatarUrl: true, isDemo: true } };
 const tags = { select: { tag: { select: { slug: true, label: true } } } };
+
+/** S16 : de la plus urgente à la moins urgente (ordre de l'enum `Urgency` inversé). */
+const URGENCY_DESC = ['high', 'normal', 'low'] as const;
 
 /** Nombre maximal de résultats de la recherche plein texte (S6) avant pagination. */
 const SEARCH_LIMIT = 200;
@@ -27,9 +35,13 @@ export class QuestionReader {
     const where = {
       hiddenAt: null,
       ...(query.status ? { status: query.status } : {}),
-      ...(query.tag ? { tags: { some: { tag: { slug: query.tag } } } } : {}),
       ...(query.mine ? { authorId: viewerId ?? '00000000-0000-0000-0000-000000000000' } : {}),
       ...(query.unanswered ? { answers: { none: { hiddenAt: null } } } : {}),
+      // `tag` et « mes stacks » portent tous deux sur `tags` : combinés, jamais écrasés.
+      AND: [
+        query.tag ? { tags: { some: { tag: { slug: query.tag } } } } : {},
+        query.forMe ? await this.myStacks(viewerId) : {},
+      ],
     };
     const include = {
       author,
@@ -49,6 +61,13 @@ export class QuestionReader {
       found.sort((a, b) => position.get(a.id)! - position.get(b.id)!);
       const start = cursor ? found.findIndex((r) => r.id === cursor.id) + 1 : 0;
       rows = found.slice(start, start + query.limit + 1);
+    } else if (query.sort === 'waiting') {
+      rows = await this.prisma.question.findMany({
+        where: { AND: [where, await this.afterWaiting(cursor)] },
+        orderBy: [{ urgency: 'desc' }, { createdAt: 'asc' }, { id: 'asc' }],
+        take: query.limit + 1,
+        include,
+      });
     } else {
       rows = await this.prisma.question.findMany({
         where: { ...where, ...afterCursor(cursor) },
@@ -134,6 +153,44 @@ export class QuestionReader {
         notifiedAt: m.notifiedAt.toISOString(),
         claimedAt: m.claimedAt?.toISOString() ?? null,
       })),
+    };
+  }
+
+  /**
+   * S16 : « mes stacks », les étiquettes de mes compétences et de « Je peux aider sur ». Sans
+   * session ou sans étiquette (compte neuf), aucun filtre : la file reste visible.
+   */
+  private async myStacks(viewerId: string | null) {
+    if (!viewerId) return {};
+    const [skills, user] = await Promise.all([
+      this.prisma.userSkill.findMany({ where: { userId: viewerId }, select: { tagId: true } }),
+      this.prisma.user.findUnique({ where: { id: viewerId }, select: { canHelpTagIds: true } }),
+    ]);
+    const tagIds = [...new Set([...skills.map((s) => s.tagId), ...(user?.canHelpTagIds ?? [])])];
+    return tagIds.length ? { tags: { some: { tagId: { in: tagIds } } } } : {};
+  }
+
+  /**
+   * S16 : suite de la file triée (urgence décroissante, puis la plus ancienne d'abord). Le curseur
+   * garde son format (date, identifiant) ; l'urgence de la dernière question reçue est relue.
+   */
+  private async afterWaiting(cursor: Cursor | null) {
+    if (!cursor) return {};
+    const last = await this.prisma.question.findUnique({
+      where: { id: cursor.id },
+      select: { urgency: true },
+    });
+    if (!last) return {};
+    const at = new Date(cursor.at);
+    const lessUrgent = URGENCY_DESC.slice(URGENCY_DESC.indexOf(last.urgency) + 1);
+    return {
+      OR: [
+        { urgency: { in: lessUrgent } },
+        {
+          urgency: last.urgency,
+          OR: [{ createdAt: { gt: at } }, { createdAt: at, id: { gt: cursor.id } }],
+        },
+      ],
     };
   }
 
