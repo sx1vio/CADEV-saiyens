@@ -20,6 +20,7 @@ import type {
   MeResponse,
   MessageView,
   NotificationView,
+  PairSessionView,
   PassportResponse,
   ProofsResponse,
   PublicAuthor,
@@ -52,6 +53,7 @@ import type {
   NewTaskInput,
   OfflineAction,
   NotificationType,
+  PairSession,
   Passport,
   QuestionDetail,
   QuestionListItem,
@@ -276,6 +278,17 @@ export function questionDetail(q: ApiQuestionDetail): QuestionDetail {
   };
 }
 
+/** S5 : les personnes sont désignées par leur handle, comme partout côté front en mode API. */
+export const pairSession = (p: PairSessionView): PairSession => ({
+  id: p.id,
+  questionId: p.questionId,
+  hostId: p.host.handle,
+  guestId: p.guest.handle,
+  startsAt: p.startsAt,
+  videoLink: p.videoLink,
+  status: p.status,
+});
+
 const ROOM_STATE: Record<ApiRoomState, RoomState> = {
   idea: 'idea',
   in_progress: 'building',
@@ -449,6 +462,9 @@ const NOTIF: Record<NotificationView['type'], NotificationType> = {
   'feedback.taken': 'feedback-taken',
   'feedback.confirmed': 'feedback-confirmed',
   'feedback.cancelled': 'feedback-cancelled',
+  'pair.proposed': 'pair',
+  // Remplacé selon la décision (pair-accepted ou pair-declined), voir notification().
+  'pair.answered': 'pair-accepted',
 };
 
 /** Les libellés du front attendent `author`, `title`, `room`, `task`, `user`, `points`. */
@@ -469,7 +485,12 @@ export function notification(n: NotificationView, userId: string): AppNotificati
   return {
     id: n.id,
     userId,
-    type: NOTIF[n.type],
+    type:
+      n.type === 'pair.answered'
+        ? p.decision === 'accepted'
+          ? 'pair-accepted'
+          : 'pair-declined'
+        : NOTIF[n.type],
     payload,
     readAt: n.readAt,
     createdAt: n.createdAt,

@@ -22,6 +22,7 @@ import type {
   ListJoinRequestsResponse,
   ListMessagesResponse,
   ListNotificationsResponse,
+  ListPairSessionsResponse,
   ListQuestionsResponse,
   ListAuditResponse,
   ListReportsResponse,
@@ -30,6 +31,7 @@ import type {
   ListTasksResponse,
   MeResponse,
   MessageView,
+  PairSessionView,
   PassportResponse,
   PostAnswerResponse,
   ProofsResponse,
@@ -269,7 +271,11 @@ export const httpApi: DevHubApi = {
     const q = m.questionDetail(await get<ApiQuestionDetail>(`/questions/${id}`));
     // S7 : un échec de la recherche ne doit jamais empêcher d'afficher la fiche.
     const related = await similar(q.title, id).catch(() => []);
-    return { ...q, similar: related };
+    // S5 : les créneaux ne concernent que l'aidant et l'auteur ; sans session, il n'y en a aucun.
+    const pairs = await get<ListPairSessionsResponse>(`/questions/${id}/pair-sessions`)
+      .then((r) => r.data.map(m.pairSession))
+      .catch(() => []);
+    return { ...q, similar: related, pairSessions: pairs };
   },
   similarQuestions: (text) => similar(text),
   createQuestion: async (input, clientId) => {
@@ -337,8 +343,12 @@ export const httpApi: DevHubApi = {
   claim: async (questionId) => {
     await post(`/questions/${questionId}/claim`);
   },
-  proposePair: async () => unavailable(),
-  respondPair: async () => unavailable(),
+  proposePair: async (questionId, startsAt, videoLink) =>
+    m.pairSession(
+      await post<PairSessionView>(`/questions/${questionId}/pair`, { startsAt, videoLink }),
+    ),
+  respondPair: async (pairId, accept) =>
+    m.pairSession(await post<PairSessionView>(`/pair-sessions/${pairId}/respond`, { accept })),
   translate: async (target, to) => {
     const t = await post<TranslationResponse>(
       `/${target.type === 'question' ? 'questions' : 'answers'}/${target.id}/translate?lang=${to}`,

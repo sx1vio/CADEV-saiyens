@@ -6,6 +6,7 @@ export * from './feedback';
 export * from './me';
 export * from './moderation';
 export * from './notifications';
+export * from './pair';
 export * from './passport';
 export * from './platform';
 export * from './questions';

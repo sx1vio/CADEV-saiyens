@@ -170,7 +170,7 @@ export interface PairSession {
   guestId: ID;
   startsAt: ISODate;
   videoLink: string;
-  status: 'proposed' | 'accepted' | 'declined' | 'done';
+  status: 'proposed' | 'accepted' | 'declined' | 'done' | 'cancelled';
 }
 
 export type RoomState = 'idea' | 'building' | 'beta' | 'live';
@@ -345,7 +345,9 @@ export type NotificationType =
   | 'feedback-cancelled'
   | 'claim'
   | 'pair'
-  | 'contact';
+  | 'contact'
+  | 'pair-accepted'
+  | 'pair-declined';
 
 export interface AppNotification {
   id: ID;

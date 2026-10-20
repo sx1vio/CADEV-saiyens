@@ -4,6 +4,7 @@
  * sur un état en mémoire, persisté dans IndexedDB. Le back-end réel doit se comporter pareil :
  * ce fichier sert aussi de spécification exécutable pour le rôle 2.
  */
+import { isAllowedVideoLink } from '@devhub/contracts';
 import {
   GUARDS,
   XP,
@@ -553,12 +554,8 @@ export class Engine {
   proposePair(questionId: ID, hostId: ID, startsAt: string, videoLink: string) {
     const q = this.s.questions.find((x) => x.id === questionId);
     if (!q) throw new DomainError('not-found');
-    if (
-      !/^https:\/\/(meet\.google\.com|meet\.jit\.si|zoom\.us|teams\.microsoft\.com|whereby\.com)\//.test(
-        videoLink,
-      )
-    )
-      throw new DomainError('pair.bad-link');
+    // Même liste de services que l'API (@devhub/contracts).
+    if (!isAllowedVideoLink(videoLink)) throw new DomainError('pair.bad-link');
     const p: PairSession = {
       id: uuid(),
       questionId,
