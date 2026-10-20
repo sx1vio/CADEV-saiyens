@@ -403,7 +403,7 @@ const en: Dict = {
     forYou: 'Questions in your stacks',
     forYouEmpty: 'No open question in your stacks. Enjoy your day!',
     unanswered: 'Nobody has answered yet',
-    unansweredHint: 'Oldest and most urgent first.',
+    unansweredHint: 'Most urgent first, then the ones waiting the longest.',
     unansweredEmpty: 'Every question has at least one answer.',
     myTasks: 'My tasks in progress',
     myTasksEmpty: 'No task taken. Find a room that needs you.',

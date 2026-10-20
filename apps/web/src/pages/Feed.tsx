@@ -10,10 +10,13 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { QuestionCard } from '@/components/domain';
 import { Avatar, Skeleton } from '@/components/ui/primitives';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
+import { api } from '@/services';
 import { POSTS } from '@/platform/data/feed';
 import { JOBS } from '@/platform/data/jobs';
 import {
@@ -59,6 +62,7 @@ export default function Feed() {
     <div className="dh-page mx-auto flex w-full max-w-[1000px] justify-center gap-12 px-4 py-6 sm:px-6 sm:py-8">
       <main className="w-full max-w-[640px] min-w-0">
         <Composer />
+        <Unanswered />
         <nav
           aria-label="Filtrer le fil"
           className="no-scrollbar mt-4 flex gap-1.5 overflow-x-auto border-b border-line pb-4"
@@ -94,6 +98,36 @@ export default function Feed() {
         </div>
       </aside>
     </div>
+  );
+}
+
+/* ---------------- S16 : « Personne n'a encore répondu » ---------------- */
+/** Questions de mes stacks sans réponse, la plus urgente puis la plus ancienne d'abord. */
+function Unanswered() {
+  const { t } = useTranslation();
+  const { data: home } = useQuery('home', () => api.getHome());
+  const items = home?.unanswered.slice(0, 3) ?? [];
+  if (!items.length) return null;
+  return (
+    <section aria-labelledby="unanswered-title" className="mt-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="unanswered-title" className="dh-title-bar">
+          {t('home.unanswered')}
+        </h2>
+        <Link
+          to="/sos?tab=unanswered"
+          className="shrink-0 text-[12.5px] text-subtle hover:text-accent-text"
+        >
+          {t('common.seeAll')}
+        </Link>
+      </div>
+      <p className="mt-1 text-[12.5px] text-subtle">{t('home.unansweredHint')}</p>
+      <div className="mt-2 flex flex-col gap-2">
+        {items.map((q) => (
+          <QuestionCard key={q.id} q={q} showBlocked />
+        ))}
+      </div>
+    </section>
   );
 }
 
