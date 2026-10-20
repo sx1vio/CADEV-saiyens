@@ -1,8 +1,9 @@
-import { ChevronRight, Info, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, Info, Map, MoreHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ErrorState } from '@/components/djeli';
 import { PageHeader } from '@/components/domain';
+import { ButtonLink } from '@/components/ui/button';
 import { CUBE, StatCard } from '@/platform/ui';
 import { Avatar, Skeleton } from '@/components/ui/primitives';
 import { formatNumber, useLang } from '@/i18n';
@@ -19,7 +20,15 @@ export default function Leaderboard() {
 
   return (
     <Page>
-      <PageHeader title={t('leaderboard.title')} subtitle={t('leaderboard.subtitle')} />
+      <PageHeader
+        title={t('leaderboard.title')}
+        subtitle={t('leaderboard.subtitle')}
+        actions={
+          <ButtonLink to="/carte" variant="secondary" icon={<Map />}>
+            {t('map.open')}
+          </ButtonLink>
+        }
+      />
       <Link
         to="/regles"
         className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent-text hover:underline"
@@ -46,7 +55,6 @@ export default function Leaderboard() {
                 dark
                 label={`1er · ${countryName(r.country, lang).toLowerCase()}`}
                 value={formatNumber(r.xp, lang)}
-                spark={[2, 3, 3, 5, 4, 6, 7, 7, 9, 10]}
                 delta={`${r.devs}`}
                 note={`${t('leaderboard.devs').toLowerCase()} · Proof XP`}
               />

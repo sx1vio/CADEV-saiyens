@@ -38,9 +38,18 @@ export const COUNTRIES: Country[] = [
 
 export const countryByCode = (code: string) => COUNTRIES.find((c) => c.code === code);
 
+const regionNames: Partial<Record<'fr' | 'en', Intl.DisplayNames>> = {};
+
+/** Nom du pays : liste locale d'abord, sinon le nom fourni par le navigateur (D4 : 54 pays). */
 export function countryName(code: string, lang: 'fr' | 'en' = 'fr') {
   const c = countryByCode(code);
-  return c ? c[lang] : code;
+  if (c) return c[lang];
+  try {
+    regionNames[lang] ??= new Intl.DisplayNames([lang], { type: 'region' });
+    return regionNames[lang].of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
 }
 
 /** Décalage UTC courant du navigateur, en heures. */

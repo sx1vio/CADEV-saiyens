@@ -18,6 +18,7 @@ import type {
   DiscoverDevsResponse,
   ImpactResponse,
   JoinRoomResponse,
+  LeaderboardMapResponse,
   LeaderboardResponse,
   ListJoinRequestsResponse,
   ListMessagesResponse,
@@ -515,6 +516,8 @@ export const httpApi: DevHubApi = {
       : cards;
   },
   leaderboard: async () => m.leaderboard(await get<LeaderboardResponse>('/leaderboard')),
+  leaderboardMap: async () =>
+    m.leaderboardMap(await get<LeaderboardMapResponse>('/leaderboard/map')),
   getPassport: async (handle) => {
     const [p, proofs] = await Promise.all([
       get<PassportResponse>(`/u/${encodeURIComponent(handle)}`),

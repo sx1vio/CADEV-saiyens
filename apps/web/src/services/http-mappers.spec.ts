@@ -673,3 +673,24 @@ describe('pair programming (S5)', () => {
     ).toBe('pair-declined');
   });
 });
+
+describe('carte de l’Afrique (D4)', () => {
+  it('agrégats de l’API : pays, hors carte et démo séparés', () => {
+    const m2 = m.leaderboardMap({
+      method: 'm',
+      activeWindowDays: 30,
+      countries: [{ country: 'SN', devs: 4, activeDevs: 2, questionsUnblocked: 3, totalXp: 90 }],
+      unlocated: { devs: 1 },
+      demo: { devs: 6, totalXp: 400 },
+      computedAt: '2026-10-20T10:00:00.000Z',
+    });
+    expect(m2).toEqual({
+      source: 'live',
+      activeWindowDays: 30,
+      method: 'm',
+      countries: [{ country: 'SN', devs: 4, activeDevs: 2, unblocked: 3, xp: 90 }],
+      unlocatedDevs: 1,
+      demo: { devs: 6, xp: 400 },
+    });
+  });
+});
