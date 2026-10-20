@@ -39,6 +39,7 @@ GET /api/v1/questions?status=open&tag=docker&limit=20&cursor=eyJjIjoiMjAyNi0xMC0
 - `limit` vaut 20 par défaut et 50 au maximum.
 - Le curseur est opaque (base64url de la clé de tri), le client ne le construit jamais.
 - Avec une recherche (`q`), les résultats sont triés par **pertinence** (S6) : titre et corps de la question, puis sa réponse acceptée. Le curseur reprend juste après le dernier résultat reçu, dans cet ordre (200 résultats au plus).
+- Avec `sort=waiting` (S16), la file « Personne n'a encore répondu » : la plus urgente d'abord, puis la plus ancienne. `forMe=true` limite aux étiquettes de mes compétences et de « Je peux aider sur » (sans session ni étiquette : aucun filtre).
 - Il n'y a pas de total, car il est coûteux. Les écrans qui affichent un nombre utilisent un endpoint de statistiques dédié.
 
 ## Erreurs
@@ -125,7 +126,7 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 | Méthode et chemin                                  | Accès                          | Rôle                                                              | US         |
 | -------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------- | ---------- |
-| `GET /questions?status=&tag=&q=&mine=&unanswered=` | Pub                            | Liste, filtres, recherche plein texte                             | S6, S16    |
+| `GET /questions?status=&tag=&q=&mine=&unanswered=` | Pub                            | Liste, filtres (`forMe`, `sort=waiting`), recherche               | S6, S16    |
 | `GET /questions/similar?title=&tags=`              | Co                             | Jusqu'à 3 questions similaires avant publication                  | S7 (P1)    |
 | `POST /questions`                                  | Co, Id                         | Poser une question. Déclenche la piste IA et le matching          | S1, S2, S3 |
 | `GET /questions/:id`                               | Pub                            | Question, piste IA, réponses, aidants sollicités et leurs raisons | S2, S3     |
