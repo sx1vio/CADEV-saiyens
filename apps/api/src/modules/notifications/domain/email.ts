@@ -118,6 +118,20 @@ export function describe(
           : `${str(p.by)} withdrew their review request on ${str(p.roomName)}`,
         url: rooms,
       };
+    case 'pair.proposed':
+      return {
+        line: fr
+          ? `${str(p.host)} te propose une session de pair programming sur « ${str(p.title)} »`
+          : `${str(p.host)} suggests a pair programming session on “${str(p.title)}”`,
+        url: question,
+      };
+    case 'pair.answered':
+      return {
+        line: fr
+          ? `Ta session de pair programming sur « ${str(p.title)} » : ${p.decision === 'accepted' ? 'acceptée' : 'refusée'}`
+          : `Your pair programming session on “${str(p.title)}”: ${p.decision === 'accepted' ? 'accepted' : 'declined'}`,
+        url: question,
+      };
     default:
       return { line: fr ? 'Nouvelle notification' : 'New notification', url: appUrl };
   }

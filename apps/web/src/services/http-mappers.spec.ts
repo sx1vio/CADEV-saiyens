@@ -595,3 +595,49 @@ describe('demandes de retour et de revue (R6)', () => {
     });
   });
 });
+
+describe('pair programming (S5)', () => {
+  const qid = '00000000-0000-4000-8000-0000000000aa';
+  const pid = '00000000-0000-4000-8000-0000000000bb';
+
+  it('une session désigne l’aidant et l’auteur par leur handle', () => {
+    expect(
+      m.pairSession({
+        id: pid,
+        questionId: qid,
+        host: moussa,
+        guest: awa,
+        startsAt: at,
+        videoLink: 'https://meet.jit.si/devhub',
+        status: 'proposed',
+        createdAt: at,
+      }),
+    ).toEqual({
+      id: pid,
+      questionId: qid,
+      hostId: 'moussa',
+      guestId: 'awa',
+      startsAt: at,
+      videoLink: 'https://meet.jit.si/devhub',
+      status: 'proposed',
+    });
+  });
+
+  it('les notifications de créneau prennent le libellé de la décision', () => {
+    const base = { id: pid, readAt: null, createdAt: at };
+    const payload = { questionId: qid, pairId: pid, title: 'nginx 502', guest: 'Awa' };
+    expect(m.notification({ ...base, type: 'pair.proposed', payload }, 'moussa').type).toBe('pair');
+    expect(
+      m.notification(
+        { ...base, type: 'pair.answered', payload: { ...payload, decision: 'accepted' } },
+        'moussa',
+      ).type,
+    ).toBe('pair-accepted');
+    expect(
+      m.notification(
+        { ...base, type: 'pair.answered', payload: { ...payload, decision: 'declined' } },
+        'moussa',
+      ).type,
+    ).toBe('pair-declined');
+  });
+});
