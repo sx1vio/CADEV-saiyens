@@ -53,6 +53,7 @@ export class PrismaQuestionWriter implements QuestionWriter {
         title: q.title,
         body: q.body,
         codeSnippet: q.codeSnippet,
+        reproUrl: q.reproUrl,
         urgency: q.urgency,
         lang: q.lang,
         tags: { create: q.tagIds.map((tagId) => ({ tagId })) },

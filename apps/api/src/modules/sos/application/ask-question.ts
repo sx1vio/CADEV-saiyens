@@ -53,6 +53,7 @@ export class AskQuestion {
       authorId: input.authorId,
       clientId: input.clientId,
       ...draft,
+      reproUrl: draft.reproUrl ?? null,
       urgency: input.urgency,
       lang: input.lang,
       tagIds: slugs.map((s) => tags.get(s)!),

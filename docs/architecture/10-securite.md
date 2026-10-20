@@ -55,7 +55,7 @@ Cross-Origin-Opener-Policy: same-origin
 - Longueurs maximales sur tous les textes (titre 150, corps 10 000, extrait 20 000, message 4 000).
 - Markdown rendu côté client avec `marked` + **DOMPurify** (liste blanche de balises, liens `rel="noopener nofollow ugc"`, protocoles `http`, `https` et `mailto` uniquement).
 - Les extraits de code ne sont **jamais exécutés**, ni côté serveur, ni dans un iframe.
-- Les liens externes saisis (dépôt, démo, reproduction S14, visio S5) sont validés : HTTPS obligatoire, liste blanche de domaines pour la reproduction (StackBlitz, CodeSandbox, Replit, gist.github.com).
+- Les liens externes saisis (dépôt, démo, reproduction S14, visio S5) sont validés : HTTPS obligatoire. Pour la reproduction, liste blanche `REPRO_HOSTS` de `@devhub/contracts`, limitée aux pages d'**éditeur** et comparée **exactement** (l'hôte, ou `www.` suivi de l'hôte) : stackblitz.com, codesandbox.io, replit.com, gist.github.com, github.com (dépôt, ticket : contenu contrôlé par GitHub), codepen.io, jsfiddle.net. Aucun sous-domaine : les domaines d'aperçu hébergé (`*.csb.app`, `*.stackblitz.io`, `*.codesandbox.io`, `*.github.io`, `*.repl.co`) publient n'importe quelle page et servent à l'hameçonnage. Ni identifiants ni port dans l'hôte. Un secret repéré dans le lien retire sa requête et son ancre (ou le lien entier s'il est dans le chemin) et compte dans « secrets masqués ».
 - SQL : uniquement Prisma ou `$queryRaw` avec gabarit paramétré. `$queryRawUnsafe` est interdit hors de l'adaptateur pg-boss (règle ESLint et point de revue).
 
 ## Secrets

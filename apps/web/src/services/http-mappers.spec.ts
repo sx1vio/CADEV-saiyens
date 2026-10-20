@@ -102,6 +102,7 @@ describe('questions', () => {
     author: awa,
     body: 'Le conteneur répond 502.',
     codeSnippet: null,
+    reproUrl: 'https://stackblitz.com/edit/demo',
     version: 1,
     aiHint: 'Vérifie le réseau Docker.',
     aiStatus: 'done' as const,
@@ -593,6 +594,37 @@ describe('demandes de retour et de revue (R6)', () => {
       type: 'feedback-confirmed',
       payload: { room: 'Kora', code: 'abcd2345', author: 'Awa', count: 0 },
     });
+  });
+});
+
+describe('lien de reproduction (S14)', () => {
+  const input = {
+    title: 'Vite ne recharge plus',
+    body: 'Le HMR est cassé.',
+    codeSnippet: '',
+    codeLang: 'text',
+    urgency: 'normal' as const,
+    tagIds: ['vite'],
+  };
+
+  it('un lien accepté part dans son propre champ, pas dans le corps', () => {
+    const body = m.askQuestion(
+      { ...input, reproUrl: ' https://codesandbox.io/s/x ' },
+      '00000000-0000-4000-8000-000000000001',
+      'fr',
+    );
+    expect(body.reproUrl).toBe('https://codesandbox.io/s/x');
+    expect(body.body).not.toContain('codesandbox');
+  });
+
+  it('un lien hors liste (action mise en file avant la validation) reste dans le corps', () => {
+    const body = m.askQuestion(
+      { ...input, reproUrl: 'https://exemple.org/x' },
+      '00000000-0000-4000-8000-000000000001',
+      'fr',
+    );
+    expect(body.reproUrl).toBeNull();
+    expect(body.body).toContain('Reproduction : https://exemple.org/x');
   });
 });
 

@@ -20,6 +20,46 @@ export const QUESTION_LIMITS = {
   perHour: 10,
 } as const;
 
+/**
+ * S14 : sites de reproduction acceptés (10-securite.md) : les pages d'**éditeur**, comparées
+ * exactement (ou précédées de `www.`). Aucun sous-domaine : les domaines d'aperçu hébergé
+ * (`*.csb.app`, `*.stackblitz.io`, `*.codesandbox.io`, `*.github.io`, `*.repl.co`) publient
+ * n'importe quelle page et servent à l'hameçonnage.
+ */
+export const REPRO_HOSTS = [
+  'stackblitz.com',
+  'codesandbox.io',
+  'replit.com',
+  'gist.github.com',
+  'github.com',
+  'codepen.io',
+  'jsfiddle.net',
+] as const;
+
+export const REPRO_URL_MAX = 500;
+
+/**
+ * Vrai si `value` est un lien HTTPS vers un site de reproduction accepté (hôte exact). L'hôte doit
+ * être suivi de `/`, `?`, `#` ou de la fin : ni identifiants (`user@`), ni port, ni espace.
+ */
+export function isReproUrl(value: string): boolean {
+  const m = /^https:\/\/([A-Za-z0-9.-]+)(?:[/?#]\S*)?$/.exec(value);
+  if (!m) return false;
+  const host = m[1]!.toLowerCase();
+  if (host.startsWith('.') || host.includes('..')) return false;
+  return REPRO_HOSTS.some((h) => host === h || host === `www.${h}`);
+}
+
+/** Lien de reproduction (S14) : vide = absent. */
+export const ReproUrl = z
+  .string()
+  .trim()
+  .max(REPRO_URL_MAX)
+  .transform((v) => v || null)
+  .refine((v) => v === null || isReproUrl(v), {
+    message: `HTTPS link to one of: ${REPRO_HOSTS.join(', ')}`,
+  });
+
 /** POST /api/v1/questions (S1). `clientId` est généré par le client, hors ligne compris (O2). */
 export const AskQuestionRequest = z.object({
   clientId: z.uuid(),
@@ -32,6 +72,8 @@ export const AskQuestionRequest = z.object({
     .max(QUESTION_LIMITS.tagsMax),
   urgency: Urgency.default('normal'),
   lang: Lang,
+  /** S14 : lien de reproduction facultatif (liste blanche de domaines). */
+  reproUrl: ReproUrl.nullish(),
 });
 export type AskQuestionRequest = z.infer<typeof AskQuestionRequest>;
 
@@ -140,6 +182,8 @@ export type ClaimResponse = z.infer<typeof ClaimResponse>;
 export const QuestionDetail = QuestionSummary.extend({
   body: z.string(),
   codeSnippet: z.string().nullable(),
+  /** S14 : lien de reproduction, déjà validé à l'écriture. */
+  reproUrl: z.string().nullable(),
   version: z.number().int(),
   /** Piste IA, présente seulement si aiStatus = done ; à afficher avec « Généré par IA, à vérifier ». */
   aiHint: z.string().nullable(),

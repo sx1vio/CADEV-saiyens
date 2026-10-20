@@ -144,6 +144,8 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `POST /answers/:id/translate?lang=`                | Co                             | Idem pour une réponse (sans titre)                                                                                                             | S10        |
 | `POST /tags/detect`                                | Co                             | Affinage IA des étiquettes détectées localement                                                                                                | S9         |
 
+`reproUrl` (S14) : lien de reproduction facultatif de `POST /questions` (et de l'action `question` de `POST /sync`), renvoyé par `GET /questions/:id`. HTTPS seulement, vers un site de la liste blanche `REPRO_HOSTS` de `@devhub/contracts` ([10-securite.md](10-securite.md)) ; sinon `400 validation.failed`.
+
 ### Salles de projet (`rooms`)
 
 | Méthode et chemin                     | Accès                           | Rôle                                                                                                                                            | US          |

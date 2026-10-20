@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { detectTags, maskSecrets, questionQuality } from '@/lib/detect';
+import { isReproUrl } from '@/lib/repro';
 import { useQuery } from '@/lib/query';
 import { cn, uuid } from '@/lib/utils';
 import { enqueue, useNetwork } from '@/offline/network';
@@ -108,6 +109,8 @@ export function AskDialog() {
   const errors = {
     title: submitted && title.trim().length < 8 ? t('ask.errors.title') : null,
     tags: submitted && !tagIds.length ? t('ask.errors.tags') : null,
+    // S14 : liste blanche vérifiée dès la saisie, comme le fera l'API.
+    repro: reproUrl.trim() && !isReproUrl(reproUrl.trim()) ? t('ask.errors.repro') : null,
   };
 
   const reset = () => {
@@ -146,7 +149,7 @@ export function AskDialog() {
             environment,
             codeSnippet: code,
             codeLang,
-            reproUrl: reproUrl || undefined,
+            reproUrl: reproUrl.trim() || undefined,
             urgency,
             tagIds,
             roomId: prefill?.roomId ?? null,
@@ -251,7 +254,13 @@ export function AskDialog() {
               <ArrowRight />
             </Button>
           ) : (
-            <Button variant="hero" loading={busy} onClick={publish} icon={<Zap />}>
+            <Button
+              variant="hero"
+              loading={busy}
+              disabled={!!errors.repro}
+              onClick={publish}
+              icon={<Zap />}
+            >
               {busy ? t('ask.publishing') : t('ask.publish')}
             </Button>
           )}
@@ -417,6 +426,7 @@ export function AskDialog() {
                 label={t('ask.reproLabel')}
                 htmlFor="ask-repro"
                 optional={t('common.optional')}
+                error={errors.repro}
               >
                 <Input
                   id="ask-repro"
@@ -425,6 +435,7 @@ export function AskDialog() {
                   value={reproUrl}
                   onChange={(e) => setReproUrl(e.target.value)}
                   placeholder={t('ask.reproPlaceholder')}
+                  aria-invalid={!!errors.repro || undefined}
                 />
               </Field>
             </>

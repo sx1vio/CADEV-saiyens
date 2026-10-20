@@ -242,6 +242,7 @@ export class SosActions implements OnModuleInit {
           title: body.title,
           body: body.body,
           codeSnippet: body.codeSnippet ?? null,
+          reproUrl: body.reproUrl ?? null,
           tagSlugs: body.tagSlugs,
           urgency: body.urgency,
           lang: body.lang,

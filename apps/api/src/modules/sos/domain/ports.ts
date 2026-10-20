@@ -25,6 +25,7 @@ export interface NewQuestion {
   title: string;
   body: string;
   codeSnippet: string | null;
+  reproUrl: string | null;
   urgency: 'low' | 'normal' | 'high';
   lang: 'fr' | 'en';
   tagIds: string[];
