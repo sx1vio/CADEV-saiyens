@@ -253,11 +253,20 @@ export const httpApi: DevHubApi = {
       activity: [],
     };
   },
-  getLanding: async () => ({
-    stats: m.impact(await get<ImpactResponse>('/impact')),
-    live: [],
-    featured: [],
-  }),
+  getLanding: async () => {
+    // Un flux ou un classement indisponible ne doit pas masquer les compteurs.
+    const [impact, resolved, recent, board] = await Promise.all([
+      get<ImpactResponse>('/impact'),
+      get<ListQuestionsResponse>('/questions', { status: 'resolved', limit: 10 }).catch(() => null),
+      get<ListQuestionsResponse>('/questions', { limit: 10 }).catch(() => null),
+      get<LeaderboardResponse>('/leaderboard', { scope: 'devs', limit: 10 }).catch(() => null),
+    ]);
+    return {
+      stats: m.impact(impact),
+      live: m.landingActivity([...(resolved?.data ?? []), ...(recent?.data ?? [])]),
+      featured: board ? m.featuredDevs(board) : [],
+    };
+  },
 
   listQuestions: async (tab, opts = {}) =>
     (

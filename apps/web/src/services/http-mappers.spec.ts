@@ -700,3 +700,60 @@ describe('barème des Proof XP (X5)', () => {
     expect(Object.keys(r.points)).not.toContain('inconnu');
   });
 });
+
+describe('page publique en direct (T1)', () => {
+  const author = (isDemo = false) => ({
+    handle: isDemo ? 'awa-kone' : 'kofi',
+    displayName: isDemo ? 'Awa (démo)' : 'Kofi',
+    avatarUrl: null,
+    isDemo,
+  });
+  const q = (id: string, over: Partial<Parameters<typeof m.landingActivity>[0][number]> = {}) => ({
+    id,
+    title: `Question ${id}`,
+    status: 'open' as const,
+    urgency: 'normal' as const,
+    lang: 'fr' as const,
+    tags: [],
+    answerCount: 0,
+    createdAt: '2026-10-20T10:00:00.000Z',
+    resolvedAt: null,
+    author: author(),
+    ...over,
+  });
+
+  it('mêle questions posées et résolutions, sans doublon, du plus récent au plus ancien', () => {
+    const resolved = q('a', { status: 'resolved', resolvedAt: '2026-10-20T10:06:00.000Z' });
+    const items = m.landingActivity([
+      resolved,
+      q('b', { createdAt: '2026-10-20T10:03:00.000Z' }),
+      resolved,
+    ]);
+    expect(items.map((i) => i.id)).toEqual(['res-a', 'ask-b', 'ask-a']);
+    expect(items[0]).toMatchObject({ kind: 'resolved', detail: '6', targetHref: '/sos/a' });
+  });
+
+  it('exclut les comptes de démonstration et limite la longueur', () => {
+    const many = Array.from({ length: 12 }, (_, i) => q(`q${i}`));
+    expect(m.landingActivity([q('demo', { author: author(true) })])).toEqual([]);
+    expect(m.landingActivity(many, 5)).toHaveLength(5);
+  });
+
+  it('met en avant trois devs réels au plus', () => {
+    const dev = (handle: string, isDemo = false) => ({
+      handle,
+      displayName: handle,
+      country: 'CI',
+      totalXp: 10,
+      rank: 1,
+      isDemo,
+    });
+    const r = {
+      scope: 'devs' as const,
+      method: '',
+      countries: [],
+      devs: [dev('demo', true), dev('a'), dev('b'), dev('c'), dev('d')],
+    };
+    expect(m.featuredDevs(r).map((d) => d.handle)).toEqual(['a', 'b', 'c']);
+  });
+});
