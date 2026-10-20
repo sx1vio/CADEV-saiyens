@@ -1,7 +1,7 @@
 // Ports du module ai (docs/architecture/09-ia-integrations.md). Le modèle de langage est appelé
 // uniquement côté serveur, derrière LlmPort ; le contenu utilisateur n'est jamais une instruction.
 
-export type AiTaskKind = 'hint';
+export type AiTaskKind = 'hint' | 'room_tasks';
 
 /** Contenu fourni par un utilisateur : toujours encadré et présenté au modèle comme une donnée. */
 export interface UntrustedInput {
@@ -44,16 +44,21 @@ export interface HintQuestion {
   aiStatus: 'pending' | 'done' | 'failed' | 'skipped';
 }
 
-/** Statuts de ai_requests : ok, error, timeout, refusal (appels réels) ; cache et quota (sans appel). */
-export type AiRequestStatus = 'ok' | 'error' | 'timeout' | 'refusal' | 'cache' | 'quota';
+/**
+ * Statuts de ai_requests : ok, error, timeout, refusal (appels réels) ; pending (appel réservé, en
+ * cours) ; cache et quota (sans appel).
+ */
+export type AiRequestStatus =
+  'ok' | 'error' | 'timeout' | 'refusal' | 'pending' | 'cache' | 'quota';
 
-export interface AiRequestRecord {
+/** Ligne de ai_requests ; `Output` dépend de l'usage (piste : { hint }, R5 : { tasks }). */
+export interface AiRequestRecord<Output = { hint: string }> {
   userId: string;
   kind: AiTaskKind;
   inputHash: string;
   promptVer: string;
   status: AiRequestStatus;
-  output: { hint: string } | null;
+  output: Output | null;
   inputTokens?: number;
   outputTokens?: number;
   latencyMs?: number;
@@ -70,4 +75,36 @@ export interface HintStore {
   /** Écrit le résultat seulement si la question attend encore sa piste ; renvoie false sinon. */
   saveHint(questionId: string, status: HintStatus, hint: string | null): Promise<boolean>;
   recordRequest(record: AiRequestRecord): Promise<void>;
+}
+
+/** Tâche proposée depuis une discussion de salle (R5) : une proposition, jamais une écriture. */
+export interface RoomTaskSuggestion {
+  title: string;
+  description: string | null;
+  level: 'first_step' | 'easy' | 'medium' | 'hard';
+}
+
+type RoomTasksRecord = AiRequestRecord<{ tasks: RoomTaskSuggestion[] }>;
+
+export interface RoomTasksStore {
+  /** Dernières propositions réussies pour la même discussion et la même version de prompt. */
+  findCachedTasks(inputHash: string, promptVer: string): Promise<RoomTaskSuggestion[] | null>;
+  /** Ligne sans appel au modèle (cache, quota). */
+  recordRequest(record: RoomTasksRecord): Promise<void>;
+  /**
+   * Réserve atomiquement un appel au modèle (ligne « pending », comptée dans le quota horaire
+   * commun) ; null si le quota est atteint. Deux requêtes parallèles ne le dépassent pas.
+   */
+  reserveModelCall(
+    base: Pick<RoomTasksRecord, 'userId' | 'kind' | 'inputHash' | 'promptVer'>,
+    since: Date,
+    quota: number,
+  ): Promise<string | null>;
+  /** Complète la ligne réservée avec le résultat de l'appel. */
+  finishModelCall(
+    id: string,
+    result: Omit<RoomTasksRecord, 'userId' | 'kind' | 'inputHash' | 'promptVer'>,
+  ): Promise<void>;
+  /** Annule la réservation : aucun appel n'est parti (IA désactivée). */
+  releaseModelCall(id: string): Promise<void>;
 }

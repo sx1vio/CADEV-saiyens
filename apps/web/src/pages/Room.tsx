@@ -10,6 +10,7 @@ import {
   Plus,
   Send,
   ShieldQuestion,
+  Sparkles,
   UserPlus,
   WifiOff,
   Zap,
@@ -43,7 +44,14 @@ import { invalidate, useQuery } from '@/lib/query';
 import { useTopic } from '@/services/realtime';
 import { cn, uuid } from '@/lib/utils';
 import { enqueue, requireNetwork, useNetwork } from '@/offline/network';
-import { api, type RoomDetail, type TaskLevel, type TaskStatus } from '@/services';
+import {
+  api,
+  type NewTaskInput,
+  type RoomDetail,
+  type TaskLevel,
+  type TaskStatus,
+  type TaskSuggestions,
+} from '@/services';
 import { useSession, useUI } from '@/stores/app';
 import { WithPanel } from './_layout';
 
@@ -345,6 +353,8 @@ function Kanban({ room }: { room: RoomDetail }) {
   const me = useSession((s) => s.user);
   const queue = useNetwork((s) => s.queue);
   const [newOpen, setNewOpen] = useState(false);
+  // R5 : null = feuille fermée ; une analyse par ouverture (le serveur garde un cache).
+  const [suggest, setSuggest] = useState<{ result: TaskSuggestions | null } | null>(null);
   const [completeId, setCompleteId] = useState<string | null>(null);
   const isOwner = room.myMembership === 'owner';
   const isMember = isOwner || room.myMembership === 'member';
@@ -354,6 +364,18 @@ function Kanban({ room }: { room: RoomDetail }) {
       .filter((x) => x.type === 'take-task')
       .map((x) => (x.type === 'take-task' ? x.payload.taskId : '')),
   );
+
+  const openSuggest = async () => {
+    setSuggest({ result: null });
+    try {
+      requireNetwork();
+      const result = await api.suggestTasks(room.id);
+      setSuggest((s) => (s ? { result } : s));
+    } catch (e) {
+      toast.error(errorText(t, e));
+      setSuggest(null);
+    }
+  };
 
   const act = async (fn: () => Promise<unknown>, ok?: string) => {
     try {
@@ -371,9 +393,19 @@ function Kanban({ room }: { room: RoomDetail }) {
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-muted">{t('projects.openTasks', { count: room.openTasks })}</p>
         {isMember && (
-          <Button variant="primary" size="sm" icon={<ListPlus />} onClick={() => setNewOpen(true)}>
-            {t('room.newTask')}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" icon={<Sparkles />} onClick={openSuggest}>
+              {t('room.suggest.open')}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<ListPlus />}
+              onClick={() => setNewOpen(true)}
+            >
+              {t('room.newTask')}
+            </Button>
+          </div>
         )}
       </div>
       {room.tasks.length === 0 ? (
@@ -509,6 +541,12 @@ function Kanban({ room }: { room: RoomDetail }) {
         </div>
       )}
       <NewTaskSheet open={newOpen} onOpenChange={setNewOpen} roomId={room.id} />
+      <SuggestTasksSheet
+        open={suggest !== null}
+        result={suggest?.result ?? null}
+        onClose={() => setSuggest(null)}
+        roomId={room.id}
+      />
       <CompleteSheet taskId={completeId} room={room} onClose={() => setCompleteId(null)} />
     </>
   );
@@ -584,6 +622,102 @@ function NewTaskSheet({
           />
         </Field>
       </div>
+    </Sheet>
+  );
+}
+
+/**
+ * R5 : l'IA lit la discussion et propose des tâches. Elle ne crée rien : chaque proposition est
+ * relue, puis publiée par un membre comme une tâche ordinaire.
+ */
+function SuggestTasksSheet({
+  open,
+  result,
+  onClose,
+  roomId,
+}: {
+  open: boolean;
+  /** null pendant l'analyse. */
+  result: TaskSuggestions | null;
+  onClose: () => void;
+  roomId: string;
+}) {
+  const { t } = useTranslation();
+  const [created, setCreated] = useState<Set<number>>(new Set());
+  const [busy, setBusy] = useState<number | null>(null);
+
+  const create = async (i: number, task: NewTaskInput) => {
+    setBusy(i);
+    try {
+      requireNetwork();
+      await api.createTask(roomId, task);
+      invalidate('');
+      setCreated((c) => new Set(c).add(i));
+      toast.success(t('room.taskCreated'));
+    } catch (e) {
+      toast.error(errorText(t, e));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(o) => {
+        if (o) return;
+        setCreated(new Set());
+        onClose();
+      }}
+      title={t('room.suggest.title')}
+      description={t('room.suggest.hint')}
+    >
+      {!result && (
+        <div className="flex flex-col gap-3" aria-busy>
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+        </div>
+      )}
+      {result && result.tasks.length === 0 && (
+        <p className="rounded-[10px] bg-surface-1 px-4 py-6 text-center text-sm text-muted">
+          {t(`room.suggest.status.${result.status === 'cached' ? 'done' : result.status}`)}
+        </p>
+      )}
+      {result && result.tasks.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <Badge tone="neutral" size="sm" className="self-start">
+            <Sparkles />
+            {t('room.suggest.label')}
+          </Badge>
+          {result.tasks.map((task, i) => (
+            <article
+              key={`${i}-${task.title}`}
+              className="flex flex-col gap-2 rounded-[10px] border border-line bg-surface-2 p-3.5"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="text-sm font-semibold leading-snug text-fg">{task.title}</h4>
+                <Badge tone={LEVEL_TONE[task.level]} size="sm" className="shrink-0">
+                  {t(`room.level.${task.level}`)}
+                </Badge>
+              </div>
+              {task.description && (
+                <p className="text-[12.5px] leading-snug text-muted">{task.description}</p>
+              )}
+              <Button
+                size="xs"
+                variant={created.has(i) ? 'ghost' : 'primary'}
+                className="self-end"
+                disabled={created.has(i)}
+                loading={busy === i}
+                icon={created.has(i) ? <CheckCircle2 /> : <Plus />}
+                onClick={() => create(i, task)}
+              >
+                {created.has(i) ? t('room.suggest.created') : t('room.createTask')}
+              </Button>
+            </article>
+          ))}
+        </div>
+      )}
     </Sheet>
   );
 }

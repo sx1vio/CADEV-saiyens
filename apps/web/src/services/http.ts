@@ -34,6 +34,7 @@ import type {
   RoomDetail as ApiRoomDetail,
   StatusHistoryResponse,
   StatusResponse,
+  SuggestTasksResponse,
   SyncResponse,
   TaskView,
   UpdateAnswerResponse,
@@ -377,6 +378,12 @@ export const httpApi: DevHubApi = {
       status: r.status === 'accepted' ? 'accepted' : 'declined',
       createdAt: r.decidedAt,
     };
+  },
+  suggestTasks: async (roomId) => {
+    const r = await post<SuggestTasksResponse>(`/rooms/${roomId}/tasks/suggest`, {
+      lang: uiLang(),
+    });
+    return { status: r.status, tasks: r.data.map(m.suggestedTask) };
   },
   createTask: async (roomId, input) =>
     m.task(

@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
+import { AiModule } from '../ai';
 import { GithubModule } from '../github';
 import { IdentityModule } from '../identity';
 import { NotificationsModule, Notifier } from '../notifications';
@@ -24,9 +25,9 @@ import { DeploymentCheckJob } from './jobs/deployment-check.job';
 import { VerifyPrJob } from './jobs/verify-pr.job';
 import { DEPLOYMENT_PROBE } from './tokens';
 
-// Module rooms (propriétaire : Joachim, rôle 5) : salles de projet liées à GitHub (R1 à R9).
+// Module rooms (propriétaire : Joachim, rôle 5) : salles de projet liées à GitHub (R1 à R9), tâches proposées par l'IA (R5).
 @Module({
-  imports: [IdentityModule, GithubModule, ReputationModule, NotificationsModule],
+  imports: [IdentityModule, GithubModule, ReputationModule, NotificationsModule, AiModule],
   controllers: [RoomsController, TasksController, DeploymentController],
   providers: [
     RoomReader,

@@ -30,6 +30,7 @@ import type {
   StatusResponse,
   SyncAction,
   SyncResult,
+  SuggestedTask,
   TaskView,
 } from '@devhub/contracts';
 import type {
@@ -46,6 +47,7 @@ import type {
   MatchReason,
   MatchView,
   NewQuestionInput,
+  NewTaskInput,
   OfflineAction,
   NotificationType,
   Passport,
@@ -312,6 +314,13 @@ const LEVEL: Record<ApiTaskLevel, TaskLevel> = {
   medium: 'intermediate',
   hard: 'advanced',
 };
+
+/** R5 : proposition de l'IA, au format du formulaire de création de tâche. */
+export const suggestedTask = (s: SuggestedTask): NewTaskInput => ({
+  title: s.title,
+  description: s.description ?? '',
+  level: LEVEL[s.level],
+});
 
 export const levelToApi = (l: TaskLevel): ApiTaskLevel =>
   l === 'starter' ? 'first_step' : l === 'advanced' ? 'hard' : 'medium';
