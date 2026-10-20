@@ -9,6 +9,9 @@
  * - Une fonction absente de l'API (hors périmètre du MVP, ADR-0016) lève `feature.unavailable`.
  */
 import type {
+  ConfirmFeedbackResponse,
+  FeedbackRequestView,
+  ListFeedbackRequestsResponse,
   AcceptAnswerResponse,
   AskQuestionResponse,
   CompleteTaskResponse,
@@ -149,7 +152,7 @@ async function room(code: string) {
   const r = await get<ApiRoomDetail>(`/rooms/${encodeURIComponent(code)}`);
   const member = r.viewer?.role != null;
   const manager = r.viewer?.role === 'owner' || r.viewer?.role === 'maintainer';
-  const [tasks, messages, requests] = await Promise.all([
+  const [tasks, messages, requests, feedback] = await Promise.all([
     get<ListTasksResponse>(`/rooms/${r.id}/tasks`).catch(() => ({ data: [] as TaskView[] })),
     member
       ? get<ListMessagesResponse>(`/rooms/${r.id}/messages`, { limit: 100 }).then((x) => x.data)
@@ -157,8 +160,11 @@ async function room(code: string) {
     manager
       ? get<ListJoinRequestsResponse>(`/rooms/${r.id}/join-requests`).then((x) => x.data)
       : Promise.resolve([]),
+    get<ListFeedbackRequestsResponse>(`/rooms/${r.id}/feedback-requests`)
+      .then((x) => x.data)
+      .catch(() => [] as FeedbackRequestView[]),
   ]);
-  return m.roomDetail(r, { tasks: tasks.data, messages, requests });
+  return m.roomDetail(r, { tasks: tasks.data, messages, requests, feedback });
 }
 
 export const httpApi: DevHubApi = {
@@ -424,7 +430,29 @@ export const httpApi: DevHubApi = {
         clientId,
       ),
     ),
-  requestFeedback: async () => unavailable(),
+  requestFeedback: async (roomId, kind, input = {}) =>
+    m.feedbackRequest(
+      await post<FeedbackRequestView>(`/rooms/${roomId}/feedback-requests`, {
+        kind: kind === 'code-review' ? 'code_review' : 'feedback',
+        url: input.url?.trim() || null,
+        note: input.note?.trim() || null,
+      }),
+    ),
+  listFeedbackRequests: async (opts = {}) =>
+    (
+      await get<ListFeedbackRequestsResponse>('/feedback-requests', {
+        tags: opts.tags?.length ? opts.tags.join(',') : undefined,
+        limit: 50,
+      })
+    ).data.map(m.feedbackRequest),
+  takeFeedback: async (id) =>
+    m.feedbackRequest(await post<FeedbackRequestView>(`/feedback-requests/${id}/take`)),
+  confirmFeedback: async (id) => {
+    const r = await post<ConfirmFeedbackResponse>(`/feedback-requests/${id}/confirm`);
+    return { request: m.feedbackRequest(r.request), points: r.points };
+  },
+  cancelFeedback: async (id) =>
+    m.feedbackRequest(await post<FeedbackRequestView>(`/feedback-requests/${id}/cancel`)),
   getDeployment: (roomId) =>
     get<DeploymentChallenge>(`/rooms/${roomId}/deployment`).catch((e: unknown) => {
       if (e instanceof DomainError && e.code === 'not_found') return null;

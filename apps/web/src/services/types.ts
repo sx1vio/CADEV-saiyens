@@ -273,12 +273,31 @@ export interface RoomMessage {
   createdAt: ISODate;
 }
 
+/** R6 : demande de retour ou de revue de code, visible dans le flux de la stack. */
 export interface FeedbackRequest {
   id: ID;
   roomId: ID;
   kind: 'feedback' | 'code-review';
-  status: 'open' | 'done';
+  status: 'open' | 'in-progress' | 'done' | 'cancelled';
+  /** Lien à relire : PR, commit ou démo (https). */
+  url: string | null;
+  note: string | null;
+  requesterId: ID;
+  reviewerId: ID | null;
   createdAt: ISODate;
+  confirmedAt: ISODate | null;
+}
+
+export interface FeedbackRequestItem extends FeedbackRequest {
+  requester: UserSummary;
+  reviewer: UserSummary | null;
+  room: { id: ID; code: string; name: string };
+  tags: Tag[];
+}
+
+export interface FeedbackInput {
+  url?: string | null;
+  note?: string | null;
 }
 
 export type XPKind =
@@ -318,6 +337,9 @@ export type NotificationType =
   | 'join-request'
   | 'join-accepted'
   | 'task-done'
+  | 'feedback-requested'
+  | 'feedback-taken'
+  | 'feedback-confirmed'
   | 'claim'
   | 'pair';
 
@@ -437,7 +459,7 @@ export interface RoomDetail extends RoomListItem {
   messages: (RoomMessage & { author: UserSummary })[];
   requests: (JoinRequest & { user: UserSummary })[];
   myMembership: 'owner' | 'member' | 'pending' | 'none';
-  feedbackRequests: FeedbackRequest[];
+  feedbackRequests: FeedbackRequestItem[];
 }
 
 export interface DiscoverFilters {

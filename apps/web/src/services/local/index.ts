@@ -582,7 +582,10 @@ export const localApi: DevHubApi = {
                 .map((x) => ({ ...x, user: e.summaryById(x.userId) }))
             : [],
         myMembership: member ? member.role : pending ? 'pending' : 'none',
-        feedbackRequests: e.s.feedback.filter((f) => f.roomId === r.id),
+        feedbackRequests: e.s.feedback
+          .filter((f) => f.roomId === r.id && f.status !== 'cancelled')
+          .map((f) => e.feedbackItem(f))
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
       };
     });
   },
@@ -655,8 +658,26 @@ export const localApi: DevHubApi = {
   async postMessage(roomId, body, kind, clientId) {
     return write((e, me) => e.postMessage(roomId, me.id, body, kind, clientId, Date.now()));
   },
-  async requestFeedback(roomId, kind) {
-    return write((e, me) => e.requestFeedback(roomId, me.id, kind, Date.now()));
+  async requestFeedback(roomId, kind, input = {}) {
+    return write((e, me) => e.requestFeedback(roomId, me.id, kind, input, Date.now()));
+  },
+  async listFeedbackRequests(opts = {}) {
+    const e = await engine();
+    const slugs = new Set(opts.tags ?? []);
+    return e.s.feedback
+      .filter((f) => f.status === 'open' && e.room(f.roomId).visibility === 'public')
+      .map((f) => e.feedbackItem(f))
+      .filter((f) => slugs.size === 0 || f.tags.some((t) => slugs.has(t.slug)))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  },
+  async takeFeedback(id) {
+    return write((e, me) => e.takeFeedback(id, me.id, Date.now()));
+  },
+  async confirmFeedback(id) {
+    return write((e, me) => e.confirmFeedback(id, me.id, Date.now()));
+  },
+  async cancelFeedback(id) {
+    return write((e, me) => e.cancelFeedback(id, me.id));
   },
 
   async discoverDevs(f) {
