@@ -83,7 +83,7 @@ Modèle à copier :
 | [BUG-038](#bug-038) | Test d'impact instable quand d'autres tests suppriment des données                       | Mineure    | Corrigé | Joachim                   |
 | [BUG-039](#bug-039) | e2e : la connexion attend /sos alors que l'app part vers /bienvenue                      | Mineure    | Corrigé | Sylvio                    |
 | [BUG-040](#bug-040) | Hors ligne : titre et champs facultatifs d'une question écrits en clair dans IndexedDB   | Majeure    | Corrigé | Joachim (session 9d)      |
-| [BUG-042](#bug-042) | 06-api.md décrit 23 routes absentes du code sans le signaler                             | Mineure    | Corrigé | Joachim (session bd)      |
+| [BUG-043](#bug-043) | 06-api.md décrit 23 routes absentes du code sans le signaler                             | Mineure    | Corrigé | Joachim (session bd)      |
 
 ## Anomalies ouvertes
 
@@ -159,7 +159,7 @@ Modèle à copier :
 | Correctif appliqué     | Cause : la carte proposait les deux décisions quel que soit le type de cible, et le code d'erreur n'était pas traduit. Solution : `pages/Admin.tsx` n'affiche plus « Retirer le contenu » pour un compte (une aide explique quoi faire) ; `report.target_not_hideable` est traduit (fr, en) ; le type de cible est traduit (« Compte », « Réponse »…). Test : `apps/web/e2e/admin.e2e.ts`.                                               |
 | Référence              | Branche `feat/web-admin-audit`                                                                                                                                                                                                                                                                                                                                                                                                           |
 
-### BUG-042
+### BUG-043
 
 | Champ                  | Valeur                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

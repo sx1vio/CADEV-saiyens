@@ -259,7 +259,7 @@ Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/s
 
 ### Écarts avec le code (vérifiés le 20 octobre)
 
-Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre aux contrôleurs de `main` (`apps/api/src/modules/*/http`, `apps/api/src/infrastructure/http`), ces routes n'existent pas encore ([BUG-042](../suivi/anomalies.md#bug-042)). Un appel renvoie `404`.
+Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre aux contrôleurs de `main` (`apps/api/src/modules/*/http`, `apps/api/src/infrastructure/http`), ces routes n'existent pas encore ([BUG-043](../suivi/anomalies.md#bug-043)). Un appel renvoie `404`.
 
 | Route décrite                                                   | Exigence | État au 20 octobre                                                              |
 | --------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
