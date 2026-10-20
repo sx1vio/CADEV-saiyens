@@ -179,13 +179,13 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 ### Découverte (`discovery`)
 
-| Méthode et chemin                                                      | Accès | Rôle                                                                                                                         | US         |
-| ---------------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `GET /discover/devs?tag=&tz=&available=&mission=&lookingFor=&country=` | Pub   | Recherche de devs (filtres combinables, respecte le mode non listé) ; `mission=true` : « Disponible pour une mission » (PR4) | D1, PR4    |
-| `GET /discover/rooms?…`                                                | Pub   | Recherche de salles                                                                                                          | D1         |
-| `GET /discover/suggestions`                                            | Co    | « Devs à rencontrer » avec leur raison                                                                                       | D6 (P1)    |
-| `GET /leaderboard?scope=country\|community&season=`                    | Pub   | Classement (calcul transparent, lié au journal)                                                                              | D2, D5, D7 |
-| `GET /leaderboard/map`                                                 | Pub   | Agrégats par pays pour la carte                                                                                              | D4 (P1)    |
+| Méthode et chemin                                                      | Accès | Rôle                                                                                                                                                                                                                             | US         |
+| ---------------------------------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `GET /discover/devs?tag=&tz=&available=&mission=&lookingFor=&country=` | Pub   | Recherche de devs (filtres combinables, respecte le mode non listé) ; `mission=true` : « Disponible pour une mission » (PR4)                                                                                                     | D1, PR4    |
+| `GET /discover/rooms?…`                                                | Pub   | Recherche de salles                                                                                                                                                                                                              | D1         |
+| `GET /discover/suggestions`                                            | Co    | « Devs à rencontrer » avec leur raison                                                                                                                                                                                           | D6 (P1)    |
+| `GET /leaderboard?scope=country\|community&season=`                    | Pub   | Classement (calcul transparent, lié au journal)                                                                                                                                                                                  | D2, D5, D7 |
+| `GET /leaderboard/map`                                                 | Pub   | Agrégats par pays pour la carte : devs, devs actifs (Proof XP sur 30 jours), réponses validées, Proof XP ; pays masqué compté dans `unlocated`, comptes de démo totalisés à part (`demo`) ; `Cache-Control: public, max-age=300` | D4 (P1)    |
 
 ### Synchronisation, notifications, temps réel
 
@@ -252,6 +252,7 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | `POST /rooms/:id/tasks/suggest`                                                                                                           | Fait | `feat/room-ai-tasks` (R5)                                                                                                |
 | `PATCH /me`, `GET /u/:handle`                                                                                                             | Fait | #113 (PR2, PR14)                                                                                                         |
 | `GET /discover/devs`, `GET /leaderboard`                                                                                                  | Fait | #114 (D1, D2)                                                                                                            |
+| `GET /leaderboard/map`                                                                                                                    | Fait | `feat/discovery-africa-map` (D4)                                                                                         |
 | `GET /news`, `GET /news/home`, `GET /videos`, `GET /news/sources`                                                                         | Fait | #97 (module `news`, hors du périmètre fixé par ADR-0016)                                                                 |
 | `GET /status/history?days=7`                                                                                                              | Fait | `feat/status-history` (Y5 : disponibilité par service et par jour UTC, 30 jours au plus, sondes « non branché » exclues) |
 | `GET /status`, `GET /impact`                                                                                                              | Fait | #115 (Y1, Y2)                                                                                                            |
@@ -288,7 +289,6 @@ Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre a
 | `PATCH /rooms/:id`                                            | R1       | Non créée : une salle ne se modifie pas après sa création                       |
 | `GET /discover/rooms`                                         | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`        |
 | `GET /discover/suggestions`                                   | D6       | P2, non codé                                                                    |
-| `GET /leaderboard/map`                                        | D4       | À faire                                                                         |
 | `GET /live-feed`, `POST /demo/session`                        | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)           |
 
 Dans l'autre sens, une seule route du code manque aux listes par module : `GET /rooms/:id/join-requests` (demandes en attente, réservée au propriétaire, #111), citée seulement dans le tableau d'état ci-dessus.
