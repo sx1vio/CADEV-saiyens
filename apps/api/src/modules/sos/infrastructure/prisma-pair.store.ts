@@ -26,6 +26,22 @@ export class PrismaPairStore implements PairStore {
     return n > 0;
   }
 
+  async declinedSince(questionId: string, hostId: string, since: Date): Promise<boolean> {
+    const n = await this.tx.pairSession.count({
+      where: {
+        questionId,
+        hostId,
+        status: 'declined',
+        OR: [
+          { respondedAt: { gte: since } },
+          // Lignes antérieures à responded_at : la date de la proposition sert de repli.
+          { respondedAt: null, createdAt: { gte: since } },
+        ],
+      },
+    });
+    return n > 0;
+  }
+
   create(input: {
     questionId: string;
     hostId: string;
@@ -38,13 +54,17 @@ export class PrismaPairStore implements PairStore {
 
   async findForUpdate(pairId: string): Promise<PairSessionRecord | null> {
     await this.tx.$queryRaw`SELECT id FROM pair_sessions WHERE id = ${pairId}::uuid FOR UPDATE`;
-    return this.tx.pairSession.findUnique({ where: { id: pairId }, include: withPeople });
+    // Une question masquée par la modération ne reçoit plus de réponse (404, comme sa fiche).
+    return this.tx.pairSession.findFirst({
+      where: { id: pairId, question: { hiddenAt: null } },
+      include: withPeople,
+    });
   }
 
-  setStatus(pairId: string, status: PairStatus): Promise<PairSessionRecord> {
+  setStatus(pairId: string, status: PairStatus, respondedAt: Date): Promise<PairSessionRecord> {
     return this.tx.pairSession.update({
       where: { id: pairId },
-      data: { status },
+      data: { status, respondedAt },
       include: withPeople,
     });
   }

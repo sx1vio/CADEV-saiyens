@@ -7,6 +7,7 @@ import {
   OwnQuestionPairError,
   PairAlreadyAnsweredError,
   PairAlreadyProposedError,
+  PairRecentlyDeclinedError,
   type PairStatus,
   VideoLinkRejectedError,
 } from '../domain/pair';
@@ -62,10 +63,21 @@ class MemoryPairStore implements PairStore {
   async findForUpdate(id: string) {
     return this.pairs.find((p) => p.id === id) ?? null;
   }
-  async setStatus(id: string, status: PairStatus) {
+  respondedAt = new Map<string, Date>();
+  async setStatus(id: string, status: PairStatus, at: Date) {
     const pair = this.pairs.find((p) => p.id === id)!;
     pair.status = status;
+    this.respondedAt.set(id, at);
     return pair;
+  }
+  async declinedSince(questionId: string, hostId: string, since: Date) {
+    return this.pairs.some(
+      (p) =>
+        p.questionId === questionId &&
+        p.host.id === hostId &&
+        p.status === 'declined' &&
+        (this.respondedAt.get(p.id) ?? p.createdAt) >= since,
+    );
   }
   async findQuestionTitle() {
     return this.question.title;
@@ -206,6 +218,26 @@ describe('PairSessions (S5)', () => {
     await expect(
       pairs.respond(store, 'tx', { pairId: pair.id, actorId: 'awa', accept: false }),
     ).rejects.toBeInstanceOf(PairAlreadyAnsweredError);
+  });
+
+  it('après un refus, le même aidant attend 24 h avant de reproposer ; un autre aidant non', async () => {
+    const store = new MemoryPairStore();
+    let clock = now;
+    const pairs = new PairSessions(notifier().port, () => clock);
+    const input = { questionId: 'q1', hostId: 'moussa', startsAt: inHours(48), videoLink: link };
+    const first = await pairs.propose(store, 'tx', input);
+    await pairs.respond(store, 'tx', { pairId: first.id, actorId: 'awa', accept: false });
+
+    clock = new Date(now.getTime() + 23 * 3600_000);
+    await expect(pairs.propose(store, 'tx', input)).rejects.toBeInstanceOf(
+      PairRecentlyDeclinedError,
+    );
+    await expect(pairs.propose(store, 'tx', { ...input, hostId: 'kwame' })).resolves.toMatchObject({
+      status: 'proposed',
+    });
+
+    clock = new Date(now.getTime() + 25 * 3600_000);
+    await expect(pairs.propose(store, 'tx', input)).resolves.toMatchObject({ status: 'proposed' });
   });
 
   it('seul l’invité répond', async () => {

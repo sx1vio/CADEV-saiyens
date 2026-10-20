@@ -37,6 +37,7 @@ export const ERROR_CODES = [
   'pair.video_link_rejected',
   'pair.invalid_slot',
   'pair.already_proposed',
+  'pair.recently_declined',
   'pair.already_answered',
   // Salles de projet
   'room.repo_not_found',

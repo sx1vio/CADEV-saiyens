@@ -7,6 +7,7 @@ export class OwnQuestionPairError extends Error {}
 export class VideoLinkRejectedError extends Error {}
 export class InvalidSlotError extends Error {}
 export class PairAlreadyProposedError extends Error {}
+export class PairRecentlyDeclinedError extends Error {}
 export class PairAlreadyAnsweredError extends Error {}
 export class NotPairGuestError extends Error {}
 

@@ -54,6 +54,7 @@ import {
   PairAlreadyAnsweredError,
   PairAlreadyProposedError,
   PairNotFoundError,
+  PairRecentlyDeclinedError,
   VideoLinkRejectedError,
 } from '../domain/pair';
 import type { AnswerWriter, XpAward } from '../domain/ports';
@@ -105,6 +106,12 @@ export function toHttp(err: unknown): never {
     throw new ConflictException({
       code: 'pair.already_proposed',
       title: 'You already have a pending proposal on this question',
+    });
+  }
+  if (err instanceof PairRecentlyDeclinedError) {
+    throw new ConflictException({
+      code: 'pair.recently_declined',
+      title: 'Your last proposal on this question was declined less than 24 hours ago',
     });
   }
   if (err instanceof PairAlreadyAnsweredError) {

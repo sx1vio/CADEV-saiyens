@@ -1162,6 +1162,8 @@ const fr = {
     pair_invalid_slot: 'Choisis un créneau à venir, dans les 30 prochains jours.',
     pair_own_question: "C'est ta propre question.",
     pair_already_proposed: 'Tu as déjà une proposition en attente sur cette question.',
+    pair_recently_declined:
+      'Ta dernière proposition a été déclinée : attends 24 h avant d’en refaire une sur cette question.',
     pair_already_answered: 'Cette proposition a déjà reçu une réponse.',
     'room_name-too-short': 'Nom trop court.',
     'room_bad-repo': 'Format de dépôt attendu : proprietaire/depot',
