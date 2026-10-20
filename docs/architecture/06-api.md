@@ -117,11 +117,11 @@ Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm
 
 Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
-| Chemin                                                  | Rôle                                           | US      |
-| ------------------------------------------------------- | ---------------------------------------------- | ------- |
-| `GET /u/:handle`, `GET /p/:code` (HTML)                 | `index.html` avec balises Open Graph injectées | PR2, R7 |
-| `GET /og/u/:handle.png`, `GET /og/p/:code.png`          | Proof Card et carte de salle 1200 × 630        | PR5     |
-| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg` | Badge README dynamique                         | PR6     |
+| Chemin                                                         | Rôle                                                                                                                        | US      |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `GET /u/:handle`, `GET /p/:code` (HTML)                        | `index.html` avec balises Open Graph injectées                                                                              | PR2, R7 |
+| `GET /og/u/:handle.png?lang=&download=`, `GET /og/p/:code.png` | Proof Card du Passport (PNG 1200 × 630, `og:image` de `/u/:handle`, ETag, confidentialité PR14 appliquée) et carte de salle | PR5     |
+| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg`        | Badge README dynamique                                                                                                      | PR6     |
 
 ### SOS Dev (`sos`, `matching`)
 
@@ -274,22 +274,21 @@ Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/s
 
 Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre aux contrôleurs de `main` (`apps/api/src/modules/*/http`, `apps/api/src/infrastructure/http`), ces routes n'existent pas encore ([BUG-043](../suivi/anomalies.md#bug-043)). Un appel renvoie `404`.
 
-| Route décrite                                                 | Exigence | État au 20 octobre                                                              |
-| ------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
-| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`)        | A2       | À faire                                                                         |
-| `GET /u/:handle/activity`                                     | PR8      | P2, non codé                                                                    |
-| `POST /u/:handle/endorsements`                                | PR9      | Écarté (ADR-0017)                                                               |
-| `GET /og/u/:handle.png`, `GET /og/p/:code.png`                | PR5      | À faire                                                                         |
-| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg`       | PR6      | À faire                                                                         |
-| `GET /questions/similar`                                      | S7       | Non créée : le front appelle `GET /questions?q=&limit=` (#160)                  |
-| `POST /questions/:id/pair`, `POST /pair-sessions/:id/respond` | S5       | À faire                                                                         |
-| `POST /tags/detect`                                           | S9       | Non créée : la détection se fait seulement dans le navigateur (`lib/detect.ts`) |
-| `POST /rooms/draft-from-repo`                                 | R12      | P2, non codé                                                                    |
-| `PATCH /rooms/:id`                                            | R1       | Non créée : une salle ne se modifie pas après sa création                       |
-| `GET /discover/rooms`                                         | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`        |
-| `GET /discover/suggestions`                                   | D6       | P2, non codé                                                                    |
-| `GET /leaderboard/map`                                        | D4       | À faire                                                                         |
-| `GET /live-feed`, `POST /demo/session`                        | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)           |
+| Route décrite                                           | Exigence | État au 20 octobre                                                                    |
+| ------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`)  | A2       | À faire                                                                               |
+| `GET /u/:handle/activity`                               | PR8      | P2, non codé                                                                          |
+| `POST /u/:handle/endorsements`                          | PR9      | Écarté (ADR-0017)                                                                     |
+| `GET /og/p/:code.png`                                   | PR5      | À faire : carte de salle (la Proof Card du Passport, `GET /og/u/:handle.png`, existe) |
+| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg` | PR6      | À faire                                                                               |
+| `GET /questions/similar`                                | S7       | Non créée : le front appelle `GET /questions?q=&limit=` (#160)                        |
+| `POST /tags/detect`                                     | S9       | Non créée : la détection se fait seulement dans le navigateur (`lib/detect.ts`)       |
+| `POST /rooms/draft-from-repo`                           | R12      | P2, non codé                                                                          |
+| `PATCH /rooms/:id`                                      | R1       | Non créée : une salle ne se modifie pas après sa création                             |
+| `GET /discover/rooms`                                   | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`              |
+| `GET /discover/suggestions`                             | D6       | P2, non codé                                                                          |
+| `GET /leaderboard/map`                                  | D4       | À faire                                                                               |
+| `GET /live-feed`, `POST /demo/session`                  | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)                 |
 
 Dans l'autre sens, une seule route du code manque aux listes par module : `GET /rooms/:id/join-requests` (demandes en attente, réservée au propriétaire, #111), citée seulement dans le tableau d'état ci-dessus.
 
