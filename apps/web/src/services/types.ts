@@ -53,6 +53,10 @@ export interface User {
   /** PR11 : inscrit avant le 22 oct. 2026 */
   isFounder: boolean;
   emailVerified: boolean;
+  /** Y3 : récapitulatif par e-mail des notifications non lues (API seulement). */
+  emailNotifications?: boolean;
+  /** Y3 : le compte a une adresse e-mail, sans laquelle aucun récapitulatif ne part. */
+  hasEmail?: boolean;
   /** Préférence T3 : pourquoi je viens */
   intent?: 'get-help' | 'help' | 'find-project' | 'start-project';
   codeOfConductAcceptedAt?: ISODate;
@@ -487,6 +491,21 @@ export interface SystemStatus {
   source: 'live' | 'local';
 }
 
+/**
+ * Y5 — GET /status/history : disponibilité par service et par jour (UTC). `uptimePercent` vaut
+ * null quand aucune sonde utile n'a tourné ce jour-là : « pas de mesure », jamais 100 %.
+ */
+export interface StatusHistory {
+  days: number;
+  services: {
+    id: ServiceStatus['id'];
+    name: string;
+    uptimePercent: number | null;
+    checks: number;
+    daily: { date: string; uptimePercent: number | null; checks: number }[];
+  }[];
+}
+
 export interface ImpactStats {
   devs: number;
   questionsResolved: number;
@@ -558,6 +577,12 @@ export interface NewTaskInput {
   level: TaskLevel;
 }
 
+/** R5 : tâches proposées par l'IA depuis la discussion de la salle, à relire avant de les créer. */
+export interface TaskSuggestions {
+  status: 'done' | 'cached' | 'empty' | 'quota' | 'disabled' | 'failed';
+  tasks: NewTaskInput[];
+}
+
 export interface ProfileInput {
   displayName?: string;
   bio?: string;
@@ -571,6 +596,7 @@ export interface ProfileInput {
   wantsToLearn?: ID[];
   intent?: User['intent'];
   codeOfConductAcceptedAt?: ISODate;
+  emailNotifications?: boolean;
 }
 
 /* ---------- File hors ligne (O2) ---------- */

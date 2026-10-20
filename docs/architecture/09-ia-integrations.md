@@ -167,6 +167,18 @@ L'appel est fait **dans la requête**, sans job : l'utilisateur attend le résul
 
 **Reste à faire** : essai avec la vraie clé (#7) ; traduire les messages de salle (`room_message`) si R4 est livré.
 
+### Implémentation des tâches depuis une discussion (R5)
+
+> État au 19 octobre 2026 : branche `feat/room-ai-tasks`. Propriétaire : Joachim (rôle 5).
+
+- **Route synchrone** `POST /rooms/:id/tasks/suggest`, réservée aux membres, plutôt que le job `ai.room-tasks` prévu au tableau des usages : le membre attend la réponse à l'écran (10 s au plus, `LLM_HINT_TIMEOUT_MS`), et une proposition n'a pas à survivre à la fermeture de la page.
+- **Entrée** : les 40 derniers messages visibles de la salle (1 000 caractères chacun au plus) et les titres des tâches non closes, pour ne pas les proposer deux fois. Secrets masqués par `maskSecrets`, chaque message encadré comme `<user_content>`.
+- **Sortie** : JSON validé par zod (`prompts/room-tasks.v1.ts`) : de 0 à 5 tâches `{ title, description, level }`. Une sortie invalide ne propose rien (`failed`).
+- **L'IA ne crée rien** (règle 3) : l'écran liste les propositions, avec la mention « Généré par IA, à vérifier », et chaque tâche n'existe qu'après un clic sur « Publier la tâche » (`POST /rooms/:id/tasks`).
+- **Cache et quota** partagés avec la piste IA : `ai_requests` (`kind = room_tasks`), même discussion et même langue = un seul appel ; le quota horaire par utilisateur est commun à tous les usages.
+- **Statuts** renvoyés : `done`, `cached`, `empty` (aucun message, pas d'appel), `quota`, `disabled` (production sans clé), `failed`.
+- **Faux modèle** : une seule tâche « Tâche de démonstration » / « Demo task », dont la description dit qu'aucune clé n'est configurée.
+
 ## 2. GitHub
 
 ### Authentification

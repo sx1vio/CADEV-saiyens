@@ -32,7 +32,9 @@ import type {
   ProofsResponse,
   QuestionDetail as ApiQuestionDetail,
   RoomDetail as ApiRoomDetail,
+  StatusHistoryResponse,
   StatusResponse,
+  SuggestTasksResponse,
   SyncResponse,
   TaskView,
   TranslationResponse,
@@ -100,6 +102,17 @@ const unavailable = (): never => {
 
 /** La recherche plein texte exige au moins 2 caractères (06-api.md). */
 const search = (q?: string) => (q && q.trim().length >= 2 ? q.trim().slice(0, 200) : undefined);
+
+/** S7 : questions proches d'un texte, la question courante exclue. */
+async function similar(text: string, excludeId?: string) {
+  const q = m.similarSearch(text);
+  if (!q) return [];
+  const res = await get<ListQuestionsResponse>('/questions', { q, limit: m.SIMILAR_LIMIT + 1 });
+  return res.data
+    .filter((x) => x.id !== excludeId)
+    .slice(0, m.SIMILAR_LIMIT)
+    .map(m.questionItem);
+}
 
 const uiLang = (): 'fr' | 'en' => (document.documentElement.lang === 'en' ? 'en' : 'fr');
 
@@ -185,6 +198,7 @@ export const httpApi: DevHubApi = {
       body.availability = { now: input.availability.status === 'now' };
     if (input.canHelpWith !== undefined) body.canHelpTagSlugs = input.canHelpWith.slice(0, 5);
     if (input.wantsToLearn !== undefined) body.wantLearnTagSlugs = input.wantsToLearn.slice(0, 5);
+    if (input.emailNotifications !== undefined) body.emailNotifications = input.emailNotifications;
     if (Object.keys(body).length > 0) await call('PATCH', '/me', body);
     if (input.codeOfConductAcceptedAt) await post('/me/code-of-conduct');
     return sessionOrThrow();
@@ -236,14 +250,13 @@ export const httpApi: DevHubApi = {
         limit: 50,
       })
     ).data.map(m.questionItem),
-  getQuestion: async (id) => m.questionDetail(await get<ApiQuestionDetail>(`/questions/${id}`)),
-  similarQuestions: async (text) => {
-    const q = search(text);
-    if (!q) return [];
-    return (await get<ListQuestionsResponse>('/questions', { q, limit: 5 })).data.map(
-      m.questionItem,
-    );
+  getQuestion: async (id) => {
+    const q = m.questionDetail(await get<ApiQuestionDetail>(`/questions/${id}`));
+    // S7 : un échec de la recherche ne doit jamais empêcher d'afficher la fiche.
+    const related = await similar(q.title, id).catch(() => []);
+    return { ...q, similar: related };
   },
+  similarQuestions: (text) => similar(text),
   createQuestion: async (input, clientId) => {
     const res = await post<AskQuestionResponse>(
       '/questions',
@@ -372,6 +385,12 @@ export const httpApi: DevHubApi = {
       createdAt: r.decidedAt,
     };
   },
+  suggestTasks: async (roomId) => {
+    const r = await post<SuggestTasksResponse>(`/rooms/${roomId}/tasks/suggest`, {
+      lang: uiLang(),
+    });
+    return { status: r.status, tasks: r.data.map(m.suggestedTask) };
+  },
   createTask: async (roomId, input) =>
     m.task(
       await post<TaskView>(`/rooms/${roomId}/tasks`, {
@@ -490,6 +509,8 @@ export const httpApi: DevHubApi = {
   },
 
   getStatus: async () => m.status(await get<StatusResponse>('/status')),
+  getStatusHistory: async (days) =>
+    m.statusHistory(await get<StatusHistoryResponse>('/status/history', { days })),
   getImpact: async () => m.impact(await get<ImpactResponse>('/impact')),
   getEcosystem: () => get<SystalinkEcosystemResponse>('/systalink/ecosystem'),
 };

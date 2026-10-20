@@ -21,7 +21,7 @@ export function countModelCallsSince(
 
 export async function recordAiRequest(
   prisma: PrismaService,
-  record: AiRequestRecord,
+  record: AiRequestRecord<unknown>,
 ): Promise<void> {
   await prisma.aiRequest.create({
     data: {
@@ -30,7 +30,7 @@ export async function recordAiRequest(
       inputHash: record.inputHash,
       promptVer: record.promptVer,
       status: record.status,
-      output: record.output ?? undefined,
+      output: (record.output ?? undefined) as Prisma.InputJsonValue | undefined,
       inputTokens: record.inputTokens,
       outputTokens: record.outputTokens,
       latencyMs: record.latencyMs,
@@ -70,7 +70,7 @@ export function reserveModelCall(
 export async function finishModelCall(
   prisma: PrismaService,
   id: string,
-  result: ModelCallResult,
+  result: ModelCallResult<unknown>,
 ): Promise<void> {
   await prisma.aiRequest.update({
     where: { id },

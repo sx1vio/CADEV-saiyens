@@ -1,7 +1,7 @@
 // Ports du module ai (docs/architecture/09-ia-integrations.md). Le modèle de langage est appelé
 // uniquement côté serveur, derrière LlmPort ; le contenu utilisateur n'est jamais une instruction.
 
-export type AiTaskKind = 'hint' | 'translate';
+export type AiTaskKind = 'hint' | 'translate' | 'room_tasks';
 
 /** Contenu fourni par un utilisateur : toujours encadré et présenté au modèle comme une donnée. */
 export interface UntrustedInput {
@@ -51,13 +51,14 @@ export interface HintQuestion {
 export type AiRequestStatus =
   'ok' | 'error' | 'timeout' | 'refusal' | 'pending' | 'cache' | 'quota';
 
-export interface AiRequestRecord {
+/** Ligne de ai_requests ; `Output` dépend de l'usage (piste : { hint }, S10 : texte traduit, R5 : { tasks }). */
+export interface AiRequestRecord<Output = { hint: string } | TranslatedText> {
   userId: string;
   kind: AiTaskKind;
   inputHash: string;
   promptVer: string;
   status: AiRequestStatus;
-  output: { hint: string } | TranslatedText | null;
+  output: Output | null;
   inputTokens?: number;
   outputTokens?: number;
   latencyMs?: number;
@@ -130,4 +131,35 @@ export interface TranslationStore {
 }
 
 export type ModelCallBase = Pick<AiRequestRecord, 'userId' | 'kind' | 'inputHash' | 'promptVer'>;
-export type ModelCallResult = Omit<AiRequestRecord, keyof ModelCallBase>;
+export type ModelCallResult<Output = { hint: string } | TranslatedText> = Omit<
+  AiRequestRecord<Output>,
+  keyof ModelCallBase
+>;
+
+/** Tâche proposée depuis une discussion de salle (R5) : une proposition, jamais une écriture. */
+export interface RoomTaskSuggestion {
+  title: string;
+  description: string | null;
+  level: 'first_step' | 'easy' | 'medium' | 'hard';
+}
+
+type RoomTasksRecord = AiRequestRecord<{ tasks: RoomTaskSuggestion[] }>;
+
+export interface RoomTasksStore {
+  /** Dernières propositions réussies pour la même discussion et la même version de prompt. */
+  findCachedTasks(inputHash: string, promptVer: string): Promise<RoomTaskSuggestion[] | null>;
+  /** Ligne sans appel au modèle (cache, quota). */
+  recordRequest(record: RoomTasksRecord): Promise<void>;
+  /**
+   * Réserve atomiquement un appel au modèle (ligne « pending », comptée dans le quota horaire
+   * commun) ; null si le quota est atteint. Deux requêtes parallèles ne le dépassent pas.
+   */
+  reserveModelCall(base: ModelCallBase, since: Date, quota: number): Promise<string | null>;
+  /** Complète la ligne réservée avec le résultat de l'appel. */
+  finishModelCall(
+    id: string,
+    result: ModelCallResult<{ tasks: RoomTaskSuggestion[] }>,
+  ): Promise<void>;
+  /** Annule la réservation : aucun appel n'est parti (IA désactivée). */
+  releaseModelCall(id: string): Promise<void>;
+}

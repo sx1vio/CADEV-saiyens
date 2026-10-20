@@ -11,6 +11,7 @@ import type {
   HomeFeed,
   ID,
   ImpactStats,
+  StatusHistory,
   SystalinkEcosystem,
   JoinRequest,
   LeaderboardRow,
@@ -31,6 +32,7 @@ import type {
   SystemStatus,
   Tag,
   Task,
+  TaskSuggestions,
   TaskStatus,
   User,
   UserSummary,
@@ -122,6 +124,7 @@ export interface DevHubApi {
   requestJoin(roomId: ID, message: string): Promise<JoinRequest>;
   respondJoin(requestId: ID, accept: boolean): Promise<JoinRequest>;
   createTask(roomId: ID, input: NewTaskInput): Promise<Task>;
+  suggestTasks(roomId: ID): Promise<TaskSuggestions>;
   takeTask(taskId: ID): Promise<Task>;
   moveTask(taskId: ID, status: TaskStatus): Promise<Task>;
   completeTask(
@@ -170,6 +173,8 @@ export interface DevHubApi {
 
   /* Systalink et impact — /status, /impact */
   getStatus(): Promise<SystemStatus>;
+  /** Y5 : null sans historique mesuré (serveur simulé), plutôt qu'une courbe inventée. */
+  getStatusHistory(days: number): Promise<StatusHistory | null>;
   getImpact(): Promise<ImpactStats>;
   /** Idées A et B : renvois vers Systalink, projets en production chez Systalink. */
   getEcosystem(): Promise<SystalinkEcosystem>;

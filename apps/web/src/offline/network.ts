@@ -6,11 +6,11 @@
  */
 import { openDB, type IDBPDatabase } from 'idb';
 import { create } from 'zustand';
-import { maskSecrets } from '@/lib/detect';
 import { refreshAll, invalidate } from '@/lib/query';
 import { uuid } from '@/lib/utils';
 import { api } from '@/services';
 import type { OfflineAction, ServerText } from '@/services';
+import { sanitize } from './sanitize';
 
 export type QueuedAction = OfflineAction;
 
@@ -72,36 +72,6 @@ async function remove(id: string) {
   } catch {
     /* ignore */
   }
-}
-
-/** O9 : les secrets sont masqués avant d'être écrits sur l'appareil. */
-function sanitize(a: QueuedAction): QueuedAction {
-  if (a.type === 'question')
-    return {
-      ...a,
-      payload: {
-        ...a.payload,
-        codeSnippet: maskSecrets(a.payload.codeSnippet).text,
-        body: maskSecrets(a.payload.body).text,
-      },
-    };
-  if (a.type === 'answer')
-    return { ...a, payload: { ...a.payload, body: maskSecrets(a.payload.body).text } };
-  if (a.type === 'message' || a.type === 'edit-answer')
-    return {
-      ...a,
-      payload: { ...a.payload, body: maskSecrets(a.payload.body).text },
-    } as QueuedAction;
-  if (a.type === 'edit-question')
-    return {
-      ...a,
-      payload: {
-        ...a.payload,
-        body: maskSecrets(a.payload.body).text,
-        codeSnippet: maskSecrets(a.payload.codeSnippet).text,
-      },
-    };
-  return a;
 }
 
 async function execute(item: QueueItem) {

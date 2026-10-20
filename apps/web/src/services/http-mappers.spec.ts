@@ -30,6 +30,47 @@ describe('identifiants du mode http', () => {
   });
 });
 
+describe('préférence e-mail (Y3)', () => {
+  const me = {
+    id: '00000000-0000-4000-8000-000000000001',
+    handle: 'awa',
+    displayName: 'Awa',
+    avatarUrl: null,
+    email: 'awa@example.org',
+    emailVerified: true,
+    bio: null,
+    country: 'CI',
+    timezone: 'Africa/Abidjan',
+    languages: ['fr' as const],
+    uiLang: 'fr' as const,
+    emailNotifications: false,
+    lookingFor: null,
+    githubLinked: true,
+    githubCreatedAt: null,
+    codeOfConductAcceptedAt: null,
+    isAdmin: false,
+    isDemo: false,
+    createdAt: at,
+    trust: {
+      githubLinked: true,
+      githubAccountYears: null,
+      emailVerified: true,
+      demo: false,
+      founder: true,
+    },
+  };
+
+  it('GET /me : la préférence et la présence d’une adresse arrivent, jamais l’adresse elle-même', () => {
+    const u = m.user(me);
+    expect(u).toMatchObject({ emailNotifications: false, hasEmail: true });
+    expect(u).not.toHaveProperty('email');
+    expect(m.user({ ...me, email: null, emailNotifications: true })).toMatchObject({
+      emailNotifications: true,
+      hasEmail: false,
+    });
+  });
+});
+
 describe('questions', () => {
   const detail = {
     id: 'q1',
@@ -380,6 +421,27 @@ describe('modification et conflit de version (O4)', () => {
   });
 });
 
+describe('historique de disponibilité (Y5)', () => {
+  it('un jour sans sonde reste null (« pas de mesure »), jamais 100 %', () => {
+    const h = m.statusHistory({
+      days: 2,
+      services: [
+        {
+          service: 'backup',
+          uptimePercent: 66.7,
+          checks: 3,
+          daily: [
+            { date: '2026-10-17', uptimePercent: null, checks: 0 },
+            { date: '2026-10-18', uptimePercent: 66.7, checks: 3 },
+          ],
+        },
+      ],
+    });
+    expect(h.services[0]).toMatchObject({ id: 'backup', name: 'Sauvegarde cloud' });
+    expect(h.services[0]!.daily.map((d) => d.uptimePercent)).toEqual([null, 66.7]);
+  });
+});
+
 describe('impact (Y2)', () => {
   it('affiche les chiffres calculés par l’API, jamais des zéros écrits en dur (BUG-032)', () => {
     expect(
@@ -429,5 +491,22 @@ describe('journal de modération (M4)', () => {
         page: { nextCursor: 'c3', hasMore: false },
       }),
     ).toMatchObject({ entries: [{ action: 'hide', targetType: 'message' }], next: null });
+  });
+});
+
+describe('questions similaires (S7)', () => {
+  it('cherche l’un des mots significatifs du titre, sans doublon', () => {
+    expect(m.similarSearch('Nginx renvoie 502 derrière Docker, nginx')).toBe(
+      'nginx or renvoie or derrière or docker',
+    );
+  });
+
+  it('écarte les mots courts et les opérateurs de recherche', () => {
+    expect(m.similarSearch('le -v de "git"')).toBeUndefined();
+    expect(m.similarSearch('docker-compose -rm')).toBe('docker-compose');
+  });
+
+  it('trois suggestions au maximum', () => {
+    expect(m.SIMILAR_LIMIT).toBe(3);
   });
 });

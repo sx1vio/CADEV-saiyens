@@ -6,3 +6,4 @@ export {
   type TranslateCommand,
   type TranslateOutcome,
 } from './application/translate-content';
+export { SuggestRoomTasks, type RoomTasksOutcome } from './application/suggest-room-tasks';

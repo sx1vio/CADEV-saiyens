@@ -26,9 +26,11 @@ import type {
   QuestionSummary,
   RoomDetail as ApiRoomDetail,
   RoomSummary,
+  StatusHistoryResponse,
   StatusResponse,
   SyncAction,
   SyncResult,
+  SuggestedTask,
   TaskView,
 } from '@devhub/contracts';
 import type {
@@ -45,6 +47,7 @@ import type {
   MatchReason,
   MatchView,
   NewQuestionInput,
+  NewTaskInput,
   OfflineAction,
   NotificationType,
   Passport,
@@ -59,6 +62,7 @@ import type {
   ServiceStatus,
   SkillView,
   SyncOutcome,
+  StatusHistory,
   SystemStatus,
   Tag,
   Task,
@@ -157,6 +161,8 @@ export function user(me: MeResponse, passport?: PassportResponse | null): User {
     isDemo: me.isDemo,
     isFounder: me.trust.founder,
     emailVerified: me.emailVerified,
+    emailNotifications: me.emailNotifications,
+    hasEmail: me.email !== null,
     codeOfConductAcceptedAt: me.codeOfConductAcceptedAt ?? undefined,
   };
 }
@@ -308,6 +314,13 @@ const LEVEL: Record<ApiTaskLevel, TaskLevel> = {
   medium: 'intermediate',
   hard: 'advanced',
 };
+
+/** R5 : proposition de l'IA, au format du formulaire de création de tâche. */
+export const suggestedTask = (s: SuggestedTask): NewTaskInput => ({
+  title: s.title,
+  description: s.description ?? '',
+  level: LEVEL[s.level],
+});
 
 export const levelToApi = (l: TaskLevel): ApiTaskLevel =>
   l === 'starter' ? 'first_step' : l === 'advanced' ? 'hard' : 'medium';
@@ -591,6 +604,17 @@ const SERVICE_STATE: Record<StatusResponse['services'][number]['state'], Service
     unknown: 'pending',
   };
 
+export const statusHistory = (h: StatusHistoryResponse): StatusHistory => ({
+  days: h.days,
+  services: h.services.map((x) => ({
+    id: x.service,
+    name: SERVICE_NAME[x.service],
+    uptimePercent: x.uptimePercent,
+    checks: x.checks,
+    daily: x.daily,
+  })),
+});
+
 export function status(s: StatusResponse, now = new Date()): SystemStatus {
   return {
     services: s.services.map((x) => ({
@@ -667,6 +691,20 @@ export const report = (r: AdminReportView): Report & { reporter: UserSummary } =
   createdAt: r.createdAt,
   reporter: summary(r.reporter),
 });
+
+/** S7 : au plus trois questions similaires, avant de publier comme sur une fiche. */
+export const SIMILAR_LIMIT = 3;
+
+/**
+ * S7 : requête « l'un des mots » pour la recherche plein texte (`websearch_to_tsquery`).
+ * Un titre entier exigerait tous ses mots à la fois ; on garde les mots d'au moins 4 signes,
+ * sans doublon, reliés par « or ». Rien d'exploitable : `undefined`.
+ */
+export function similarSearch(text: string): string | undefined {
+  const words = text.toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}_.+#-]{3,}/gu) ?? [];
+  const unique = [...new Set(words)].slice(0, 8);
+  return unique.length ? unique.join(' or ') : undefined;
+}
 
 /** Gabarit guidé (S8) : les rubriques facultatives rejoignent le corps de la question. */
 export function questionBody(i: NewQuestionInput): string {

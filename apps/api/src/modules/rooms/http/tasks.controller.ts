@@ -25,6 +25,8 @@ import {
   MessageView,
   PostMessageRequest,
   SubmitTaskRequest,
+  SuggestTasksRequest,
+  SuggestTasksResponse,
   TaskView,
 } from '@devhub/contracts';
 import type { Response } from 'express';
@@ -32,6 +34,7 @@ import { createZodDto } from 'nestjs-zod';
 import { runAction } from '../../../infrastructure/actions/action-registry';
 import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-key.decorator';
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
+import { SuggestRoomTasks } from '../../ai';
 import { parsePullUrl } from '../../github';
 import {
   type AuthenticatedUser,
@@ -55,6 +58,11 @@ class PostMessageRequestDto extends createZodDto(PostMessageRequest) {}
 class MessageViewDto extends createZodDto(MessageView) {}
 class ListMessagesQueryDto extends createZodDto(ListMessagesQuery) {}
 class ListMessagesResponseDto extends createZodDto(ListMessagesResponse) {}
+class SuggestTasksRequestDto extends createZodDto(SuggestTasksRequest) {}
+class SuggestTasksResponseDto extends createZodDto(SuggestTasksResponse) {}
+
+/** Messages lus par l'IA pour R5 (le cas d'usage en garde 40 au plus). */
+const SUGGEST_MESSAGES = 40;
 
 const notFound = () =>
   new NotFoundException({ code: 'not_found', title: 'Task or room not found' });
@@ -66,6 +74,7 @@ export class TasksController {
     private readonly reader: RoomReader,
     private readonly actions: TasksActions,
     private readonly github: GithubPrVerifier,
+    private readonly suggestTasks: SuggestRoomTasks,
   ) {}
 
   private replayed(res: Response, outcome: { replayed: boolean; status: number }) {
@@ -150,6 +159,33 @@ export class TasksController {
     const { ids, skipped } = outcome.body as { ids: string[]; skipped: number };
     const tasks = await this.reader.tasks(roomId);
     return { imported: ids.length, skipped, data: tasks.filter((t) => ids.includes(t.id)) };
+  }
+
+  /**
+   * R5 : l'IA propose des tâches à partir de la discussion (membres). Rien n'est écrit : chaque
+   * proposition validée passe par POST /rooms/:id/tasks. Pas de clé d'idempotence, comme les
+   * lectures : la rejouer ne change rien (le cache évite un second appel au modèle).
+   */
+  @Post('rooms/:id/tasks/suggest')
+  @UseGuards(SessionGuard)
+  @HttpCode(200)
+  @ApiOkResponse({ type: SuggestTasksResponseDto })
+  async suggest(
+    @CurrentUser() auth: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) roomId: string,
+    @Body() body: SuggestTasksRequestDto,
+  ): Promise<SuggestTasksResponse> {
+    const room = await this.reader.roomRepo(roomId);
+    if (!room || room.hiddenAt) throw notFound();
+    if (!(await this.reader.roleOf(roomId, auth.userId))) {
+      throw new ForbiddenException({ code: 'room.not_member', title: 'Reserved to room members' });
+    }
+    const discussion = await this.reader.discussionForAi(roomId, SUGGEST_MESSAGES);
+    const outcome = await this.suggestTasks.execute(auth.userId, {
+      ...discussion,
+      lang: body.lang,
+    });
+    return { status: outcome.status, data: outcome.tasks };
   }
 
   /** R2 : prendre une tâche ouverte (membres) ; disponible aussi hors ligne. */
