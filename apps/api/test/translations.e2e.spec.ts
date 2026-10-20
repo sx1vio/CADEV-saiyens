@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
+import { PrismaTranslationStore } from '../src/modules/ai/infrastructure/prisma-translation.store';
 import { applyTestEnv } from './env.fixture';
 import { WRITE_HEADERS, signInAs } from './sign-in.helper';
 import { ensureTags } from './tags.fixture';
@@ -15,12 +16,16 @@ import { ensureTags } from './tags.fixture';
 applyTestEnv({ AUTH_FAKE_PROVIDER: 'true', NODE_ENV: 'test', LOG_LEVEL: 'warn', LLM_API_KEY: '' });
 
 const suffix = randomBytes(4).toString('hex');
-const handles = { awa: `awa-tr-${suffix}`, kwame: `kwame-tr-${suffix}` };
+const handles = {
+  awa: `awa-tr-${suffix}`,
+  kwame: `kwame-tr-${suffix}`,
+  moussa: `moussa-tr-${suffix}`,
+};
 
 describe('pont bilingue (S10)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  const cookies: Record<keyof typeof handles, string> = { awa: '', kwame: '' };
+  const cookies: Record<keyof typeof handles, string> = { awa: '', kwame: '', moussa: '' };
   let questionId: string;
   let answerId: string;
 
@@ -52,7 +57,8 @@ describe('pont bilingue (S10)', () => {
     questionId = q.body.id;
     const a = await write('kwame', `/api/v1/questions/${questionId}/answers`, {
       clientId: randomUUID(),
-      body: 'Remplace localhost par le nom du service : `db`.',
+      // Texte propre à cette exécution : le cache du journal ne doit pas servir d'une suite à l'autre.
+      body: `Remplace localhost par le nom du service : \`db\` (${suffix}).`,
     }).expect(201);
     answerId = a.body.id;
   });
@@ -112,5 +118,31 @@ describe('pont bilingue (S10)', () => {
     ).expect(404);
     expect(missing.body.code).toBe('not_found');
     await write(null, `/api/v1/questions/${questionId}/translate?lang=en`).expect(401);
+  });
+
+  it('quota : la réservation tient face à des requêtes simultanées, puis la route répond 429', async () => {
+    const store = app.get(PrismaTranslationStore);
+    const user = await prisma.user.findUniqueOrThrow({ where: { handle: handles.moussa } });
+    const base = {
+      userId: user.id,
+      kind: 'translate' as const,
+      inputHash: `race-${suffix}`,
+      promptVer: 'translate@1',
+    };
+    const since = new Date(Date.now() - 60 * 60 * 1000);
+    // Quota par défaut : 10 appels par heure. 12 réservations simultanées : 10 passent.
+    const ids = await Promise.all(
+      Array.from({ length: 12 }, () => store.reserveModelCall(base, since, 10)),
+    );
+    expect(ids.filter(Boolean)).toHaveLength(10);
+
+    // Réponse vers le français : pas encore en cache, il faudrait appeler le modèle.
+    const refused = await write('moussa', `/api/v1/answers/${answerId}/translate?lang=fr`).expect(
+      429,
+    );
+    expect(refused.body.code).toBe('ai.quota_exceeded');
+
+    await store.releaseModelCall(ids.find(Boolean)!);
+    await write('moussa', `/api/v1/answers/${answerId}/translate?lang=fr`).expect(200);
   });
 });

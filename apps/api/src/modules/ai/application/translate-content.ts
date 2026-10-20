@@ -100,44 +100,61 @@ export class TranslateContent {
       return save(withCode(reused, input.codeBlocks), true);
     }
 
+    // Route synchrone : des requêtes parallèles ne doivent pas passer le quota ensemble. L'appel
+    // est réservé (ligne « pending ») sous verrou avant de partir au modèle.
     const since = new Date(this.now().getTime() - HOUR_MS);
-    const used = await this.store.countModelCallsSince(requesterId, since);
-    if (used >= this.settings.hourlyQuotaPerUser) {
+    const reservation = await this.store.reserveModelCall(
+      base,
+      since,
+      this.settings.hourlyQuotaPerUser,
+    );
+    if (!reservation) {
       await this.store.recordRequest({ ...base, status: 'quota', output: null });
       return { kind: 'quota' };
     }
 
-    const result = await this.llm.complete({
-      task: 'translate',
-      promptVersion: promptVer,
-      system: translateSystemPrompt(target),
-      userContent: translateUserContent(input),
-      maxTokens: TRANSLATE_MAX_TOKENS,
-      timeoutMs: this.settings.timeoutMs,
-    });
-    if (!result.ok) {
-      if (result.reason === 'disabled') return { kind: 'unavailable' };
-      await this.store.recordRequest({
-        ...base,
-        status: result.reason,
-        output: null,
+    let finished = false;
+    try {
+      const result = await this.llm.complete({
+        task: 'translate',
+        promptVersion: promptVer,
+        system: translateSystemPrompt(target),
+        userContent: translateUserContent(input),
+        maxTokens: TRANSLATE_MAX_TOKENS,
+        timeoutMs: this.settings.timeoutMs,
+      });
+      if (!result.ok) {
+        if (result.reason === 'disabled') {
+          await this.store.releaseModelCall(reservation);
+          finished = true;
+          return { kind: 'unavailable' };
+        }
+        await this.store.finishModelCall(reservation, {
+          status: result.reason,
+          output: null,
+          latencyMs: result.latencyMs,
+        });
+        finished = true;
+        return { kind: 'failed' };
+      }
+
+      const parsed = parseTranslation(result.text, input.title !== null);
+      await this.store.finishModelCall(reservation, {
+        status: parsed ? 'ok' : 'error',
+        // Le journal garde la sortie sans le code : elle resservira pour un autre contenu.
+        output: parsed,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
         latencyMs: result.latencyMs,
       });
-      return { kind: 'failed' };
+      finished = true;
+      if (!parsed) return { kind: 'failed' };
+      return save(withCode(parsed, input.codeBlocks), false);
+    } finally {
+      // Une exception imprévue compte quand même dans le quota.
+      if (!finished)
+        await this.store.finishModelCall(reservation, { status: 'error', output: null });
     }
-
-    const parsed = parseTranslation(result.text, input.title !== null);
-    await this.store.recordRequest({
-      ...base,
-      status: parsed ? 'ok' : 'error',
-      // Le journal garde la sortie sans le code : elle resservira pour un autre contenu.
-      output: parsed,
-      inputTokens: result.inputTokens,
-      outputTokens: result.outputTokens,
-      latencyMs: result.latencyMs,
-    });
-    if (!parsed) return { kind: 'failed' };
-    return save(withCode(parsed, input.codeBlocks), false);
   }
 }
 

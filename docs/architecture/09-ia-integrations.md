@@ -143,7 +143,7 @@ Un développeur lit une question ou une réponse rédigée dans l'autre langue :
 
 - **Code jamais traduit** : l'extrait de code de la question n'est pas envoyé ; les blocs clôturés (` ``` ` ou `~~~`) du texte sont remplacés par des repères avant l'envoi et remis à l'identique après. Si le modèle perd un repère, le bloc est ajouté à la fin.
 - **Injection** : le texte est encadré dans `<user_content>` et le prompt dit que c'est du texte à traduire, jamais des instructions. Une sortie qui n'est pas l'objet JSON attendu est rejetée (`translation.failed`), rien n'est enregistré.
-- **Quota** : le même compteur horaire que la piste (`LLM_HOURLY_QUOTA_PER_USER`), décompté à la personne qui demande la traduction.
+- **Quota** : le même compteur horaire que la piste (`LLM_HOURLY_QUOTA_PER_USER`), décompté à la personne qui demande la traduction. L'appel est **réservé avant de partir au modèle** : une ligne `ai_requests` « pending » est créée dans une transaction courte, sous `pg_advisory_xact_lock(hashtext('ai_quota'), hashtext(userId))`, après le comptage. Des requêtes simultanées du même compte passent donc l'une après l'autre et ne dépassent pas le quota (même mécanisme que R5). La ligne reçoit ensuite son statut final ; elle est supprimée si l'IA est désactivée, et une exception imprévue la passe en `error`.
 
 **Cache et réponses** :
 

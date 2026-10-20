@@ -4,6 +4,8 @@ import type {
   LlmPort,
   LlmRequest,
   LlmResult,
+  ModelCallBase,
+  ModelCallResult,
   StoredTranslation,
   TranslatedText,
   TranslationSource,
@@ -50,9 +52,6 @@ class MemoryTranslationStore implements TranslationStore {
     this.translations.set(`${type}:${id}:${lang}`, { ...text, sourceHash, createdAt: now });
     return now;
   }
-  async countModelCallsSince() {
-    return this.callsInLastHour;
-  }
   async findCachedTranslation(inputHash: string, promptVer: string) {
     const hit = this.records.find(
       (r) => r.status === 'ok' && r.inputHash === inputHash && r.promptVer === promptVer,
@@ -62,7 +61,25 @@ class MemoryTranslationStore implements TranslationStore {
   async recordRequest(record: AiRequestRecord) {
     this.records.push(record);
   }
+  private readonly reserved = new Map<string, AiRequestRecord>();
+  async reserveModelCall(base: ModelCallBase, _since: Date, quota: number) {
+    const calls = this.records.filter((r) => MODEL_CALLS.includes(r.status)).length;
+    if (this.callsInLastHour + calls >= quota) return null;
+    const record: AiRequestRecord = { ...base, status: 'pending', output: null };
+    this.records.push(record);
+    const id = `r${this.reserved.size + 1}`;
+    this.reserved.set(id, record);
+    return id;
+  }
+  async finishModelCall(id: string, result: ModelCallResult) {
+    Object.assign(this.reserved.get(id)!, result);
+  }
+  async releaseModelCall(id: string) {
+    this.records = this.records.filter((r) => r !== this.reserved.get(id));
+  }
 }
+
+const MODEL_CALLS = ['ok', 'error', 'timeout', 'refusal', 'pending'];
 
 /** Modèle qui « traduit » en anglais et renvoie la réponse prévue. */
 class ScriptedLlm implements LlmPort {
@@ -196,6 +213,15 @@ describe('TranslateContent (S10)', () => {
       });
       expect(store.translations.size).toBe(0);
     }
+  });
+
+  it('une exception imprévue du modèle compte quand même dans le quota (« error »)', async () => {
+    const store = new MemoryTranslationStore([question()]);
+    const crashing = new ScriptedLlm(() => {
+      throw new Error('réseau coupé');
+    });
+    await expect(run(store, crashing).execute(toEnglish)).rejects.toThrow('réseau coupé');
+    expect(store.records.map((r) => r.status)).toEqual(['error']);
   });
 
   it('IA désactivée (production sans clé) : unavailable, sans journal', async () => {

@@ -44,8 +44,12 @@ export interface HintQuestion {
   aiStatus: 'pending' | 'done' | 'failed' | 'skipped';
 }
 
-/** Statuts de ai_requests : ok, error, timeout, refusal (appels réels) ; cache et quota (sans appel). */
-export type AiRequestStatus = 'ok' | 'error' | 'timeout' | 'refusal' | 'cache' | 'quota';
+/**
+ * Statuts de ai_requests : ok, error, timeout, refusal (appels réels) ; pending (appel réservé, en
+ * cours) ; cache et quota (sans appel).
+ */
+export type AiRequestStatus =
+  'ok' | 'error' | 'timeout' | 'refusal' | 'pending' | 'cache' | 'quota';
 
 export interface AiRequestRecord {
   userId: string;
@@ -110,8 +114,20 @@ export interface TranslationStore {
     sourceHash: string,
     text: TranslatedText,
   ): Promise<Date>;
-  countModelCallsSince(userId: string, since: Date): Promise<number>;
   /** Dernière traduction réussie de la même entrée (autre contenu au texte identique). */
   findCachedTranslation(inputHash: string, promptVer: string): Promise<TranslatedText | null>;
+  /** Ligne sans appel au modèle (cache, quota). */
   recordRequest(record: AiRequestRecord): Promise<void>;
+  /**
+   * Réserve atomiquement un appel au modèle (ligne « pending », comptée dans le quota horaire
+   * commun) ; null si le quota est atteint. Deux requêtes parallèles ne le dépassent pas.
+   */
+  reserveModelCall(base: ModelCallBase, since: Date, quota: number): Promise<string | null>;
+  /** Complète la ligne réservée avec le résultat de l'appel. */
+  finishModelCall(id: string, result: ModelCallResult): Promise<void>;
+  /** Annule la réservation : aucun appel n'est parti (IA désactivée). */
+  releaseModelCall(id: string): Promise<void>;
 }
+
+export type ModelCallBase = Pick<AiRequestRecord, 'userId' | 'kind' | 'inputHash' | 'promptVer'>;
+export type ModelCallResult = Omit<AiRequestRecord, keyof ModelCallBase>;

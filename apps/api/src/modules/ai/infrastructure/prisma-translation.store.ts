@@ -2,13 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type {
   AiRequestRecord,
+  ModelCallBase,
+  ModelCallResult,
   StoredTranslation,
   TranslatableType,
   TranslatedText,
   TranslationSource,
   TranslationStore,
 } from '../domain/ports';
-import { countModelCallsSince, recordAiRequest } from './ai-requests';
+import {
+  finishModelCall,
+  recordAiRequest,
+  releaseModelCall,
+  reserveModelCall,
+} from './ai-requests';
 
 /** translations.text contient { title, body } en JSON : une seule ligne par contenu et par langue. */
 const encode = (text: TranslatedText) => JSON.stringify({ title: text.title, body: text.body });
@@ -72,10 +79,6 @@ export class PrismaTranslationStore implements TranslationStore {
     return createdAt;
   }
 
-  countModelCallsSince(userId: string, since: Date): Promise<number> {
-    return countModelCallsSince(this.prisma, userId, since);
-  }
-
   async findCachedTranslation(
     inputHash: string,
     promptVer: string,
@@ -90,5 +93,17 @@ export class PrismaTranslationStore implements TranslationStore {
 
   recordRequest(record: AiRequestRecord): Promise<void> {
     return recordAiRequest(this.prisma, record);
+  }
+
+  reserveModelCall(base: ModelCallBase, since: Date, quota: number): Promise<string | null> {
+    return reserveModelCall(this.prisma, base, since, quota);
+  }
+
+  finishModelCall(id: string, result: ModelCallResult): Promise<void> {
+    return finishModelCall(this.prisma, id, result);
+  }
+
+  releaseModelCall(id: string): Promise<void> {
+    return releaseModelCall(this.prisma, id);
   }
 }
