@@ -806,6 +806,15 @@ function PairCard({ q }: { q: QuestionDetail }) {
   const [link, setLink] = useState('https://meet.jit.si/devhub-');
   const isAuthor = me?.id === q.authorId;
   if (!me || (!q.pairSessions.length && (isAuthor || q.status === 'resolved'))) return null;
+  const respond = async (pairId: string, accept: boolean) => {
+    try {
+      requireNetwork();
+      await api.respondPair(pairId, accept);
+      invalidate(`question:${q.id}`);
+    } catch (e) {
+      toast.error(errorText(t, e));
+    }
+  };
   return (
     <Card className="p-4">
       <CardHeader icon={<Video />} title={t('question.pairTitle')} />
@@ -834,24 +843,10 @@ function PairCard({ q }: { q: QuestionDetail }) {
               </a>
               {isAuthor && p.status === 'proposed' && (
                 <>
-                  <Button
-                    size="xs"
-                    variant="success"
-                    onClick={async () => {
-                      await api.respondPair(p.id, true);
-                      invalidate(`question:${q.id}`);
-                    }}
-                  >
+                  <Button size="xs" variant="success" onClick={() => void respond(p.id, true)}>
                     {t('question.pairAccept')}
                   </Button>
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    onClick={async () => {
-                      await api.respondPair(p.id, false);
-                      invalidate(`question:${q.id}`);
-                    }}
-                  >
+                  <Button size="xs" variant="ghost" onClick={() => void respond(p.id, false)}>
                     {t('question.pairDecline')}
                   </Button>
                 </>
