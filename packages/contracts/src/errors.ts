@@ -32,6 +32,12 @@ export const ERROR_CODES = [
   'translation.failed',
   'ai.quota_exceeded',
   'ai.unavailable',
+  // Pair programming (S5)
+  'pair.own_question',
+  'pair.video_link_rejected',
+  'pair.invalid_slot',
+  'pair.already_proposed',
+  'pair.already_answered',
   // Salles de projet
   'room.repo_not_found',
   'room.repo_private',
