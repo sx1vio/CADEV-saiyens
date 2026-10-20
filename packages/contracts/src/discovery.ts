@@ -15,6 +15,8 @@ export const DiscoverDevsQuery = z.object({
   /** Décalage UTC visé en heures (ex. 0 pour Abidjan) ; tolérance de ± 3 h. */
   tz: z.coerce.number().int().min(-12).max(14).optional(),
   available: flag,
+  /** PR4 : seulement les devs « Disponible pour une mission ». */
+  mission: flag,
   lookingFor: z.string().trim().min(2).max(100).optional(),
   country: z
     .string()
@@ -35,6 +37,7 @@ export const DevCard = z.object({
   isDemo: z.boolean(),
   totalXp: z.number().int(),
   availableNow: z.boolean(),
+  availableForMission: z.boolean(),
   topSkills: z.array(QuestionTag.extend({ score: z.number().int() })),
   canHelp: z.array(QuestionTag),
 });

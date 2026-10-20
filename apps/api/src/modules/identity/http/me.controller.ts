@@ -16,6 +16,7 @@ import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { resolvePrivacy } from '../domain/privacy';
 import { trustSignals } from '../domain/trust';
 import { AccountDeletion } from '../infrastructure/account-deletion';
 import { SESSION_COOKIE, baseCookie } from './cookies';
@@ -167,6 +168,7 @@ export class MeController {
       isAdmin: u.isAdmin,
       isDemo: u.isDemo,
       createdAt: u.createdAt.toISOString(),
+      privacy: resolvePrivacy(u.privacy),
       trust: trustSignals(u, new Date()),
     };
   }

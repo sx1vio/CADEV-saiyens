@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { GITHUB_API, type GithubApi, GithubModule } from '../github';
 import { GithubTokenReader, IdentityModule } from '../identity';
+import { NotificationsModule } from '../notifications';
 import { ImportGithubProfile } from './application/import-github-profile';
+import { ContactController } from './http/contact.controller';
 import { MySkillsController } from './http/my-skills.controller';
 import { PassportController } from './http/passport.controller';
 import { PassportReader } from './infrastructure/passport.reader';
@@ -10,8 +12,8 @@ import { ImportProfileJob } from './jobs/import-profile.job';
 
 // Module passport (propriétaire : Caleb) : profil, compétences, Passport public.
 @Module({
-  imports: [IdentityModule, GithubModule],
-  controllers: [MySkillsController, PassportController],
+  imports: [IdentityModule, GithubModule, NotificationsModule],
+  controllers: [MySkillsController, PassportController, ContactController],
   providers: [
     PrismaSkillStore,
     PassportReader,

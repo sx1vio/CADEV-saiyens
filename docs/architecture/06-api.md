@@ -38,6 +38,8 @@ GET /api/v1/questions?status=open&tag=docker&limit=20&cursor=eyJjIjoiMjAyNi0xMC0
 
 - `limit` vaut 20 par défaut et 50 au maximum.
 - Le curseur est opaque (base64url de la clé de tri), le client ne le construit jamais.
+- Avec une recherche (`q`), les résultats sont triés par **pertinence** (S6) : titre et corps de la question, puis sa réponse acceptée. Le curseur reprend juste après le dernier résultat reçu, dans cet ordre (200 résultats au plus).
+- Avec `sort=waiting` (S16), la file « Personne n'a encore répondu » : la plus urgente d'abord, puis la plus ancienne. `forMe=true` limite aux étiquettes de mes compétences et de « Je peux aider sur » (sans session ni étiquette : aucun filtre).
 - Il n'y a pas de total, car il est coûteux. Les écrans qui affichent un nombre utilisent un endpoint de statistiques dédié.
 
 ## Erreurs
@@ -85,7 +87,7 @@ En-têtes renvoyés : `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset
 
 ## Liste des endpoints
 
-Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm** = administrateur. **Id** = `Idempotency-Key` obligatoire. Trois écritures n'en demandent pas, car les rejouer ne change rien : `POST /auth/logout` (session déjà révoquée), `POST /me/code-of-conduct` (date d'acceptation conservée), `DELETE /me` (un second appel n'a plus de session et reçoit 401), `PUT /rooms/:id/deployment` (PUT idempotent par nature) et `POST /rooms/:id/deployment/verify` (rejouable : les Proof XP sont uniques par salle). Les identifiants d'user stories renvoient au cahier des charges.
+Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm** = administrateur. **Id** = `Idempotency-Key` obligatoire. Trois écritures n'en demandent pas, car les rejouer ne change rien : `POST /auth/logout` (session déjà révoquée), `POST /me/code-of-conduct` (date d'acceptation conservée), `DELETE /me` (un second appel n'a plus de session et reçoit 401), `PUT /rooms/:id/deployment` (PUT idempotent par nature) `POST /rooms/:id/deployment/verify` (rejouable : les Proof XP sont uniques par salle) et `POST /rooms/:id/tasks/suggest` (n'écrit rien : simple proposition de l'IA, mise en cache). Les identifiants d'user stories renvoient au cahier des charges.
 
 ### Authentification et compte (`identity`)
 
@@ -95,22 +97,23 @@ Légende de l'accès : **Pub** = public sans compte ; **Co** = connecté ; **Adm
 | `GET /auth/github/callback`                            | Pub    | Création ou connexion du compte, cookie de session, import du profil en tâche de fond                                                                                                                                     | A1, PR1 |
 | `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`) | Pub    | Idem                                                                                                                                                                                                                      | A2 (P1) |
 | `POST /auth/logout`                                    | Co     | Révoque la session                                                                                                                                                                                                        | —       |
-| `GET /me`                                              | Co     | Mon profil, mes préférences et mes signaux de confiance (PR11)                                                                                                                                                            | PR1     |
+| `GET /me`                                              | Co     | Mon profil, mes préférences, ma confidentialité appliquée (`privacy`, PR14) et mes signaux de confiance (PR11)                                                                                                            | PR1     |
 | `PATCH /me`                                            | Co, Id | Fuseau, disponibilités, langues, « je cherche », « je peux aider » et « je veux apprendre », langue de l'interface, confidentialité par champ et mode non listé (`privacy`, fusionné avec l'existant) PR1, PR10, T3, PR14 |
 | `POST /me/code-of-conduct`                             | Co     | Acceptation du code de conduite                                                                                                                                                                                           | M3      |
 | `DELETE /me`                                           | Co     | Suppression du compte (anonymisation)                                                                                                                                                                                     | A3      |
 
 ### Passport et réputation (`passport`, `reputation`)
 
-| Méthode et chemin              | Accès  | Rôle                                                                                                              | US             |
-| ------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------- | -------------- |
-| `GET /u/:handle`               | Pub    | Passport public : identité, compétences (G + P), statistiques, projets, signaux de confiance                      | PR2, PR7, PR11 |
-| `GET /u/:handle/proofs?tag=`   | Pub    | Chronologie des preuves, filtrable par étiquette ; chaque ligne renvoie à sa source                               | PR3, X1        |
-| `GET /u/:handle/activity`      | Pub    | Carte de chaleur de l'entraide sur 26 semaines                                                                    | PR8 (P1)       |
-| `POST /u/:handle/endorsements` | Co, Id | Recommandation adossée à une interaction vérifiée                                                                 | PR9 (P1)       |
-| `GET /me/skills`               | Co     | Mes compétences : score, niveau, part GitHub (G, dépôts qualifiés) et part plateforme (P), date du dernier import | PR1, PR7       |
-| `POST /me/github/refresh`      | Co, Id | Réimport du profil GitHub (1 par heure, sinon `429` avec `Retry-After`) ; renvoie les compétences                 | PR1            |
-| `GET /rules/xp`                | Pub    | Barème, plafonds et formules (alimente `/regles`)                                                                 | X5             |
+| Méthode et chemin              | Accès  | Rôle                                                                                                                                                                        | US             |
+| ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `GET /u/:handle`               | Pub    | Passport public : identité, compétences (G + P), statistiques, projets, signaux de confiance                                                                                | PR2, PR7, PR11 |
+| `GET /u/:handle/proofs?tag=`   | Pub    | Chronologie des preuves, filtrable par étiquette ; chaque ligne renvoie à sa source                                                                                         | PR3, X1        |
+| `GET /u/:handle/activity`      | Pub    | Carte de chaleur de l'entraide sur 26 semaines                                                                                                                              | PR8 (P1)       |
+| `POST /u/:handle/contact`      | Co, Id | Message relayé par une notification `contact.request`, puis par le récapitulatif e-mail (Y3) ; aucune adresse montrée ; 5 messages par expéditeur et par 24 h (429 au-delà) | PR4 (P1)       |
+| `POST /u/:handle/endorsements` | Co, Id | Recommandation adossée à une interaction vérifiée                                                                                                                           | PR9 (P1)       |
+| `GET /me/skills`               | Co     | Mes compétences : score, niveau, part GitHub (G, dépôts qualifiés) et part plateforme (P), date du dernier import                                                           | PR1, PR7       |
+| `POST /me/github/refresh`      | Co, Id | Réimport du profil GitHub (1 par heure, sinon `429` avec `Retry-After`) ; renvoie les compétences                                                                           | PR1            |
+| `GET /rules/xp`                | Pub    | Barème, plafonds et formules (alimente `/regles`)                                                                                                                           | X5             |
 
 Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
@@ -124,7 +127,7 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 
 | Méthode et chemin                                  | Accès                          | Rôle                                                              | US         |
 | -------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------- | ---------- |
-| `GET /questions?status=&tag=&q=&mine=&unanswered=` | Pub                            | Liste, filtres, recherche plein texte                             | S6, S16    |
+| `GET /questions?status=&tag=&q=&mine=&unanswered=` | Pub                            | Liste, filtres (`forMe`, `sort=waiting`), recherche               | S6, S16    |
 | `GET /questions/similar?title=&tags=`              | Co                             | Jusqu'à 3 questions similaires avant publication                  | S7 (P1)    |
 | `POST /questions`                                  | Co, Id                         | Poser une question. Déclenche la piste IA et le matching          | S1, S2, S3 |
 | `GET /questions/:id`                               | Pub                            | Question, piste IA, réponses, aidants sollicités et leurs raisons | S2, S3     |
@@ -136,44 +139,50 @@ Routes **hors** `/api/v1`, servies par l'API pour les robots et les README :
 | `POST /answers/:id/accept`                         | Co (auteur de la question), Id | Valider : question résolue, Proof XP attribués                    | S4, X1     |
 | `POST /questions/:id/pair`                         | Co, Id                         | Proposer un créneau de pair programming                           | S5 (P1)    |
 | `POST /pair-sessions/:id/respond`                  | Co, Id                         | Accepter ou refuser                                               | S5 (P1)    |
-| `POST /questions/:id/translate?lang=`              | Co, Id                         | Traduction IA à la demande (mise en cache)                        | S10        |
+| `POST /questions/:id/translate?lang=`              | Co                             | Traduction IA à la demande (mise en cache), code laissé intact    | S10        |
+| `POST /answers/:id/translate?lang=`                | Co                             | Idem pour une réponse (sans titre)                                | S10        |
 | `POST /tags/detect`                                | Co                             | Affinage IA des étiquettes détectées localement                   | S9         |
 
 ### Salles de projet (`rooms`)
 
-| Méthode et chemin                     | Accès                  | Rôle                                                                                                            | US          |
-| ------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------- | ----------- |
-| `GET /rooms?tag=&state=&q=&role=`     | Pub                    | Liste et recherche                                                                                              | D1          |
-| `POST /rooms`                         | Co, Id                 | Créer (dépôt vérifié via l'API GitHub)                                                                          | R1          |
-| `POST /rooms/draft-from-repo`         | Co                     | Proposition de description, stack et tâches depuis le README                                                    | R12 (P1)    |
-| `GET /rooms/:code`                    | Pub                    | Fiche de salle                                                                                                  | R1          |
-| `PATCH /rooms/:id`                    | Co (owner), Id         | Modifier                                                                                                        | R1          |
-| `POST /rooms/:id/join`                | Co, Id                 | Demander à rejoindre                                                                                            | R3          |
-| `POST /join-requests/:id/decide`      | Co (owner), Id         | Accepter ou refuser                                                                                             | R3          |
-| `GET /rooms/:id/tasks`                | Pub                    | Tâches                                                                                                          | R2          |
-| `POST /rooms/:id/tasks`               | Co (membre), Id        | Créer une tâche                                                                                                 | R2          |
-| `POST /rooms/:id/tasks/import-issues` | Co (owner), Id         | Importer les issues GitHub                                                                                      | R2          |
-| `POST /tasks/:id/take`                | Co (membre), Id        | Prendre une tâche                                                                                               | R2          |
-| `POST /tasks/:id/submit`              | Co (assigné), Id       | Passer en revue avec un lien de PR                                                                              | R2          |
-| `POST /tasks/:id/complete`            | Co (owner), Id         | Terminer : vérification GitHub, +15 XP                                                                          | R8, R9      |
-| `GET /rooms/:id/messages?cursor=`     | Co (membre)            | Discussion                                                                                                      | R4 (P1)     |
-| `POST /rooms/:id/messages`            | Co (membre), Id        | Message ou « Point du jour »                                                                                    | R4, R14     |
-| `POST /rooms/:id/ai/tasks`            | Co (owner), Id         | Propositions de tâches depuis la discussion (jamais créées sans validation)                                     | R5 (P1)     |
-| `POST /rooms/:id/feedback-requests`   | Co (membre), Id        | Demander un retour ou une revue                                                                                 | R6 (P1)     |
-| `POST /feedback-requests/:id/confirm` | Co (demandeur), Id     | Confirmer la revue : +8 XP au relecteur                                                                         | R6          |
-| `GET /rooms/:id/deployment`           | Co (owner, maintainer) | Preuve « en production » : état et jeton à publier                                                              | Systalink A |
-| `PUT /rooms/:id/deployment`           | Co (owner, maintainer) | URL publique de l'application ; une autre origine reçoit un nouveau jeton                                       | Systalink A |
-| `POST /rooms/:id/deployment/verify`   | Co (owner, maintainer) | Lit le jeton (`/.well-known/devhub-proof.txt` ou `<meta name="devhub-proof">`) ; sur Systalink, +10 XP une fois | Systalink A |
+| Méthode et chemin                     | Accès                           | Rôle                                                                                                                                            | US          |
+| ------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `GET /rooms?tag=&state=&q=&role=`     | Pub                             | Liste et recherche                                                                                                                              | D1          |
+| `POST /rooms`                         | Co, Id                          | Créer (dépôt vérifié via l'API GitHub)                                                                                                          | R1          |
+| `POST /rooms/draft-from-repo`         | Co                              | Proposition de description, stack et tâches depuis le README                                                                                    | R12 (P1)    |
+| `GET /rooms/:code`                    | Pub                             | Fiche de salle                                                                                                                                  | R1          |
+| `PATCH /rooms/:id`                    | Co (owner), Id                  | Modifier                                                                                                                                        | R1          |
+| `POST /rooms/:id/join`                | Co, Id                          | Demander à rejoindre                                                                                                                            | R3          |
+| `POST /join-requests/:id/decide`      | Co (owner), Id                  | Accepter ou refuser                                                                                                                             | R3          |
+| `GET /rooms/:id/tasks`                | Pub                             | Tâches                                                                                                                                          | R2          |
+| `POST /rooms/:id/tasks`               | Co (membre), Id                 | Créer une tâche                                                                                                                                 | R2          |
+| `POST /rooms/:id/tasks/import-issues` | Co (owner), Id                  | Importer les issues GitHub                                                                                                                      | R2          |
+| `POST /rooms/:id/tasks/suggest`       | Co (owner, maintainer)          | L'IA propose jusqu'à 5 tâches depuis les 40 derniers messages ; rien n'est créé (`{ lang }` → `{ status, data }`) ; le créateur valide (CDC R5) | R5 (P1)     |
+| `POST /tasks/:id/take`                | Co (membre), Id                 | Prendre une tâche                                                                                                                               | R2          |
+| `POST /tasks/:id/submit`              | Co (assigné), Id                | Passer en revue avec un lien de PR                                                                                                              | R2          |
+| `POST /tasks/:id/complete`            | Co (owner), Id                  | Terminer : vérification GitHub, +15 XP                                                                                                          | R8, R9      |
+| `GET /rooms/:id/messages?cursor=`     | Co (membre)                     | Discussion                                                                                                                                      | R4 (P1)     |
+| `POST /rooms/:id/messages`            | Co (membre), Id                 | Message ou « Point du jour »                                                                                                                    | R4, R14     |
+| `GET /rooms/:id/feedback-requests`    | Pub                             | Demandes de retour et de revue de la salle (annulées exclues), visibles comme la salle                                                          | R6 (P1)     |
+| `POST /rooms/:id/feedback-requests`   | Co (membre), Id                 | Demander un retour ou une revue (lien https et note facultatifs) ; notifie les autres membres                                                   | R6 (P1)     |
+| `GET /feedback-requests?tags=`        | Pub                             | Flux de la stack : demandes ouvertes des salles publiques, filtrables par étiquettes                                                            | R6          |
+| `GET /feedback-requests/:id`          | Pub                             | Une demande, visible comme sa salle                                                                                                             | R6          |
+| `POST /feedback-requests/:id/take`    | Co (autre que le demandeur), Id | Prendre la demande ; notifie le demandeur                                                                                                       | R6          |
+| `POST /feedback-requests/:id/confirm` | Co (demandeur), Id              | Confirmer la revue : +8 XP au relecteur pour une revue de code (0 pour un simple retour, barème §6.3)                                           | R6          |
+| `POST /feedback-requests/:id/cancel`  | Co (demandeur), Id              | Retirer la demande tant qu'elle n'est pas confirmée                                                                                             | R6          |
+| `GET /rooms/:id/deployment`           | Co (owner, maintainer)          | Preuve « en production » : état et jeton à publier                                                                                              | Systalink A |
+| `PUT /rooms/:id/deployment`           | Co (owner, maintainer)          | URL publique de l'application ; une autre origine reçoit un nouveau jeton                                                                       | Systalink A |
+| `POST /rooms/:id/deployment/verify`   | Co (owner, maintainer)          | Lit le jeton (`/.well-known/devhub-proof.txt` ou `<meta name="devhub-proof">`) ; sur Systalink, +10 XP une fois                                 | Systalink A |
 
 ### Découverte (`discovery`)
 
-| Méthode et chemin                                             | Accès | Rôle                                                                | US         |
-| ------------------------------------------------------------- | ----- | ------------------------------------------------------------------- | ---------- |
-| `GET /discover/devs?tag=&tz=&available=&lookingFor=&country=` | Pub   | Recherche de devs (filtres combinables, respecte le mode non listé) | D1         |
-| `GET /discover/rooms?…`                                       | Pub   | Recherche de salles                                                 | D1         |
-| `GET /discover/suggestions`                                   | Co    | « Devs à rencontrer » avec leur raison                              | D6 (P1)    |
-| `GET /leaderboard?scope=country\|community&season=`           | Pub   | Classement (calcul transparent, lié au journal)                     | D2, D5, D7 |
-| `GET /leaderboard/map`                                        | Pub   | Agrégats par pays pour la carte                                     | D4 (P1)    |
+| Méthode et chemin                                                      | Accès | Rôle                                                                                                                         | US         |
+| ---------------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `GET /discover/devs?tag=&tz=&available=&mission=&lookingFor=&country=` | Pub   | Recherche de devs (filtres combinables, respecte le mode non listé) ; `mission=true` : « Disponible pour une mission » (PR4) | D1, PR4    |
+| `GET /discover/rooms?…`                                                | Pub   | Recherche de salles                                                                                                          | D1         |
+| `GET /discover/suggestions`                                            | Co    | « Devs à rencontrer » avec leur raison                                                                                       | D6 (P1)    |
+| `GET /leaderboard?scope=country\|community&season=`                    | Pub   | Classement (calcul transparent, lié au journal)                                                                              | D2, D5, D7 |
+| `GET /leaderboard/map`                                                 | Pub   | Agrégats par pays pour la carte                                                                                              | D4 (P1)    |
 
 ### Synchronisation, notifications, temps réel
 
@@ -237,6 +246,7 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | `POST /sync`, `PATCH /questions/:id`, `PATCH /answers/:id`                                                                                | Fait | #110 (O2)                                                                                                                |
 | `POST /rooms`, `GET /rooms`, `GET /rooms/:code`, `POST /rooms/:id/join`, `GET /rooms/:id/join-requests`, `POST /join-requests/:id/decide` | Fait | #111 (R1, R3)                                                                                                            |
 | Tâches (`/rooms/:id/tasks`, `import-issues`, `/tasks/:id/take`, `submit`, `complete`), `GET`/`POST /rooms/:id/messages`                   | Fait | #112, #113 (R2, R4, R8, R9)                                                                                              |
+| `POST /rooms/:id/tasks/suggest`                                                                                                           | Fait | `feat/room-ai-tasks` (R5)                                                                                                |
 | `PATCH /me`, `GET /u/:handle`                                                                                                             | Fait | #113 (PR2, PR14)                                                                                                         |
 | `GET /discover/devs`, `GET /leaderboard`                                                                                                  | Fait | #114 (D1, D2)                                                                                                            |
 | `GET /news`, `GET /news/home`, `GET /videos`, `GET /news/sources`                                                                         | Fait | #97 (module `news`, hors du périmètre fixé par ADR-0016)                                                                 |
@@ -257,29 +267,26 @@ L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructur
 
 Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/src/infrastructure/actions`) : l'endpoint HTTP et `POST /sync` l'appellent avec la même route canonique et le même corps (`runAction`), donc avec la même empreinte. Une action envoyée seule, puis rejouée dans un lot (ou l'inverse), est reconnue comme doublon. Un conflit de version renvoie `409 version_conflict` avec le champ `server` (version actuelle) ; une limite de débit renvoie `retryAfter` et l'en-tête `Retry-After`.
 
-### Écarts avec le code (vérifiés le 20 octobre)
+### Écarts avec le code (vérifiés le 20 octobre, mis à jour après les fusions du jour)
 
 Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre aux contrôleurs de `main` (`apps/api/src/modules/*/http`, `apps/api/src/infrastructure/http`), ces routes n'existent pas encore ([BUG-043](../suivi/anomalies.md#bug-043)). Un appel renvoie `404`.
 
-| Route décrite                                                   | Exigence | État au 20 octobre                                                              |
-| --------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
-| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`)          | A2       | À faire                                                                         |
-| `GET /u/:handle/activity`                                       | PR8      | P2, non codé                                                                    |
-| `POST /u/:handle/endorsements`                                  | PR9      | Écarté (ADR-0017)                                                               |
-| `GET /og/u/:handle.png`, `GET /og/p/:code.png`                  | PR5      | À faire                                                                         |
-| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg`         | PR6      | À faire                                                                         |
-| `GET /questions/similar`                                        | S7       | Non créée : le front appelle `GET /questions?q=&limit=` (#160)                  |
-| `POST /questions/:id/pair`, `POST /pair-sessions/:id/respond`   | S5       | À faire                                                                         |
-| `POST /questions/:id/translate`                                 | S10      | PR #159 ouverte (ajoute aussi `POST /answers/:id/translate`)                    |
-| `POST /tags/detect`                                             | S9       | Non créée : la détection se fait seulement dans le navigateur (`lib/detect.ts`) |
-| `POST /rooms/draft-from-repo`                                   | R12      | P2, non codé                                                                    |
-| `PATCH /rooms/:id`                                              | R1       | Non créée : une salle ne se modifie pas après sa création                       |
-| `POST /rooms/:id/ai/tasks`                                      | R5       | PR #158 ouverte, sous le chemin `POST /rooms/:id/tasks/suggest`                 |
-| `POST /rooms/:id/feedback-requests`, `/feedback-requests/:id/…` | R6       | PR #162 ouverte                                                                 |
-| `GET /discover/rooms`                                           | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`        |
-| `GET /discover/suggestions`                                     | D6       | P2, non codé                                                                    |
-| `GET /leaderboard/map`                                          | D4       | À faire                                                                         |
-| `GET /live-feed`, `POST /demo/session`                          | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)           |
+| Route décrite                                                 | Exigence | État au 20 octobre                                                              |
+| ------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
+| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`)        | A2       | À faire                                                                         |
+| `GET /u/:handle/activity`                                     | PR8      | P2, non codé                                                                    |
+| `POST /u/:handle/endorsements`                                | PR9      | Écarté (ADR-0017)                                                               |
+| `GET /og/u/:handle.png`, `GET /og/p/:code.png`                | PR5      | À faire                                                                         |
+| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg`       | PR6      | À faire                                                                         |
+| `GET /questions/similar`                                      | S7       | Non créée : le front appelle `GET /questions?q=&limit=` (#160)                  |
+| `POST /questions/:id/pair`, `POST /pair-sessions/:id/respond` | S5       | À faire                                                                         |
+| `POST /tags/detect`                                           | S9       | Non créée : la détection se fait seulement dans le navigateur (`lib/detect.ts`) |
+| `POST /rooms/draft-from-repo`                                 | R12      | P2, non codé                                                                    |
+| `PATCH /rooms/:id`                                            | R1       | Non créée : une salle ne se modifie pas après sa création                       |
+| `GET /discover/rooms`                                         | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`        |
+| `GET /discover/suggestions`                                   | D6       | P2, non codé                                                                    |
+| `GET /leaderboard/map`                                        | D4       | À faire                                                                         |
+| `GET /live-feed`, `POST /demo/session`                        | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)           |
 
 Dans l'autre sens, une seule route du code manque aux listes par module : `GET /rooms/:id/join-requests` (demandes en attente, réservée au propriétaire, #111), citée seulement dans le tableau d'état ci-dessus.
 

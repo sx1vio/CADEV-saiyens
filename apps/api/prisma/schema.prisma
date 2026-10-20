@@ -383,17 +383,18 @@ model QuestionTag {
 }
 
 model Answer {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  questionId   String    @map("question_id") @db.Uuid
-  authorId     String    @map("author_id") @db.Uuid
-  clientId     String    @map("client_id") @db.Uuid
+  id           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId   String                   @map("question_id") @db.Uuid
+  authorId     String                   @map("author_id") @db.Uuid
+  clientId     String                   @map("client_id") @db.Uuid
   body         String
-  isAccepted   Boolean   @default(false) @map("is_accepted")
-  helpfulCount Int       @default(0) @map("helpful_count")
-  version      Int       @default(1)
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-  hiddenAt     DateTime? @map("hidden_at") @db.Timestamptz
+  isAccepted   Boolean                  @default(false) @map("is_accepted")
+  helpfulCount Int                      @default(0) @map("helpful_count")
+  version      Int                      @default(1)
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+  hiddenAt     DateTime?                @map("hidden_at") @db.Timestamptz
+  search       Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, COALESCE(body, ''::text))"))
 
   question    Question  @relation("question_answers", fields: [questionId], references: [id], onDelete: Cascade)
   author      User      @relation(fields: [authorId], references: [id])
@@ -402,6 +403,7 @@ model Answer {
 
   @@unique([authorId, clientId])
   @@index([questionId, createdAt])
+  @@index([search], type: Gin, map: "answers_search_idx")
   @@map("answers")
 }
 
@@ -610,6 +612,7 @@ model FeedbackRequest {
   reviewerId  String?        @map("reviewer_id") @db.Uuid
   kind        FeedbackKind
   status      FeedbackStatus @default(open)
+  url         String? // lien à relire : PR, commit ou démo (https)
   note        String?
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
   confirmedAt DateTime?      @map("confirmed_at") @db.Timestamptz // déclenche les +8 XP
@@ -619,6 +622,7 @@ model FeedbackRequest {
   reviewer  User? @relation("feedback_reviewer", fields: [reviewerId], references: [id])
 
   @@index([status, createdAt(sort: Desc)])
+  @@index([roomId, createdAt(sort: Desc)])
   @@map("feedback_requests")
 }
 

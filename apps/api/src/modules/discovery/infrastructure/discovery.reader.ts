@@ -12,6 +12,10 @@ import { afterCursor, decodeCursor, encodeCursor } from '../../../infrastructure
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { resolvePrivacy } from '../../identity';
 
+/** PR4 : drapeau « Disponible pour une mission » rangé dans le JSON des disponibilités. */
+const forMission = (availability: unknown): boolean =>
+  (availability as { mission?: unknown } | null)?.mission === true;
+
 const BATCH = 100;
 const MAX_SCANNED = 1_000;
 const TZ_TOLERANCE_MINUTES = 180;
@@ -82,6 +86,7 @@ export class DiscoveryReader {
           if (privacy.hideTimezone || offset === null) continue;
           if (Math.abs(offset - query.tz * 60) > TZ_TOLERANCE_MINUTES) continue;
         }
+        if (query.mission && (privacy.hideAvailability || !forMission(u.availability))) continue;
         if (query.available) {
           if (privacy.hideAvailability) continue;
           if (availabilityAt(u.availability as AvailabilitySettings, offset, now) !== 'now')
@@ -205,6 +210,7 @@ export class DiscoveryReader {
         availableNow:
           !privacy.hideAvailability &&
           availabilityAt(u.availability as AvailabilitySettings, offset, now) === 'now',
+        availableForMission: !privacy.hideAvailability && forMission(u.availability),
         topSkills: skills
           .filter((s) => s.userId === u.id)
           .slice(0, 3)

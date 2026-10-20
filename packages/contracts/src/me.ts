@@ -22,6 +22,14 @@ export const MeResponse = z.object({
   isAdmin: z.boolean(),
   isDemo: z.boolean(),
   createdAt: z.iso.datetime(),
+  /** PR14 : réglages de confidentialité tels qu'ils s'appliquent (masquer le pays masque le fuseau). */
+  privacy: z.object({
+    unlisted: z.boolean(),
+    hideCountry: z.boolean(),
+    hideTimezone: z.boolean(),
+    hideAvailability: z.boolean(),
+    hideStats: z.boolean(),
+  }),
   /** PR11 : signaux de confiance, dérivés de données vérifiables. */
   trust: z.object({
     githubLinked: z.boolean(),

@@ -75,6 +75,14 @@ describe('Developer Passport public (PR2)', () => {
       bio: 'Backend Node.js à Dakar.',
       country: 'SN',
       timezone: 'Africa/Dakar',
+      // PR14 : les réglages reviennent tels qu'ils s'appliquent (le fuseau suit le pays).
+      privacy: {
+        unlisted: false,
+        hideCountry: true,
+        hideTimezone: true,
+        hideAvailability: false,
+        hideStats: false,
+      },
     });
   });
 
@@ -136,6 +144,12 @@ describe('Developer Passport public (PR2)', () => {
     await send('patch', moussa, '/api/v1/me', {
       privacy: { hideStats: true, hideAvailability: true },
     }).expect(200);
+    // Un PATCH partiel garde les réglages précédents (pays masqué plus haut).
+    const me = await request(app.getHttpServer())
+      .get('/api/v1/me')
+      .set('Cookie', cookie.get(moussa)!)
+      .expect(200);
+    expect(me.body.privacy).toMatchObject({ hideCountry: true, hideStats: true });
     const res = await request(app.getHttpServer()).get(`/api/v1/u/${moussa}`).expect(200);
     expect(res.body.stats).toBeNull();
     expect(res.body.user.availability).toBeNull();

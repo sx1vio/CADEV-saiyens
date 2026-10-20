@@ -68,6 +68,33 @@ export const CompleteTaskResponse = z.object({
 });
 export type CompleteTaskResponse = z.infer<typeof CompleteTaskResponse>;
 
+/** POST /api/v1/rooms/:id/tasks/suggest (R5), créateur et mainteneurs : langue des tâches proposées. */
+export const SuggestTasksRequest = z.object({ lang: z.enum(['fr', 'en']).default('fr') });
+export type SuggestTasksRequest = z.infer<typeof SuggestTasksRequest>;
+
+/** Tâche proposée par l'IA : rien n'est créé tant que le créateur ne la valide pas (POST /tasks). */
+export const SuggestedTask = z.object({
+  title: z.string().trim().min(3).max(150),
+  description: z.string().trim().max(1_000).nullable(),
+  level: TaskLevel,
+});
+export type SuggestedTask = z.infer<typeof SuggestedTask>;
+
+export const SuggestTasksStatus = z.enum([
+  'done', // tâches proposées par le modèle
+  'cached', // même discussion déjà analysée
+  'empty', // aucun message à analyser
+  'quota', // quota horaire d'IA atteint
+  'disabled', // IA non configurée
+  'failed', // délai dépassé, refus ou réponse invalide
+]);
+
+export const SuggestTasksResponse = z.object({
+  status: SuggestTasksStatus,
+  data: z.array(SuggestedTask).max(5),
+});
+export type SuggestTasksResponse = z.infer<typeof SuggestTasksResponse>;
+
 export const MessageKind = z.enum(['text', 'standup']);
 
 /** POST /api/v1/rooms/:id/messages (R4), membres seulement, rédigeable hors ligne. */
