@@ -2,7 +2,7 @@
 
 > **Source de vérité partagée** de tous les intervenants (humains et agents IA). À lire au début de chaque session de travail, à mettre à jour avant de clôturer une action (nouvelle fonctionnalité, décision, pivot, correction majeure).
 >
-> Dernière mise à jour : **20 octobre 2026** (J-2 avant le gel), par Joachim GOEH-AKUE (session Claude « bd », documentation).
+> Dernière mise à jour : **20 octobre 2026, soir** (J-2 avant le gel), par Joachim GOEH-AKUE (session Claude « bd », documentation).
 
 ## Sommaire
 
@@ -50,43 +50,40 @@ Référence : [cahier des charges v3](docs/Cahier_des_charges_v3_DevHub_Africa.p
 
 Détail exigence par exigence : [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md). Bugs et écarts : [registre des anomalies](docs/suivi/anomalies.md).
 
-**En résumé au 20 octobre** : les 21 exigences P0 sont terminées ; 29 exigences v3 sur 37 sont fusionnées (78 %), 4 sont en cours (R5, R6, PR4, S6). `main` est entièrement vert sur une base neuve (format, lint, typecheck, build ; tests API, core, web, contrats). Ce qui manque surtout n'est plus du code : la mise en ligne sur Systalink et les comptes réels.
+**En résumé au 20 octobre au soir** : toutes les PR ouvertes ont été fusionnées (#158 à #171) ; aucune PR n'est ouverte. Les 21 exigences P0 et 12 des 14 P1 sont terminées : 33 exigences v3 sur 37 (89 %). Restent A2 et S5 (P1), D3 et Y4 (P2). La CI de `main` est verte sur 300c57a, la dernière fusion de code ; celle des fusions de documentation qui ont suivi tournait encore au moment de la rédaction. Ce qui manque surtout n'est plus du code : la mise en ligne sur Systalink et les comptes réels.
 
 ### Fait (fusionné sur `main`)
 
-| Lot                                                                                                      | Exigences                 | PR                                                   |
-| -------------------------------------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------- |
-| Socle : monorepo, CI, Docker, Caddy, API NestJS + worker, Prisma, ADR 0001 à 0020                        | —                         | #94, #100, #103, #105                                |
-| Connexion GitHub, profil importé, signaux de confiance, code de conduite, suppression du compte          | A1, A3, PR1, PR11, M3     | #95, #98, #99, #138, #151                            |
-| Proof XP, barème public, scores par compétence                                                           | X1, X2                    | #101, #102                                           |
-| SOS Dev : question, piste IA, matching, réponses, validation, questions similaires, « sans réponse »     | S1 à S4, S7, S16, X4, S11 | #104, #106 à #108, #160                              |
-| Temps réel SSE, synchronisation hors ligne, écran de conflit, masquage des secrets                       | Y8, O1 à O4, O8, O9       | #109, #110, #118, #119, #135, #157                   |
-| Salles : création, dépôt lié, tâches, discussion, PR vérifiée, invitation riche, Kanban                  | R1 à R4, R7 à R9, R11     | #111 à #113, #116, #122                              |
-| Passport public et preuves ; découverte et classement                                                    | PR2, PR3, PR10, D1, D2    | #113, #114                                           |
-| Systalink et impact : état des services, impact, e-mails, historique de disponibilité, intégration A/B/C | Y1, Y2, Y3, Y5, Y6        | #115, #131, #140, #141, #155, #156, `feat/systalink` |
-| Modération et journal d'audit                                                                            | M1, M4                    | #115, #129, #145                                     |
-| Front branché sur l'API réelle, FR/EN, thème sombre                                                      | I1, T4                    | #116 à #154                                          |
+| Lot                                                                                                      | Exigences                     | PR                                                   |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------- |
+| Socle : monorepo, CI, Docker, Caddy, API NestJS + worker, Prisma, ADR 0001 à 0020                        | —                             | #94, #100, #103, #105                                |
+| Connexion GitHub, profil importé, signaux de confiance, code de conduite, suppression du compte          | A1, A3, PR1, PR11, M3         | #95, #98, #99, #138, #151                            |
+| Proof XP, barème public, scores par compétence                                                           | X1, X2                        | #101, #102                                           |
+| SOS Dev : question, piste IA, matching, réponses, validation, questions similaires, « sans réponse »     | S1 à S4, S6, S7, S16, X4, S11 | #104, #106 à #108, #160, #165, #171                  |
+| Temps réel SSE, synchronisation hors ligne, écran de conflit, masquage des secrets                       | Y8, O1 à O4, O8, O9           | #109, #110, #118, #119, #135, #157                   |
+| Salles : création, dépôt lié, tâches, discussion, PR vérifiée, invitation riche, Kanban                  | R1 à R4, R7 à R9, R11         | #111 à #113, #116, #122                              |
+| Passport public et preuves ; découverte et classement                                                    | PR2, PR3, PR10, D1, D2        | #113, #114                                           |
+| Systalink et impact : état des services, impact, e-mails, historique de disponibilité, intégration A/B/C | Y1, Y2, Y3, Y5, Y6            | #115, #131, #140, #141, #155, #156, `feat/systalink` |
+| Modération et journal d'audit                                                                            | M1, M4                        | #115, #129, #145                                     |
+| Front branché sur l'API réelle, FR/EN, thème sombre                                                      | I1, T4                        | #116 à #154                                          |
+| Salles : IA qui propose des tâches, demande de revue de code ; onglets sur ordinateur (BUG-041)          | R5, R6                        | #158, #162, #164, #170                               |
+| Passport : disponible pour une mission, Contacter ; confidentialité par champ dans les réglages          | PR4, PR14                     | #163, #168                                           |
+| Pont bilingue FR ↔ EN ; étiquettes détectées limitées au référentiel (BUG-042)                           | S10, S9                       | #159, #166                                           |
 
-### En cours (20 octobre)
+### En cours (20 octobre, soir)
 
-Mandat du 14 octobre, renouvelé le 19 : Joachim avance **toutes** les tâches restantes (les siennes d'abord) avec plusieurs sessions Claude Code. Le 20 octobre, la session superviseure (5f) n'est plus active ; la coordination passe par la session 3b. Les sessions ouvrent les PR sans les fusionner.
+Mandat du 14 octobre, renouvelé le 19 : Joachim avance **toutes** les tâches restantes avec plusieurs sessions Claude Code. Le 20 octobre, la session superviseure (5f) n'est plus active. La coordination et les fusions passent par la session 3b, à la demande de Joachim ; les autres sessions ouvrent leurs PR sans les fusionner.
 
-État des PR vérifié avec `gh pr list` le 20 octobre :
+Aucune PR n'est ouverte (`gh pr list`, 20 octobre au soir). Travail annoncé par la session 3b, pas encore vérifiable avec `gh` faute de branche poussée :
 
-| Exigence                                    | État                                                                                                           | Où                             |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| R5 L'IA transforme une discussion en tâches | PR ouverte, CI verte, quota IA réservé de façon atomique                                                       | #158                           |
-| S10 Pont bilingue FR ↔ EN                   | PR ouverte, correctif du quota IA poussé (CI e2e en cours)                                                     | #159                           |
-| R6 Demander un retour ou une revue de code  | PR ouverte (CI e2e en cours)                                                                                   | #162                           |
-| PR4 Disponible pour une mission, Contacter  | PR ouverte, CI verte                                                                                           | #163                           |
-| S6 Question résolue = fiche cherchable      | Partiel sur `main` (`GET /questions?q=`) ; PR ouverte : recherche dans la réponse acceptée, tri par pertinence | #165                           |
-| PR14 (réglages web), X5, S14, S5            | Partiels ou à démarrer                                                                                         | voir la répartition ci-dessous |
+| Exigence                       | Qui                                              |
+| ------------------------------ | ------------------------------------------------ |
+| S14 Lien de reproduction       | Session 63, à partir du travail de la session 3c |
+| S5 Créneau de pair programming | Session 90                                       |
+| Relecture des PR               | Session 78                                       |
+| Documentation                  | Session bd                                       |
 
-Correctifs ouverts le 20 octobre : onglets de salle sur ordinateur (BUG-041, #164) ; étiquettes détectées limitées au référentiel de l'API (S9, BUG-042, #166).
-
-Répartition annoncée par la session 3b le 20 octobre (seules les PR citées sont vérifiées avec `gh`) : BUG-041 par 3b ; S14 par la session 3c ; vérification de S9 puis S16 par la session 63 ; relecture des PR par la session 78 ; S5 par la session ad après PR14 ; documentation par la session bd.
-
-Restent hors périmètre du gel, sauf temps libre : A2 (GitLab, Google), D3 et Y4 (P2), PR5, PR6, D4, Y9.
+Restent hors périmètre du gel, sauf temps libre : A2 (GitLab, Google), D3 et Y4 (P2), PR5, PR6, D4, Y9 ; X5, T1 et T2 sont partiels.
 
 ### Bloquants hors code (équipe)
 
@@ -167,7 +164,7 @@ Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à id
 | 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                    | Emmanuel, Joachim               |
 | 7   | Aucune réponse de Systalink consignée (#2) : barème, produits acceptés, base managée (règle de choix : ADR-0015)                                      | Critère Systalink à 40 %          | Caleb                           |
 | 9   | Aucune clé d'IA n'existe encore (#7) : S2, R5 et S10 n'ont été essayés qu'avec le faux modèle                                                         | Démo de l'IA                      | Joachim, Emmanuel               |
-| 10  | **Gel du code jeudi 22 oct.** : #158, #159, #162 à #166 doivent être relues et fusionnées avant ; ensuite, seuls les `fix` critiques                  | Exigences P1 perdues pour la démo | Joachim, session 78 (relecture) |
+| 10  | **Gel du code jeudi 22 oct.** : S14 et S5 doivent être ouvertes, relues et fusionnées avant ; ensuite, seuls les `fix` critiques                      | Exigences P1 perdues pour la démo | Sessions 63, 90, 78 (relecture) |
 
 ## 8. Carte de la documentation
 
@@ -209,3 +206,4 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 | 2026-10-18 | #151 à #154 : suppression du compte côté web, image Docker de production, écrans traduits                                                                                                                                              |
 | 2026-10-19 | Vérification complète de `main` (tout vert) ; suivi remis à l'état réel (P0 100 %) ; quatre sessions Claude supervisées ; fusion de #155 à #157 et #160 ; R5 (#158), S10 (#159) ; BUG-040 corrigé                                      |
 | 2026-10-20 | R6 en PR (#162) ; quota IA réservé de façon atomique dans #158 et #159 ; PR4 (#163), S6 (#165), BUG-041 (#164) et BUG-042 (#166) en PR ; fin de la session superviseure, coordination par 3b ; risques soldés (#96, #97, #103) retirés |
+| 2026-10-20 | Soir : fusion par la session 3b de #158, #159 et #162 à #171 (R5, R6, S6, S9, S10, S16, PR4, PR14, BUG-041, BUG-042) et des docs #161, #167 (BUG-043), #169 ; P1 à 12/14 ; S14 (session 63) et S5 (session 90) annoncés                |
