@@ -43,6 +43,7 @@ import {
   OptionalUser,
   SessionGuard,
 } from '../../identity';
+import { canManage } from '../domain/room';
 import { GithubPrVerifier } from '../infrastructure/github-pr.verifier';
 import { RoomReader } from '../infrastructure/room.reader';
 import { TasksActions, toHttp } from './tasks.actions';
@@ -162,7 +163,8 @@ export class TasksController {
   }
 
   /**
-   * R5 : l'IA propose des tâches à partir de la discussion (membres). Rien n'est écrit : chaque
+   * R5 : l'IA propose des tâches à partir de la discussion. Le CDC veut des tâches « validées par
+   * le créateur » : la route est réservée au créateur et aux mainteneurs. Rien n'est écrit : chaque
    * proposition validée passe par POST /rooms/:id/tasks. Pas de clé d'idempotence, comme les
    * lectures : la rejouer ne change rien (le cache évite un second appel au modèle).
    */
@@ -177,8 +179,12 @@ export class TasksController {
   ): Promise<SuggestTasksResponse> {
     const room = await this.reader.roomRepo(roomId);
     if (!room || room.hiddenAt) throw notFound();
-    if (!(await this.reader.roleOf(roomId, auth.userId))) {
+    const role = await this.reader.roleOf(roomId, auth.userId);
+    if (!role) {
       throw new ForbiddenException({ code: 'room.not_member', title: 'Reserved to room members' });
+    }
+    if (!canManage(role)) {
+      throw new ForbiddenException({ code: 'forbidden', title: 'Only the room owner can do this' });
     }
     const discussion = await this.reader.discussionForAi(roomId, SUGGEST_MESSAGES);
     const outcome = await this.suggestTasks.execute(auth.userId, {
