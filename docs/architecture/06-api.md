@@ -257,6 +257,32 @@ L'idempotence est assurée par `IdempotencyService` (`apps/api/src/infrastructur
 
 Chaque écriture est un **gestionnaire d'action** (`ActionRegistry`, `apps/api/src/infrastructure/actions`) : l'endpoint HTTP et `POST /sync` l'appellent avec la même route canonique et le même corps (`runAction`), donc avec la même empreinte. Une action envoyée seule, puis rejouée dans un lot (ou l'inverse), est reconnue comme doublon. Un conflit de version renvoie `409 version_conflict` avec le champ `server` (version actuelle) ; une limite de débit renvoie `retryAfter` et l'en-tête `Retry-After`.
 
+### Écarts avec le code (vérifiés le 20 octobre)
+
+Les listes ci-dessus décrivent le contrat **visé**. Comparées le 20 octobre aux contrôleurs de `main` (`apps/api/src/modules/*/http`, `apps/api/src/infrastructure/http`), ces routes n'existent pas encore ([BUG-042](../suivi/anomalies.md#bug-042)). Un appel renvoie `404`.
+
+| Route décrite                                                   | Exigence | État au 20 octobre                                                              |
+| --------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
+| `GET /auth/gitlab`, `GET /auth/google` (+ `/callback`)          | A2       | À faire                                                                         |
+| `GET /u/:handle/activity`                                       | PR8      | P2, non codé                                                                    |
+| `POST /u/:handle/endorsements`                                  | PR9      | Écarté (ADR-0017)                                                               |
+| `GET /og/u/:handle.png`, `GET /og/p/:code.png`                  | PR5      | À faire                                                                         |
+| `GET /badge/:handle.svg`, `GET /badge/:handle/:tag.svg`         | PR6      | À faire                                                                         |
+| `GET /questions/similar`                                        | S7       | Non créée : le front appelle `GET /questions?q=&limit=` (#160)                  |
+| `POST /questions/:id/pair`, `POST /pair-sessions/:id/respond`   | S5       | À faire                                                                         |
+| `POST /questions/:id/translate`                                 | S10      | PR #159 ouverte (ajoute aussi `POST /answers/:id/translate`)                    |
+| `POST /tags/detect`                                             | S9       | Non créée : la détection se fait seulement dans le navigateur (`lib/detect.ts`) |
+| `POST /rooms/draft-from-repo`                                   | R12      | P2, non codé                                                                    |
+| `PATCH /rooms/:id`                                              | R1       | Non créée : une salle ne se modifie pas après sa création                       |
+| `POST /rooms/:id/ai/tasks`                                      | R5       | PR #158 ouverte, sous le chemin `POST /rooms/:id/tasks/suggest`                 |
+| `POST /rooms/:id/feedback-requests`, `/feedback-requests/:id/…` | R6       | PR #162 ouverte                                                                 |
+| `GET /discover/rooms`                                           | D1       | Non créée : la recherche de salles passe par `GET /rooms?tag=&state=&q=`        |
+| `GET /discover/suggestions`                                     | D6       | P2, non codé                                                                    |
+| `GET /leaderboard/map`                                          | D4       | À faire                                                                         |
+| `GET /live-feed`, `POST /demo/session`                          | T1, T2   | Non créées (T1 et T2 sont « en cours » côté front, sans route dédiée)           |
+
+Dans l'autre sens, une seule route du code manque aux listes par module : `GET /rooms/:id/join-requests` (demandes en attente, réservée au propriétaire, #111), citée seulement dans le tableau d'état ci-dessus.
+
 ## Exemple complet : poser une question
 
 ```http
