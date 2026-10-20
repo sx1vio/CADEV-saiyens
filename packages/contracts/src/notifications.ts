@@ -11,6 +11,7 @@ export const NotificationType = z.enum([
   'join.request', // R3 : demande pour rejoindre ta salle
   'join.decided', // R3 : ta demande a été acceptée ou refusée
   'task.completed', // R8 : ta contribution est acceptée
+  'contact.request', // PR4 : un dev t'écrit depuis ton Passport
   'feedback.requested', // R6 : un membre de ta salle demande un retour ou une revue
   'feedback.taken', // R6 : quelqu'un relit ton projet
   'feedback.confirmed', // R6 : ta revue est confirmée par le demandeur

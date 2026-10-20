@@ -27,7 +27,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { relativeTime, setLanguage, useLang } from '@/i18n';
 import { useQuery, invalidate } from '@/lib/query';
 import { cn } from '@/lib/utils';
-import { api } from '@/services';
+import { api, type AppNotification } from '@/services';
 import { useUserStream } from '@/services/realtime';
 import { useSession, useUI } from '@/stores/app';
 import { serverLogout } from '@/platform/auth';
@@ -405,8 +405,14 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
   const me = useSession((s) => s.user);
   const { data } = useQuery(me ? `notifications:${me.id}` : null, () => api.listNotifications());
   const unread = data?.filter((n) => !n.readAt).length ?? 0;
-  const href = (p: Record<string, string | number>) =>
-    p.questionId ? `/sos/${p.questionId}` : p.code ? `/p/${p.code}` : '/';
+  const href = (n: AppNotification) =>
+    n.type === 'contact'
+      ? `/u/${n.payload.by}`
+      : n.payload.questionId
+        ? `/sos/${n.payload.questionId}`
+        : n.payload.code
+          ? `/p/${n.payload.code}`
+          : '/';
   return (
     <Popover.Root
       onOpenChange={(o) => {
@@ -448,7 +454,7 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
                 <Popover.Close asChild key={n.id}>
                   <button
                     type="button"
-                    onClick={() => nav(href(n.payload))}
+                    onClick={() => nav(href(n))}
                     className="flex w-full items-start gap-3 rounded-[10px] px-3 py-2.5 text-left transition-colors hover:bg-surface-1"
                   >
                     <span

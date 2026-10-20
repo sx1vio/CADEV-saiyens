@@ -735,6 +735,15 @@ export const localApi: DevHubApi = {
     });
   },
 
+  async contactDev(handle, message) {
+    await write((e, me) => {
+      const to = e.userByHandle(handle);
+      if (!to) throw new DomainError('not-found');
+      if (to.id === me.id) throw new DomainError('unprocessable');
+      e.notify(to.id, 'contact', { byName: me.displayName, by: me.handle, message }, Date.now());
+    });
+  },
+
   async report(targetType, targetId, targetLabel, reason) {
     await write((e, me) => e.report(me.id, targetType, targetId, targetLabel, reason, Date.now()));
   },

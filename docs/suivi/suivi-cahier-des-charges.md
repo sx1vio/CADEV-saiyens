@@ -109,12 +109,12 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Profil et Passport (PR)
 
-| ID  | Issue | Exigence                                     | Prio | Statut    | Responsable | Référence       | Commentaire                                                                              |
-| --- | ----- | -------------------------------------------- | ---- | --------- | ----------- | --------------- | ---------------------------------------------------------------------------------------- |
-| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé` | Caleb       | #99 (fusionnée) | Job `github.import-profile`, au moins 3 compétences                                      |
-| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé` | Caleb       | PR #113         | Validé en réel le 15 oct. (session C, API et front de main)                              |
-| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé` | Caleb       | PR #113, #102   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API |
-| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `À faire` | Caleb       |                 |                                                                                          |
+| ID  | Issue | Exigence                                     | Prio | Statut    | Responsable | Référence                       | Commentaire                                                                                                                                                                               |
+| --- | ----- | -------------------------------------------- | ---- | --------- | ----------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé` | Caleb       | #99 (fusionnée)                 | Job `github.import-profile`, au moins 3 compétences                                                                                                                                       |
+| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé` | Caleb       | PR #113                         | Validé en réel le 15 oct. (session C, API et front de main)                                                                                                                               |
+| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé` | Caleb       | PR #113, #102                   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API                                                                                                  |
+| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `Terminé` | Caleb       | `feat/passport-mission-contact` | Drapeau `availability.mission` (réglages, Passport, filtre Découvrir) ; Contacter relaie le message par notification puis par e-mail (Y3), sans exposer d'adresse ; e2e API et navigateur |
 
 ### SOS Dev (S)
 

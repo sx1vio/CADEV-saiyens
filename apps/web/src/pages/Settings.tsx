@@ -1,5 +1,6 @@
 import {
   BellOff,
+  Briefcase,
   Eye,
   EyeOff,
   Languages,
@@ -36,6 +37,7 @@ export default function Settings() {
   const [bio, setBio] = useState(me.bio);
   const [busy, setBusy] = useState(false);
   const [emailBusy, setEmailBusy] = useState(false);
+  const [missionBusy, setMissionBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [typedHandle, setTypedHandle] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -78,6 +80,35 @@ export default function Settings() {
           >
             {t('common.save')}
           </Button>
+          {/* PR4 : affiché sur le Passport et filtrable dans Découvrir. */}
+          <Row label={t('settings.mission')} hint={t('settings.missionText')}>
+            <Segmented<'yes' | 'no'>
+              label={t('settings.mission')}
+              size="sm"
+              value={me.availability.forMission ? 'yes' : 'no'}
+              onChange={async (v) => {
+                if (missionBusy) return;
+                setMissionBusy(true);
+                try {
+                  setUser(
+                    await api.updateMe({
+                      availability: { ...me.availability, forMission: v === 'yes' },
+                    }),
+                  );
+                  invalidate('');
+                  toast.success(t('settings.missionSaved'));
+                } catch (e) {
+                  toast.error(errorText(t, e));
+                } finally {
+                  setMissionBusy(false);
+                }
+              }}
+              items={[
+                { value: 'yes', label: t('settings.missionYes'), icon: <Briefcase /> },
+                { value: 'no', label: t('settings.missionNo') },
+              ]}
+            />
+          </Row>
         </Card>
 
         {/* PR14 : la confidentialité est appliquée par l'API ; le serveur local n'a rien à régler. */}
