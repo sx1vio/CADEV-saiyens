@@ -81,3 +81,31 @@ export const LeaderboardResponse = z.object({
   ),
 });
 export type LeaderboardResponse = z.infer<typeof LeaderboardResponse>;
+
+/**
+ * GET /api/v1/leaderboard/map (D4) : agrégats par pays pour la carte. Mêmes comptes que le
+ * classement D2 (non listés et supprimés exclus). Un dev qui masque son pays (PR14) n'est compté
+ * que dans `unlocated` ; les comptes de démonstration ne sont jamais mêlés aux pays : ils sont
+ * totalisés à part dans `demo`.
+ */
+export const LeaderboardMapResponse = z.object({
+  method: z.string(),
+  /** Fenêtre d'activité : un dev est actif s'il a gagné des Proof XP sur cette période. */
+  activeWindowDays: z.number().int(),
+  countries: z.array(
+    z.object({
+      country: z.string(),
+      devs: z.number().int(),
+      activeDevs: z.number().int(),
+      /** Réponses validées écrites par les devs du pays (contenus masqués exclus). */
+      questionsUnblocked: z.number().int(),
+      totalXp: z.number().int(),
+    }),
+  ),
+  /** Devs réels sans pays déclaré ou qui le masquent : comptés, jamais placés sur la carte. */
+  unlocated: z.object({ devs: z.number().int() }),
+  /** Comptes de démonstration, toujours à part. */
+  demo: z.object({ devs: z.number().int(), totalXp: z.number().int() }),
+  computedAt: z.iso.datetime(),
+});
+export type LeaderboardMapResponse = z.infer<typeof LeaderboardMapResponse>;
