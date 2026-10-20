@@ -1070,6 +1070,30 @@ const fr = {
     deleteTypeHandle: 'Pour confirmer, tape ton pseudo : {{handle}}',
     deleted: 'Compte supprimé.',
     saved: 'Profil enregistré.',
+    privacyTitle: 'Confidentialité du Passport',
+    privacyText:
+      'Ce que ton Passport public montre. Tes contributions et leurs preuves restent visibles.',
+    privacy: {
+      unlisted: 'Découverte et classement',
+      hideCountry: 'Pays',
+      hideTimezone: 'Fuseau horaire',
+      hideAvailability: 'Disponibilités',
+      hideStats: 'Statistiques',
+    },
+    privacyHint: {
+      unlisted:
+        'Non listé : tu n’apparais plus dans la découverte ni le classement. Ton Passport reste accessible par son lien.',
+      hideCountry: 'Masquer le pays masque aussi ton fuseau horaire.',
+      hideTimezone:
+        'Masqué du Passport et du filtre par fuseau ; le matching l’utilise toujours, sans l’afficher.',
+      hideAvailability: 'Tes créneaux et ton statut « disponible maintenant ».',
+      hideStats: 'Chiffres d’activité affichés sur ton Passport.',
+    },
+    privacyTimezoneFollows: 'Masqué avec le pays.',
+    privacyVisible: 'Visible',
+    privacyHidden: 'Masqué',
+    privacyUnlisted: 'Non listé',
+    privacySaved: 'Confidentialité enregistrée.',
     mode: 'Source des données',
     modeLocal: 'Serveur local (IndexedDB)',
     modeHttp: 'API DevHub',

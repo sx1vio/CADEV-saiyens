@@ -1,6 +1,8 @@
 import {
   BellOff,
   Briefcase,
+  Eye,
+  EyeOff,
   Languages,
   Mail,
   Map,
@@ -20,7 +22,7 @@ import { Card, CardHeader, Field, Input, Textarea } from '@/components/ui/primit
 import { Segmented } from '@/components/ui/segmented';
 import { setLanguage, useLang, type AppLang } from '@/i18n';
 import { invalidate } from '@/lib/query';
-import { api } from '@/services';
+import { api, type PrivacySettings } from '@/services';
 import { useSession, useUI, type Theme } from '@/stores/app';
 import { Page } from './_layout';
 
@@ -108,6 +110,9 @@ export default function Settings() {
             />
           </Row>
         </Card>
+
+        {/* PR14 : la confidentialité est appliquée par l'API ; le serveur local n'a rien à régler. */}
+        {api.mode === 'http' && me.privacy && <PrivacyCard privacy={me.privacy} />}
 
         <Card className="flex flex-col gap-5 p-5 sm:p-6">
           <CardHeader title={t('settings.appearance')} />
@@ -283,6 +288,81 @@ export default function Settings() {
         </Field>
       </Sheet>
     </Page>
+  );
+}
+
+const PRIVACY_ROWS: Array<keyof PrivacySettings> = [
+  'unlisted',
+  'hideCountry',
+  'hideTimezone',
+  'hideAvailability',
+  'hideStats',
+];
+
+/** PR14 : chaque réglage s'enregistre dès qu'on le change (PATCH /me, champ `privacy`). */
+function PrivacyCard({ privacy }: { privacy: PrivacySettings }) {
+  const { t } = useTranslation();
+  const setUser = useSession((s) => s.setUser);
+  const [busy, setBusy] = useState(false);
+
+  const save = async (key: keyof PrivacySettings, hidden: boolean) => {
+    if (busy || privacy[key] === hidden) return;
+    setBusy(true);
+    try {
+      setUser(await api.updateMe({ privacy: { [key]: hidden } }));
+      toast.success(t('settings.privacySaved'));
+    } catch (e) {
+      toast.error(errorText(t, e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="flex flex-col gap-5 p-5 sm:p-6">
+      <CardHeader title={t('settings.privacyTitle')} subtitle={t('settings.privacyText')} />
+      {PRIVACY_ROWS.map((key) => {
+        const label = t(`settings.privacy.${key}`);
+        // Le fuseau révèle le pays (« Africa/Dakar ») : il suit le pays quand celui-ci est masqué.
+        const followsCountry = key === 'hideTimezone' && privacy.hideCountry;
+        return (
+          <Row
+            key={key}
+            label={label}
+            hint={
+              followsCountry
+                ? t('settings.privacyTimezoneFollows')
+                : t(`settings.privacyHint.${key}`)
+            }
+          >
+            {followsCountry ? (
+              <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+                <EyeOff className="size-4" />
+                {t('settings.privacyHidden')}
+              </span>
+            ) : (
+              <Segmented<'visible' | 'hidden'>
+                label={label}
+                size="sm"
+                value={privacy[key] ? 'hidden' : 'visible'}
+                onChange={(v) => void save(key, v === 'hidden')}
+                items={[
+                  { value: 'visible', label: t('settings.privacyVisible'), icon: <Eye /> },
+                  {
+                    value: 'hidden',
+                    label:
+                      key === 'unlisted'
+                        ? t('settings.privacyUnlisted')
+                        : t('settings.privacyHidden'),
+                    icon: <EyeOff />,
+                  },
+                ]}
+              />
+            )}
+          </Row>
+        );
+      })}
+    </Card>
   );
 }
 

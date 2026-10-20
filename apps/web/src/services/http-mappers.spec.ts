@@ -51,6 +51,13 @@ describe('préférence e-mail (Y3)', () => {
     isAdmin: false,
     isDemo: false,
     createdAt: at,
+    privacy: {
+      unlisted: false,
+      hideCountry: true,
+      hideTimezone: true,
+      hideAvailability: false,
+      hideStats: false,
+    },
     trust: {
       githubLinked: true,
       githubAccountYears: null,
@@ -59,6 +66,16 @@ describe('préférence e-mail (Y3)', () => {
       founder: true,
     },
   };
+
+  it('PR14 : GET /me apporte les réglages de confidentialité tels qu’ils s’appliquent', () => {
+    expect(m.user(me).privacy).toEqual({
+      unlisted: false,
+      hideCountry: true,
+      hideTimezone: true,
+      hideAvailability: false,
+      hideStats: false,
+    });
+  });
 
   it('GET /me : la préférence et la présence d’une adresse arrivent, jamais l’adresse elle-même', () => {
     const u = m.user(me);

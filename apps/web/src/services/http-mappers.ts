@@ -165,6 +165,7 @@ export function user(me: MeResponse, passport?: PassportResponse | null): User {
     emailVerified: me.emailVerified,
     emailNotifications: me.emailNotifications,
     hasEmail: me.email !== null,
+    privacy: me.privacy,
     codeOfConductAcceptedAt: me.codeOfConductAcceptedAt ?? undefined,
   };
 }

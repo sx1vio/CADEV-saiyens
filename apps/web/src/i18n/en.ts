@@ -1042,6 +1042,30 @@ const en: Dict = {
     deleteTypeHandle: 'To confirm, type your handle: {{handle}}',
     deleted: 'Account deleted.',
     saved: 'Profile saved.',
+    privacyTitle: 'Passport privacy',
+    privacyText:
+      'What your public Passport shows. Your contributions and their proofs stay visible.',
+    privacy: {
+      unlisted: 'Discovery and leaderboard',
+      hideCountry: 'Country',
+      hideTimezone: 'Time zone',
+      hideAvailability: 'Availability',
+      hideStats: 'Statistics',
+    },
+    privacyHint: {
+      unlisted:
+        'Unlisted: you no longer appear in discovery or the leaderboard. Your Passport stays reachable by its link.',
+      hideCountry: 'Hiding your country also hides your time zone.',
+      hideTimezone:
+        'Hidden from your Passport and the time zone filter; matching still uses it, without showing it.',
+      hideAvailability: 'Your slots and your “available now” status.',
+      hideStats: 'Activity figures shown on your Passport.',
+    },
+    privacyTimezoneFollows: 'Hidden with the country.',
+    privacyVisible: 'Visible',
+    privacyHidden: 'Hidden',
+    privacyUnlisted: 'Unlisted',
+    privacySaved: 'Privacy saved.',
     mode: 'Data source',
     modeLocal: 'Local server (IndexedDB)',
     modeHttp: 'DevHub API',

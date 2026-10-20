@@ -209,6 +209,7 @@ export const httpApi: DevHubApi = {
     if (input.canHelpWith !== undefined) body.canHelpTagSlugs = input.canHelpWith.slice(0, 5);
     if (input.wantsToLearn !== undefined) body.wantLearnTagSlugs = input.wantsToLearn.slice(0, 5);
     if (input.emailNotifications !== undefined) body.emailNotifications = input.emailNotifications;
+    if (input.privacy !== undefined) body.privacy = input.privacy;
     if (Object.keys(body).length > 0) await call('PATCH', '/me', body);
     if (input.codeOfConductAcceptedAt) await post('/me/code-of-conduct');
     return sessionOrThrow();
