@@ -442,6 +442,31 @@ describe('historique de disponibilité (Y5)', () => {
   });
 });
 
+describe('mission et Contacter (PR4)', () => {
+  it('le drapeau mission arrive des disponibilités et des cartes de Découvrir', () => {
+    expect(m.availabilityFromApi({ now: false, mission: true }).forMission).toBe(true);
+    expect(m.availabilityFromApi({ now: true }).forMission).toBe(false);
+    expect(m.availabilityFromApi(null).forMission).toBe(false);
+  });
+
+  it('la notification « contact » garde le message et l’expéditeur', () => {
+    const n = m.notification(
+      {
+        id: 'n9',
+        type: 'contact.request',
+        payload: { senderId: 'x', by: 'moussa', byName: 'Moussa', message: 'Une mission ?' },
+        readAt: null,
+        createdAt: at,
+      },
+      'awa',
+    );
+    expect(n).toMatchObject({
+      type: 'contact',
+      payload: { by: 'moussa', byName: 'Moussa', message: 'Une mission ?' },
+    });
+  });
+});
+
 describe('impact (Y2)', () => {
   it('affiche les chiffres calculés par l’API, jamais des zéros écrits en dur (BUG-032)', () => {
     expect(

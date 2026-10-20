@@ -19,13 +19,13 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { EmptyState, ErrorState } from '@/components/djeli';
-import { DemoBadge } from '@/components/domain';
+import { DemoBadge, errorText } from '@/components/domain';
 import { ReportSheet } from '@/components/ReportSheet';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CodeBlock } from '@/components/ui/code';
 import { Heatmap, LevelBadge, ScoreBar } from '@/components/ui/data';
 import { Sheet } from '@/components/ui/overlay';
-import { Avatar, Skeleton, TechTag } from '@/components/ui/primitives';
+import { Avatar, Field, Skeleton, TechTag, Textarea } from '@/components/ui/primitives';
 import { duration, formatDate, formatNumber, relativeTime, useLang } from '@/i18n';
 import { countryName, formatUtc } from '@/lib/geo';
 import { useQuery } from '@/lib/query';
@@ -52,6 +52,8 @@ export default function Passport() {
   const { data: status } = useQuery('status:lite', () => api.getStatus());
   const [proofSkill, setProofSkill] = useState<SkillView | null>(null);
   const [contact, setContact] = useState(false);
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [tab, setTab] = useState<'overview' | 'skills' | 'projects' | 'activity'>('overview');
   const certResults = usePlatform((st) => st.certResults);
@@ -467,10 +469,65 @@ export default function Passport() {
         title={`${t('passport.contact')} · ${u.displayName}`}
         description={t('passport.contactHint')}
         size="sm"
+        footer={
+          me ? (
+            <>
+              <Button variant="ghost" onClick={() => setContact(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                icon={<Mail />}
+                loading={sending}
+                disabled={message.trim().length < 10}
+                onClick={async () => {
+                  setSending(true);
+                  try {
+                    await api.contactDev(u.handle, message.trim());
+                    toast.success(t('passport.contactSent', { name: u.displayName }));
+                    setMessage('');
+                    setContact(false);
+                  } catch (e) {
+                    toast.error(errorText(t, e));
+                  } finally {
+                    setSending(false);
+                  }
+                }}
+              >
+                {t('passport.contactSend')}
+              </Button>
+            </>
+          ) : undefined
+        }
       >
-        <p className="rounded-[10px] bg-surface-2 p-4 text-sm text-muted">
-          {t('passport.contactSoon')}
-        </p>
+        {me ? (
+          <Field
+            label={t('passport.contactMessage')}
+            hint={t('passport.contactRules')}
+            htmlFor="pp-contact"
+          >
+            <Textarea
+              id="pp-contact"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              minLength={10}
+              maxLength={500}
+              rows={5}
+              placeholder={t('passport.contactPlaceholder')}
+            />
+          </Field>
+        ) : (
+          <div className="flex flex-col items-start gap-3 rounded-[10px] bg-surface-2 p-4 text-sm text-muted">
+            {t('passport.contactLogin')}
+            <ButtonLink
+              to={`/connexion?next=${encodeURIComponent(`/u/${u.handle}`)}`}
+              variant="primary"
+              size="sm"
+            >
+              {t('passport.contactLoginCta')}
+            </ButtonLink>
+          </div>
+        )}
       </Sheet>
     </div>
   );

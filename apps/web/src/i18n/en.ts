@@ -152,6 +152,7 @@ const en: Dict = {
     'feedback-cancelled': '{{author}} withdrew their review request on {{room}}',
     claim: '{{helper}} is looking at your question',
     pair: '{{host}} suggests a pair programming session',
+    contact: '{{byName}} wrote to you: “{{message}}”',
   },
   network: {
     online: 'Online',
@@ -788,7 +789,15 @@ const en: Dict = {
     shareCopied: 'Passport link copied.',
     contact: 'Contact',
     contactHint: 'The message is relayed by email without exposing the address.',
-    contactSoon: 'Email relay goes through Systalink mail: it will be enabled with the API.',
+    contactMessage: 'Your message',
+    contactRules:
+      '10 to 500 characters. Don’t include private details: share your contact only if you want to.',
+    contactPlaceholder: 'Introduce yourself and describe the mission in a few lines.',
+    contactSend: 'Send',
+    contactSent: 'Message sent to {{name}}.',
+    contactLogin:
+      'Sign in to write to this dev: your message reaches them as a notification and by email, without showing any address.',
+    contactLoginCta: 'Sign in',
     mission: 'Available for a gig',
     available: { now: 'Available now', today: 'Available today', busy: 'Busy' },
     skills: 'Skills',
@@ -1045,6 +1054,11 @@ const en: Dict = {
     emailOff: 'Off',
     emailNotificationsOn: 'Emails turned on.',
     emailNotificationsOff: 'Emails turned off.',
+    mission: 'Available for a mission',
+    missionText: 'Shown on your Passport and in the “For a mission” filter in Discover.',
+    missionYes: 'Yes',
+    missionNo: 'No',
+    missionSaved: 'Availability saved.',
   },
   conflict: {
     title: 'Version conflict',

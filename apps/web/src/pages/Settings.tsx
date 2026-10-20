@@ -1,4 +1,14 @@
-import { BellOff, Languages, Mail, Map, Moon, RotateCcw, Sun, Trash2 } from 'lucide-react';
+import {
+  BellOff,
+  Briefcase,
+  Languages,
+  Mail,
+  Map,
+  Moon,
+  RotateCcw,
+  Sun,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -25,6 +35,7 @@ export default function Settings() {
   const [bio, setBio] = useState(me.bio);
   const [busy, setBusy] = useState(false);
   const [emailBusy, setEmailBusy] = useState(false);
+  const [missionBusy, setMissionBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [typedHandle, setTypedHandle] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -67,6 +78,35 @@ export default function Settings() {
           >
             {t('common.save')}
           </Button>
+          {/* PR4 : affiché sur le Passport et filtrable dans Découvrir. */}
+          <Row label={t('settings.mission')} hint={t('settings.missionText')}>
+            <Segmented<'yes' | 'no'>
+              label={t('settings.mission')}
+              size="sm"
+              value={me.availability.forMission ? 'yes' : 'no'}
+              onChange={async (v) => {
+                if (missionBusy) return;
+                setMissionBusy(true);
+                try {
+                  setUser(
+                    await api.updateMe({
+                      availability: { ...me.availability, forMission: v === 'yes' },
+                    }),
+                  );
+                  invalidate('');
+                  toast.success(t('settings.missionSaved'));
+                } catch (e) {
+                  toast.error(errorText(t, e));
+                } finally {
+                  setMissionBusy(false);
+                }
+              }}
+              items={[
+                { value: 'yes', label: t('settings.missionYes'), icon: <Briefcase /> },
+                { value: 'no', label: t('settings.missionNo') },
+              ]}
+            />
+          </Row>
         </Card>
 
         <Card className="flex flex-col gap-5 p-5 sm:p-6">

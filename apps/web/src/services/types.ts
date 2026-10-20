@@ -342,7 +342,8 @@ export type NotificationType =
   | 'feedback-confirmed'
   | 'feedback-cancelled'
   | 'claim'
-  | 'pair';
+  | 'pair'
+  | 'contact';
 
 export interface AppNotification {
   id: ID;

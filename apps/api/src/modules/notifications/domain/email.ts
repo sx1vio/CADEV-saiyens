@@ -28,7 +28,7 @@ export function describe(
   n: PendingNotification,
   lang: EmailLang,
   appUrl: string,
-): { line: string; url: string } {
+): { line: string; url: string; detail?: string } {
   const p = n.payload;
   const fr = lang === 'fr';
   const question = new URL(`/sos/${str(p.questionId)}`, appUrl).toString();
@@ -75,6 +75,15 @@ export function describe(
           ? `Ta contribution « ${str(p.taskTitle)} » est validée : +${str(p.points)} Proof XP`
           : `Your contribution “${str(p.taskTitle)}” was accepted: +${str(p.points)} Proof XP`,
         url: rooms,
+      };
+    case 'contact.request':
+      // PR4 : le message suit la ligne ; on répond depuis le Passport de l'expéditeur.
+      return {
+        line: fr
+          ? `${str(p.byName)} (@${str(p.by)}) t'a écrit depuis ton Passport`
+          : `${str(p.byName)} (@${str(p.by)}) wrote to you from your Passport`,
+        url: new URL(`/u/${encodeURIComponent(str(p.by))}`, appUrl).toString(),
+        detail: str(p.message),
       };
     case 'feedback.requested':
       return {
@@ -131,11 +140,20 @@ export function renderDigest(
   const footer = fr
     ? `Envoyé via Systalink Mail. Ne plus recevoir ces e-mails : ${input.unsubscribeUrl}`
     : `Sent via Systalink Mail. Stop these emails: ${input.unsubscribeUrl}`;
-  const text = [hello, '', ...items.map((i) => `- ${i.line}\n  ${i.url}`), '', footer].join('\n');
+  const text = [
+    hello,
+    '',
+    ...items.map((i) => `- ${i.line}\n${i.detail ? `  « ${i.detail} »\n` : ''}  ${i.url}`),
+    '',
+    footer,
+  ].join('\n');
   const html = [
     `<p>${escapeHtml(hello)}</p>`,
     '<ul>',
-    ...items.map((i) => `<li><a href="${escapeHtml(i.url)}">${escapeHtml(i.line)}</a></li>`),
+    ...items.map(
+      (i) =>
+        `<li><a href="${escapeHtml(i.url)}">${escapeHtml(i.line)}</a>${i.detail ? `<br><q>${escapeHtml(i.detail)}</q>` : ''}</li>`,
+    ),
     '</ul>',
     `<p style="color:#666;font-size:12px">${fr ? 'Envoyé via Systalink Mail.' : 'Sent via Systalink Mail.'} <a href="${escapeHtml(input.unsubscribeUrl)}">${fr ? 'Ne plus recevoir ces e-mails' : 'Unsubscribe'}</a></p>`,
   ].join('\n');
