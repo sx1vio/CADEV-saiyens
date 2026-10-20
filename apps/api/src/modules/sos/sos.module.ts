@@ -7,6 +7,8 @@ import { AwardXp, ReputationModule } from '../reputation';
 import { Answers } from './application/answers';
 import { AskQuestion } from './application/ask-question';
 import { EditContent } from './application/edit-content';
+import { PairSessions } from './application/pair-sessions';
+import { PairController } from './http/pair.controller';
 import { AnswersController } from './http/answers.controller';
 import { TagsController } from './http/tags.controller';
 import { TranslationsController } from './http/translations.controller';
@@ -18,13 +20,24 @@ import { QuestionReader } from './infrastructure/question.reader';
 // Module sos : SOS Dev, questions et réponses (CDC v3 §6.1). Propriétaire : Florent.
 @Module({
   imports: [IdentityModule, ReputationModule, NotificationsModule, MatchingModule, AiModule],
-  controllers: [QuestionsController, AnswersController, TagsController, TranslationsController],
+  controllers: [
+    QuestionsController,
+    AnswersController,
+    TagsController,
+    TranslationsController,
+    PairController,
+  ],
   providers: [
     QuestionReader,
     TagReferenceSync,
     SosActions,
     EditContent,
     { provide: AskQuestion, useFactory: () => new AskQuestion() },
+    {
+      provide: PairSessions,
+      inject: [Notifier],
+      useFactory: (notifier: Notifier) => new PairSessions(notifier),
+    },
     {
       provide: Answers,
       inject: [AwardXp, Notifier, MatchingPort],

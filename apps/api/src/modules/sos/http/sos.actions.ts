@@ -12,6 +12,9 @@ import {
   type AcceptAnswerResponse,
   type AskQuestionResponse,
   AskQuestionRequest,
+  type PairSessionView,
+  ProposePairRequest,
+  RespondPairRequest,
   type PostAnswerResponse,
   PostAnswerRequest,
   type UpdateAnswerResponse,
@@ -34,6 +37,7 @@ import { SelfVoteError } from '../../reputation';
 import { Answers } from '../application/answers';
 import { AskQuestion } from '../application/ask-question';
 import { EditContent } from '../application/edit-content';
+import { type PairSessionRecord, PairSessions } from '../application/pair-sessions';
 import {
   AlreadyResolvedError,
   AnswerNotFoundError,
@@ -43,10 +47,20 @@ import {
   QuestionNotFoundError,
 } from '../domain/answer';
 import { ContentNotFoundError, NotContentAuthorError, VersionConflictError } from '../domain/edit';
+import {
+  InvalidSlotError,
+  NotPairGuestError,
+  OwnQuestionPairError,
+  PairAlreadyAnsweredError,
+  PairAlreadyProposedError,
+  PairNotFoundError,
+  VideoLinkRejectedError,
+} from '../domain/pair';
 import type { AnswerWriter, XpAward } from '../domain/ports';
 import { TooManyQuestionsError, UnknownTagsError } from '../domain/question';
 import { PrismaAnswerWriter } from '../infrastructure/prisma-answer.writer';
 import { PrismaEditWriter } from '../infrastructure/prisma-edit.writer';
+import { PrismaPairStore } from '../infrastructure/prisma-pair.store';
 import { PrismaQuestionWriter } from '../infrastructure/prisma-question.writer';
 
 /** Traduction des erreurs métier en codes stables (docs/architecture/06-api.md#erreurs). */
@@ -57,6 +71,44 @@ export function toHttp(err: unknown): never {
     err instanceof ContentNotFoundError
   ) {
     throw new NotFoundException({ code: 'not_found', title: 'Question or answer not found' });
+  }
+  if (err instanceof PairNotFoundError) {
+    throw new NotFoundException({ code: 'not_found', title: 'Pair session not found' });
+  }
+  if (err instanceof NotPairGuestError) {
+    throw new ForbiddenException({
+      code: 'forbidden',
+      title: 'Only the invited author can answer',
+    });
+  }
+  if (err instanceof OwnQuestionPairError) {
+    throw new UnprocessableEntityException({
+      code: 'pair.own_question',
+      title: 'You cannot propose a session on your own question',
+    });
+  }
+  if (err instanceof VideoLinkRejectedError) {
+    throw new UnprocessableEntityException({
+      code: 'pair.video_link_rejected',
+      title: 'Video link must be https on a known service',
+      errors: [{ path: 'videoLink', code: 'video_link_rejected' }],
+    });
+  }
+  if (err instanceof InvalidSlotError) {
+    throw new UnprocessableEntityException({
+      code: 'pair.invalid_slot',
+      title: 'The slot must be in the next 30 days',
+      errors: [{ path: 'startsAt', code: 'invalid_slot' }],
+    });
+  }
+  if (err instanceof PairAlreadyProposedError) {
+    throw new ConflictException({
+      code: 'pair.already_proposed',
+      title: 'You already have a pending proposal on this question',
+    });
+  }
+  if (err instanceof PairAlreadyAnsweredError) {
+    throw new ConflictException({ code: 'pair.already_answered', title: 'Already answered' });
   }
   if (err instanceof QuestionClosedError) {
     throw new ConflictException({ code: 'question.not_open', title: 'Question is closed' });
@@ -129,6 +181,28 @@ const QuestionUpdate = UpdateQuestionRequest.and(z.object({ questionId: id }));
 const AnswerCreate = PostAnswerRequest.extend({ questionId: id });
 const AnswerUpdate = UpdateAnswerRequest.extend({ answerId: id });
 const AnswerTarget = z.object({ answerId: id });
+const PairPropose = ProposePairRequest.extend({ questionId: id });
+const PairRespond = RespondPairRequest.extend({ pairId: id });
+
+/** Forme publique d'une session (S5) : identifiants internes remplacés par les profils publics. */
+export function pairView(p: PairSessionRecord): PairSessionView {
+  const pub = ({ handle, displayName, avatarUrl, isDemo }: PairSessionRecord['host']) => ({
+    handle,
+    displayName,
+    avatarUrl,
+    isDemo,
+  });
+  return {
+    id: p.id,
+    questionId: p.questionId,
+    host: pub(p.host),
+    guest: pub(p.guest),
+    startsAt: p.startsAt.toISOString(),
+    videoLink: p.videoLink,
+    status: p.status,
+    createdAt: p.createdAt.toISOString(),
+  };
+}
 
 const guarded =
   <P, T>(run: (tx: Tx, userId: string, p: P) => Promise<WriteResult<T>>) =>
@@ -147,6 +221,7 @@ export class SosActions implements OnModuleInit {
     private readonly askQuestion: AskQuestion,
     private readonly answers: Answers,
     private readonly edit: EditContent,
+    private readonly pairs: PairSessions,
   ) {}
 
   onModuleInit(): void {
@@ -332,6 +407,38 @@ export class SosActions implements OnModuleInit {
     }),
   };
 
+  /** S5 : proposer un créneau (en ligne seulement : un créneau n'a de sens qu'avec la réponse). */
+  readonly pairPropose: ActionDefinition<z.infer<typeof PairPropose>> = {
+    type: 'pair.propose',
+    schema: PairPropose,
+    endpoint: (p) => `POST /questions/${p.questionId}/pair`,
+    body: ({ questionId: _q, ...rest }) => rest,
+    execute: guarded(async (tx, userId, p): Promise<WriteResult<PairSessionView>> => {
+      const pair = await this.pairs.propose(new PrismaPairStore(tx), tx, {
+        questionId: p.questionId,
+        hostId: userId,
+        startsAt: new Date(p.startsAt),
+        videoLink: p.videoLink,
+      });
+      return { status: HttpStatus.CREATED, body: pairView(pair) };
+    }),
+  };
+
+  readonly pairRespond: ActionDefinition<z.infer<typeof PairRespond>> = {
+    type: 'pair.respond',
+    schema: PairRespond,
+    endpoint: (p) => `POST /pair-sessions/${p.pairId}/respond`,
+    body: ({ pairId: _p, ...rest }) => rest,
+    execute: guarded(async (tx, userId, p): Promise<WriteResult<PairSessionView>> => {
+      const pair = await this.pairs.respond(new PrismaPairStore(tx), tx, {
+        pairId: p.pairId,
+        actorId: userId,
+        accept: p.accept,
+      });
+      return { status: HttpStatus.OK, body: pairView(pair) };
+    }),
+  };
+
   private definitions(): ActionDefinition<never>[] {
     return [
       this.questionCreate,
@@ -340,6 +447,8 @@ export class SosActions implements OnModuleInit {
       this.answerUpdate,
       this.answerVote,
       this.answerAccept,
+      this.pairPropose,
+      this.pairRespond,
     ] as unknown as ActionDefinition<never>[];
   }
 }
