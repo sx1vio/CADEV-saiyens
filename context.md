@@ -73,16 +73,18 @@ Mandat du 14 octobre, renouvelé le 19 : Joachim avance **toutes** les tâches r
 
 État des PR vérifié avec `gh pr list` le 20 octobre :
 
-| Exigence                                    | État                                                             | Où                                |
-| ------------------------------------------- | ---------------------------------------------------------------- | --------------------------------- |
-| R5 L'IA transforme une discussion en tâches | PR ouverte, CI verte, quota IA réservé de façon atomique         | #158                              |
-| S10 Pont bilingue FR ↔ EN                   | PR ouverte, correctif du quota IA poussé (CI e2e en cours)       | #159                              |
-| R6 Demander un retour ou une revue de code  | PR ouverte (CI e2e en cours)                                     | #162                              |
-| PR4 Disponible pour une mission, Contacter  | API, front et e2e poussés, **PR à ouvrir**                       | `feat/passport-mission-contact`   |
-| S6 Question résolue = fiche cherchable      | Partiel sur `main` : recherche plein texte (`GET /questions?q=`) | reste la réponse acceptée, le tri |
-| PR14 (réglages web), X5, S14, S5            | Partiels ou à démarrer                                           | voir la répartition ci-dessous    |
+| Exigence                                    | État                                                                                                           | Où                             |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| R5 L'IA transforme une discussion en tâches | PR ouverte, CI verte, quota IA réservé de façon atomique                                                       | #158                           |
+| S10 Pont bilingue FR ↔ EN                   | PR ouverte, correctif du quota IA poussé (CI e2e en cours)                                                     | #159                           |
+| R6 Demander un retour ou une revue de code  | PR ouverte (CI e2e en cours)                                                                                   | #162                           |
+| PR4 Disponible pour une mission, Contacter  | PR ouverte, CI verte                                                                                           | #163                           |
+| S6 Question résolue = fiche cherchable      | Partiel sur `main` (`GET /questions?q=`) ; PR ouverte : recherche dans la réponse acceptée, tri par pertinence | #165                           |
+| PR14 (réglages web), X5, S14, S5            | Partiels ou à démarrer                                                                                         | voir la répartition ci-dessous |
 
-Répartition annoncée par la session 3b le 20 octobre (non vérifiable avec `gh` tant qu'aucune PR n'est ouverte) : correctif des onglets de salle sur ordinateur (BUG-041, `fix/web-room-tabs-desktop`) par 3b ; S14 par la session 3c ; vérification de S9 puis S16 par la session 63 ; relecture des PR par la session 78 ; S5 par la session ad après PR14 ; documentation par la session bd.
+Correctifs ouverts le 20 octobre : onglets de salle sur ordinateur (BUG-041, #164) ; étiquettes détectées limitées au référentiel de l'API (S9, BUG-042, #166).
+
+Répartition annoncée par la session 3b le 20 octobre (seules les PR citées sont vérifiées avec `gh`) : BUG-041 par 3b ; S14 par la session 3c ; vérification de S9 puis S16 par la session 63 ; relecture des PR par la session 78 ; S5 par la session ad après PR14 ; documentation par la session bd.
 
 Restent hors périmètre du gel, sauf temps libre : A2 (GitLab, Google), D3 et Y4 (P2), PR5, PR6, D4, Y9.
 
@@ -165,7 +167,7 @@ Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à id
 | 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                    | Emmanuel, Joachim               |
 | 7   | Aucune réponse de Systalink consignée (#2) : barème, produits acceptés, base managée (règle de choix : ADR-0015)                                      | Critère Systalink à 40 %          | Caleb                           |
 | 9   | Aucune clé d'IA n'existe encore (#7) : S2, R5 et S10 n'ont été essayés qu'avec le faux modèle                                                         | Démo de l'IA                      | Joachim, Emmanuel               |
-| 10  | **Gel du code jeudi 22 oct.** : #158, #159, #162 et la future PR de PR4 doivent être relues et fusionnées avant ; ensuite, seuls les `fix` critiques  | Exigences P1 perdues pour la démo | Joachim, session 78 (relecture) |
+| 10  | **Gel du code jeudi 22 oct.** : #158, #159, #162 à #166 doivent être relues et fusionnées avant ; ensuite, seuls les `fix` critiques                  | Exigences P1 perdues pour la démo | Joachim, session 78 (relecture) |
 
 ## 8. Carte de la documentation
 
@@ -191,19 +193,19 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 
 ## 9. Historique
 
-| Date       | Évolution                                                                                                                                                                                           |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-05 | Cahier des charges v3 ; propositions v3.1 ; monorepo pnpm + Turborepo                                                                                                                               |
-| 2026-10-06 | Architecture complète, ADR 0001 à 0013 proposés, guides d'équipe, CI, Docker Compose, Caddy                                                                                                         |
-| 2026-10-07 | API NestJS + Prisma 7 + migration initiale (#94) ; connexion GitHub, sessions, `GET /me` (#95)                                                                                                      |
-| 2026-10-08 | PR ouvertes : front `apps/web` (#96, #97), confiance et code de conduite (#98), import GitHub (#99)                                                                                                 |
-| 2026-10-08 | Création de `context.md`, du suivi du cahier des charges, du registre des anomalies et du guide de démarrage                                                                                        |
-| 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104)                                                                    |
-| 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                                                                                             |
-| 2026-10-09 | Fusion de #100 et #103 ; ADR 0001 à 0013 acceptés ; ADR 0014 à 0019 (XP, base, périmètre, tri v3.1, front, dépôt)                                                                                   |
-| 2026-10-14 | Reprise : Joachim mandaté pour finir toutes les tâches ; S1 (`sos`) et service d'idempotence partagé                                                                                                |
-| 2026-10-14 | Fusion de #106 à #116 : SOS Dev de bout en bout, temps réel, synchronisation, salles, Passport, découverte, impact, front intégré                                                                   |
-| 2026-10-16 | A3, Y5, journal d'audit, Systalink A/B/C, simulateur de réseau retiré ; BUG-033 à BUG-039                                                                                                           |
-| 2026-10-18 | #151 à #154 : suppression du compte côté web, image Docker de production, écrans traduits                                                                                                           |
-| 2026-10-19 | Vérification complète de `main` (tout vert) ; suivi remis à l'état réel (P0 100 %) ; quatre sessions Claude supervisées ; fusion de #155 à #157 et #160 ; R5 (#158), S10 (#159) ; BUG-040 corrigé   |
-| 2026-10-20 | R6 en PR (#162) ; quota IA réservé de façon atomique dans #158 et #159 ; PR4 complet sur sa branche ; fin de la session superviseure, coordination par 3b ; risques soldés (#96, #97, #103) retirés |
+| Date       | Évolution                                                                                                                                                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-05 | Cahier des charges v3 ; propositions v3.1 ; monorepo pnpm + Turborepo                                                                                                                                                                  |
+| 2026-10-06 | Architecture complète, ADR 0001 à 0013 proposés, guides d'équipe, CI, Docker Compose, Caddy                                                                                                                                            |
+| 2026-10-07 | API NestJS + Prisma 7 + migration initiale (#94) ; connexion GitHub, sessions, `GET /me` (#95)                                                                                                                                         |
+| 2026-10-08 | PR ouvertes : front `apps/web` (#96, #97), confiance et code de conduite (#98), import GitHub (#99)                                                                                                                                    |
+| 2026-10-08 | Création de `context.md`, du suivi du cahier des charges, du registre des anomalies et du guide de démarrage                                                                                                                           |
+| 2026-10-08 | Relecture de #99 : BUG-010 (requête GitHub refusée en 422) ; #101 et #102 (Caleb) ; outillage réparé (#103) ; piste IA S2 (#104)                                                                                                       |
+| 2026-10-08 | Fusion de #98, #99 (BUG-010 corrigé), #101, #102 et #104 ; BUG-011 et BUG-012 consignés                                                                                                                                                |
+| 2026-10-09 | Fusion de #100 et #103 ; ADR 0001 à 0013 acceptés ; ADR 0014 à 0019 (XP, base, périmètre, tri v3.1, front, dépôt)                                                                                                                      |
+| 2026-10-14 | Reprise : Joachim mandaté pour finir toutes les tâches ; S1 (`sos`) et service d'idempotence partagé                                                                                                                                   |
+| 2026-10-14 | Fusion de #106 à #116 : SOS Dev de bout en bout, temps réel, synchronisation, salles, Passport, découverte, impact, front intégré                                                                                                      |
+| 2026-10-16 | A3, Y5, journal d'audit, Systalink A/B/C, simulateur de réseau retiré ; BUG-033 à BUG-039                                                                                                                                              |
+| 2026-10-18 | #151 à #154 : suppression du compte côté web, image Docker de production, écrans traduits                                                                                                                                              |
+| 2026-10-19 | Vérification complète de `main` (tout vert) ; suivi remis à l'état réel (P0 100 %) ; quatre sessions Claude supervisées ; fusion de #155 à #157 et #160 ; R5 (#158), S10 (#159) ; BUG-040 corrigé                                      |
+| 2026-10-20 | R6 en PR (#162) ; quota IA réservé de façon atomique dans #158 et #159 ; PR4 (#163), S6 (#165), BUG-041 (#164) et BUG-042 (#166) en PR ; fin de la session superviseure, coordination par 3b ; risques soldés (#96, #97, #103) retirés |

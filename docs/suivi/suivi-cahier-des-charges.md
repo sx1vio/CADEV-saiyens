@@ -2,7 +2,7 @@
 
 Ce document suit l'avancement de chaque exigence du [cahier des charges v3](../Cahier_des_charges_v3_DevHub_Africa.pdf) (§5) et des [propositions v3.1](../CDC_v3.1_DevHub_Africa_Propositions.pdf) qui ont une issue. Il complète le tableau GitHub Projects : chaque ligne renvoie à son issue.
 
-> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **20 octobre 2026** (R5 #158, S10 #159 et R6 #162 en PR ouverte, vérifiées avec `gh pr list`).
+> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **20 octobre 2026** (R5 #158, S10 #159, R6 #162, PR4 #163 et S6 #165 en PR ouverte, vérifiées avec `gh pr list`).
 
 ## Sommaire
 
@@ -63,10 +63,10 @@ Mandat du 14 octobre, renouvelé le 19 : Joachim avance toutes les tâches resta
 
 | Qui                | En cours                                                                                | Ensuite                |
 | ------------------ | --------------------------------------------------------------------------------------- | ---------------------- |
-| Joachim            | R5 (#158), S10 (#159), R6 (#162), PR4 (`feat/passport-mission-contact`, PR à ouvrir)    | Fusion avant le gel    |
-| Session 3b         | Coordination ; onglets de salle sur ordinateur (BUG-041, `fix/web-room-tabs-desktop`)   | —                      |
+| Joachim            | R5 (#158), S10 (#159), R6 (#162), PR4 (#163), S6 (#165)                                 | Fusion avant le gel    |
+| Session 3b         | Coordination ; onglets de salle sur ordinateur (BUG-041, #164)                          | —                      |
 | Session 3c         | S14 (lien de reproduction)                                                              | —                      |
-| Session 63         | Vérification de S9                                                                      | S16                    |
+| Session 63         | Vérification de S9 (BUG-042, #166)                                                      | S16                    |
 | Session 78         | Relecture des PR                                                                        | —                      |
 | Session ad         | PR14 (réglages web)                                                                     | S5                     |
 | Session bd         | Documentation (`context.md`, ce suivi, README, `06-api.md`)                             | —                      |
@@ -114,24 +114,24 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### Profil et Passport (PR)
 
-| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence                       | Commentaire                                                                                                              |
-| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé`  | Caleb       | #99 (fusionnée)                 | Job `github.import-profile`, au moins 3 compétences                                                                      |
-| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé`  | Caleb       | PR #113                         | Validé en réel le 15 oct. (session C, API et front de main)                                                              |
-| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé`  | Caleb       | PR #113, #102                   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API                                 |
-| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `En cours` | Caleb       | `feat/passport-mission-contact` | API (drapeau mission, `POST /u/:handle/contact` sans adresse exposée), front et e2e poussés sur la branche ; PR à ouvrir |
+| ID  | Issue | Exigence                                     | Prio | Statut     | Responsable | Référence       | Commentaire                                                                                    |
+| --- | ----- | -------------------------------------------- | ---- | ---------- | ----------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| PR1 | #17   | Profil rempli automatiquement depuis GitHub  | P0   | `Terminé`  | Caleb       | #99 (fusionnée) | Job `github.import-profile`, au moins 3 compétences                                            |
+| PR2 | #18   | Passport public `/u/pseudo`                  | P0   | `Terminé`  | Caleb       | PR #113         | Validé en réel le 15 oct. (session C, API et front de main)                                    |
+| PR3 | #19   | « Voir les preuves »                         | P0   | `Terminé`  | Caleb       | PR #113, #102   | Validé en réel le 15 oct. (session C, API et front de main) : preuves identiques à l'API       |
+| PR4 | #20   | « Disponible pour une mission » et Contacter | P1   | `En cours` | Caleb       | PR #163         | API (drapeau mission, `POST /u/:handle/contact` sans adresse exposée), front et e2e ; CI verte |
 
 ### SOS Dev (S)
 
-| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                      | Commentaire                                                                                                          |
-| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| S1  | #21   | Poser une question                     | P0   | `Terminé`  | Florent     | PR #106                        | Validé en réel le 14 oct. (session C : API réelle, front http, deux comptes) ; reste l'URL de production             |
-| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106       | Validé en réel avec le faux modèle le 14 oct. ; reste l'essai avec la vraie clé (#7)                                 |
-| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `Terminé`  | Florent     | PR #108, #109                  | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8)                                              |
-| S4  | #24   | Répondre, voter, valider               | P0   | `Terminé`  | Florent     | PR #107                        | Validé en réel le 14 oct. (2e compte, validation, +10 XP et +3 de rapidité)                                          |
-| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                                |                                                                                                                      |
-| S6  | #26   | Question résolue = fiche cherchable    | P1   | `En cours` | Florent     | index GIN, `GET /questions?q=` | Recherche titre + corps, onglet « Résolues » ; manque la réponse acceptée dans la recherche et le tri par pertinence |
-| S7  | #27   | Questions similaires avant publication | P1   | `Terminé`  | Florent     | PR #160                        | 3 suggestions au plus, ignorables, avant publication et sur la fiche (recherche « l'un des mots »)                   |
+| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                    | Commentaire                                                                                                                        |
+| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| S1  | #21   | Poser une question                     | P0   | `Terminé`  | Florent     | PR #106                      | Validé en réel le 14 oct. (session C : API réelle, front http, deux comptes) ; reste l'URL de production                           |
+| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106     | Validé en réel avec le faux modèle le 14 oct. ; reste l'essai avec la vraie clé (#7)                                               |
+| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `Terminé`  | Florent     | PR #108, #109                | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8)                                                            |
+| S4  | #24   | Répondre, voter, valider               | P0   | `Terminé`  | Florent     | PR #107                      | Validé en réel le 14 oct. (2e compte, validation, +10 XP et +3 de rapidité)                                                        |
+| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                              |                                                                                                                                    |
+| S6  | #26   | Question résolue = fiche cherchable    | P1   | `En cours` | Florent     | `GET /questions?q=`, PR #165 | Sur `main` : recherche titre + corps, onglet « Résolues ». #165 ajoute la réponse acceptée à la recherche et le tri par pertinence |
+| S7  | #27   | Questions similaires avant publication | P1   | `Terminé`  | Florent     | PR #160                      | 3 suggestions au plus, ignorables, avant publication et sur la fiche (recherche « l'un des mots »)                                 |
 
 ### Salles de projet (R)
 
