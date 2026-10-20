@@ -119,9 +119,65 @@ flowchart TD
 
 Dans tous les cas, `ai_status` quitte `pending` : la question continue vers le matching (S2 : « ne bloque jamais la suite »). L'écriture est conditionnelle (`ai_status = pending`), donc un job rejoué ne réécrit rien.
 
-**Variables** : `LLM_API_KEY` (vide : faux modèle en développement, IA désactivée en production), `LLM_MODEL` (défaut `claude-sonnet-5-5`), `LLM_HOURLY_QUOTA_PER_USER` (10), `LLM_HINT_TIMEOUT_MS` (10 000).
+**Variables** : `LLM_API_KEY` (vide : faux modèle en développement, IA désactivée en production), `LLM_MODEL` (défaut `claude-sonnet-5-5`), `LLM_HOURLY_QUOTA_PER_USER` (10), `LLM_HINT_TIMEOUT_MS` (10 000), `LLM_TRANSLATE_TIMEOUT_MS` (15 000, S10).
 
 **Reste à faire** : notifier l'auteur par SSE (`question.ai_hint`, dépend de Y8), plafond de dépense et alerte à 80 % chez le fournisseur (#7), premier essai `ai:try` avec la vraie clé.
+
+### Implémentation du pont bilingue (S10)
+
+> État au 19 octobre 2026 : branche `feat/bilingual-bridge`. Propriétaire : Joachim (rôle 5).
+
+Un développeur lit une question ou une réponse rédigée dans l'autre langue : bouton « Traduire en français » / « Translate to English » sur la page de la question, quand la langue de la question diffère de celle de l'interface. La traduction s'affiche avec la mention **« Traduit automatiquement »** ; « Voir l'original » revient au texte d'origine, qui n'est jamais modifié.
+
+| Fichier                                      | Rôle                                                                                                                   |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `domain/translation-input.ts`                | `maskSecrets`, espaces normalisés, blocs de code remplacés par des repères `[[CODE_n]]` puis remis ; empreintes        |
+| `prompts/translate.v1.ts`                    | Gabarit `translate@1` (langue cible seule variable) ; sortie JSON `{ title, body }` validée par zod (M2, règle 2)      |
+| `application/translate-content.ts`           | Cas d'usage : traduction enregistrée, cache du journal, quota, appel, écriture                                         |
+| `infrastructure/prisma-translation.store.ts` | Lecture du contenu (rien si masqué par la modération), table `translations`, journal `ai_requests`                     |
+| `infrastructure/ai-requests.ts`              | Quota horaire et écriture du journal, partagés avec la piste IA                                                        |
+| `infrastructure/fake-llm.adapter.ts`         | Traduction de démonstration : l'original, précédé de « Traduction de démonstration : aucune clé d'IA… » (`demo: true`) |
+| `sos/http/translations.controller.ts`        | `POST /questions/:id/translate?lang=`, `POST /answers/:id/translate?lang=` (session obligatoire)                       |
+
+**Garde-fous** (les mêmes que la piste IA) :
+
+- **Code jamais traduit** : l'extrait de code de la question n'est pas envoyé ; les blocs clôturés (` ``` ` ou `~~~`) du texte sont remplacés par des repères avant l'envoi et remis à l'identique après. Si le modèle perd un repère, le bloc est ajouté à la fin.
+- **Injection** : le texte est encadré dans `<user_content>` et le prompt dit que c'est du texte à traduire, jamais des instructions. Une sortie qui n'est pas l'objet JSON attendu est rejetée (`translation.failed`), rien n'est enregistré.
+- **Quota** : le même compteur horaire que la piste (`LLM_HOURLY_QUOTA_PER_USER`), décompté à la personne qui demande la traduction. L'appel est **réservé avant de partir au modèle** : une ligne `ai_requests` « pending » est créée dans une transaction courte, sous `pg_advisory_xact_lock(hashtext('ai_quota'), hashtext(userId))`, après le comptage. Des requêtes simultanées du même compte passent donc l'une après l'autre et ne dépassent pas le quota (même mécanisme que R5). La ligne reçoit ensuite son statut final ; elle est supprimée si l'IA est désactivée, et une exception imprévue la passe en `error`.
+
+**Cache et réponses** :
+
+| Cas                                               | Appel au modèle | `ai_requests.status`          | Réponse                         |
+| ------------------------------------------------- | --------------- | ----------------------------- | ------------------------------- |
+| Traduction enregistrée, original inchangé         | Non             | (aucune ligne)                | 200, `cached: true`             |
+| Même texte déjà traduit ailleurs (même empreinte) | Non             | `cache`                       | 200, `cached: true`             |
+| Nouvelle traduction                               | Oui             | `ok`                          | 200, `cached: false`            |
+| Question déjà dans la langue demandée             | Non             | (aucune ligne)                | 422 `translation.same_language` |
+| Quota atteint                                     | Non             | `quota`                       | 429 `ai.quota_exceeded`         |
+| Délai dépassé, erreur, refus, sortie invalide     | Oui             | `timeout`, `error`, `refusal` | 502 `translation.failed`        |
+| Production sans `LLM_API_KEY`                     | Non             | (aucune ligne)                | 503 `ai.unavailable`            |
+
+La table `translations` garde une ligne par contenu et par langue (`text` = `{ title, body }` en JSON). Son `source_hash` couvre le texte d'origine **et** la version du gabarit : une modification de l'original, un nouveau gabarit ou le passage du faux modèle (`translate@1+demo`) à la vraie clé rendent la traduction périmée.
+
+La langue d'une réponse n'est pas enregistrée : on la suppose dans la langue de la question, et le prompt demande de garder tel quel un passage déjà dans la langue cible.
+
+**Matching** : quand la traduction répond (`aiAvailable` : vraie clé, ou faux modèle hors production), un développeur qui ne parle pas la langue de la question compte pour **L = 0,5**, avec la raison `translated` (« Recevra ta question traduite », [08](08-algorithmes.md)).
+
+L'appel est fait **dans la requête**, sans job : l'utilisateur attend le résultat après un clic (délai `LLM_TRANSLATE_TIMEOUT_MS`, 15 s).
+
+**Reste à faire** : essai avec la vraie clé (#7) ; traduire les messages de salle (`room_message`) si R4 est livré.
+
+### Implémentation des tâches depuis une discussion (R5)
+
+> État au 19 octobre 2026 : branche `feat/room-ai-tasks`. Propriétaire : Joachim (rôle 5).
+
+- **Route synchrone** `POST /rooms/:id/tasks/suggest`, réservée aux membres, plutôt que le job `ai.room-tasks` prévu au tableau des usages : le membre attend la réponse à l'écran (10 s au plus, `LLM_HINT_TIMEOUT_MS`), et une proposition n'a pas à survivre à la fermeture de la page.
+- **Entrée** : les 40 derniers messages visibles de la salle (1 000 caractères chacun au plus) et les titres des tâches non closes, pour ne pas les proposer deux fois. Secrets masqués par `maskSecrets`, chaque message encadré comme `<user_content>`.
+- **Sortie** : JSON validé par zod (`prompts/room-tasks.v1.ts`) : de 0 à 5 tâches `{ title, description, level }`. Une sortie invalide ne propose rien (`failed`).
+- **L'IA ne crée rien** (règle 3) : l'écran liste les propositions, avec la mention « Généré par IA, à vérifier », et chaque tâche n'existe qu'après un clic sur « Publier la tâche » (`POST /rooms/:id/tasks`).
+- **Cache et quota** partagés avec la piste IA : `ai_requests` (`kind = room_tasks`), même discussion et même langue = un seul appel ; le quota horaire par utilisateur est commun à tous les usages.
+- **Statuts** renvoyés : `done`, `cached`, `empty` (aucun message, pas d'appel), `quota`, `disabled` (production sans clé), `failed`.
+- **Faux modèle** : une seule tâche « Tâche de démonstration » / « Demo task », dont la description dit qu'aucune clé n'est configurée.
 
 ## 2. GitHub
 

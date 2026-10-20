@@ -1,3 +1,4 @@
+import type { FeedbackKind, FeedbackState } from './feedback';
 import type { TaskState } from './task';
 import type { RoomRole } from './room';
 
@@ -218,4 +219,62 @@ export interface DeploymentReputationPort {
     input: { roomId: string; ownerId: string; tagIds: string[] },
     tx?: unknown,
   ): Promise<{ events: unknown[] }>;
+}
+
+// ─────────────── Demandes de retour et de revue de code (R6) ───────────────
+
+export interface FeedbackRoom {
+  id: string;
+  name: string;
+  inviteCode: string;
+  stackTagIds: string[];
+  visibility: 'public' | 'unlisted';
+  hidden: boolean;
+}
+
+export interface FeedbackWriter {
+  findRoom(roomId: string): Promise<FeedbackRoom | null>;
+  roleOf(roomId: string, userId: string): Promise<RoomRole | null>;
+  /** Membres de la salle (destinataires de la notification). */
+  memberIds(roomId: string): Promise<string[]>;
+  /** Sérialise les demandes d'un utilisateur pour une salle (double clic, renvoi hors ligne). */
+  lockRequester(roomId: string, userId: string): Promise<void>;
+  pendingOf(roomId: string, userId: string, kind: FeedbackKind): Promise<{ id: string } | null>;
+  create(f: {
+    roomId: string;
+    requesterId: string;
+    kind: FeedbackKind;
+    url: string | null;
+    note: string | null;
+  }): Promise<{ id: string }>;
+  /** Verrouille la demande (SELECT … FOR UPDATE) : un seul relecteur à la fois. */
+  lock(id: string): Promise<FeedbackState | null>;
+  take(id: string, reviewerId: string): Promise<void>;
+  confirm(id: string, at: Date): Promise<void>;
+  cancel(id: string): Promise<void>;
+  /** Nom affiché d'un utilisateur, pour le texte des notifications. */
+  displayName(userId: string): Promise<string>;
+  touch(roomId: string, at: Date): Promise<void>;
+}
+
+/** Implémenté par AwardXp (module reputation) : +8 XP au relecteur (R6). */
+export interface FeedbackReputationPort {
+  codeReviewGiven(
+    input: { feedbackRequestId: string; reviewerId: string; requesterId: string; tagIds: string[] },
+    tx?: unknown,
+  ): Promise<{
+    events: Array<{ userId: string; points: number }>;
+    withheld: Array<{ userId: string; kind: string; reason: string }>;
+  }>;
+}
+
+export interface FeedbackNotifier {
+  notify(
+    notifications: Array<{
+      userId: string;
+      type: 'feedback.requested' | 'feedback.taken' | 'feedback.confirmed' | 'feedback.cancelled';
+      payload: Record<string, unknown>;
+    }>,
+    tx?: unknown,
+  ): Promise<void>;
 }

@@ -85,6 +85,39 @@ export function describe(
         url: new URL(`/u/${encodeURIComponent(str(p.by))}`, appUrl).toString(),
         detail: str(p.message),
       };
+    case 'feedback.requested':
+      return {
+        line: fr
+          ? `${str(p.by)} demande ${p.kind === 'code_review' ? 'une revue de code' : 'un retour'} sur ${str(p.roomName)}`
+          : `${str(p.by)} asks for ${p.kind === 'code_review' ? 'a code review' : 'feedback'} on ${str(p.roomName)}`,
+        url: rooms,
+      };
+    case 'feedback.taken':
+      return {
+        line: fr
+          ? `${str(p.by)} relit ${str(p.roomName)}`
+          : `${str(p.by)} is reviewing ${str(p.roomName)}`,
+        url: rooms,
+      };
+    case 'feedback.confirmed':
+      return {
+        line:
+          Number(p.points) > 0
+            ? fr
+              ? `Ta revue de ${str(p.roomName)} est confirmée : +${str(p.points)} Proof XP`
+              : `Your review of ${str(p.roomName)} was confirmed: +${str(p.points)} Proof XP`
+            : fr
+              ? `Ton retour sur ${str(p.roomName)} est confirmé`
+              : `Your feedback on ${str(p.roomName)} was confirmed`,
+        url: rooms,
+      };
+    case 'feedback.cancelled':
+      return {
+        line: fr
+          ? `${str(p.by)} a retiré sa demande de relecture sur ${str(p.roomName)}`
+          : `${str(p.by)} withdrew their review request on ${str(p.roomName)}`,
+        url: rooms,
+      };
     default:
       return { line: fr ? 'Nouvelle notification' : 'New notification', url: appUrl };
   }

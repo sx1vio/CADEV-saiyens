@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  FeedbackRequestView,
   JoinRequestView,
+  ListFeedbackRequestsQuery,
+  ListFeedbackRequestsResponse,
   ListMessagesQuery,
   ListMessagesResponse,
   MessageView,
@@ -220,11 +223,99 @@ export class RoomReader {
       : null;
   }
 
+  /** R5 : derniers messages visibles (du plus ancien au plus récent) et titres des tâches non closes. */
+  async discussionForAi(roomId: string, limit: number) {
+    const [messages, tasks] = await Promise.all([
+      this.prisma.roomMessage.findMany({
+        where: { roomId, hiddenAt: null },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit,
+        select: { body: true },
+      }),
+      this.prisma.task.findMany({
+        where: { roomId, status: { not: 'done' } },
+        orderBy: { createdAt: 'asc' },
+        select: { title: true },
+      }),
+    ]);
+    return {
+      messages: messages.reverse().map((m) => m.body),
+      existingTasks: tasks.map((t) => t.title),
+    };
+  }
+
   async roomRepo(roomId: string) {
     return this.prisma.room.findUnique({
       where: { id: roomId },
       select: { id: true, repoFullName: true, hiddenAt: true, visibility: true },
     });
+  }
+
+  /** R6 : demandes d'une salle, de la plus récente à la plus ancienne (annulées exclues). */
+  async feedbackRequests(roomId: string): Promise<FeedbackRequestView[]> {
+    const rows = await this.prisma.feedbackRequest.findMany({
+      where: { roomId, status: { not: 'cancelled' } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 50,
+      include: feedbackInclude,
+    });
+    const tags = await this.tags(rows.flatMap((r) => r.room.stackTagIds));
+    return rows.map((r) => feedbackView(r, tags));
+  }
+
+  async feedbackRequest(
+    id: string,
+  ): Promise<(FeedbackRequestView & { roomHidden: boolean; public: boolean }) | null> {
+    const r = await this.prisma.feedbackRequest.findUnique({
+      where: { id },
+      include: feedbackInclude,
+    });
+    if (!r) return null;
+    const tags = await this.tags(r.room.stackTagIds);
+    return {
+      ...feedbackView(r, tags),
+      roomHidden: r.room.hiddenAt !== null,
+      public: r.room.visibility === 'public',
+    };
+  }
+
+  /** R6 : flux de la stack, demandes ouvertes des salles publiques, filtrables par étiquette. */
+  async feedbackFeed(query: ListFeedbackRequestsQuery): Promise<ListFeedbackRequestsResponse> {
+    let tagIds: string[] | undefined;
+    if (query.tags && query.tags.length > 0) {
+      const found = await this.prisma.tag.findMany({
+        where: { slug: { in: query.tags } },
+        select: { id: true },
+      });
+      if (found.length === 0) return { data: [], page: { hasMore: false, nextCursor: null } };
+      tagIds = found.map((t) => t.id);
+    }
+    const rows = await this.prisma.feedbackRequest.findMany({
+      where: {
+        status: 'open',
+        room: {
+          hiddenAt: null,
+          visibility: 'public',
+          ...(tagIds ? { stackTagIds: { hasSome: tagIds } } : {}),
+        },
+        ...afterCursor(decodeCursor(query.cursor)),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: query.limit + 1,
+      include: feedbackInclude,
+    });
+    const page = rows.slice(0, query.limit);
+    const tags = await this.tags(page.flatMap((r) => r.room.stackTagIds));
+    const last = page.at(-1);
+    const hasMore = rows.length > query.limit;
+    return {
+      data: page.map((r) => feedbackView(r, tags)),
+      page: {
+        hasMore,
+        nextCursor:
+          hasMore && last ? encodeCursor({ at: last.createdAt.toISOString(), id: last.id }) : null,
+      },
+    };
   }
 
   private summary(r: RoomRow, tags: Map<string, { slug: string; label: string }>): RoomSummary {
@@ -291,5 +382,41 @@ function taskView(t: TaskRow): TaskView {
     createdAt: t.createdAt.toISOString(),
     takenAt: t.takenAt?.toISOString() ?? null,
     completedAt: t.completedAt?.toISOString() ?? null,
+  };
+}
+
+const feedbackInclude = {
+  requester: author,
+  reviewer: author,
+  room: {
+    select: {
+      id: true,
+      inviteCode: true,
+      name: true,
+      stackTagIds: true,
+      hiddenAt: true,
+      visibility: true,
+    },
+  },
+} satisfies Prisma.FeedbackRequestInclude;
+
+type FeedbackRow = Prisma.FeedbackRequestGetPayload<{ include: typeof feedbackInclude }>;
+
+function feedbackView(
+  f: FeedbackRow,
+  tags: Map<string, { slug: string; label: string }>,
+): FeedbackRequestView {
+  return {
+    id: f.id,
+    kind: f.kind,
+    status: f.status,
+    url: f.url,
+    note: f.note,
+    room: { id: f.room.id, code: f.room.inviteCode, name: f.room.name },
+    stack: f.room.stackTagIds.flatMap((id) => (tags.has(id) ? [tags.get(id)!] : [])),
+    requester: f.requester,
+    reviewer: f.reviewer,
+    createdAt: f.createdAt.toISOString(),
+    confirmedAt: f.confirmedAt?.toISOString() ?? null,
   };
 }

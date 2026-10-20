@@ -26,6 +26,7 @@ export const PUBLIC_EVENTS = [
   'answer.accepted',
   'task.updated',
   'room_message.created',
+  'feedback.updated',
   'content.hidden',
 ] as const;
 

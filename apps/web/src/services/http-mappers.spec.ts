@@ -535,3 +535,46 @@ describe('questions similaires (S7)', () => {
     expect(m.SIMILAR_LIMIT).toBe(3);
   });
 });
+
+describe('demandes de retour et de revue (R6)', () => {
+  it('vue de l’API → front : type, statut, comptes identifiés par leur handle', () => {
+    const f = m.feedbackRequest({
+      id: 'f1',
+      kind: 'code_review',
+      status: 'in_progress',
+      url: 'https://github.com/awa/kora/pull/12',
+      note: 'Les erreurs du paiement',
+      room: { id: 'r1', code: 'abcd2345', name: 'Kora' },
+      stack: [{ slug: 'nodejs', label: 'Node.js' }],
+      requester: awa,
+      reviewer: moussa,
+      createdAt: at,
+      confirmedAt: null,
+    });
+    expect(f).toMatchObject({
+      roomId: 'r1',
+      kind: 'code-review',
+      status: 'in-progress',
+      requesterId: 'awa',
+      reviewerId: 'moussa',
+      tags: [{ id: 'nodejs', slug: 'nodejs', label: 'Node.js' }],
+    });
+  });
+
+  it('notification de confirmation : `count` choisit le texte sans Proof XP', () => {
+    const n = m.notification(
+      {
+        id: 'n3',
+        type: 'feedback.confirmed',
+        payload: { roomName: 'Kora', code: 'abcd2345', kind: 'feedback', by: 'Awa', points: 0 },
+        readAt: null,
+        createdAt: at,
+      },
+      'moussa',
+    );
+    expect(n).toMatchObject({
+      type: 'feedback-confirmed',
+      payload: { room: 'Kora', code: 'abcd2345', author: 'Awa', count: 0 },
+    });
+  });
+});
