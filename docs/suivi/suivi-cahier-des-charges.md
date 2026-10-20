@@ -2,7 +2,7 @@
 
 Ce document suit l'avancement de chaque exigence du [cahier des charges v3](../Cahier_des_charges_v3_DevHub_Africa.pdf) (§5) et des [propositions v3.1](../CDC_v3.1_DevHub_Africa_Propositions.pdf) qui ont une issue. Il complète le tableau GitHub Projects : chaque ligne renvoie à son issue.
 
-> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **20 octobre 2026** (R5 #158, S10 #159, R6 #162, PR4 #163 et S6 #165 en PR ouverte, vérifiées avec `gh pr list`).
+> **Mise à jour** : à chaque PR ouverte ou fusionnée qui fait avancer une exigence, dans la même PR. Dernière mise à jour : **20 octobre 2026, soir** (fusion de #158 à #171 vérifiée sur `main` @ c0df217).
 
 ## Sommaire
 
@@ -36,39 +36,37 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 21      | 0        | 0       | 100 %       | 100 %      |
-| P1        | 14     | 8       | 4        | 2       | 57 %        | 86 %       |
+| P1        | 14     | 12      | 0        | 2       | 86 %        | 86 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | 29      | 4        | 4       | 78 %        | 89 %       |
+| **Total** | **37** | 33      | 0        | 4       | 89 %        | 89 %       |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                                                |
-| ----------------------- | --------- | ------- | -------- | --------------------------------------------------------- |
-| Auth (A)                | 3         | 2       | 0        | `███████░░░` A1, A3 fait                                  |
-| Profil et Passport (PR) | 4         | 3       | 1        | `████████░░` PR1, PR2, PR3 fait; PR4 en cours             |
-| SOS Dev (S)             | 7         | 5       | 1        | `███████░░░` S1, S2, S3, S4, S7 fait; S6 en cours         |
-| Salles de projet (R)    | 8         | 6       | 2        | `████████░░` R1, R2, R3, R4, R7, R8 fait; R5, R6 en cours |
-| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                                  |
-| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                                  |
-| Hors ligne (O)          | 4         | 4       | 0        | `██████████` O1, O2, O3, O4 fait                          |
-| Systalink et impact (Y) | 4         | 3       | 0        | `████████░░` Y1, Y2, Y3 fait                              |
-| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                                      |
-| Langues (I)             | 1         | 1       | 0        | `██████████` I1 fait                                      |
+| Module                  | Exigences | Terminé | En cours | Avancement                                           |
+| ----------------------- | --------- | ------- | -------- | ---------------------------------------------------- |
+| Auth (A)                | 3         | 2       | 0        | `███████░░░` A1, A3 fait                             |
+| Profil et Passport (PR) | 4         | 4       | 0        | `██████████` PR1, PR2, PR3, PR4 fait                 |
+| SOS Dev (S)             | 7         | 6       | 0        | `█████████░` S1, S2, S3, S4, S6, S7 fait; S5 à faire |
+| Salles de projet (R)    | 8         | 8       | 0        | `██████████` R1 à R8 fait                            |
+| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                             |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                             |
+| Hors ligne (O)          | 4         | 4       | 0        | `██████████` O1, O2, O3, O4 fait                     |
+| Systalink et impact (Y) | 4         | 3       | 0        | `████████░░` Y1, Y2, Y3 fait                         |
+| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                                 |
+| Langues (I)             | 1         | 1       | 0        | `██████████` I1 fait                                 |
 
-### Par personne et par session (20 octobre)
+### Par personne et par session (20 octobre, soir)
 
-Mandat du 14 octobre, renouvelé le 19 : Joachim avance toutes les tâches restantes avec plusieurs sessions Claude Code. Depuis le 20 octobre, la session superviseure (5f) n'est plus active : la coordination passe par la session 3b, les sessions ouvrent leurs PR sans les fusionner. Répartition annoncée par 3b ; les PR citées sont vérifiées avec `gh`.
+Le 20 octobre, à la demande de Joachim, la session 3b a fusionné toutes les PR ouvertes (#158 à #171) ; aucune PR n'est ouverte ce soir-là. Les sessions ouvrent leurs PR sans les fusionner. Répartition annoncée par 3b : seules les PR citées sont vérifiées avec `gh`.
 
 | Qui                | En cours                                                                                | Ensuite                |
 | ------------------ | --------------------------------------------------------------------------------------- | ---------------------- |
-| Joachim            | R5 (#158), S10 (#159), R6 (#162), PR4 (#163), S6 (#165)                                 | Fusion avant le gel    |
-| Session 3b         | Coordination ; onglets de salle sur ordinateur (BUG-041, #164)                          | —                      |
-| Session 3c         | S14 (lien de reproduction)                                                              | —                      |
-| Session 63         | Vérification de S9 (BUG-042, #166)                                                      | S16                    |
+| Session 3b         | Coordination et fusions                                                                 | Gel du code le 22 oct. |
+| Session 63         | S14, à partir du travail de la session 3c                                               | —                      |
+| Session 90         | S5 (pair programming)                                                                   | —                      |
 | Session 78         | Relecture des PR                                                                        | —                      |
-| Session ad         | PR14 (réglages web)                                                                     | S5                     |
 | Session bd         | Documentation (`context.md`, ce suivi, README, `06-api.md`)                             | —                      |
 | Équipe (hors code) | URL Systalink (#6, #9), clé IA et OAuth (#7), invitations (#10), dossier et vidéo (#12) | Gel du code le 22 oct. |
 
@@ -123,15 +121,15 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 
 ### SOS Dev (S)
 
-| ID  | Issue | Exigence                               | Prio | Statut     | Responsable | Référence                    | Commentaire                                                                                                                        |
-| --- | ----- | -------------------------------------- | ---- | ---------- | ----------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| S1  | #21   | Poser une question                     | P0   | `Terminé`  | Florent     | PR #106                      | Validé en réel le 14 oct. (session C : API réelle, front http, deux comptes) ; reste l'URL de production                           |
-| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé`  | Joachim     | #104, déclenché par #106     | Validé en réel avec le faux modèle le 14 oct. ; reste l'essai avec la vraie clé (#7)                                               |
-| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `Terminé`  | Florent     | PR #108, #109                | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8)                                                            |
-| S4  | #24   | Répondre, voter, valider               | P0   | `Terminé`  | Florent     | PR #107                      | Validé en réel le 14 oct. (2e compte, validation, +10 XP et +3 de rapidité)                                                        |
-| S5  | #25   | Créneau de pair programming            | P1   | `À faire`  | Florent     |                              |                                                                                                                                    |
-| S6  | #26   | Question résolue = fiche cherchable    | P1   | `En cours` | Florent     | `GET /questions?q=`, PR #165 | Sur `main` : recherche titre + corps, onglet « Résolues ». #165 ajoute la réponse acceptée à la recherche et le tri par pertinence |
-| S7  | #27   | Questions similaires avant publication | P1   | `Terminé`  | Florent     | PR #160                      | 3 suggestions au plus, ignorables, avant publication et sur la fiche (recherche « l'un des mots »)                                 |
+| ID  | Issue | Exigence                               | Prio | Statut    | Responsable | Référence                | Commentaire                                                                                                                  |
+| --- | ----- | -------------------------------------- | ---- | --------- | ----------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| S1  | #21   | Poser une question                     | P0   | `Terminé` | Florent     | PR #106                  | Validé en réel le 14 oct. (session C : API réelle, front http, deux comptes) ; reste l'URL de production                     |
+| S2  | #22   | Piste IA marquée « générée par IA »    | P0   | `Terminé` | Joachim     | #104, déclenché par #106 | Validé en réel avec le faux modèle le 14 oct. ; reste l'essai avec la vraie clé (#7)                                         |
+| S3  | #23   | Envoi à 3 devs adaptés, avec la raison | P0   | `Terminé` | Florent     | PR #108, #109            | 3 aidants notifiés avec la raison ; escalade à 15 min ; temps réel (Y8)                                                      |
+| S4  | #24   | Répondre, voter, valider               | P0   | `Terminé` | Florent     | PR #107                  | Validé en réel le 14 oct. (2e compte, validation, +10 XP et +3 de rapidité)                                                  |
+| S5  | #25   | Créneau de pair programming            | P1   | `À faire` | Florent     |                          | Annoncé par la session 90 ; aucune branche poussée au 20 oct. au soir                                                        |
+| S6  | #26   | Question résolue = fiche cherchable    | P1   | `Terminé` | Florent     | PR #165                  | Recherche dans la question et sa réponse acceptée, tri par pertinence, « Voir la solution » ; test < 1 s sur 5 000 questions |
+| S7  | #27   | Questions similaires avant publication | P1   | `Terminé` | Florent     | PR #160                  | 3 suggestions au plus, ignorables, avant publication et sur la fiche (recherche « l'un des mots »)                           |
 
 ### Salles de projet (R)
 
@@ -140,7 +138,7 @@ Vue interactive par jalon (état réel de chaque exigence, tâches restantes, bl
 | R1  | #28   | Créer une salle liée à un dépôt GitHub   | P0   | `Terminé` | Joachim     | #111           | Validé en réel le 15 oct. (session C, API et front de main) ; essai avec un vrai dépôt quand #7 sera prêt                                                                                                                                                                                                                         |
 | R2  | #29   | Tâches ouvertes avec niveau              | P0   | `Terminé` | Joachim     | PR #112, #113  | Validé en réel le 15 oct. (session C, API et front de main) : création, prise par un membre, droits vérifiés (403 aux non-membres)                                                                                                                                                                                                |
 | R3  | #30   | Demander à rejoindre                     | P0   | `Terminé` | Joachim     | PR #111        | Validé en réel le 15 oct. (session C, API et front de main) : demande, notifications, acceptation                                                                                                                                                                                                                                 |
-| R4  | #31   | Fil de discussion par salle              | P1   | `Terminé` | Joachim     | PR #111 à #113 | Membres seulement, ordre serveur, hors ligne via /sync ; onglets de salle à vérifier au-delà de 1024 px (signalé le 19 oct.)                                                                                                                                                                                                      |
+| R4  | #31   | Fil de discussion par salle              | P1   | `Terminé` | Joachim     | PR #111 à #113 | Membres seulement, ordre serveur, hors ligne via /sync ; onglets de salle affichés sur ordinateur depuis #164 (BUG-041)                                                                                                                                                                                                           |
 | R5  | #32   | L'IA transforme une discussion en tâches | P1   | `Terminé` | Joachim     | PR #158, #170  | `POST /rooms/:id/tasks/suggest` : jusqu'à 5 tâches proposées depuis les 40 derniers messages, rien n'est créé sans validation du créateur (ou d'un mainteneur, décision de Joachim le 20 oct.) ; cache et quota communs avec S2 ; bouton « Proposer avec l'IA » dans l'onglet Tâches. Essayé avec le faux modèle (pas de clé, #7) |
 | R6  | #33   | Demander un retour ou une revue de code  | P1   | `Terminé` | Joachim     | PR #162        | API (7 routes), notifications, flux « Revues demandées » de /projets et carte de salle (FR, EN) ; +8 XP pour une revue de code seulement (barème §6.3) ; testé en e2e (API et Playwright)                                                                                                                                         |
 | R7  | #34   | Lien d'invitation riche                  | P1   | `Terminé` | Joachim     | PR #111, #122  | Validé le 15 oct. (balises échappées, salle masquée → 404) ; image dédiée avec PR5                                                                                                                                                                                                                                                |
@@ -217,7 +215,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | PR10 | #74   | « Je peux aider sur » et « Je veux apprendre »   | P1        | `Terminé`  | Caleb                         | PR #113                                                                                   |
 | PR14 | #75   | Confidentialité granulaire du Passport           | P1        | `Terminé`  | Caleb                         | PR #113, #168                                                                             |
 | S12  | #76   | Fiche de résolution générée                      | P1        | `P2`       | Joachim                       |                                                                                           |
-| S14  | #77   | Lien de reproduction                             | P1        | `En cours` | Florent                       | `repro_url`, liste blanche `REPRO_HOSTS`, `/sync`                                         |
+| S14  | #77   | Lien de reproduction                             | P1        | `En cours` | Florent                       | Lien validé (liste blanche) ; reste badge, flux, aperçu                                   | PR #174 : travail de la session 3c repris par la session 63 |
 | S16  | #78   | File « Personne n'a encore répondu »             | P1        | `Terminé`  | Florent                       | PR #171                                                                                   |
 | O6   | #79   | Mode économie de données                         | P1        | `P2`       | Sylvio                        |                                                                                           |
 | O8   | #80   | Centre de synchronisation                        | P1        | `Terminé`  | Sylvio                        | `components/shell/network.tsx`                                                            |
