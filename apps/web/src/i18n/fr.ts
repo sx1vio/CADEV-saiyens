@@ -493,7 +493,12 @@ const fr = {
     stepProblem: 'Le problème',
     stepDetails: 'Les détails',
     stepPublish: 'Publication',
-    errors: { title: 'Écris au moins 8 caractères.', tags: 'Choisis au moins une stack.' },
+    errors: {
+      repro:
+        'Lien HTTPS vers StackBlitz, CodeSandbox, Replit, GitHub ou un gist, CodePen ou JSFiddle.',
+      title: 'Écris au moins 8 caractères.',
+      tags: 'Choisis au moins une stack.',
+    },
   },
   question: {
     hintTitle: 'Piste',

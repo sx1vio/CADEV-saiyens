@@ -492,7 +492,12 @@ const en: Dict = {
     stepProblem: 'The problem',
     stepDetails: 'Details',
     stepPublish: 'Post',
-    errors: { title: 'Write at least 8 characters.', tags: 'Pick at least one stack.' },
+    errors: {
+      repro:
+        'HTTPS link to StackBlitz, CodeSandbox, Replit, GitHub or a gist, CodePen or JSFiddle.',
+      title: 'Write at least 8 characters.',
+      tags: 'Pick at least one stack.',
+    },
   },
   question: {
     hintTitle: 'Hint',

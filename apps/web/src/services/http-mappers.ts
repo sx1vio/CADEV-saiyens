@@ -75,6 +75,7 @@ import type {
   XPEvent,
   XPKind,
 } from './types';
+import { isReproUrl } from '@/lib/repro';
 
 type ApiTag = { slug: string; label: string };
 type ApiRoomState = RoomSummary['state'];
@@ -261,6 +262,7 @@ export function questionDetail(q: ApiQuestionDetail): QuestionDetail {
     ...questionItem(q),
     body: q.body,
     codeSnippet: q.codeSnippet ?? '',
+    reproUrl: q.reproUrl ?? undefined,
     aiHint: q.aiHint,
     aiStatus: AI_STATUS[q.aiStatus],
     aiHintSource: q.aiStatus === 'done' ? 'ai' : null,
@@ -757,7 +759,9 @@ export function questionBody(i: NewQuestionInput): string {
   if (i.tried?.trim()) parts.push(`**Ce que j'ai essayé**\n\n${i.tried.trim()}`);
   if (i.expected?.trim()) parts.push(`**Ce que j'attendais**\n\n${i.expected.trim()}`);
   if (i.environment?.trim()) parts.push(`**Environnement**\n\n${i.environment.trim()}`);
-  if (i.reproUrl?.trim()) parts.push(`Reproduction : ${i.reproUrl.trim()}`);
+  // S14 : un lien hors liste blanche (action mise en file avant la validation) reste dans le corps.
+  const repro = i.reproUrl?.trim();
+  if (repro && !isReproUrl(repro)) parts.push(`Reproduction : ${repro}`);
   return parts.join('\n\n');
 }
 
@@ -767,6 +771,7 @@ export const askQuestion = (i: NewQuestionInput, clientId: string, lang: 'fr' | 
   title: i.title,
   body: questionBody(i),
   codeSnippet: i.codeSnippet || null,
+  reproUrl: i.reproUrl?.trim() && isReproUrl(i.reproUrl.trim()) ? i.reproUrl.trim() : null,
   tagSlugs: i.tagIds,
   urgency: i.urgency,
   lang,
