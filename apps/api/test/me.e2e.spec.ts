@@ -25,6 +25,12 @@ describe('/me : signaux de confiance (PR11) et code de conduite (M3)', () => {
     await app.init();
     prisma = app.get(PrismaService);
     cookie = await signInAs(app, login);
+    // Le badge « Membre fondateur » dépend de la date d'inscription : on la fixe avant l'échéance
+    // pour que le test ne change pas de résultat après le 22 octobre.
+    await prisma.user.update({
+      where: { handle: login },
+      data: { createdAt: new Date('2026-10-10T00:00:00Z') },
+    });
   });
 
   afterAll(async () => {

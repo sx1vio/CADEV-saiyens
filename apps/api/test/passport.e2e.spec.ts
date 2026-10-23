@@ -43,6 +43,11 @@ describe('Developer Passport public (PR2)', () => {
     ]);
     cookie.set(awa, await signInAs(app, awa));
     cookie.set(moussa, await signInAs(app, moussa));
+    // « Membre fondateur » dépend de la date d'inscription : fixée avant l'échéance du 22 octobre.
+    await app.get(PrismaService).user.update({
+      where: { handle: moussa },
+      data: { createdAt: new Date('2026-10-10T00:00:00Z') },
+    });
   });
 
   afterAll(async () => {
