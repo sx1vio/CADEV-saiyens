@@ -14,7 +14,7 @@ GitHub montre ce que tu as construit. DevHub Africa montre ce que tu sais faire,
 
 ## État du projet
 
-🚧 **En développement (20 octobre 2026).** Le code est sur `main`, l'URL de production n'est pas encore en ligne (#6). Gel du code le jeudi 22 octobre, soumission le 24 octobre. Les 21 exigences P0 et 12 des 14 P1 du cahier des charges sont fusionnées ; le travail restant est listé dans [`context.md`](context.md#en-cours-20-octobre-soir).
+🚧 **Code gelé (23 octobre 2026).** Le code est sur `main`, l'URL de production n'est pas encore en ligne (#6). Date limite officielle : samedi 25 octobre, 17:00 GMT. Les 21 exigences P0 et 13 des 14 P1 du cahier des charges sont fusionnées ; ce qui reste avant l'envoi est listé dans le [dossier de soumission](docs/soumission.md).
 
 | Partie                 | État                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

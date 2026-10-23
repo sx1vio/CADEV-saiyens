@@ -36,26 +36,26 @@ Priorités : **P0** indispensable à la démo · **P1** fortement souhaité · *
 | Priorité  | Total  | Terminé | En cours | À faire | Terminé (%) | Engagé (%) |
 | --------- | ------ | ------- | -------- | ------- | ----------- | ---------- |
 | P0        | 21     | 21      | 0        | 0       | 100 %       | 100 %      |
-| P1        | 14     | 12      | 0        | 2       | 86 %        | 86 %       |
+| P1        | 14     | 13      | 0        | 1       | 93 %        | 93 %       |
 | P2        | 2      | 0       | 0        | 2       | 0 %         | 0 %        |
-| **Total** | **37** | 33      | 0        | 4       | 89 %        | 89 %       |
+| **Total** | **37** | 34      | 0        | 3       | 92 %        | 92 %       |
 
 « Engagé » = terminé + en cours.
 
 ### Par module
 
-| Module                  | Exigences | Terminé | En cours | Avancement                                           |
-| ----------------------- | --------- | ------- | -------- | ---------------------------------------------------- |
-| Auth (A)                | 3         | 2       | 0        | `███████░░░` A1, A3 fait                             |
-| Profil et Passport (PR) | 4         | 4       | 0        | `██████████` PR1, PR2, PR3, PR4 fait                 |
-| SOS Dev (S)             | 7         | 6       | 0        | `█████████░` S1, S2, S3, S4, S6, S7 fait; S5 à faire |
-| Salles de projet (R)    | 8         | 8       | 0        | `██████████` R1 à R8 fait                            |
-| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait                             |
-| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait                             |
-| Hors ligne (O)          | 4         | 4       | 0        | `██████████` O1, O2, O3, O4 fait                     |
-| Systalink et impact (Y) | 4         | 3       | 0        | `████████░░` Y1, Y2, Y3 fait                         |
-| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                                 |
-| Langues (I)             | 1         | 1       | 0        | `██████████` I1 fait                                 |
+| Module                  | Exigences | Terminé | En cours | Avancement                           |
+| ----------------------- | --------- | ------- | -------- | ------------------------------------ |
+| Auth (A)                | 3         | 2       | 0        | `███████░░░` A1, A3 fait             |
+| Profil et Passport (PR) | 4         | 4       | 0        | `██████████` PR1, PR2, PR3, PR4 fait |
+| SOS Dev (S)             | 7         | 7       | 0        | `██████████` S1 à S7 fait            |
+| Salles de projet (R)    | 8         | 8       | 0        | `██████████` R1 à R8 fait            |
+| Découverte (D)          | 3         | 2       | 0        | `███████░░░` D1, D2 fait             |
+| Réputation (X)          | 2         | 2       | 0        | `██████████` X1, X2 fait             |
+| Hors ligne (O)          | 4         | 4       | 0        | `██████████` O1, O2, O3, O4 fait     |
+| Systalink et impact (Y) | 4         | 3       | 0        | `████████░░` Y1, Y2, Y3 fait         |
+| Modération (M)          | 1         | 1       | 0        | `██████████` M1 fait                 |
+| Langues (I)             | 1         | 1       | 0        | `██████████` I1 fait                 |
 
 ### Par personne et par session (20 octobre, soir)
 
@@ -195,7 +195,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | Y8   | #54   | Temps réel par Server-Sent Events                | Correctif | `Terminé`  | Florent                       | PR #109 (API), #118 (front)                                                               |
 | M2   | #55   | Protection contre l'injection de prompt          | Correctif | `Terminé`  | Joachim, Emmanuel             | PR #104 (piste IA)                                                                        |
 | O9   | #56   | Masquage des secrets avant la mise en file       | Correctif | `Terminé`  | Sylvio, Emmanuel              | #101, #104, BUG-040 : tous les champs masqués                                             |
-| PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `En cours` | Caleb                         | PR (PR5) : `GET /og/u/:handle.png` en `og:image`, téléchargeable depuis le Passport       |
+| PR5  | #57   | Proof Card : carte de partage générée            | MVP+      | `En cours` | Caleb                         | #178 : `GET /og/u/:handle.png` en `og:image`, téléchargeable ; reste la carte de salle    |
 | PR6  | #58   | Badge README dynamique pour GitHub               | MVP+      | `À faire`  | Caleb                         |                                                                                           |
 | PR7  | #59   | Barre de score bicolore G + P                    | MVP+      | `Terminé`  | Sylvio                        | `components/ui/data.tsx`                                                                  |
 | PR11 | #60   | Signaux de confiance, badge « Membre fondateur » | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                                                                           |
@@ -208,7 +208,7 @@ Statuts tranchés le 9 octobre par l'[ADR-0017](../adr/0017-tri-des-propositions
 | X5   | #67   | Page publique « Comment marchent les Proof XP »  | MVP+      | `Terminé`  | Caleb                         | PR #102 (`GET /rules/xp`), #176                                                           | Page /regles : barème, plafonds, formule G + P, matching ; valeurs lues sur `GET /rules/xp` (repli statique hors ligne) |
 | Y6   | #68   | Systalink visible dans le parcours               | MVP+      | `Terminé`  | Sylvio                        | `feat/systalink` (A, B, C)                                                                |
 | M3   | #69   | Code de conduite à l'inscription                 | MVP+      | `Terminé`  | Caleb                         | #98 (fusionnée)                                                                           |
-| T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `Terminé`  | Sylvio, Joachim               | #97, `feat/web-live-landing` : compteurs, flux, 3 Passports ; sans carte (D4)             |
+| T1   | #70   | Page d'accueil publique « en direct »            | MVP+      | `Terminé`  | Sylvio, Joachim               | #97, #177 : compteurs, flux, 3 Passports ; carte sur `/carte` (D4)                        |
 | T2   | #71   | Essai sans compte et visite guidée de 60 s       | MVP+      | `En cours` | Sylvio, Emmanuel              | `Tour`                                                                                    |
 | PR8  | #72   | Carte de chaleur de l'entraide                   | P1        | `P2`       | Sylvio                        |                                                                                           |
 | PR9  | #73   | Recommandations adossées à une preuve            | P1        | `Écarté`   | —                             |                                                                                           |

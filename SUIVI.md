@@ -60,27 +60,23 @@ Questions auxquelles la plateforme doit répondre :
 
 ## Reste à faire
 
+- [ ] **Avant le 25/10 17:00 GMT** : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
+- [ ] **Vote des pairs du 25/10 18:00 au 26/10 23:59 : chaque membre doit voter, sinon l'équipe est exclue** (23/10/2026)
 - [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
+- [ ] Créer l'application OAuth GitHub de production (avec Joachim / Emmanuel) ; GitLab et Google (A2) restent à faire côté API
 - [ ] Confirmer avec Systalink (cadev@systalink.com) leurs plages IP (`SYSTALINK_IP_RANGES`), un lien de déploiement préparé et un éventuel programme de crédits ou de commission
-- [x] Branche `sylvio-frontend` supprimée, BUG-004 et BUG-005 clos (16/10/2026)
-- [ ] Partager les types de `src/services/` avec le rôle 2 pour aligner le contrat d'API
+- [ ] Décider d'une licence pour le dépôt (aucun fichier `LICENSE`) et identifier le contributeur `Sacem270` (23/10/2026)
 - [ ] Tester sur un vrai téléphone d'entrée de gamme, réseau coupé (CDC O1-O3)
-- [ ] Partager `src/services/api.ts` + `types.ts` + `local/engine.ts` avec le rôle 2 (contrat d'API et règles)
-- [ ] Dette technique : 26 avertissements oxlint (règles React : pureté, setState dans effet, exports mixtes)
-- [ ] Écrire les tests Playwright du parcours dans le dépôt (aujourd'hui dans un script local) + CI
+- [ ] Dette technique : 39 avertissements oxlint (règles React : pureté, setState dans effet, exports mixtes)
 - [ ] Phase 4 : audit du mouvement, audit d'accessibilité, revue de code
-- [ ] Vérifier le thème sombre avec la matière « Retail-X » (08/10/2026)
-- [ ] Redessiner dans le nouveau style : entraide (question), projets et salle, découvrir, classement
-- [ ] Traduire les nouveaux services en anglais (i18n)
-- [ ] Définir avec le rôle 2 l'API des nouveaux services (posts, commentaires, offres, candidatures, certifications, skills, vidéos, parcours)
-- [ ] Prévenir l'équipe du pivot de périmètre (décision §11)
-- [ ] Faire relire et fusionner la PR #97 vers `main` (Caleb pour `apps/api`, Emmanuel pour `infra/Caddyfile`) ; fermer #96, incluse dans #97
-- [ ] Créer l’application OAuth GitHub (avec Joachim / Emmanuel) et renseigner `.env` à la racine ; GitLab et Google après (P1 côté API)
-- [ ] Déploiement : il passe par la CI de `main` (`infra/`, rôle 4) ; le worker doit tourner pour la collecte des actualités
-- [ ] Passer les services (posts, commentaires, emplois, candidatures, certifications, progression) du stockage local à l'API
+- [ ] Passer les services « écosystème » (posts, emplois, certifications, progression) du stockage local à l'API (roadmap, ADR-0016)
+- [x] Tests Playwright dans le dépôt et en CI (15 parcours, verts le 23/10/2026)
+- [x] PR #97 fusionnée vers `main` (14/10/2026)
+- [x] Branche `sylvio-frontend` supprimée, BUG-004 et BUG-005 clos (16/10/2026)
 
 ## Fait
 
+- [x] Récupération du travail de l'équipe (#172 à #179) et fusion sur `main` ; `sharp` (LGPL) remplacé ; dossier de soumission (23/10/2026)
 - [x] Audit de toutes les branches ; `main` vérifiée de bout en bout (16/10/2026)
 - [x] Correctifs BUG-027, BUG-039, test e-mail Y3 ; simulateur de réseau retiré (16/10/2026)
 - [x] Systalink A (preuve « en production », +10 XP), B (déploiement compté, écosystème, vitrine), C (aide Systalink) (16/10/2026)
@@ -152,6 +148,16 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 23/10/2026 — Récupération du travail de l'équipe, conformité des licences, dossier de soumission
+
+- **Récupération** : `main` locale avait 31 commits de retard (#151 à #176, travail de Joachim et `Sacem270` : S5, S14, S16, X5, PR4, PR14, S10, R5, R6…). Trois PR de Joachim restaient ouvertes ; fusionnées sur `chore/finalisation` puis sur `main` : **#177** accueil public « en direct » (T1), **#178** Proof Card du Passport (PR5), **#179** carte interactive de l'Afrique (D4). Conflits de #179 résolus en gardant les deux côtés (`http-mappers.ts`, son test, `06-api.md`, suivi du CDC).
+- **Correctif** `apps/web/src/i18n/index.ts` : la langue du document n'est posée que si `document` existe. Le test de la carte importait un composant traduit en environnement Node et faisait échouer la suite web.
+- **Correctif de tests** : `me.e2e.spec.ts` et `passport.e2e.spec.ts` échouaient depuis le 22/10, car un compte créé après cette date n'est plus « Membre fondateur ». La date d'inscription est maintenant fixée au 10/10 dans ces tests.
+- **Licences (condition de recevabilité)** : `sharp` embarque libvips sous **LGPL-3.0**, interdite par le règlement. Remplacé par **`@napi-rs/canvas`** (MIT, Skia sous BSD) dans un module partagé `apps/api/src/infrastructure/image/raster.ts` (proxy d'images des actualités en WebP, Proof Card SVG → PNG), avec ses tests. Scan `pnpm licenses` : plus aucun composant GPL, AGPL ou LGPL.
+- **Dossier de soumission** `docs/soumission.md` : liste de contrôle avant l'envoi, inventaire des licences, déclaration d'usage de l'IA, déclaration de propriété à signer par chaque membre, points à trancher.
+- **Documentation** : `context.md` corrigé (Datacloud = condition de recevabilité, pas « 40 % de la note » ; barème et dates officiels), README et suivi du CDC à jour (34 exigences v3 sur 37, S5 terminée).
+- **Vérifié en local** (Node 24, PostgreSQL 16) : format, lint (0 erreur), types, 583 tests (API 436, core 80, web 61, contrats 6), build, **15 parcours Playwright**, `pnpm audit --prod --audit-level high`.
 
 ### 16/10/2026 — Audit des branches, correctifs, Systalink au cœur de la plateforme (A, B, C), nouveau logo
 

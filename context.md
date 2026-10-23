@@ -28,7 +28,7 @@
 | **Salles de projet** (construire) | Ouvre une salle liée à son dépôt GitHub, publie des tâches, d'autres contribuent     |
 | **Developer Passport** (prouver)  | Chaque action utile alimente une page publique où chaque score renvoie à ses preuves |
 
-Différenciateurs : **hors ligne d'abord** (on coupe le Wi-Fi pendant la démo) et **hébergement Systalink visible** (40 % de la note finale).
+Différenciateurs : **hors ligne d'abord** (on coupe le Wi-Fi pendant la démo) et **hébergement Systalink visible** (un produit Datacloud est une condition de recevabilité, pas une part de la note).
 
 ## 2. Périmètre
 
@@ -50,7 +50,7 @@ Référence : [cahier des charges v3](docs/Cahier_des_charges_v3_DevHub_Africa.p
 
 Détail exigence par exigence : [suivi du cahier des charges](docs/suivi/suivi-cahier-des-charges.md). Bugs et écarts : [registre des anomalies](docs/suivi/anomalies.md).
 
-**En résumé au 20 octobre au soir** : toutes les PR ouvertes ont été fusionnées (#158 à #171) ; aucune PR n'est ouverte. Les 21 exigences P0 et 12 des 14 P1 sont terminées : 33 exigences v3 sur 37 (89 %). Restent A2 et S5 (P1), D3 et Y4 (P2). La CI de `main` est verte sur 300c57a, la dernière fusion de code ; celle des fusions de documentation qui ont suivi tournait encore au moment de la rédaction. Ce qui manque surtout n'est plus du code : la mise en ligne sur Systalink et les comptes réels.
+**En résumé au 23 octobre** : les dernières PR (#172 à #179 : S5, S14, X5, T1, PR5, D4) sont fusionnées ; aucune PR n'est ouverte. Les 21 exigences P0 et 13 des 14 P1 sont terminées : 34 exigences v3 sur 37 (92 %). Restent A2 (P1), D3 et Y4 (P2). `sharp` (libvips sous LGPL-3.0) est remplacé par `@napi-rs/canvas` (MIT) : plus aucun composant interdit par le règlement. Le [dossier de soumission](docs/soumission.md) rassemble les déclarations exigées (licences, IA, propriété). Ce qui manque n'est plus du code : l'achat Datacloud, la mise en ligne, l'OAuth GitHub de production, les déclarations signées et le vote des pairs.
 
 ### Fait (fusionné sur `main`)
 
@@ -130,15 +130,15 @@ Décisions prises hors ADR, constatées dans le code :
 
 ## 5. Contraintes
 
-| Type      | Contrainte                                                                                                      |
-| --------- | --------------------------------------------------------------------------------------------------------------- |
-| Délais    | Gel du code **jeudi 22 oct.**, soumission **samedi 24 oct. avant midi**, date limite 25 oct.                    |
-| Jalons    | 8 oct. (connexion), 14 oct. (SOS Dev), 16 oct. (hors ligne sur téléphone), 18 oct. (salles), 22 oct. (gel)      |
-| Notation  | Usage d'un produit Systalink obligatoire, **40 % de la note** ; barème des 60 % restants à confirmer (#2)       |
-| Technique | Node.js **24**, pnpm 10, TypeScript 6, PostgreSQL 16 ; page d'accueil < 300 Ko ; Lighthouse PWA ≥ 90            |
-| Sécurité  | Aucun secret dans le dépôt ni dans le front ; secrets masqués avant tout envoi à l'IA ; GitHub en lecture seule |
-| Produit   | Aucune donnée inventée présentée comme réelle ; comptes de démonstration marqués « démo » ; FR et EN partout    |
-| Équipe    | Toute PR relue par une autre personne ; aucune connaissance détenue par une seule personne                      |
+| Type      | Contrainte                                                                                                                                                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Délais    | Gel du code **jeudi 22 oct.**, soumission interne 24 oct., **date limite officielle samedi 25 oct. 17:00 GMT** ; vote des pairs obligatoire pour chaque membre (25 oct. 18:00 → 26 oct. 23:59)                                                                      |
+| Jalons    | 8 oct. (connexion), 14 oct. (SOS Dev), 16 oct. (hors ligne sur téléphone), 18 oct. (salles), 22 oct. (gel)                                                                                                                                                          |
+| Notation  | Produit Datacloud acheté et démo en ligne : **condition de recevabilité**. Barème : pertinence 25 %, qualité technique 30 %, UX 20 %, innovation 15 %, vote du public ≤ 10 % ; composants GPL, AGPL ou LGPL interdits ([dossier de soumission](docs/soumission.md)) |
+| Technique | Node.js **24**, pnpm 10, TypeScript 6, PostgreSQL 16 ; page d'accueil < 300 Ko ; Lighthouse PWA ≥ 90                                                                                                                                                                |
+| Sécurité  | Aucun secret dans le dépôt ni dans le front ; secrets masqués avant tout envoi à l'IA ; GitHub en lecture seule                                                                                                                                                     |
+| Produit   | Aucune donnée inventée présentée comme réelle ; comptes de démonstration marqués « démo » ; FR et EN partout                                                                                                                                                        |
+| Équipe    | Toute PR relue par une autre personne ; aucune connaissance détenue par une seule personne                                                                                                                                                                          |
 
 ## 6. Intervenants et responsabilités
 
@@ -162,7 +162,7 @@ Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à id
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------------------------------- |
 | 1   | **`main` n'est pas protégée** : le dépôt est privé sur un compte gratuit, GitHub refuse la protection de branche ([BUG-003](docs/suivi/anomalies.md)) | Fusions sans relecture possibles  | Emmanuel, Sylvio (propriétaire) |
 | 4   | **Jalon 1** : aucune URL Systalink en ligne constatée ; OAuth réel (#7) et choix de la base (#9) ouverts                                              | Jalon 1 manqué                    | Emmanuel, Joachim               |
-| 7   | Aucune réponse de Systalink consignée (#2) : barème, produits acceptés, base managée (règle de choix : ADR-0015)                                      | Critère Systalink à 40 %          | Caleb                           |
+| 7   | Aucune réponse de Systalink consignée (#2) : barème, produits acceptés, base managée (règle de choix : ADR-0015)                                      | Recevabilité (Datacloud)          | Caleb                           |
 | 9   | Aucune clé d'IA n'existe encore (#7) : S2, R5 et S10 n'ont été essayés qu'avec le faux modèle                                                         | Démo de l'IA                      | Joachim, Emmanuel               |
 | 10  | **Gel du code jeudi 22 oct.** : S14 et S5 doivent être ouvertes, relues et fusionnées avant ; ensuite, seuls les `fix` critiques                      | Exigences P1 perdues pour la démo | Sessions 63, 90, 78 (relecture) |
 
