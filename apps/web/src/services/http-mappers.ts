@@ -77,6 +77,7 @@ import type {
   TaskStatus,
   User,
   UserSummary,
+  ActivityItem,
   XPEvent,
   XPKind,
 } from './types';
@@ -651,6 +652,39 @@ export function devCard(d: ApiDevCard): DevCard {
     lookingFor: lookingForFromApi(d.lookingFor),
   };
 }
+
+/**
+ * T1 : flux « en direct » de la page publique, tiré des questions publiques récentes.
+ * Les comptes de démonstration en sont exclus, comme des chiffres d'impact (CDC v3.1, T2).
+ */
+export function landingActivity(questions: QuestionSummary[], max = 8): ActivityItem[] {
+  const items: ActivityItem[] = [];
+  const seen = new Set<string>();
+  for (const q of questions) {
+    if (q.author.isDemo || seen.has(q.id)) continue;
+    seen.add(q.id);
+    const base = { actor: summary(q.author), targetLabel: q.title, targetHref: `/sos/${q.id}` };
+    items.push({ ...base, id: `ask-${q.id}`, kind: 'asked', createdAt: q.createdAt });
+    if (q.status === 'resolved' && q.resolvedAt)
+      items.push({
+        ...base,
+        id: `res-${q.id}`,
+        kind: 'resolved',
+        detail: String(
+          Math.max(1, Math.round((Date.parse(q.resolvedAt) - Date.parse(q.createdAt)) / 60_000)),
+        ),
+        createdAt: q.resolvedAt,
+      });
+  }
+  return items.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, max);
+}
+
+/** T1 : les trois devs les mieux classés, hors comptes de démonstration. */
+export const featuredDevs = (r: LeaderboardResponse, max = 3): UserSummary[] =>
+  r.devs
+    .filter((d) => !d.isDemo)
+    .slice(0, max)
+    .map((d) => summary({ ...d, avatarUrl: null, country: d.country, totalXp: d.totalXp }));
 
 export const leaderboard = (r: LeaderboardResponse): LeaderboardRow[] =>
   r.countries.map((c) => ({

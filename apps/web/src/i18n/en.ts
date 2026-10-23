@@ -308,6 +308,18 @@ const en: Dict = {
     pillarProveText:
       'Your profile fills itself from GitHub, your certifications and the help you give. Recruiters can see it.',
     ctaTitle: 'Join the community.',
+    liveTitle: 'Live on DevHub',
+    liveDevs: 'Registered devs',
+    liveResolved: 'Questions solved',
+    liveCountries: 'Countries',
+    liveFeed: 'Latest questions',
+    liveAsked: 'Question asked',
+    liveResolvedIn_one: 'Unblocked in {{count}} min',
+    liveResolvedIn_other: 'Unblocked in {{count}} min',
+    liveEmpty: 'No public questions yet. The first one could be yours.',
+    liveUnavailable: 'Activity could not be loaded. Try again in a moment.',
+    liveFeatured: 'Passports to discover',
+    liveNoDevs: 'No Passport to feature yet.',
     ctaText: 'Connect GitHub: your profile is ready in a minute.',
   },
   onboarding: {

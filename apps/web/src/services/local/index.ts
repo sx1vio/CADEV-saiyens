@@ -402,7 +402,7 @@ export const localApi: DevHubApi = {
     return read((e) => ({
       stats: impact,
       live: e.activity(8),
-      featured: ['moussa-diop', 'kwame-dev', 'fatou-nd'].map((h) => e.passport(h)),
+      featured: ['moussa-diop', 'kwame-dev', 'fatou-nd'].map((h) => e.summary(e.passport(h).user)),
     }));
   },
 

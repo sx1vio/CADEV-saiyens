@@ -306,6 +306,18 @@ const fr = {
     pillarProveText:
       'Ton profil se remplit depuis GitHub, tes certifications et ton aide. Les recruteurs le voient.',
     ctaTitle: 'Rejoins la communauté.',
+    liveTitle: 'En direct sur DevHub',
+    liveDevs: 'Devs inscrits',
+    liveResolved: 'Questions résolues',
+    liveCountries: 'Pays',
+    liveFeed: 'Dernières questions',
+    liveAsked: 'Question posée',
+    liveResolvedIn_one: 'Débloqué en {{count}} min',
+    liveResolvedIn_other: 'Débloqué en {{count}} min',
+    liveEmpty: 'Aucune question publique pour l’instant. La première pourrait être la tienne.',
+    liveUnavailable: 'L’activité n’a pas pu être chargée. Réessaie dans un instant.',
+    liveFeatured: 'Passports à découvrir',
+    liveNoDevs: 'Aucun Passport à mettre en avant pour l’instant.',
     ctaText: 'Connecte GitHub : ton profil est prêt en une minute.',
   },
   onboarding: {

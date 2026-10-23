@@ -565,10 +565,13 @@ export interface ActivityItem {
   createdAt: ISODate;
 }
 
+/** T1 : page d'accueil publique « en direct ». Comptes de démonstration exclus. */
 export interface PublicLanding {
   stats: ImpactStats;
+  /** Questions posées et résolues récemment ; `detail` d'une résolution = minutes écoulées. */
   live: ActivityItem[];
-  featured: Passport[];
+  /** Trois Passports mis en avant (les mieux classés). */
+  featured: UserSummary[];
 }
 
 /* ---------- Entrées ---------- */
