@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto';
 import { Controller, Get, Inject, NotFoundException, Param, Query, Req, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import sharp from 'sharp';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
+import { svgToPng } from '../../../infrastructure/image/raster';
 import { type CardLang, renderProofCard } from '../domain/proof-card';
 import { PassportReader } from '../infrastructure/passport.reader';
 
@@ -45,7 +45,7 @@ export class ProofCardController {
       return;
     }
 
-    const png = await sharp(Buffer.from(svg)).png().toBuffer();
+    const png = await svgToPng(svg);
     if (download === '1') {
       res.setHeader(
         'Content-Disposition',

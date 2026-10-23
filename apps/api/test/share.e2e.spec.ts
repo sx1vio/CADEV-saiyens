@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import sharp from 'sharp';
+import { loadImage } from '@napi-rs/canvas';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
@@ -101,8 +101,10 @@ describe('aperçus de partage (R7, ADR-0012)', () => {
       .expect(200);
     expect(card.headers['content-type']).toBe('image/png');
     expect(card.headers['cache-control']).toBe('public, max-age=3600');
-    const meta = await sharp(card.body as Buffer).metadata();
-    expect([meta.format, meta.width, meta.height]).toEqual(['png', 1200, 630]);
+    const png = card.body as Buffer;
+    expect(png.subarray(1, 4).toString()).toBe('PNG');
+    const img = await loadImage(png);
+    expect([img.width, img.height]).toEqual([1200, 630]);
 
     // Même contenu : 304 sans rendu ; téléchargement : nom de fichier proposé.
     await request(app.getHttpServer())

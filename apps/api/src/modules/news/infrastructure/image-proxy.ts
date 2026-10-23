@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import sharp from 'sharp';
+import { resizeToWebp } from '../../../infrastructure/image/raster';
 import { isPrivateAddress } from '../../../infrastructure/http/public-address';
 
 // Proxy d'images des actualités : redimensionne, convertit en WebP et met en cache sur disque.
@@ -51,11 +51,9 @@ export class ImageProxy {
       throw new ImageRejectedError('image trop lourde');
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length > MAX_BYTES) throw new ImageRejectedError('image trop lourde');
-    const out = await sharp(buf, { failOn: 'none', limitInputPixels: 40_000_000 })
-      .rotate()
-      .resize({ width: w, withoutEnlargement: true })
-      .webp({ quality: 72, effort: 3 })
-      .toBuffer();
+    const out = await resizeToWebp(buf, w).catch((err: unknown) => {
+      throw new ImageRejectedError(err instanceof Error ? err.message : 'image illisible');
+    });
     await writeFile(file, out).catch(() => undefined);
     return out;
   }
