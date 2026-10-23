@@ -4,6 +4,7 @@ import type {
   DevCard,
   DiscoverDevsQuery,
   DiscoverDevsResponse,
+  LeaderboardMapResponse,
   LeaderboardQuery,
   LeaderboardResponse,
 } from '@devhub/contracts';
@@ -24,6 +25,14 @@ const TZ_TOLERANCE_MINUTES = 180;
 const COUNTRY_VISIBLE = Prisma.sql`COALESCE((u.privacy ->> 'hideCountry')::boolean, false) = false
   AND COALESCE((u.privacy ->> 'country')::boolean, true) = true`;
 const LISTED = Prisma.sql`COALESCE((u.privacy ->> 'unlisted')::boolean, false) = false`;
+
+/** D4 : un dev est « actif » s'il a gagné des Proof XP (hors annulations) sur cette fenêtre. */
+export const MAP_ACTIVE_WINDOW_DAYS = 30;
+
+export const MAP_METHOD =
+  'Par pays déclaré et non masqué : devs inscrits, devs actifs (Proof XP gagnés sur 30 jours), ' +
+  'réponses validées et somme des Proof XP du journal public. Comptes non listés exclus ; ' +
+  'comptes de démonstration totalisés à part.';
 
 export const LEADERBOARD_METHOD =
   'Somme des Proof XP du journal public (annulations comprises), comptes de démonstration exclus, ' +
@@ -111,6 +120,75 @@ export class DiscoveryReader {
         nextCursor:
           hasMore && last ? encodeCursor({ at: last.createdAt.toISOString(), id: last.id }) : null,
       },
+    };
+  }
+
+  /** D4 : agrégats par pays pour la carte (voir LeaderboardMapResponse). */
+  async map(now = new Date()): Promise<LeaderboardMapResponse> {
+    const since = new Date(now.getTime() - MAP_ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        country: string | null;
+        is_demo: boolean;
+        devs: bigint;
+        active: bigint;
+        unblocked: bigint;
+        total: bigint;
+      }>
+    >`
+      WITH people AS (
+        SELECT u.id, u.is_demo,
+               CASE WHEN u.is_demo OR NOT (${COUNTRY_VISIBLE}) THEN NULL ELSE u.country END AS country
+        FROM users u
+        WHERE u.deleted_at IS NULL AND ${LISTED}
+      ),
+      xp AS (
+        SELECT x.user_id,
+               SUM(x.points) AS total,
+               BOOL_OR(x.points > 0 AND x.reverted_at IS NULL AND x.created_at >= ${since}) AS active
+        FROM xp_events x GROUP BY x.user_id
+      ),
+      unblocked AS (
+        SELECT a.author_id AS user_id, COUNT(*) AS n
+        FROM answers a JOIN questions q ON q.id = a.question_id
+        WHERE a.is_accepted AND a.hidden_at IS NULL AND q.hidden_at IS NULL
+        GROUP BY a.author_id
+      )
+      SELECT p.country, p.is_demo,
+             COUNT(*) AS devs,
+             COUNT(*) FILTER (WHERE xp.active) AS active,
+             COALESCE(SUM(ub.n), 0) AS unblocked,
+             COALESCE(SUM(xp.total), 0) AS total
+      FROM people p
+      LEFT JOIN xp ON xp.user_id = p.id
+      LEFT JOIN unblocked ub ON ub.user_id = p.id
+      GROUP BY p.country, p.is_demo`;
+
+    const real = rows.filter((r) => !r.is_demo);
+    const demo = rows.filter((r) => r.is_demo);
+    return {
+      method: MAP_METHOD,
+      activeWindowDays: MAP_ACTIVE_WINDOW_DAYS,
+      countries: real
+        .filter((r): r is typeof r & { country: string } => r.country !== null)
+        .map((r) => ({
+          country: r.country,
+          devs: Number(r.devs),
+          activeDevs: Number(r.active),
+          questionsUnblocked: Number(r.unblocked),
+          totalXp: Number(r.total),
+        }))
+        .sort(
+          (a, b) => b.totalXp - a.totalXp || b.devs - a.devs || a.country.localeCompare(b.country),
+        ),
+      unlocated: {
+        devs: real.filter((r) => r.country === null).reduce((s, r) => s + Number(r.devs), 0),
+      },
+      demo: {
+        devs: demo.reduce((s, r) => s + Number(r.devs), 0),
+        totalXp: demo.reduce((s, r) => s + Number(r.total), 0),
+      },
+      computedAt: now.toISOString(),
     };
   }
 

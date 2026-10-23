@@ -502,6 +502,26 @@ export interface LeaderboardRow {
   topDev: UserSummary | null;
 }
 
+/**
+ * D4 — GET /leaderboard/map : agrégats par pays pour la carte. `source: 'demo'` quand toutes les
+ * données viennent de comptes de démonstration (serveur local) : l'écran l'affiche en clair.
+ */
+export interface CountryMapStats {
+  source: 'live' | 'demo';
+  activeWindowDays: number;
+  method: string | null;
+  countries: {
+    country: string;
+    devs: number;
+    /** null quand la donnée n'est pas mesurée (serveur local). */
+    activeDevs: number | null;
+    unblocked: number;
+    xp: number;
+  }[];
+  unlocatedDevs: number;
+  demo: { devs: number; xp: number };
+}
+
 export interface ServiceStatus {
   id: 'vps' | 'database' | 'backup' | 'mail' | 'storage' | 'client-db' | 'service-worker';
   name: string;

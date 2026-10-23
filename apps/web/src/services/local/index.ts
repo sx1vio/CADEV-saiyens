@@ -713,6 +713,26 @@ export const localApi: DevHubApi = {
   async leaderboard() {
     return read((e) => e.leaderboard());
   },
+  async leaderboardMap() {
+    // Serveur local : uniquement des comptes de démonstration, signalés comme tels à l'écran.
+    const rows = await read((e) => e.leaderboard());
+    return {
+      source: 'demo' as const,
+      activeWindowDays: 30,
+      method: null,
+      countries: rows
+        .filter((r) => r.country)
+        .map((r) => ({
+          country: r.country,
+          devs: r.devs,
+          activeDevs: null,
+          unblocked: r.resolved,
+          xp: r.xp,
+        })),
+      unlocatedDevs: 0,
+      demo: { devs: 0, xp: 0 },
+    };
+  },
 
   async getPassport(handle) {
     return read((e) => e.passport(handle));

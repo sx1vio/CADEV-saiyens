@@ -11,6 +11,7 @@ import type {
   HomeFeed,
   ID,
   ImpactStats,
+  CountryMapStats,
   StatusHistory,
   SystalinkEcosystem,
   JoinRequest,
@@ -160,6 +161,8 @@ export interface DevHubApi {
   /* Découverte — /discover, /leaderboard, /u/:handle */
   discoverDevs(filters: DiscoverFilters): Promise<DevCard[]>;
   leaderboard(): Promise<LeaderboardRow[]>;
+  /** D4 : agrégats par pays pour la carte de l'Afrique. */
+  leaderboardMap(): Promise<CountryMapStats>;
   getPassport(handle: string): Promise<Passport>;
   /** PR4 — POST /u/:handle/contact : message relayé par notification puis par e-mail (Y3). */
   contactDev(handle: string, message: string): Promise<void>;

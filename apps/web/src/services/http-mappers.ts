@@ -15,6 +15,7 @@ import type {
   FeedbackRequestView,
   ImpactResponse,
   JoinRequestView,
+  LeaderboardMapResponse,
   LeaderboardResponse,
   MatchedHelper,
   MeResponse,
@@ -46,6 +47,7 @@ import type {
   FeedbackRequestItem,
   ImpactStats,
   JoinRequest,
+  CountryMapStats,
   LeaderboardRow,
   LookingFor,
   MatchReason,
@@ -685,6 +687,21 @@ export const featuredDevs = (r: LeaderboardResponse, max = 3): UserSummary[] =>
     .filter((d) => !d.isDemo)
     .slice(0, max)
     .map((d) => summary({ ...d, avatarUrl: null, country: d.country, totalXp: d.totalXp }));
+
+export const leaderboardMap = (r: LeaderboardMapResponse): CountryMapStats => ({
+  source: 'live',
+  activeWindowDays: r.activeWindowDays,
+  method: r.method,
+  countries: r.countries.map((c) => ({
+    country: c.country,
+    devs: c.devs,
+    activeDevs: c.activeDevs,
+    unblocked: c.questionsUnblocked,
+    xp: c.totalXp,
+  })),
+  unlocatedDevs: r.unlocated.devs,
+  demo: { devs: r.demo.devs, xp: r.demo.totalXp },
+});
 
 export const leaderboard = (r: LeaderboardResponse): LeaderboardRow[] =>
   r.countries.map((c) => ({

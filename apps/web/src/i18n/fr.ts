@@ -809,6 +809,37 @@ const fr = {
     viewPassport: 'Voir le Passport',
     leaderboardCta: 'Classement par pays',
   },
+  map: {
+    title: "Carte de l'Afrique",
+    subtitle:
+      'Les devs de DevHub, pays par pays. Clique sur un pays pour voir ses chiffres et ses devs.',
+    open: 'Voir la carte',
+    toLeaderboard: 'Classement',
+    aria: "Carte de l'Afrique : choisis un pays pour voir ses chiffres",
+    metric: 'Colorer selon',
+    activeDevs: 'Devs actifs',
+    devs: 'Devs inscrits',
+    unblocked: 'Questions débloquées',
+    seeDevs: 'Voir les devs du pays',
+    pick: 'Choisis un pays sur la carte, ou dans le tableau ci-dessous.',
+    labelActive_one: '{{country}} : {{count}} dev actif',
+    labelActive_other: '{{country}} : {{count}} devs actifs',
+    labelXp: '{{country}} : {{xp}} Proof XP',
+    noDevs: '{{country}} : aucun dev inscrit pour l’instant',
+    method:
+      'Pays déclaré et non masqué. Dev actif : a gagné des Proof XP ces {{days}} derniers jours.',
+    unlocated_one: '{{count}} dev ne montre pas son pays : compté, mais pas placé sur la carte.',
+    unlocated_other:
+      '{{count}} devs ne montrent pas leur pays : comptés, mais pas placés sur la carte.',
+    demoApart_one: 'Le compte de démonstration ({{xp}} Proof XP) est compté à part.',
+    demoApart_other:
+      'Les {{count}} comptes de démonstration ({{xp}} Proof XP) sont comptés à part.',
+    demoData:
+      'Données de démonstration : ce serveur local ne contient que des comptes fictifs. La vraie carte s’affiche avec l’API.',
+    tableCaption: 'Tous les pays',
+    outsideAfrica: "hors d'Afrique",
+    empty: 'Aucun dev n’a encore déclaré son pays.',
+  },
   leaderboard: {
     title: 'Classement par pays',
     subtitle:
