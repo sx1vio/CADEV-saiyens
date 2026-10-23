@@ -119,6 +119,9 @@ export default defineConfig(({ command, mode }) => {
           target: process.env.DEVHUB_API_PROXY ?? 'http://127.0.0.1:3000',
           changeOrigin: false,
         },
+        // PR5, PR6 : Proof Card et badges, servis par l'API hors du préfixe /api (comme en production).
+        '/og': { target: process.env.DEVHUB_API_PROXY ?? 'http://127.0.0.1:3000' },
+        '/badge': { target: process.env.DEVHUB_API_PROXY ?? 'http://127.0.0.1:3000' },
       },
     },
   };

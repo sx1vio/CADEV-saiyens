@@ -9,6 +9,8 @@ export interface ShareMeta {
   url: string;
   /** URL absolue de l'image d'aperçu. */
   image: string;
+  /** Image 1200 × 630 (Proof Card) : grand aperçu sur X, dimensions annoncées aux robots. */
+  largeImage?: boolean;
   type: 'profile' | 'website';
 }
 
@@ -44,7 +46,13 @@ export function renderSharePage(indexHtml: string, meta: ShareMeta): string {
     `<meta property="og:description" content="${escape(meta.description)}" />`,
     `<meta property="og:url" content="${escape(meta.url)}" />`,
     `<meta property="og:image" content="${escape(meta.image)}" />`,
-    `<meta name="twitter:card" content="summary" />`,
+    ...(meta.largeImage
+      ? [
+          `<meta property="og:image:width" content="1200" />`,
+          `<meta property="og:image:height" content="630" />`,
+        ]
+      : []),
+    `<meta name="twitter:card" content="${meta.largeImage ? 'summary_large_image' : 'summary'}" />`,
     `<link rel="canonical" href="${escape(meta.url)}" />`,
   ].join('\n    ');
   // Remplacement par fonction : une chaîne de remplacement interpréterait `$'`, `$\``, `$&`

@@ -16,6 +16,9 @@ RUN pnpm deploy --legacy --filter @devhub/api --prod /out
 FROM node:24-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
+# PR5 : sharp dessine le texte de la Proof Card avec les polices du système ; l'image Alpine n'en a
+# aucune (le texte disparaîtrait). DejaVu couvre le français et les noms accentués.
+RUN apk add --no-cache fontconfig font-dejavu
 COPY --from=build /out ./
 COPY --from=build /repo/apps/web/dist/index.html ./web/index.html
 # pnpm 10 n'exécute pas le postinstall de Prisma : on télécharge ici le moteur de migration, pour que

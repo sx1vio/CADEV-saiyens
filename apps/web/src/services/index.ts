@@ -36,4 +36,5 @@ export const api = new Proxy({} as DevHubApi, {
 });
 
 export * from './types';
+export { proofCardUrl } from './public-urls';
 export type { QuestionTab, GitHubImport } from './api';

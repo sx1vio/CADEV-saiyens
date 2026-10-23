@@ -823,6 +823,11 @@ const fr = {
   passport: {
     share: 'Partager ma carte',
     shareCopied: 'Lien du Passport copié.',
+    cardTitle: 'Ta Proof Card',
+    cardText:
+      'L’image qui accompagne le lien de ton Passport sur WhatsApp, LinkedIn ou X. Elle se met à jour avec tes preuves et respecte tes réglages de confidentialité.',
+    cardDownload: 'Télécharger',
+    cardAlt: 'Proof Card de {{name}}',
     contact: 'Contacter',
     contactHint: "Le message est relayé par e-mail, sans exposer l'adresse.",
     contactMessage: 'Ton message',

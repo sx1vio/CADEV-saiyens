@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import sharp from 'sharp';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
@@ -80,5 +81,42 @@ describe('aperçus de partage (R7, ADR-0012)', () => {
     const missing = await request(app.getHttpServer()).get('/u/personne-inconnue-xyz').expect(404);
     expect(missing.text).toContain('<div id="root"></div>');
     await request(app.getHttpServer()).get('/p/PAS-VALIDE!').expect(404);
+  });
+
+  it('PR5 : l’aperçu du Passport utilise la Proof Card, une image PNG 1200 × 630 en cache', async () => {
+    const page = await request(app.getHttpServer()).get(`/u/${handle}`).expect(200);
+    expect(page.text).toContain(
+      `<meta property="og:image" content="http://localhost:5173/og/u/${handle}.png" />`,
+    );
+    expect(page.text).toContain('<meta name="twitter:card" content="summary_large_image" />');
+
+    const card = await request(app.getHttpServer())
+      .get(`/og/u/${handle}.png`)
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => done(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    expect(card.headers['content-type']).toBe('image/png');
+    expect(card.headers['cache-control']).toBe('public, max-age=3600');
+    const meta = await sharp(card.body as Buffer).metadata();
+    expect([meta.format, meta.width, meta.height]).toEqual(['png', 1200, 630]);
+
+    // Même contenu : 304 sans rendu ; téléchargement : nom de fichier proposé.
+    await request(app.getHttpServer())
+      .get(`/og/u/${handle}.png`)
+      .set('If-None-Match', card.headers.etag as string)
+      .expect(304);
+    const download = await request(app.getHttpServer())
+      .get(`/og/u/${handle}.png?download=1`)
+      .expect(200);
+    expect(download.headers['content-disposition']).toBe(
+      `attachment; filename="devhub-${handle}.png"`,
+    );
+
+    await request(app.getHttpServer()).get('/og/u/personne-inconnue-xyz.png').expect(404);
+    await request(app.getHttpServer()).get(`/og/u/${handle}`).expect(404);
   });
 });

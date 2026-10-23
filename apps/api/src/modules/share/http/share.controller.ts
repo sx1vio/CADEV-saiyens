@@ -53,7 +53,9 @@ export class ShareController {
         200,
       ),
       url: this.url(`/u/${p.user.handle}`),
-      image: this.url('/pwa-512.png'),
+      // PR5 : la Proof Card (1200 × 630), générée par l'API depuis le Passport public.
+      image: this.url(`/og/u/${p.user.handle}.png`),
+      largeImage: true,
       type: 'profile',
     });
   }
