@@ -33,7 +33,8 @@ async function ensureLang(lang: AppLang) {
 export const i18nReady = ensureLang(startLang)
   .then(() => i18n.changeLanguage(startLang))
   .then(() => {
-    document.documentElement.lang = startLang;
+    // Absent dans les tests unitaires (environnement Node) qui importent un composant traduit.
+    if (typeof document !== 'undefined') document.documentElement.lang = startLang;
   });
 
 /** I1 : bascule sans rechargement. */
