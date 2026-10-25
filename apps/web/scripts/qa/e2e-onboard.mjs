@@ -7,7 +7,9 @@ const errors = [];
 p.on('pageerror', (e) => errors.push(e.message));
 await p.addInitScript(() => localStorage.setItem('dh-theme2', 'light'));
 const email = `e2e.${Date.now()}@example.com`;
-await p.goto(`http://127.0.0.1:5199/inscription?email=${email}`);
+// localhost (pas 127.0.0.1) : l'API n'accepte les écritures que depuis APP_URL
+const BASE = process.env.BASE ?? 'http://localhost:5199';
+await p.goto(`${BASE}/inscription?email=${email}`);
 await p.getByLabel('Nom').fill('Aïcha Test');
 await p.getByRole('textbox', { name: 'Mot de passe' }).fill('une phrase solide 2026');
 await p.getByRole('checkbox').check();
@@ -28,6 +30,7 @@ await p.getByRole('button', { name: 'Continuer' }).click();
 await p.getByRole('button', { name: /Régulier/ }).click();
 await shot(3);
 await p.getByRole('button', { name: 'Continuer' }).click();
+await p.getByLabel('Pays').selectOption('CI');
 await shot(4);
 await p.getByRole('button', { name: 'Continuer' }).click();
 await shot(5);
@@ -35,12 +38,13 @@ await p.getByRole('checkbox').check();
 await p.getByRole('button', { name: /C’est parti/ }).click();
 await p.waitForURL((u) => !u.pathname.startsWith('/bienvenue'), { timeout: 15000 });
 console.log('arrivée :', new URL(p.url()).pathname);
-const me = await p.evaluate(() => fetch('/api/me').then((r) => r.json()));
+const me = await p.evaluate(() => fetch('/api/v1/me').then((r) => r.json()));
 console.log(
   'serveur :',
   me.handle,
-  me.onboardedAt ? 'onboardé' : 'NON',
-  JSON.stringify(me.prefs).slice(0, 120),
+  me.email,
+  me.codeOfConductAcceptedAt ? 'règles acceptées' : 'règles NON acceptées',
+  me.country,
 );
 await shot(6);
 console.log(errors.length ? 'ERREURS JS : ' + errors.join(' | ') : 'aucune erreur JS');
