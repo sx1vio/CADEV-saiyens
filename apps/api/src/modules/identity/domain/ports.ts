@@ -75,3 +75,32 @@ export interface Clock {
 export interface SignUpListener {
   userSignedUp(userId: string): Promise<void>;
 }
+
+/** Compte ouvert par e-mail et mot de passe (sans GitHub). */
+export interface EmailAccount {
+  userId: string;
+  handle: string;
+  /** null : compte GitHub sans mot de passe, la connexion passe par GitHub. */
+  passwordHash: string | null;
+}
+
+export interface NewEmailAccount {
+  handle: string;
+  displayName: string;
+  email: string;
+  passwordHash: string;
+  now: Date;
+}
+
+export interface EmailAccountRepository {
+  findByEmail(email: string): Promise<EmailAccount | null>;
+  isHandleTaken(handle: string): Promise<boolean>;
+  /** null si l'adresse ou le pseudo vient d'être pris par une inscription simultanée. */
+  createWithPassword(account: NewEmailAccount): Promise<ExistingAccount | null>;
+  touch(userId: string, now: Date): Promise<void>;
+}
+
+export interface PasswordHasher {
+  hash(password: string): Promise<string>;
+  verify(password: string, stored: string): Promise<boolean>;
+}

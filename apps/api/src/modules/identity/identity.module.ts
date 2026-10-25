@@ -1,24 +1,29 @@
 import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
+import { SignInWithEmail } from './application/sign-in-with-email';
 import { SignInWithGithub } from './application/sign-in-with-github';
 import { AesGcmTokenCipher } from './infrastructure/aes-gcm-token-cipher';
 import { EnqueueProfileImport } from './infrastructure/enqueue-profile-import.listener';
 import { GithubTokenReader } from './infrastructure/github-token.reader';
 import { FakeGithubOAuthProvider } from './infrastructure/fake-oauth.provider';
 import { GithubOAuthHttpProvider } from './infrastructure/github-oauth.provider';
+import { PrismaEmailAccountRepository } from './infrastructure/prisma-email-account.repository';
 import { PrismaIdentityRepository } from './infrastructure/prisma-identity.repository';
+import { ScryptPasswordHasher } from './infrastructure/scrypt-password-hasher';
 import { PrismaSessionStore } from './infrastructure/prisma-session.store';
 import { AuthController, GITHUB_OAUTH_PROVIDER } from './http/auth.controller';
+import { EmailAuthController } from './http/email-auth.controller';
 import { MeController } from './http/me.controller';
 import { AccountDeletion } from './infrastructure/account-deletion';
 import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
 
 @Module({
-  controllers: [AuthController, MeController],
+  controllers: [AuthController, EmailAuthController, MeController],
   providers: [
     AccountDeletion,
     PrismaIdentityRepository,
+    PrismaEmailAccountRepository,
     PrismaSessionStore,
     SessionGuard,
     OptionalSessionGuard,
@@ -48,6 +53,14 @@ import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
           { now: () => new Date() },
           signUps,
         ),
+    },
+    {
+      provide: SignInWithEmail,
+      inject: [PrismaEmailAccountRepository, PrismaSessionStore],
+      useFactory: (accounts: PrismaEmailAccountRepository, sessions: PrismaSessionStore) =>
+        new SignInWithEmail(accounts, sessions, new ScryptPasswordHasher(), {
+          now: () => new Date(),
+        }),
     },
   ],
   exports: [SessionGuard, OptionalSessionGuard, PrismaSessionStore, GithubTokenReader],

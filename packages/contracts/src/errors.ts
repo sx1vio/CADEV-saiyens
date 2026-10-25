@@ -54,6 +54,8 @@ export const ERROR_CODES = [
   'feedback.invalid_status',
   // Compte
   'account.confirmation_mismatch',
+  'auth.email_taken',
+  'auth.bad_credentials',
   // Modération
   'report.target_not_found',
   'report.target_not_hideable',

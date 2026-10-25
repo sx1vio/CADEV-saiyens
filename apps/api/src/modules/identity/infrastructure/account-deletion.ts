@@ -33,6 +33,7 @@ export class AccountDeletion {
           githubId: null,
           email: null,
           emailVerified: false,
+          passwordHash: null,
           avatarUrl: null,
           bio: null,
           country: null,
