@@ -35,7 +35,15 @@ interface Persisted {
   subscriptions: string[];
   watchLater: string[];
   lessonsDone: string[];
+  /** Jour de fin de chaque leçon */
+  lessonsLog: Record<string, string>;
+  /** Jours (AAAA-MM-JJ, heure locale) où au moins une leçon a été terminée : la série */
+  learnDays: string[];
+  /** XP d'apprentissage : 10 par leçon, 5 par bonne réponse de quiz */
+  learnXp: number;
   enrolled: string[];
+  /** Objectif quotidien d'apprentissage, en minutes (onboarding) */
+  dailyGoal: number;
   guideTrack: BuildTrack | null;
   guideChecks: Record<string, string[]>;
   publishedJobs: Job[];
@@ -61,14 +69,35 @@ interface Actions {
   addComment: (postId: string, parentId: string | null, author: string, body: string) => void;
   apply: (jobId: string, message: string) => void;
   recordCert: (certId: string, score: number, passScore: number) => void;
-  completeLesson: (key: string) => void;
+  completeLesson: (key: string, xp?: number) => void;
+  lessonsToday: () => number;
   setGuideTrack: (t: BuildTrack) => void;
   toggleGuideCheck: (stepId: string, item: string) => void;
   resetGuide: () => void;
+  /** Applique les choix de l'onboarding : parcours suivis, communautés rejointes, objectif du jour */
+  applyOnboarding: (o: { enroll: string[]; join: string[]; dailyGoal: number }) => void;
   publishJob: (j: Omit<Job, 'id' | 'applicants' | 'postedAt'>) => Job;
 }
 
 const KEY = 'dh-platform';
+
+/** Jour local au format AAAA-MM-JJ */
+export function dayKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Série : jours consécutifs avec une leçon, jusqu'à aujourd'hui (ou hier, la série n'est pas encore perdue). */
+export function selectStreak(s: { learnDays: string[] }) {
+  const days = new Set(s.learnDays);
+  const d = new Date();
+  if (!days.has(dayKey(d))) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (days.has(dayKey(d))) {
+    n++;
+    d.setDate(d.getDate() - 1);
+  }
+  return n;
+}
 
 const DEFAULTS: Persisted = {
   votes: {},
@@ -93,7 +122,11 @@ const DEFAULTS: Persisted = {
   ],
   watchLater: [],
   lessonsDone: [],
+  lessonsLog: {},
+  learnDays: [],
+  learnXp: 0,
   enrolled: [],
+  dailyGoal: 10,
   guideTrack: null,
   guideChecks: {},
   publishedJobs: [],
@@ -108,7 +141,7 @@ function load(): Persisted {
   }
 }
 
-export const usePlatform = create<Persisted & Actions>((set) => ({
+export const usePlatform = create<Persisted & Actions>((set, get) => ({
   ...load(),
   vote: (id, dir) =>
     set((s) => {
@@ -166,8 +199,21 @@ export const usePlatform = create<Persisted & Actions>((set) => ({
         certResults: { ...s.certResults, [certId]: prev && prev.score > score ? prev : next },
       };
     }),
-  completeLesson: (key) =>
-    set((s) => (s.lessonsDone.includes(key) ? s : { lessonsDone: [...s.lessonsDone, key] })),
+  completeLesson: (key, xp = 10) =>
+    set((s) => {
+      if (s.lessonsDone.includes(key)) return s;
+      const d = dayKey(new Date());
+      return {
+        lessonsDone: [...s.lessonsDone, key],
+        learnDays: s.learnDays.includes(d) ? s.learnDays : [...s.learnDays, d],
+        learnXp: s.learnXp + xp,
+        lessonsLog: { ...s.lessonsLog, [key]: d },
+      };
+    }),
+  lessonsToday: () => {
+    const d = dayKey(new Date());
+    return Object.values(get().lessonsLog).filter((x) => x === d).length;
+  },
   setGuideTrack: (guideTrack) => set({ guideTrack }),
   toggleGuideCheck: (stepId, item) =>
     set((s) => {
@@ -180,6 +226,12 @@ export const usePlatform = create<Persisted & Actions>((set) => ({
       };
     }),
   resetGuide: () => set({ guideChecks: {}, guideTrack: null }),
+  applyOnboarding: ({ enroll, join, dailyGoal }) =>
+    set((s) => ({
+      enrolled: [...new Set([...s.enrolled, ...enroll])],
+      joined: [...new Set([...s.joined, ...join])],
+      dailyGoal,
+    })),
   publishJob: (j) => {
     const job: Job = {
       ...j,
@@ -210,7 +262,11 @@ usePlatform.subscribe((s) => {
     subscriptions: s.subscriptions,
     watchLater: s.watchLater,
     lessonsDone: s.lessonsDone,
+    lessonsLog: s.lessonsLog,
+    learnDays: s.learnDays,
+    learnXp: s.learnXp,
     enrolled: s.enrolled,
+    dailyGoal: s.dailyGoal,
     guideTrack: s.guideTrack,
     guideChecks: s.guideChecks,
     publishedJobs: s.publishedJobs,

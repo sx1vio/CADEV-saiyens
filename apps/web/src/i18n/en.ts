@@ -137,6 +137,8 @@ const en: Dict = {
     groupSkills: 'Skills & plugins',
     groupVideos: 'Videos',
     groupLearn: 'Learn and certifications',
+    groupNetwork: 'Network',
+    groupAccount: 'Account',
   },
   notif: {
     match: '{{author}} needs you: “{{title}}”',

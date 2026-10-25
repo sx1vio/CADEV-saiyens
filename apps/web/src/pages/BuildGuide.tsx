@@ -18,7 +18,8 @@ import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { DeployToSystalink } from '@/components/systalink';
-import { GUIDE, TRACKS } from '@/platform/data/guide';
+import { TRACKS } from '@/platform/data/guide';
+import { guideFor } from '@/platform/data/guide-tracks';
 import { usePlatform } from '@/platform/store';
 import type { GuideStep } from '@/platform/types';
 import { ICONS } from '@/platform/ui';
@@ -57,6 +58,8 @@ export default function BuildGuide() {
   const setTrack = usePlatform((s) => s.setGuideTrack);
   const checks = usePlatform((s) => s.guideChecks);
   const reset = usePlatform((s) => s.resetGuide);
+  // Les étapes dépendent de ce que l'on construit (site, app web, mobile, agent IA)
+  const GUIDE = guideFor(track);
   const current = GUIDE.findIndex((s) => s.id === params.get('etape'));
   const idx = current < 0 ? 0 : current;
   const step = GUIDE[idx];
@@ -68,8 +71,8 @@ export default function BuildGuide() {
 
   return (
     <div className="dh-page">
-      {/* En-tête */}
-      <div className="border-b border-line px-4 py-8 sm:px-6">
+      {/* En-tête : halos colorés derrière, cartes en verre par-dessus */}
+      <div className="glass-stage border-b border-line px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-[1180px]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
@@ -90,7 +93,7 @@ export default function BuildGuide() {
               </p>
             </div>
           </div>
-          <div className="mt-5 flex gap-3 rounded-[10px] bg-surface-1 p-4">
+          <div className="glass-apple mt-5 flex gap-3 rounded-[20px] p-4">
             <Scale className="mt-0.5 size-5 shrink-0 text-accent-text" />
             <p className="text-[13.5px] text-fg">
               <b>La règle d’or :</b> l’IA écrit vite, mais c’est toi qui décides, qui vérifies et
@@ -109,21 +112,22 @@ export default function BuildGuide() {
                   key={t.id}
                   type="button"
                   aria-pressed={on}
-                  onClick={() => setTrack(t.id)}
+                  onClick={() => {
+                    setTrack(t.id);
+                    setParams({});
+                  }}
                   className={cn(
-                    'flex gap-3 rounded-[10px] border p-3 text-left transition-colors',
-                    on
-                      ? 'border-accent bg-accent-soft'
-                      : 'border-line hover:border-line-strong hover:bg-surface-1',
+                    'flex gap-3 rounded-[20px] p-4 text-left transition-[background-color,box-shadow] duration-200',
+                    on ? 'glass-apple ring-2 ring-accent' : 'glass-apple hover:bg-surface-2',
                   )}
                 >
                   <span
                     className={cn(
-                      'grid size-8 shrink-0 place-items-center rounded-[8px]',
-                      on ? 'bg-accent text-white' : 'bg-surface-1 text-muted',
+                      'grid size-10 shrink-0 place-items-center rounded-[12px]',
+                      on ? 'bg-accent text-white' : 'bg-surface-3 text-muted',
                     )}
                   >
-                    <Icon className="size-4" />
+                    <Icon className="size-5" />
                   </span>
                   <span>
                     <span className="block text-[13.5px] font-semibold text-fg">{t.title}</span>

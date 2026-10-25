@@ -25,7 +25,6 @@ const STEPS: Step[] = [
   },
   { key: 's3', targets: ['[data-tour="projects"]'], pose: 'point' },
   { key: 's4', targets: ['[data-tour="passport"]', '[data-tour="xp"]'], pose: 'point' },
-  { key: 's5', targets: ['[data-tour="network"]'], pose: 'laptop' },
   { key: 's6', targets: ['[data-tour="palette"]'], pose: 'celebrate' },
 ];
 
@@ -41,6 +40,33 @@ function visibleTarget(selectors: string[]): HTMLElement | null {
 
 type Rect = { top: number; left: number; width: number; height: number };
 
+/** Place réservée au-dessus de la bulle pour Djeli, marge écran et écart à la cible */
+const DJELI_SPACE = 92;
+const MARGIN = 12;
+const GAP = 16;
+
+/**
+ * Bulle à droite, à gauche, dessous puis dessus de la cible : la première qui tient
+ * entièrement dans l'écran (Djeli compris) sans recouvrir la cible. Centrée sinon.
+ */
+function placeCard(rect: Rect | null, vw: number, vh: number, w: number, h: number) {
+  const minTop = MARGIN + DJELI_SPACE;
+  const clampTop = (t: number) => Math.max(minTop, Math.min(vh - MARGIN - h, t));
+  const clampLeft = (l: number) => Math.max(MARGIN, Math.min(vw - MARGIN - w, l));
+  if (rect) {
+    const midTop = clampTop(rect.top + rect.height / 2 - h / 2);
+    const midLeft = clampLeft(rect.left + rect.width / 2 - w / 2);
+    if (rect.left + rect.width + GAP + w <= vw - MARGIN)
+      return { left: rect.left + rect.width + GAP, top: midTop };
+    if (rect.left - GAP - w >= MARGIN) return { left: rect.left - GAP - w, top: midTop };
+    const below = rect.top + rect.height + GAP + DJELI_SPACE;
+    if (below + h <= vh - MARGIN) return { left: midLeft, top: below };
+    const above = rect.top - GAP - h;
+    if (above >= minTop) return { left: midLeft, top: above };
+  }
+  return { left: (vw - w) / 2, top: clampTop((vh - h) / 2 + DJELI_SPACE / 2) };
+}
+
 /**
  * Visite guidée par Djeli (décision docs/decisions.md §4).
  * Projecteur qui glisse d'un élément réel à l'autre, bulle à côté ; clavier : ← → Échap.
@@ -51,7 +77,9 @@ export function Tour() {
   const setStep = useUI((s) => s.setTourStep);
   const isMobile = useIsMobile();
   const [rect, setRect] = useState<Rect | null>(null);
+  const [cardH, setCardH] = useState(260);
   const nextRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const current = step !== null ? STEPS[step] : null;
   const total = STEPS.length;
@@ -74,6 +102,12 @@ export function Tour() {
   useLayoutEffect(() => {
     measure();
   }, [measure]);
+
+  // Hauteur réelle de la bulle (le texte varie selon l'étape et la langue)
+  useLayoutEffect(() => {
+    const h = cardRef.current?.offsetHeight;
+    if (h && h !== cardH) setCardH(h);
+  });
 
   useEffect(() => {
     if (step === null) return;
@@ -106,34 +140,12 @@ export function Tour() {
 
   if (step === null || !current) return null;
 
-  // Position de la bulle : à droite de la cible si possible, sinon dessous/dessus ; centrée sinon.
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const cardW = Math.min(360, vw - 24);
-  let cardStyle: React.CSSProperties;
-  if (isMobile || !rect) {
-    cardStyle = isMobile
-      ? { left: 12, right: 12, bottom: 'calc(env(safe-area-inset-bottom) + 84px)' }
-      : { left: vw / 2 - cardW / 2, top: vh / 2 - 140, width: cardW };
-  } else if (rect.left + rect.width + cardW + 40 < vw) {
-    cardStyle = {
-      left: rect.left + rect.width + 20,
-      top: Math.max(16, Math.min(vh - 280, rect.top + rect.height / 2 - 110)),
-      width: cardW,
-    };
-  } else if (rect.top + rect.height + 300 < vh) {
-    cardStyle = {
-      left: Math.max(12, Math.min(vw - cardW - 12, rect.left + rect.width - cardW)),
-      top: rect.top + rect.height + 16,
-      width: cardW,
-    };
-  } else {
-    cardStyle = {
-      left: Math.max(12, Math.min(vw - cardW - 12, rect.left)),
-      top: Math.max(12, rect.top - 300),
-      width: cardW,
-    };
-  }
+  const cardStyle: React.CSSProperties = isMobile
+    ? { left: 12, right: 12, bottom: 'calc(env(safe-area-inset-bottom) + 84px)' }
+    : { ...placeCard(rect, vw, vh, cardW, cardH), width: cardW };
 
   return createPortal(
     <div
@@ -160,7 +172,10 @@ export function Tour() {
       <div className="fixed inset-0" onClick={finish} aria-hidden />
 
       <div key={current.key} className="dh-pop fixed z-10" style={cardStyle} data-state="open">
-        <div className="relative rounded-[10px] border border-line-strong bg-surface-2 p-5 pt-6 shadow-lg">
+        <div
+          ref={cardRef}
+          className="relative rounded-[10px] border border-line-strong bg-surface-2 p-5 pt-6 shadow-lg"
+        >
           <div
             className={cn('absolute -top-[84px] left-4', isMobile && 'left-1/2 -translate-x-1/2')}
           >

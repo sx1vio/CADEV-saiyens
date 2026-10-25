@@ -47,6 +47,47 @@ export default function Settings() {
     <Page className="max-w-3xl">
       <PageHeader title={t('settings.title')} />
       <div className="mt-6 flex flex-col gap-4">
+        <Card className="flex flex-col gap-5 p-5 sm:p-6">
+          <CardHeader title={t('settings.appearance')} />
+          <Row label={t('nav.theme')}>
+            <Segmented<Theme>
+              label={t('nav.theme')}
+              size="sm"
+              value={theme}
+              onChange={setTheme}
+              items={[
+                { value: 'light', label: t('nav.themeLight'), icon: <Sun /> },
+                { value: 'dark', label: t('nav.themeDark'), icon: <Moon /> },
+              ]}
+            />
+          </Row>
+          <Row label={t('settings.language')}>
+            <Segmented<AppLang>
+              label={t('settings.language')}
+              size="sm"
+              value={lang}
+              onChange={setLanguage}
+              items={[
+                { value: 'fr', label: 'Français', icon: <Languages /> },
+                { value: 'en', label: 'English' },
+              ]}
+            />
+          </Row>
+          <Row label={t('settings.tour')} hint={t('settings.tourText')}>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Map />}
+              onClick={() => {
+                nav('/');
+                startTour();
+              }}
+            >
+              {t('tour.restart')}
+            </Button>
+          </Row>
+        </Card>
+
         <Card className="flex flex-col gap-4 p-5 sm:p-6">
           <CardHeader title={t('settings.profile')} />
           <Field label={t('settings.displayName')} htmlFor="st-name">
@@ -113,52 +154,6 @@ export default function Settings() {
 
         {/* PR14 : la confidentialité est appliquée par l'API ; le serveur local n'a rien à régler. */}
         {api.mode === 'http' && me.privacy && <PrivacyCard privacy={me.privacy} />}
-
-        <Card className="flex flex-col gap-5 p-5 sm:p-6">
-          <CardHeader title={t('settings.appearance')} />
-          <Row label={t('nav.theme')}>
-            <Segmented<Theme>
-              label={t('nav.theme')}
-              size="sm"
-              value={theme}
-              onChange={setTheme}
-              items={[
-                { value: 'dark', label: t('nav.themeDark'), icon: <Moon /> },
-                { value: 'light', label: t('nav.themeLight'), icon: <Sun /> },
-              ]}
-            />
-          </Row>
-          <Row label={t('settings.language')}>
-            <Segmented<AppLang>
-              label={t('settings.language')}
-              size="sm"
-              value={lang}
-              onChange={setLanguage}
-              items={[
-                { value: 'fr', label: 'Français', icon: <Languages /> },
-                { value: 'en', label: 'English' },
-              ]}
-            />
-          </Row>
-          <Row label={t('settings.tour')} hint={t('settings.tourText')}>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Map />}
-              onClick={() => {
-                nav('/');
-                startTour();
-              }}
-            >
-              {t('tour.restart')}
-            </Button>
-          </Row>
-          <Row label={t('settings.mode')}>
-            <span className="text-sm text-muted">
-              {api.mode === 'local' ? t('settings.modeLocal') : t('settings.modeHttp')}
-            </span>
-          </Row>
-        </Card>
 
         {/* Y3 : seule l'API envoie des e-mails ; le serveur local n'a rien à régler. */}
         {api.mode === 'http' && (

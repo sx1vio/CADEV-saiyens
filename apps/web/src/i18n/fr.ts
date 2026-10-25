@@ -136,6 +136,8 @@ const fr = {
     groupSkills: 'Skills & plugins',
     groupVideos: 'Vidéos',
     groupLearn: 'Apprendre et certifications',
+    groupNetwork: 'Réseau',
+    groupAccount: 'Compte',
   },
   notif: {
     match: '{{author}} a besoin de toi : « {{title}} »',

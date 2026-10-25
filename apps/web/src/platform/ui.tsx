@@ -899,6 +899,7 @@ export function StatCard({
 export const CUBE = {
   orange: '#ff9f1a',
   purple: '#2348d6',
+  navy: '#1d4ed8',
   green: '#22c55e',
   blue: '#3b82f6',
   pink: '#ec4899',

@@ -37,7 +37,7 @@ export function useNetStatus() {
   return { online, pending, errors, state };
 }
 
-/** O3 : indicateur toujours visible. En ligne · Hors ligne · N en attente · Synchronisation · Erreur. */
+/** O3 : indicateur discret, visible seulement quand le réseau pose problème : Hors ligne · N en attente · Synchronisation · Erreur. */
 export function NetworkIndicator({
   compact,
   className,
@@ -64,6 +64,8 @@ export function NetworkIndicator({
         : state === 'syncing'
           ? 'accent'
           : 'success';
+  // Tout va bien : rien à afficher. L'indicateur n'apparaît qu'en cas de coupure, d'envoi en attente ou d'erreur.
+  if (state === 'online' && !pending) return null;
   return (
     <button
       type="button"

@@ -6,8 +6,10 @@
    Contrastes vérifiés WCAG AA (docs/phase0-analyse.md §7).
    ------------------------------------------------------------------ */
 
-@import '@fontsource-variable/inter/opsz.css';
-@import '@fontsource-variable/jetbrains-mono/wght.css';
+/* Typographie : Bricolage Grotesque (titres, axe optique), IBM Plex Sans (texte et interface),
+   JetBrains Mono (code). Toutes OFL, auto-hébergées. */
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
+@import '@fontsource-variable/ibm-plex-sans/index.css';
 
 /* Système de design v2 (docs/front/design-system.md) : éditorial, plat ; bleu nuit et bleu roi, accent rare. */
 :root,
@@ -30,14 +32,20 @@
   --text-subtle: #5f6884;
   --text-on-accent: #ffffff;
 
-  --accent: #2348d6;
-  --accent-hover: #1b3bbf;
-  --accent-strong: #2348d6;
-  --accent-text: #1f3fc4;
-  --accent-soft: rgba(35, 72, 214, 0.09);
-  --accent-2: #0e1730;
-  --accent-2-text: #1f3fc4;
-  --accent-2-soft: rgba(14, 23, 48, 0.07);
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-strong: #1d4ed8;
+  --accent-text: #1e40af;
+  --accent-soft: rgba(29, 78, 216, 0.1);
+  --accent-2: #0891b2;
+  --accent-2-text: #0e7490;
+  --accent-2-soft: rgba(8, 145, 178, 0.1);
+
+  --gold: #e8a317;
+  --gold-text: #9a5b00;
+  --gold-soft: rgba(232, 163, 23, 0.14);
+  --teal: #0fb39a;
+  --teal-text: #0b7a69;
 
   --success: #15803d;
   --success-soft: rgba(21, 128, 61, 0.09);
@@ -90,6 +98,7 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+  --side-bg-dark: linear-gradient(180deg, #0f2a78 0%, #0a1f5c 60%, #071747 100%);
 
   --bg-rail: #0d1430;
   --bg-nav: #0d1430;
@@ -107,14 +116,20 @@
   --text-subtle: #8c96b0;
   --text-on-accent: #ffffff;
 
-  --accent: #7b9bff;
-  --accent-hover: #94afff;
-  --accent-strong: #3a5cf0;
-  --accent-text: #9db3ff;
-  --accent-soft: rgba(123, 155, 255, 0.13);
-  --accent-2: #9db3ff;
-  --accent-2-text: #9db3ff;
-  --accent-2-soft: rgba(157, 179, 255, 0.12);
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-strong: #1d4ed8;
+  --accent-text: #93c5fd;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+  --accent-2: #22d3ee;
+  --accent-2-text: #67e8f9;
+  --accent-2-soft: rgba(34, 211, 238, 0.14);
+
+  --gold: #f2b33d;
+  --gold-text: #fcd27b;
+  --gold-soft: rgba(242, 179, 61, 0.16);
+  --teal: #2dd4bf;
+  --teal-text: #5eead4;
 
   --success: #4ade80;
   --success-soft: rgba(74, 222, 128, 0.12);
@@ -154,10 +169,10 @@
   --shadow-card: none;
   --shadow-card-hover: none;
 
-  --code-bg: #111a33;
-  --code-fg: #e8ecf6;
-  --code-comment: #8a8a8a;
-  --code-keyword: #9db3ff;
+  --code-bg: #131316;
+  --code-fg: #e4e4e7;
+  --code-comment: #8e8e97;
+  --code-keyword: #93c5fd;
   --code-string: #86efac;
   --code-number: #fdba74;
   --code-function: #93c5fd;
@@ -179,11 +194,13 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /* Bouton sombre bleu nuit, identique dans les deux thèmes */
+  /* Bouton sombre posé sur la bannière bleue (image 01), identique dans les deux thèmes */
   --btn-contrast: #141733;
   --btn-contrast-hover: #1d2150;
   --on-hero: #ffffff;
   --on-hero-muted: rgba(255, 255, 255, 0.82);
+
+  --side-bg: linear-gradient(180deg, #0f2f86 0%, #0b2569 55%, #081c52 100%);
 
   --rail-w: 72px;
   --nav-w: 264px;
@@ -196,9 +213,11 @@
 
 /* Pont Tailwind v4 : les utilitaires lisent les tokens, donc suivent le thème. */
 @theme inline {
+  --font-display:
+    'Bricolage Grotesque Variable', 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
   --font-sans:
-    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono:
     'JetBrains Mono Variable', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
 
@@ -226,6 +245,11 @@
   --color-accent-strong: var(--accent-strong);
   --color-accent-text: var(--accent-text);
   --color-accent-soft: var(--accent-soft);
+  --color-gold: var(--gold);
+  --color-gold-text: var(--gold-text);
+  --color-gold-soft: var(--gold-soft);
+  --color-teal: var(--teal);
+  --color-teal-text: var(--teal-text);
   --color-blue: var(--accent-2);
   --color-blue-text: var(--accent-2-text);
   --color-blue-soft: var(--accent-2-soft);
@@ -297,7 +321,8 @@
     line-height: 1.5;
     letter-spacing: 0;
     font-optical-sizing: auto;
-    font-feature-settings: 'ss01' 0;
+    /* IBM Plex : variante « ss02 » (a à un étage plus lisible en petit corps) */
+    font-feature-settings: 'ss02' 1;
     min-height: 100dvh;
     overflow-x: hidden;
   }
@@ -306,6 +331,8 @@
   h2,
   h3,
   h4 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
     letter-spacing: -0.012em;
     line-height: 1.2;
     text-wrap: balance;
@@ -652,10 +679,9 @@
   color: var(--text-subtle);
 }
 .dh-prose blockquote {
-  margin-left: 0;
-  padding: 0.6em 0.9em;
-  border-radius: 8px;
   background: var(--surface-1);
+  border-radius: 12px;
+  padding: 0.6em 0.9em;
   color: var(--text-muted);
 }
 .dh-prose h1,
@@ -960,4 +986,270 @@
   .lg-ghost:active {
     transform: scale(0.97);
   }
+}
+/* Palette de commandes : ouverte des dizaines de fois par jour → aucune animation (Emil Kowalski) */
+.dh-instant[data-state] {
+  animation: none !important;
+}
+
+/* ------------------------------------------------------------------
+   Barre latérale bleue (référence « Success », adaptée) : l'entrée active
+   prend la couleur du contenu et s'y fond par deux coins inversés.
+   ------------------------------------------------------------------ */
+.side-panel {
+  background: var(--side-bg);
+}
+:root[data-theme='dark'] .side-panel {
+  background: var(--side-bg-dark);
+}
+.side-item {
+  transition:
+    background-color var(--dur-fast),
+    color var(--dur-fast);
+}
+.side-merge[data-active='true'] {
+  position: relative;
+}
+.side-merge[data-active='true']::before,
+.side-merge[data-active='true']::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+.side-merge[data-active='true']::before {
+  top: -18px;
+  background: radial-gradient(circle at 0 0, transparent 17.5px, var(--bg-base) 18px);
+}
+.side-merge[data-active='true']::after {
+  bottom: -18px;
+  background: radial-gradient(circle at 0 100%, transparent 17.5px, var(--bg-base) 18px);
+}
+/* La liste défile sans couper les coins inversés de l'entrée active (marge haute et basse) */
+.side-scroll {
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+}
+.side-scroll::-webkit-scrollbar {
+  display: none;
+}
+@media (max-height: 720px) {
+  .side-nudge {
+    display: none;
+  }
+}
+@keyframes side-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+@keyframes side-bob-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+.brand-hub {
+  color: #0d9488;
+}
+:root[data-theme='dark'] .brand-hub {
+  color: #5eead4;
+}
+
+/* ------------------------------------------------------------------
+   Verre façon Apple : flou + saturation, liseré clair, reflet en haut.
+   À réserver à quelques surfaces posées sur un fond coloré (.glass-stage),
+   sinon il n'y a rien à flouter et l'effet disparaît.
+   ------------------------------------------------------------------ */
+.glass-apple {
+  background: rgba(255, 255, 255, 0.58);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 8px 32px rgba(15, 35, 95, 0.08);
+}
+:root[data-theme='dark'] .glass-apple {
+  background: rgba(30, 32, 40, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.35);
+}
+.glass-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.glass-stage::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 120%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 45% at 12% 30%, rgba(37, 99, 235, 0.22), transparent 70%),
+    radial-gradient(30% 40% at 78% 20%, rgba(32, 226, 180, 0.2), transparent 70%),
+    radial-gradient(35% 40% at 55% 85%, rgba(14, 165, 233, 0.16), transparent 70%);
+}
+:root[data-theme='dark'] .glass-stage::before {
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------
+   Landing (fond bleu nuit, façon page d'accueil GitHub)
+   ------------------------------------------------------------------ */
+.lp-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 60px rgba(0, 0, 0, 0.35);
+}
+@keyframes lp-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.lp-fade {
+  animation: lp-fade 420ms var(--ease-out) both;
+}
+.lp .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms var(--ease-out),
+    transform 700ms var(--ease-out);
+}
+.lp .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+.lp-marquee {
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+@keyframes lp-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.lp-marquee-track {
+  animation: lp-marquee 40s linear infinite;
+}
+.lp-marquee:hover .lp-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .lp-marquee-track {
+    animation: none;
+  }
+}
+
+/* Verre liquide (inspiré de MotionSites « CodeNest ») : liseré dégradé masqué, flou léger */
+.lp-liquid {
+  background: rgba(255, 255, 255, 0.04);
+  background-blend-mode: luminosity;
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    0 20px 50px rgba(0, 0, 0, 0.35);
+}
+.lp-liquid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.4px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45),
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.18)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* Cartes à halo (inspiré de MotionSites « Glow Features ») : bordure dégradée + lueur floue derrière */
+.lp-glow {
+  isolation: isolate;
+}
+.lp-glow::before {
+  content: '';
+  position: absolute;
+  inset: 8% 4% -4%;
+  z-index: -1;
+  border-radius: 32px;
+  background: var(--glow);
+  filter: blur(42px);
+  opacity: 0.35;
+  transition: opacity 300ms var(--ease-out);
+}
+.lp-glow:hover::before {
+  opacity: 0.6;
+}
+.lp-glow-card {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#0b1430, #0b1430) padding-box,
+    var(--glow) border-box;
+}
+@keyframes lp-float-a {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.lp-float-a {
+  animation: lp-float-a 6s ease-in-out infinite;
+}
+.lp-float-b {
+  animation: lp-float-a 7s ease-in-out -2s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-float-a,
+  .lp-float-b {
+    animation: none;
+  }
+}
+/* Retour de pression des boutons (Emil Kowalski) */
+.lp-press {
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.lp-press:active {
+  transform: scale(0.97);
 }

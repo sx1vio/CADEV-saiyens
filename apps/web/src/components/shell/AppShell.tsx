@@ -1,8 +1,10 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   Bell,
-  ChevronsUpDown,
   Briefcase,
+  ChevronDown,
+  ChevronUp,
+  Flame,
   FolderPlus,
   Keyboard,
   Languages,
@@ -38,24 +40,28 @@ import {
   CREATE_NAV,
   EXPLORE_NAV,
   MAIN_NAV,
+  NETWORK_NAV,
   isEcosystemPreview,
   type NavEntry,
 } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
-import { Logo as Wordmark } from './PublicShell';
+import { Djeli } from '../djeli';
+import { BrandLogo } from '../brand';
+import { selectStreak, usePlatform } from '@/platform/store';
 import * as Popover from '@radix-ui/react-popover';
 
 /* ================================================================
-   Shell connecté (docs/front/design-system.md) : barre latérale à plat,
-   sans rayon ; entrée active en encre ; l’accent reste rare.
+   Shell connecté : barre latérale bleue (charte DevHub). L'entrée active prend la couleur
+   du contenu et s'y fond par deux coins inversés ; Djeli rappelle la série d'apprentissage
+   en pied. Sur ordinateur, recherche, création, notifications et compte sont dans la barre du haut.
    ================================================================ */
 
 /** Logo cliquable vers l’accueil. */
-function Logo() {
+function Logo({ dark = true }: { dark?: boolean }) {
   const { t } = useTranslation();
   return (
     <Link to="/" className="flex shrink-0 items-center" aria-label={t('pub.homeAria')}>
-      <Wordmark />
+      <BrandLogo size={34} onDark={dark} />
     </Link>
   );
 }
@@ -135,20 +141,22 @@ function useIsActive() {
     e.end ? pathname === e.to : pathname === e.to || pathname.startsWith(`${e.to}/`);
 }
 
-/** Entrée de menu : pilule anthracite, lavande quand active, badge rouge. */
+/**
+ * Entrée de la barre latérale. Active : pilule couleur du contenu qui « fusionne » avec lui
+ * (coins inversés, `.side-merge`), sauf dans le tiroir mobile où elle reste une pilule.
+ */
 function SideItem({
   entry,
   active,
   count,
+  merge,
   onNavigate,
-  tall,
 }: {
   entry: NavEntry;
   active: boolean;
   count?: number;
+  merge: boolean;
   onNavigate?: () => void;
-  /** Tiroir mobile : cibles tactiles de 44 px */
-  tall?: boolean;
 }) {
   const { t } = useTranslation();
   const Icon = entry.icon;
@@ -158,11 +166,14 @@ function SideItem({
       to={entry.to}
       onClick={onNavigate}
       data-tour={entry.tour}
+      data-active={active}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex items-center gap-3 rounded-[8px] pr-1.5 pl-3 text-[13.5px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent',
-        tall ? 'h-11' : 'h-9',
-        active ? 'lg-tint' : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+        'side-item flex h-10 shrink-0 items-center gap-3 pl-4 text-[13.5px] font-medium',
+        merge ? 'side-merge rounded-l-[16px] pr-4' : 'mr-3 rounded-[14px] pr-3',
+        active
+          ? 'bg-canvas font-semibold text-accent-text'
+          : 'text-white/80 hover:bg-white/10 hover:text-white',
       )}
     >
       <Icon className="size-[18px] shrink-0" />
@@ -170,7 +181,12 @@ function SideItem({
         {entry.short && label.length > 22 ? t(entry.short) : label}
       </span>
       {!!count && (
-        <span className="grid h-[22px] min-w-[22px] place-items-center rounded-full bg-badge px-1.5 text-[11px] font-semibold text-white tabular">
+        <span
+          className={cn(
+            'grid h-5 min-w-5 place-items-center rounded-[7px] px-1.5 text-[11px] font-semibold tabular',
+            active ? 'bg-accent-soft text-accent-text' : 'bg-white/18 text-white',
+          )}
+        >
           {count > 99 ? '99+' : count}
         </span>
       )}
@@ -178,188 +194,233 @@ function SideItem({
   );
 }
 
-interface NavGroup {
-  label?: string;
-  items: NavEntry[];
+/** Carte de Djeli en pied de barre : la série d'apprentissage du jour (esprit Duolingo). */
+function LearnNudge({ onNavigate }: { onNavigate?: () => void }) {
+  const streak = usePlatform(selectStreak);
+  const today = usePlatform((s) => s.lessonsToday());
+  return (
+    <Link
+      to="/apprendre"
+      onClick={onNavigate}
+      className="side-nudge relative mx-3 mt-3 flex items-end gap-2 rounded-[20px] bg-white/10 p-3 pt-2 text-white transition-colors hover:bg-white/15"
+    >
+      <div className="min-w-0 flex-1 pb-0.5">
+        <p className="flex items-center gap-1.5 text-[13px] font-semibold">
+          <Flame className="size-4 text-[#ffb547]" />
+          {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suite` : 'Lance ta série'}
+        </p>
+        <p className="mt-0.5 text-[11.5px] leading-snug text-white/70">
+          {today > 0 ? 'Objectif du jour atteint. Bravo !' : 'Une leçon de 10 min aujourd’hui ?'}
+        </p>
+      </div>
+      <Djeli pose={today > 0 ? 'celebrate' : 'point'} size={58} className="-mt-6 -mr-1" />
+    </Link>
+  );
 }
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
   const me = useSession((s) => s.user);
-  const setPalette = useUI((s) => s.setPalette);
-  const setAsk = useUI((s) => s.setAsk);
   const isActive = useIsActive();
-  const actions = useCreateActions();
+  const { pathname } = useLocation();
   const { data: home } = useQuery(me ? 'home' : null, () => api.getHome());
   const help = home?.openInMyStacks.length ?? 0;
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
-  const drawer = !!onNavigate;
-  // Trois groupes : l'essentiel, puis Explorer et Créer.
-  const groups: NavGroup[] = [
+  const enrolled = usePlatform((s) => s.enrolled.length);
+  const applications = usePlatform((s) => s.applications.length);
+  const merge = !onNavigate;
+  const navRef = useRef<HTMLElement>(null);
+  const [more, setMore] = useState(false);
+  const [less, setLess] = useState(false);
+  const updateMore = () => {
+    const el = navRef.current;
+    if (!el) return;
+    setMore(el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+    setLess(el.scrollTop > 8);
+  };
+  useEffect(() => {
+    updateMore();
+    window.addEventListener('resize', updateMore);
+    return () => window.removeEventListener('resize', updateMore);
+  }, []);
+  const groups: { label?: string; items: NavEntry[] }[] = [
     { items: MAIN_NAV },
     { label: t('navEntry.explore'), items: EXPLORE_NAV },
-    { label: t('navEntry.create'), items: [...CREATE_NAV, ...(me?.isAdmin ? [ADMIN_NAV] : [])] },
+    { label: t('navEntry.create'), items: CREATE_NAV },
+    {
+      label: t('navEntry.groupNetwork'),
+      items: [
+        ...(me
+          ? [
+              {
+                to: `/u/${me.handle}`,
+                label: 'nav.myPassport',
+                icon: UserRound,
+                tour: 'passport',
+              } as NavEntry,
+            ]
+          : []),
+        NETWORK_NAV[1]!,
+        ...(me?.isAdmin ? [ADMIN_NAV] : []),
+      ],
+    },
+    ...(me
+      ? [
+          {
+            label: t('navEntry.groupAccount'),
+            items: [{ to: '/reglages', label: 'nav.settings', icon: Settings } as NavEntry],
+          },
+        ]
+      : []),
   ];
-  const iconBtn =
-    'relative grid size-9 place-items-center rounded-full text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-2 focus-visible:outline-accent';
-
+  const counts: Record<string, number | undefined> = {
+    '/sos': help,
+    '/apprendre': enrolled,
+    '/emplois': applications,
+  };
   return (
-    <div data-tour="nav" className="dh-ink flex h-full flex-col rounded-[10px] p-3">
-      {/* Marque et notifications */}
-      <div className="flex items-center gap-1 px-2 pt-2 pb-4">
-        <Link to="/" onClick={onNavigate} aria-label="DevHub, accueil" className="mr-auto">
-          <Wordmark className="text-white" />
-        </Link>
-        {me && (
-          <Notifications
-            trigger={(unread) => (
-              <button
-                type="button"
-                aria-label={
-                  unread > 0
-                    ? `${t('nav.notifications')} (${unread} non lues)`
-                    : t('nav.notifications')
-                }
-                className={iconBtn}
-              >
-                <Bell className="size-[18px]" />
-                {unread > 0 && (
-                  <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-badge ring-2 ring-[#18202b]" />
-                )}
-              </button>
-            )}
-          />
-        )}
-        {drawer && (
+    <div
+      data-tour="nav"
+      className={cn(
+        'side-panel flex h-full flex-col text-white',
+        merge ? 'rounded-l-[28px] py-5 pl-3' : 'rounded-[28px] py-4 pl-3',
+      )}
+    >
+      <div className="flex items-center justify-between pr-4 pb-6 pl-2">
+        <Logo />
+        {onNavigate && (
           <button
             type="button"
             onClick={onNavigate}
             aria-label="Fermer le menu"
-            className={iconBtn}
+            className="grid size-9 place-items-center rounded-full text-white/80 hover:bg-white/10"
           >
             <X className="size-5" />
           </button>
         )}
       </div>
 
-      {/* Recherche et création */}
-      <div className="flex gap-2 pb-4">
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <nav
+          ref={navRef}
+          onScroll={updateMore}
+          aria-label={t('navEntry.navAria')}
+          className="side-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain py-4"
+        >
+          {groups.map((g, i) => (
+            <div key={i} className="flex flex-col gap-1">
+              {g.label && (
+                <p className="px-4 pb-1 text-[11px] font-semibold tracking-[0.06em] text-white/55 uppercase">
+                  {g.label}
+                </p>
+              )}
+              {g.items.map((e) => (
+                <SideItem
+                  key={e.to}
+                  entry={e}
+                  merge={merge}
+                  active={e.to.startsWith('/u/') ? pathname === e.to : isActive(e)}
+                  count={counts[e.to]}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
+          ))}
+        </nav>
+        {/* Des entrées sont masquées au-dessus ou en dessous : petites flèches qui font défiler d'un cran au clic */}
         <button
           type="button"
-          onClick={() => {
-            onNavigate?.();
-            setPalette(true);
-          }}
+          tabIndex={-1}
+          aria-hidden
+          onClick={() => navRef.current?.scrollBy({ top: -160, behavior: 'smooth' })}
+          className={cn(
+            'absolute top-0 right-4 z-10 grid size-6 place-items-center rounded-full bg-white/12 text-white/80 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
+            less ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+        >
+          <ChevronUp className="size-4 animate-[side-bob-up_1.8s_ease-in-out_infinite]" />
+        </button>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden
+          onClick={() => navRef.current?.scrollBy({ top: 160, behavior: 'smooth' })}
+          className={cn(
+            'absolute right-4 bottom-0 z-10 grid size-6 place-items-center rounded-full bg-white/12 text-white/80 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
+            more ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+        >
+          <ChevronDown className="size-4 animate-[side-bob_1.8s_ease-in-out_infinite]" />
+        </button>
+      </div>
+
+      {me ? (
+        <LearnNudge onNavigate={onNavigate} />
+      ) : (
+        <Link
+          to="/connexion"
+          onClick={onNavigate}
+          className="mx-3 mt-3 flex h-11 items-center justify-center rounded-[14px] bg-white text-[14px] font-semibold text-accent-text"
+        >
+          {t('nav.login')}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/** Barre du haut (≥ 1024 px) : recherche, création, réseau, notifications, compte. */
+function TopBar() {
+  const { t } = useTranslation();
+  const me = useSession((s) => s.user);
+  const setPalette = useUI((s) => s.setPalette);
+  const actions = useCreateActions();
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+  return (
+    <header className="sticky top-0 z-30 bg-canvas/90 backdrop-blur-xl">
+      <div className="flex h-16 items-center gap-3 px-6">
+        <button
+          type="button"
+          onClick={() => setPalette(true)}
           data-tour="palette"
-          className="lg-clear flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-3.5 text-left text-[13px] !text-white/60"
+          className="flex h-10 w-full max-w-[420px] items-center gap-2.5 rounded-full bg-surface-1 pr-2 pl-4 text-left text-[13.5px] text-subtle transition-colors hover:bg-surface-2"
         >
           <Search className="size-4 shrink-0" />
-          <span className="flex-1 truncate" title={isMac ? '⌘K' : 'Ctrl K'}>
-            Rechercher
-          </span>
+          <span className="flex-1 truncate">{t('nav.searchPlaceholder')}</span>
+          <Kbd>{isMac ? '⌘ K' : 'Ctrl K'}</Kbd>
         </button>
-        {me && (
-          <DropMenu
-            align="start"
-            trigger={
-              <button
-                type="button"
-                aria-label={t('navEntry.create')}
-                data-tour="ask"
-                className="lg-tint grid size-10 shrink-0 place-items-center rounded-full"
-              >
-                <Plus className="size-5" />
-              </button>
-            }
-          >
-            {actions.map((a) => (
-              <MenuItem key={a.label} icon={<a.icon />} onSelect={a.run}>
-                {a.label}
-              </MenuItem>
-            ))}
-          </DropMenu>
-        )}
-      </div>
-
-      {/* Navigation : défile avec un fondu en haut et en bas, jamais une coupe nette */}
-      <nav
-        aria-label="Navigation principale"
-        className="no-scrollbar -mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1 pt-2 pb-3 [mask-image:linear-gradient(to_bottom,transparent,black_8px,black_calc(100%-20px),transparent)]"
-      >
-        {groups.map((g, i) => (
-          <div
-            key={g.label ?? i}
-            role="group"
-            aria-label={g.label}
-            className="flex flex-col gap-0.5"
-          >
-            {g.label && (
-              <p className="px-3 pb-1 text-[12px] font-medium text-white/45">{g.label}</p>
-            )}
-            {g.items.map((e) => (
-              <SideItem
-                key={e.to}
-                entry={e}
-                active={isActive(e)}
-                count={e.to === '/sos' ? help : undefined}
-                onNavigate={onNavigate}
-                tall={drawer}
-              />
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      {/* Action clé de la plateforme, en encart (seulement s'il reste de la hauteur) */}
-      {me && (
-        <div className="dh-glow mt-3 hidden rounded-[10px] p-3.5 [@media(min-height:1000px)]:block">
-          <p className="text-[13.5px] leading-snug font-semibold">{t('navEntry.promoTitle')}</p>
-          <p className="mt-0.5 text-[12px] leading-snug text-white/80">{t('navEntry.promoText')}</p>
-          <button
-            type="button"
-            onClick={() => {
-              onNavigate?.();
-              setAsk(true);
-            }}
-            className="lg-clear mt-3 flex h-8 w-full items-center justify-center gap-1.5 rounded-full text-[12.5px] font-semibold"
-          >
-            <Zap className="size-3.5" />
-            Demander de l’aide
-          </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          <NetworkIndicator compact />
+          {me && (
+            <DropMenu
+              align="end"
+              trigger={
+                <button
+                  type="button"
+                  data-tour="ask"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-accent px-4 text-[13.5px] font-semibold text-white transition-colors hover:bg-accent-hover"
+                >
+                  <Plus className="size-[18px]" />
+                  {t('navEntry.create')}
+                </button>
+              }
+            >
+              {actions.map((a) => (
+                <MenuItem
+                  key={a.label}
+                  icon={<a.icon />}
+                  onSelect={a.run}
+                  hint={<span className="text-xs text-subtle">{a.hint}</span>}
+                >
+                  {a.label}
+                </MenuItem>
+              ))}
+            </DropMenu>
+          )}
+          {me && <Notifications />}
+          {me && <UserMenu />}
         </div>
-      )}
-
-      {/* Compte : une seule carte, le menu porte profil, réglages, thème, langue et déconnexion */}
-      <div className="mt-3 border-t border-white/[0.07] pt-3">
-        {me ? (
-          <UserMenu
-            trigger={
-              <button
-                type="button"
-                data-tour="passport"
-                className="flex w-full items-center gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-accent"
-              >
-                <Avatar name={me.displayName} src={me.avatarUrl} size={36} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-semibold text-white">
-                    {me.displayName}
-                  </span>
-                  <span className="block truncate text-[12px] text-white/50">@{me.handle}</span>
-                </span>
-                <ChevronsUpDown className="size-4 shrink-0 text-white/40" />
-              </button>
-            }
-          />
-        ) : (
-          <Link
-            to="/connexion"
-            className="flex h-10 items-center justify-center rounded-[8px] bg-accent-strong text-[13.5px] font-semibold text-white"
-          >
-            {t('nav.login')}
-          </Link>
-        )}
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -438,8 +499,8 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
       <Popover.Portal>
         <Popover.Content
           align="end"
-          side="right"
-          sideOffset={12}
+          side="bottom"
+          sideOffset={10}
           className="dh-pop z-[60] w-[min(380px,calc(100vw-24px))] rounded-[10px] bg-canvas shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
@@ -757,12 +818,13 @@ export function AppShell() {
       </a>
       <div className="flex">
         {isLg && (
-          <aside className="sticky top-0 h-dvh w-[252px] shrink-0 p-3">
+          <aside className="sticky top-0 h-dvh w-[256px] shrink-0 py-3 pl-3">
             <Sidebar />
           </aside>
         )}
         <div className="min-w-0 flex-1">
           {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
+          {isLg && <TopBar />}
           {isLg && <OfflineBanner />}
           {api.mode === 'local' ? (
             <LocalDataBanner />

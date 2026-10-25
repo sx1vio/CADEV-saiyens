@@ -1,18 +1,21 @@
 import { AlertTriangle, RotateCw } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import book from '@/assets/djeli/book.webp';
 import celebrate from '@/assets/djeli/celebrate.webp';
 import laptop from '@/assets/djeli/laptop.webp';
 import point from '@/assets/djeli/point.webp';
+import streak from '@/assets/djeli/streak.webp';
+import trophy from '@/assets/djeli/trophy.webp';
 import wave from '@/assets/djeli/wave.webp';
 import { errorKey } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 
-export type DjeliPose = 'wave' | 'point' | 'celebrate' | 'laptop';
-const POSES: Record<DjeliPose, string> = { wave, point, celebrate, laptop };
+export type DjeliPose = 'wave' | 'point' | 'celebrate' | 'laptop' | 'book' | 'streak' | 'trophy';
+const POSES: Record<DjeliPose, string> = { wave, point, celebrate, laptop, book, streak, trophy };
 
-/** Djeli, la mascotte : rendu 3D, halo doux, flottement léger (coupé si reduced-motion). */
+/** Djeli, la mascotte : rendu 3D, ombre portée, flottement léger (coupé si reduced-motion). */
 export function Djeli({
   pose = 'wave',
   size = 120,
@@ -31,10 +34,6 @@ export function Djeli({
       className={cn('relative inline-grid shrink-0 place-items-center', className)}
       style={{ width: size, height: size }}
     >
-      <span
-        aria-hidden
-        className="absolute inset-[12%] rounded-full bg-accent opacity-25 blur-2xl"
-      />
       <img
         src={POSES[pose]}
         alt=""
@@ -44,7 +43,7 @@ export function Djeli({
         decoding="async"
         loading={eager ? 'eager' : 'lazy'}
         className={cn(
-          'relative h-full w-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)]',
+          'absolute inset-0 size-full object-contain drop-shadow-[0_10px_14px_rgba(10,15,31,0.22)]',
           float && 'animate-float',
         )}
       />
