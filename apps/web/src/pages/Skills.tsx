@@ -15,6 +15,7 @@ import {
   SquareTerminal,
   Star,
 } from 'lucide-react';
+import { LiveBoard } from '@/platform/LiveBoard';
 import { BrandLogo } from '@/platform/logos';
 import { useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
@@ -127,7 +128,10 @@ export default function Skills() {
         subtitle="Les skills, plugins, serveurs MCP et règles de la communauté pour Claude Code, Codex, Antigravity et Cursor."
       />
 
-      <div className="mt-6 flex gap-6">
+      <LiveBoard kind="skill" title="Skills, plugins et serveurs MCP en direct" />
+
+      <h2 className="mt-10 text-[16px] font-semibold text-fg">Exemples DevHub</h2>
+      <div className="mt-4 flex gap-6">
         <aside className="hidden w-[220px] shrink-0 flex-col gap-5 md:flex">
           <div>
             <h2 className="mb-1.5 px-2.5 text-[12px] font-semibold tracking-wide text-subtle uppercase">

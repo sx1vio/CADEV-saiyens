@@ -12,22 +12,25 @@ const KEEP_DAYS = 45;
 
 /**
  * Une passe de collecte. Idempotente : un même lien n'est stocké qu'une fois (compteurs mis à jour).
- * `github` : dépôts de la semaine et nouvelles versions (limite de l'API GitHub, une passe par heure).
+ * `group` : `feeds` (flux, vidéos, HN, DEV), `github` (dépôts et versions, limite de l'API GitHub),
+ * `jobs` (emplois à distance) ou `certs` (catalogue de certifications), `skills` (agents IA), chacun à son rythme.
  */
+export type IngestGroup = 'feeds' | 'github' | 'jobs' | 'certs' | 'skills';
+
 export class IngestNews {
   constructor(
     private readonly repo: NewsRepository,
     private readonly collectors: NewsCollectors,
   ) {}
 
-  async execute(opts: { github: boolean }): Promise<IngestResult> {
+  async execute(opts: { group: IngestGroup }): Promise<IngestResult> {
     const t0 = Date.now();
     const runId = await this.repo.startRun();
     const failed: IngestResult['failed'] = [];
     let sourcesOk = 0;
     let items = 0;
     try {
-      const jobs = opts.github ? this.collectors.github() : this.collectors.feeds();
+      const jobs = this.collectors[opts.group]();
       const results = await pool(jobs, 6, (j) => j.run());
       for (const [i, r] of results.entries()) {
         if (r.status === 'fulfilled') {
@@ -39,7 +42,7 @@ export class IngestNews {
         }
       }
 
-      if (!opts.github) {
+      if (opts.group === 'feeds') {
         // Images manquantes : balise Open Graph de l'article (limité pour rester poli avec les sites)
         const missing = await this.repo.missingImages(60);
         await pool(missing, 6, async (m) =>

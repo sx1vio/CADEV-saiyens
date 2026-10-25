@@ -29,6 +29,7 @@ import { PLATFORM_CERTS } from '@/platform/data/certs';
 import { usePlatform } from '@/platform/store';
 import type { Job } from '@/platform/types';
 import { Ago, CompanyLogo, DemoTag, SERVICE_COLORS, ServiceHeader, companyOf } from '@/platform/ui';
+import { LiveBoard } from '@/platform/LiveBoard';
 import { BrandLogo, TechChip, logoFor } from '@/platform/logos';
 
 type Filter = 'remote' | 'cdi' | 'freelance' | 'stage' | 'junior' | 'saved';
@@ -166,6 +167,9 @@ export default function Jobs() {
         </div>
       </ServiceHeader>
 
+      <LiveBoard kind="job" title="Offres en direct · dev à distance" />
+
+      <h2 className="mt-8 text-[16px] font-semibold text-fg">Exemples DevHub</h2>
       <p className="mt-5 mb-2 text-[13px] text-subtle">
         {list.length} offre{list.length > 1 ? 's' : ''}
       </p>

@@ -813,6 +813,9 @@ enum NewsKind {
   devto
   repo
   release
+  job
+  cert
+  skill
 }
 
 model NewsItem {
