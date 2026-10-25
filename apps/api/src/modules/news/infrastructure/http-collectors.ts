@@ -14,35 +14,13 @@ import {
   type JobBoard,
 } from '../domain/sources';
 import { cleanText, decode, firstImage } from '../domain/text';
+import { fetchJson, fetchText } from './http';
+import { collectSkills } from './skill-collectors';
+
+const MAX_AGE_DAYS = 30;
 
 // Collecte réelle : flux RSS/Atom, chaînes YouTube, Hacker News, dev.to, GitHub (dépôts de la
 // semaine et nouvelles versions). On ne garde que le titre, un court extrait et le lien.
-
-const UA = 'Mozilla/5.0 (compatible; DevHubBot/0.1; +https://devhub.africa/bot)';
-const MAX_AGE_DAYS = 30;
-
-async function fetchText(
-  url: string,
-  accept = 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
-  timeoutMs = 12_000,
-): Promise<string> {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': UA, Accept: accept },
-    signal: AbortSignal.timeout(timeoutMs),
-    redirect: 'follow',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
-}
-
-async function fetchJson<T>(url: string, headers: Record<string, string> = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': UA, Accept: 'application/json', ...headers },
-    signal: AbortSignal.timeout(12_000),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return (await res.json()) as T;
-}
 
 type Media = { $?: { url?: string; medium?: string; type?: string; width?: string } };
 type FeedItem = Parser.Item & {
@@ -625,6 +603,10 @@ export class HttpNewsCollectors implements NewsCollectors {
       { source: 'myjobmag', run: collectMyJobMag },
       ...JOB_BOARDS.map((b) => ({ source: `jobs:${b.id}`, run: () => collectBoard(b) })),
     ];
+  }
+
+  skills() {
+    return collectSkills();
   }
 
   certs() {

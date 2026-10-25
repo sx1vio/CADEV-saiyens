@@ -815,6 +815,7 @@ enum NewsKind {
   release
   job
   cert
+  skill
 }
 
 model NewsItem {

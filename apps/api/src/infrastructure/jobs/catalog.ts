@@ -65,6 +65,14 @@ export const JOBS = {
     queue: { policy: 'exclusive' },
     cron: '20 4 * * *',
   },
+  /** E1 : skills, plugins, serveurs MCP et règles pour agents IA (Anthropic, OpenAI, registre MCP, GitHub), toutes les 6 h. */
+  newsIngestSkills: {
+    name: 'news.ingest-skills',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 180 },
+    queue: { policy: 'exclusive' },
+    cron: '30 */6 * * *',
+  },
   /** Y1, Y5 : sonde chaque service Systalink toutes les 5 minutes ; écrit status_checks. */
   statusCheck: {
     name: 'status.check',

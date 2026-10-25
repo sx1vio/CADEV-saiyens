@@ -1,13 +1,17 @@
 import type { Category } from './sources';
 
-export type NewsKind = 'article' | 'video' | 'hn' | 'devto' | 'repo' | 'release' | 'job' | 'cert';
+export type NewsKind =
+  'article' | 'video' | 'hn' | 'devto' | 'repo' | 'release' | 'job' | 'cert' | 'skill';
+
+/** Type d'un élément `skill` (stocké dans `category`). */
+export type SkillType = 'skill' | 'plugin' | 'mcp' | 'rules';
 
 /** Élément collecté chez une source, avant enregistrement. */
 export interface CollectedNews {
   kind: NewsKind;
   source: string;
   sourceName: string;
-  category: Category;
+  category: Category | SkillType;
   lang: 'fr' | 'en';
   title: string;
   summary: string;

@@ -45,6 +45,7 @@ export interface NewsCollectors {
   feeds(): { source: string; run: () => Promise<CollectedNews[]> }[];
   github(): { source: string; run: () => Promise<CollectedNews[]> }[];
   jobs(): { source: string; run: () => Promise<CollectedNews[]> }[];
+  skills(): { source: string; run: () => Promise<CollectedNews[]> }[];
   certs(): { source: string; run: () => Promise<CollectedNews[]> }[];
   ogImage(url: string): Promise<string | null>;
 }

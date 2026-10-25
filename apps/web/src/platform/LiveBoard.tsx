@@ -1,5 +1,5 @@
-import { ExternalLink, Radio, RefreshCw } from 'lucide-react';
-import { useEffect } from 'react';
+import { ExternalLink, Radio, RefreshCw, Search, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { fetchNews, img, type NewsItem } from './news';
@@ -14,9 +14,31 @@ const asList = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : [
  * (apps/api, module news : Remotive, Jobicy, Microsoft Learn). L'API les renouvelle seule ;
  * ici on relit toutes les 5 minutes et au retour sur l'onglet.
  */
-export function LiveBoard({ kind, title }: { kind: 'job' | 'cert'; title: string }) {
-  const { data, error, refreshing, refresh } = useQuery(`live:${kind}`, () =>
-    fetchNews({ kind, limit: kind === 'job' ? 40 : 60 }),
+const SKILL_TYPES = [
+  { id: '', label: 'Tout' },
+  { id: 'skill', label: 'Skills' },
+  { id: 'plugin', label: 'Plugins' },
+  { id: 'mcp', label: 'Serveurs MCP' },
+  { id: 'rules', label: 'Règles' },
+];
+const TOOL_NAME: Record<string, string> = {
+  claude: 'Claude Code',
+  codex: 'Codex',
+  cursor: 'Cursor',
+  antigravity: 'Antigravity',
+};
+
+export function LiveBoard({ kind, title }: { kind: 'job' | 'cert' | 'skill'; title: string }) {
+  const [type, setType] = useState('');
+  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const { data, error, refreshing, refresh } = useQuery(`live:${kind}:${type}:${search}`, () =>
+    fetchNews({
+      kind,
+      category: kind === 'skill' ? type : undefined,
+      q: kind === 'skill' ? search : undefined,
+      limit: kind === 'job' ? 40 : kind === 'cert' ? 60 : 100,
+    }),
   );
 
   useEffect(() => {
@@ -67,6 +89,42 @@ export function LiveBoard({ kind, title }: { kind: 'job' | 'cert'; title: string
           Actualiser
         </button>
       </div>
+      {kind === 'skill' && (
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSearch(query.trim());
+            }}
+            className="flex h-10 flex-1 items-center gap-2 rounded-full border border-line-strong bg-canvas px-4"
+          >
+            <Search className="size-4 shrink-0 text-subtle" aria-hidden />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Chercher un skill, un serveur MCP, un plugin…"
+              aria-label="Chercher un skill, un serveur MCP, un plugin"
+              className="w-full bg-transparent text-[14px] text-fg outline-none placeholder:text-subtle"
+            />
+          </form>
+          <div className="no-scrollbar flex gap-2 overflow-x-auto">
+            {SKILL_TYPES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                aria-pressed={type === t.id}
+                onClick={() => setType(t.id)}
+                className={cn(
+                  'inline-flex h-9 shrink-0 items-center rounded-full px-4 text-[13px] font-medium',
+                  type === t.id ? 'lg-tint' : 'lg-clear text-fg',
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {!!error && !data && (
         <p className="rounded-[10px] bg-surface-1 p-5 text-muted">
           Impossible de charger les données en direct. Réessaie dans un instant.
@@ -93,7 +151,9 @@ function LiveCard({ item }: { item: NewsItem }) {
   const tags =
     item.kind === 'job'
       ? [x.jobType, x.location, x.salary].filter((t): t is string => typeof t === 'string' && !!t)
-      : [...asList(x.levels), ...asList(x.roles)];
+      : item.kind === 'skill'
+        ? [item.category, ...asList(x.tools).map((t) => TOOL_NAME[t] ?? t)]
+        : [...asList(x.levels), ...asList(x.roles)];
   return (
     <a
       href={item.url}
@@ -112,14 +172,19 @@ function LiveCard({ item }: { item: NewsItem }) {
         <span className="size-12 shrink-0 rounded-[8px] bg-canvas" aria-hidden />
       )}
       <div className="min-w-0 flex-1">
-        <h3 className="text-[14px] leading-snug font-semibold text-fg group-hover:underline">
+        <h3
+          className={cn(
+            'text-[14px] leading-snug font-semibold text-fg break-words group-hover:underline',
+            item.kind === 'skill' && 'font-mono',
+          )}
+        >
           {item.title}
           <ExternalLink className="ml-1 inline size-3 text-subtle" aria-hidden />
         </h3>
         {item.kind === 'job' && item.author && (
           <p className="mt-0.5 text-[13px] text-muted">{item.author}</p>
         )}
-        {item.kind === 'cert' && item.summary && (
+        {(item.kind === 'cert' || item.kind === 'skill') && item.summary && (
           <p className="mt-0.5 line-clamp-2 text-[13px] text-muted">{item.summary}</p>
         )}
         {tags.length > 0 && (
@@ -136,6 +201,12 @@ function LiveCard({ item }: { item: NewsItem }) {
         )}
         <p className="mt-2 text-[12px] text-subtle">
           {item.sourceName}
+          {item.kind === 'skill' && item.score > 0 && (
+            <>
+              {' · '}
+              <Star className="inline size-3" aria-hidden /> {item.score.toLocaleString('fr-FR')}
+            </>
+          )}
           {item.kind === 'job' && (
             <>
               {' · '}

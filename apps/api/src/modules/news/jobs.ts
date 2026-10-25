@@ -24,6 +24,7 @@ export class NewsJobs implements OnApplicationBootstrap {
       [JOBS.newsIngestGithub, 'github'],
       [JOBS.newsIngestJobs, 'jobs'],
       [JOBS.newsIngestCerts, 'certs'],
+      [JOBS.newsIngestSkills, 'skills'],
     ] as const) {
       await this.jobs.schedule(job);
       await this.jobs.work(job, () => this.run(job.name, group));

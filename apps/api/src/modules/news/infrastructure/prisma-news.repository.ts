@@ -47,6 +47,9 @@ const NOT_NOISE = Prisma.sql`title !~* '(\\mdeals?\\M|prime day|black friday|% o
 const langIs = (lang?: LangFilter) =>
   lang === 'fr' || lang === 'en' ? Prisma.sql`AND lang = ${lang}::"Lang"` : Prisma.empty;
 
+/** Skills : les plus étoilées d'abord, puis les sources officielles (qui n'ont pas d'étoiles). */
+const SKILL_ORDER = Prisma.sql`score DESC, (extra->>'official') DESC,`;
+
 export const newsId = (url: string) => createHash('sha1').update(url).digest('hex').slice(0, 24);
 
 @Injectable()
@@ -112,11 +115,11 @@ export class PrismaNewsRepository implements NewsRepository {
   }
 
   async purgeOlderThan(days: number): Promise<void> {
-    // Les versions restent (le radar affiche la dernière de chaque projet), le catalogue Microsoft aussi
+    // Les versions restent (le radar affiche la dernière de chaque projet), les skills (daté de leur première collecte) et le catalogue Microsoft aussi
     // (sa date est celle de la dernière modification d'une certification, pas une date de publication).
     await this.prisma.$executeRaw`
       DELETE FROM news_items
-      WHERE kind <> 'release' AND source <> 'microsoft-learn' AND published_at < now() - make_interval(days => ${days}::int)`;
+      WHERE kind NOT IN ('release', 'skill') AND source <> 'microsoft-learn' AND published_at < now() - make_interval(days => ${days}::int)`;
   }
 
   async list(q: NewsQuery): Promise<NewsItem[]> {
@@ -124,13 +127,13 @@ export class PrismaNewsRepository implements NewsRepository {
     if (q.category) where.push(Prisma.sql`category = ${q.category}`);
     // Emplois et certifications ont leurs écrans : ils n'entrent pas dans le fil sans filtre `kind`.
     if (q.kind) where.push(Prisma.sql`kind = ${q.kind}::"NewsKind"`);
-    else where.push(Prisma.sql`kind NOT IN ('job', 'cert')`);
+    else where.push(Prisma.sql`kind NOT IN ('job', 'cert', 'skill')`);
     if (q.q) where.push(Prisma.sql`(title ILIKE ${`%${q.q}%`} OR summary ILIKE ${`%${q.q}%`})`);
     if (q.before) where.push(Prisma.sql`published_at < ${new Date(q.before)}`);
     const limit = Math.min(100, Math.max(1, q.limit ?? 30));
     const rows = await this.prisma.$queryRaw<Row[]>`
       SELECT * FROM news_items WHERE ${Prisma.join(where, ' AND ')} ${langIs(q.lang)}
-      ORDER BY published_at DESC LIMIT ${limit}`;
+      ORDER BY ${q.kind === 'skill' ? SKILL_ORDER : Prisma.empty} published_at DESC LIMIT ${limit}`;
     return rows.map(toItem);
   }
 

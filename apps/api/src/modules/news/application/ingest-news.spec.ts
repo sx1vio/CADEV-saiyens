@@ -34,6 +34,7 @@ function fakes() {
     github: () => [{ source: 'gh', run: async () => [row('https://github.com/a/b')] }],
     jobs: () => [{ source: 'jb', run: async () => [{ ...row('https://a.b/job'), kind: 'job' }] }],
     certs: () => [],
+    skills: () => [],
     ogImage: async () => 'https://a.b/og.png',
   };
   return {

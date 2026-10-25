@@ -85,7 +85,7 @@ export class ReadNews {
       repos,
       releases,
       updatedAt: run?.finishedAt ?? null,
-      sources: FEEDS.length + CHANNELS.length + 9 + JOB_BOARDS.length + CERT_FEEDS.length,
+      sources: FEEDS.length + CHANNELS.length + 13 + JOB_BOARDS.length + CERT_FEEDS.length,
     };
   }
 
@@ -139,6 +139,14 @@ export class ReadNews {
           `https://${b.ats === 'ashby' ? 'jobs.ashbyhq.com' : 'boards.greenhouse.io'}/${b.slug}`,
         ),
       ),
+      api('skills:anthropics/skills', 'Anthropic · skills', 'https://github.com/anthropics/skills'),
+      api('skills:openai/skills', 'OpenAI · skills Codex', 'https://github.com/openai/skills'),
+      api(
+        'claude-plugins-official',
+        'Plugins Claude Code',
+        'https://github.com/anthropics/claude-plugins-official',
+      ),
+      api('mcp-registry', 'Registre MCP officiel', 'https://registry.modelcontextprotocol.io'),
       api(
         'microsoft-learn',
         'Microsoft Learn · certifications',

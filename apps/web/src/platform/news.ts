@@ -7,7 +7,7 @@ import { storageGet, storageSet } from '@/lib/utils';
 
 export interface NewsItem {
   id: string;
-  kind: 'article' | 'video' | 'hn' | 'devto' | 'repo' | 'release' | 'job' | 'cert';
+  kind: 'article' | 'video' | 'hn' | 'devto' | 'repo' | 'release' | 'job' | 'cert' | 'skill';
   source: string;
   sourceName: string;
   category: string;

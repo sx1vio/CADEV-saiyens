@@ -7,7 +7,9 @@ import { ImageProxy } from '../infrastructure/image-proxy';
 
 const ListQuery = z.object({
   category: z.string().max(20).optional(),
-  kind: z.enum(['article', 'video', 'hn', 'devto', 'repo', 'release', 'job', 'cert']).optional(),
+  kind: z
+    .enum(['article', 'video', 'hn', 'devto', 'repo', 'release', 'job', 'cert', 'skill'])
+    .optional(),
   lang: z.enum(['fr', 'en', 'all']).optional(),
   q: z.string().max(80).optional(),
   before: z.iso.datetime().optional(),

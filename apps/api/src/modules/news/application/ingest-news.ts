@@ -13,9 +13,9 @@ const KEEP_DAYS = 45;
 /**
  * Une passe de collecte. Idempotente : un même lien n'est stocké qu'une fois (compteurs mis à jour).
  * `group` : `feeds` (flux, vidéos, HN, DEV), `github` (dépôts et versions, limite de l'API GitHub),
- * `jobs` (emplois à distance) ou `certs` (catalogue de certifications), chacun à son rythme.
+ * `jobs` (emplois à distance) ou `certs` (catalogue de certifications), `skills` (agents IA), chacun à son rythme.
  */
-export type IngestGroup = 'feeds' | 'github' | 'jobs' | 'certs';
+export type IngestGroup = 'feeds' | 'github' | 'jobs' | 'certs' | 'skills';
 
 export class IngestNews {
   constructor(

@@ -13,7 +13,7 @@ class NewsCliModule {}
 async function main(): Promise<void> {
   const app = await NestFactory.createApplicationContext(NewsCliModule, { logger: ['error'] });
   const ingest = app.get(IngestNews);
-  for (const group of ['feeds', 'github', 'jobs', 'certs'] as const) {
+  for (const group of ['feeds', 'github', 'jobs', 'certs', 'skills'] as const) {
     const r = await ingest.execute({ group });
     console.log(
       `[news] ${group} : ${r.sourcesOk} sources OK, ${r.failed.length} en échec, ${r.items} éléments, ${r.seconds} s`,
