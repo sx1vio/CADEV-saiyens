@@ -157,6 +157,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 - API : `POST /api/v1/auth/email/register` et `/login` (module identity). Hash scrypt (N = 2^15), même réponse pour adresse inconnue et mauvais mot de passe (temps constant), 10 échecs par IP en 15 min puis 429, pseudo tiré du nom affiché (jamais de l'adresse), colonne `users.password_hash` (migration). Tests unitaires et e2e.
 - La lettre d'information du pied de page renvoie vers l'inscription (le récapitulatif Y3 est réservé aux membres).
 - Reste : textes de la landing, de la connexion et de l'onboarding en français seulement ; vérifier l'e-mail par un lien.
+- 26/10 : audit de dépendances remis au vert (`pnpm audit --prod --audit-level high`) : `zod` ^4.6.6 (GHSA-mrhx-c7xc-m3w5), `body-parser` ^2.4.0 (GHSA-27r3-jxmh-p828) et `multer` ^2.5.0 (GHSA-q7qp-rjg7-q26m) imposés dans `pnpm-workspace.yaml`. Restent 6 failles modérées et 2 faibles, sous le seuil de la CI.
 
 ### 23/10/2026 — Récupération du travail de l'équipe, conformité des licences, dossier de soumission
 
