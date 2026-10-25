@@ -156,6 +156,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 - **Front** — Apprendre : série quotidienne, XP d'apprentissage, objectif du jour. Paramètres : apparence en premier (clair/sombre), simulateur réseau retiré.
 - **Design** — Djeli : 3 nouvelles poses Higgsfield (lecture, série, trophée), les 4 anciennes recolorées en bleu roi. Fix : l'image débordait de sa boîte (chevauchements).
 - **Test** — `frontend/scripts/qa/` : inscription → onboarding OK (compte et préférences en base, arrivée sur le parcours recommandé, 0 erreur JS) ; 28 routes à 1440 et 390 px sans erreur ni débordement ; 183 liens internes, 0 mort.
+- 25/10 : visite guidée — la bulle ne déborde plus de l'écran (Djeli compris) et ne recouvre plus la cible : placement droite → gauche → dessous → dessus selon la place réelle, hauteur mesurée. Script `frontend/scripts/qa/tour.mjs` pour capturer chaque étape.
 
 ### 07/10/2026 — Backend : vraies données, vraies connexions, accueil rempli
 
