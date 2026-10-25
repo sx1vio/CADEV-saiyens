@@ -25,3 +25,6 @@ Thumbs.db
 
 # Journaux
 *.log
+
+# Captures de QA locales (apps/web/scripts/qa)
+apps/web/qa-shots/

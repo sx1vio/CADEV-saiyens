@@ -12,7 +12,7 @@
 **Équipe :** 5 personnes
 **Code :** `apps/web/` (front, `@devhub/web`) et `apps/api/src/modules/news/` (actualités) ; une branche courte par sujet depuis `main` (voir `docs/equipe/workflow-git.md`)
 **Dépôt :** `git@github.com:sx1vio/CADEV-saiyens.git`
-**Dates clés :** gel des P2 le 15 oct. · gel du code le 22 oct. · soumission le 24 oct. · date limite le 25 oct.
+**Dates clés :** gel des P2 le 15 oct. · gel du code le 22 oct. · soumission le 24 oct. · date limite repoussée au **15 nov.** par les organisateurs (version web déployée obligatoire)
 
 **Documents de référence :**
 
@@ -148,6 +148,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 25-26/10/2026 — Refonte bleue reportée dans le monorepo, comptes par e-mail dans l'API
+
+- PR #181 (emplois, certifications et skills collectés en direct) fusionnée dans `main`.
+- La refonte faite sur `sylvio-frontend` (branche sans historique commun avec `main`) est reportée dans `apps/web` par fusion à trois voies, fichier par fichier : barre latérale bleue (entrée active fusionnée, flèches de défilement, carte de série de Djeli), barre du haut sur ordinateur, logo DevHub, Bricolage Grotesque et IBM Plex Sans (OFL), landing façon GitHub (onglets produit, quiz jouable, logos défilants) avec la section « En direct » de l'équipe (T1), en-tête et pied de page publics, connexion et inscription, onboarding en 6 étapes, guide « Créer » qui suit le type de projet, verre façon Apple sur le guide, bulle de la visite qui reste dans l'écran, nouvelles poses de Djeli.
+- Gardé de `main` : i18n, temps réel (Y8), déconnexion serveur, bandeaux « données de démonstration », déploiement Systalink dans le guide, BUG-027 (pays vide), comptes de démonstration seulement avec le serveur simulé (ADR-0016).
+- API : `POST /api/v1/auth/email/register` et `/login` (module identity). Hash scrypt (N = 2^15), même réponse pour adresse inconnue et mauvais mot de passe (temps constant), 10 échecs par IP en 15 min puis 429, pseudo tiré du nom affiché (jamais de l'adresse), colonne `users.password_hash` (migration). Tests unitaires et e2e.
+- La lettre d'information du pied de page renvoie vers l'inscription (le récapitulatif Y3 est réservé aux membres).
+- Reste : textes de la landing, de la connexion et de l'onboarding en français seulement ; vérifier l'e-mail par un lien.
 
 ### 23/10/2026 — Récupération du travail de l'équipe, conformité des licences, dossier de soumission
 
