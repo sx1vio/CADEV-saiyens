@@ -1,63 +1,76 @@
-import { ArrowLeft, ArrowRight, Info, Lock } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Lock } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
+import { BrandLogo } from '@/components/brand'
+import { Djeli } from '@/components/djeli'
 import { errorText } from '@/components/domain'
 import { Button } from '@/components/ui/button'
 import { Avatar, Field, Input, TechTag } from '@/components/ui/primitives'
+import { AccountError, fetchServerUser, loginAccount, openLocalProfile, registerAccount } from '@/lib/account'
 import { invalidate, useQuery } from '@/lib/query'
+import { cn } from '@/lib/utils'
+import { BrandLogo as TechLogo } from '@/platform/logos'
 import { api, type GitHubImport } from '@/services'
 import { useSession } from '@/stores/app'
-import { BrandLogo } from '@/platform/logos'
-import { fetchHome, type HomeNews } from '@/platform/news'
-import { Ago } from '@/platform/ui'
 
 type Provider = 'github' | 'gitlab' | 'google'
 
-interface MeResponse {
-  provider: Provider
-  handle: string
-  displayName: string
-  avatarUrl: string | null
-  bio: string | null
-  location: string | null
+/** Force du mot de passe : longueur, variété, pas de motif évident. 0 à 4. */
+function strength(pw: string) {
+  if (!pw) return 0
+  let s = 0
+  if (pw.length >= 8) s++
+  if (pw.length >= 12) s++
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++
+  if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) s++
+  if (/^(.)\1+$|^(123|azerty|qwerty|password|motdepasse)/i.test(pw)) s = 0
+  return Math.min(4, s)
 }
+const STRENGTH = ['Trop court', 'Faible', 'Correct', 'Solide', 'Excellent']
+const STRENGTH_COLOR = ['bg-danger', 'bg-danger', 'bg-warning', 'bg-success', 'bg-success']
 
-/** Identifiant numérique stable pour un compte GitLab ou Google (le serveur local indexe par numéro). */
-function stableId(s: string) {
-  let h = 0
-  for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0
-  return -Math.abs(h)
-}
-
-/** Connexion : GitHub, GitLab, Google (OAuth réel côté serveur), ou compte de démonstration. */
+/**
+ * Connexion et inscription (deux routes, un seul écran) :
+ * e-mail + mot de passe (compte serveur), GitHub / GitLab / Google quand ils sont configurés,
+ * ou import du profil GitHub public, et l'essai sans compte.
+ */
 export default function Login() {
   const { t } = useTranslation()
   const nav = useNavigate()
+  const { pathname } = useLocation()
   const [params] = useSearchParams()
+  const signup = pathname.startsWith('/inscription')
   const setUser = useSession((s) => s.setUser)
-  const [handle, setHandle] = useState('')
+  const next = params.get('next') ?? '/'
+
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState(params.get('email') ?? '')
+  const [password, setPassword] = useState('')
+  const [show, setShow] = useState(false)
+  const [accept, setAccept] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [found, setFound] = useState<GitHubImport | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [manual, setManual] = useState(false)
+  const [ghMode, setGhMode] = useState(false)
+  const [handle, setHandle] = useState('')
+  const [found, setFound] = useState<GitHubImport | null>(null)
+
   const { data: providers } = useQuery<Record<Provider, boolean>>('auth:providers', async () => {
     const res = await fetch('/api/auth/providers')
     if (!res.ok) throw new Error(String(res.status))
     return res.json()
   })
-  const { data: news } = useQuery<HomeNews>('news:home:all', () => fetchHome('all'))
-  const next = params.get('next') ?? '/'
 
-  const finish = async (data: GitHubImport) => {
-    const u = await api.signUpWithGitHub(data)
+  useEffect(() => setError(null), [signup])
+
+  const done = (u: Awaited<ReturnType<typeof openLocalProfile>>) => {
     setUser(u)
     invalidate('')
-    nav(u.codeOfConductAcceptedAt ? next : '/bienvenue')
+    nav(u.codeOfConductAcceptedAt ? next : '/bienvenue', { replace: true })
   }
 
-  // Retour d'OAuth : le serveur a ouvert une session, on récupère le profil et on importe les compétences.
+  // Retour d'OAuth : le serveur a ouvert la session, on ouvre le profil de l'appareil.
   const handled = useRef(false)
   useEffect(() => {
     if (params.get('erreur') === 'oauth') toast.error('La connexion a échoué ou a été annulée. Réessaie.')
@@ -66,14 +79,10 @@ export default function Login() {
     setBusy(true)
     void (async () => {
       try {
-        const res = await fetch('/api/me', { credentials: 'include' })
-        if (!res.ok) throw new Error('session introuvable')
-        const me = (await res.json()) as MeResponse
-        const data: GitHubImport =
-          me.provider === 'github'
-            ? await api.importGitHub(me.handle)
-            : { handle: me.handle, displayName: me.displayName, avatarUrl: me.avatarUrl, bio: me.bio ?? '', githubId: stableId(`${me.provider}:${me.handle}`), githubCreatedAt: new Date().toISOString(), location: me.location, skills: {}, publicRepos: 0 }
-        await finish(data)
+        const su = await fetchServerUser()
+        if (!su) throw new Error('Session introuvable. Réessaie.')
+        const gh = su.provider === 'github' ? await api.importGitHub(su.handle).catch(() => undefined) : undefined
+        done(await openLocalProfile(su, gh))
       } catch (err) {
         toast.error(errorText(t, err))
         setBusy(false)
@@ -81,18 +90,37 @@ export default function Login() {
     })()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const oauth = (p: Provider) => {
-    if (providers?.[p]) window.location.href = `/api/auth/${p}?next=${encodeURIComponent(next)}`
-    else if (p === 'github') setManual(true)
+  const pw = strength(password)
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    if (signup) {
+      if (name.trim().length < 2) return setError('Indique ton nom (2 caractères au moins).')
+      if (password.length < 8) return setError('Le mot de passe doit faire au moins 8 caractères.')
+      if (!accept) return setError('Accepte les règles de la communauté pour continuer.')
+    }
+    setBusy(true)
+    try {
+      const su = signup ? await registerAccount(name, email, password) : await loginAccount(email, password)
+      done(await openLocalProfile(su))
+    } catch (err) {
+      setError(err instanceof AccountError ? err.message : errorText(t, err))
+      setBusy(false)
+    }
   }
 
-  const importProfile = async (e: React.FormEvent) => {
+  const oauth = (p: Provider) => {
+    if (providers?.[p]) window.location.href = `/api/auth/${p}?next=${encodeURIComponent(next)}`
+    else if (p === 'github') setGhMode(true)
+  }
+
+  const importGh = async (e: FormEvent) => {
     e.preventDefault()
     if (!handle.trim()) return
     setBusy(true)
     setError(null)
     try {
-      setFound(await api.importGitHub(handle))
+      setFound(await api.importGitHub(handle.trim()))
     } catch (err) {
       setError(errorText(t, err))
     } finally {
@@ -109,161 +137,203 @@ export default function Login() {
       nav('/')
     } catch (err) {
       toast.error(errorText(t, err))
-    } finally {
       setBusy(false)
     }
   }
 
-  const skills = found ? Object.entries(found.skills).sort((a, b) => b[1] - a[1]) : []
-  const providerBtn = (p: Provider, label: string, logo: string, primary?: boolean) => {
-    const ready = providers?.[p] ?? false
-    const disabled = !ready && p !== 'github'
-    return (
-      <Button key={p} variant={primary ? 'primary' : 'secondary'} size="lg" className="w-full justify-center" onClick={() => oauth(p)} disabled={disabled || busy} title={disabled ? 'Connexion en cours de configuration sur le serveur' : undefined}>
-        <BrandLogo name={logo} size={18} mono={primary} />
-        {label}
-        {disabled && <span className="ml-1 text-[12px] font-normal text-subtle">· bientôt</span>}
-      </Button>
-    )
-  }
+  const available = (['github', 'gitlab', 'google'] as const).filter((p) => p === 'github' || providers?.[p])
+  const label = { github: 'GitHub', gitlab: 'GitLab', google: 'Google' }
 
   return (
-    <div className="flex min-h-dvh gap-3 bg-canvas p-3">
-      {/* Panneau noir : la plateforme en un coup d'œil, avec l'actu réelle du moment */}
-      <aside className="relative hidden w-[46%] max-w-[640px] flex-col overflow-hidden rounded-[28px] bg-black p-9 text-white lg:flex">
-        <Link to="/" className="inline-flex items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-[11px] bg-accent-strong">
-            <svg viewBox="0 0 64 64" className="size-6" aria-hidden>
-              <path d="M24 20 14 32l10 12M40 20l10 12-10 12" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="32" cy="32" r="5" fill="currentColor" />
-            </svg>
-          </span>
-          <span className="text-[20px] font-bold tracking-[-0.03em]">DevHub</span>
+    <div className="flex min-h-dvh bg-canvas">
+      {/* Panneau de marque, bleu nuit et horizon, comme la landing */}
+      <aside className="relative hidden w-[44%] max-w-[620px] flex-col overflow-hidden bg-[#0a0f1f] p-10 text-white lg:flex">
+        <Link to="/">
+          <BrandLogo size={38} onDark />
         </Link>
-        <h2 className="mt-14 text-[44px] leading-[1.02] font-bold tracking-[-0.045em]">La plateforme où les devs se retrouvent.</h2>
-        <p className="mt-4 max-w-md text-[15px] text-white/65">Actu IA et tech, vidéos, entraide, emplois, certifications gratuites, skills pour agents IA et un guide pour créer ton app avec l’IA. Au même endroit.</p>
-        {news && news.hero.length > 0 && (
-          <div className="mt-auto">
-            <p className="mb-3 inline-flex items-center gap-2 text-[12px] font-medium text-white/55">
-              <span className="size-2 rounded-full bg-[#4ade80]" />
-              En ce moment sur DevHub
-            </p>
-            <ul className="flex flex-col gap-2">
-              {news.hero.slice(0, 3).map((h) => (
-                <li key={h.id} className="rounded-[18px] bg-[#1c1c1e] px-4 py-3">
-                  <p className="line-clamp-2 text-[14px] leading-snug font-medium">{h.title}</p>
-                  <p className="mt-1 text-[12px] text-white/50">
-                    {h.sourceName} · <Ago iso={h.publishedAt} />
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <h2 className="mt-16 text-[44px] leading-[1.02] font-extrabold tracking-[-0.035em]">
+          {signup ? 'Ton QG de dev commence ici' : 'Content de te revoir'}
+          <span className="text-[#f2b33d]">.</span>
+        </h2>
+        <ul className="mt-8 flex flex-col gap-3.5 text-[15.5px] text-white/75">
+          {['Des cours gratuits, 10 minutes par jour', 'De l’aide quand tu es bloqué', 'Un profil qui prouve ce que tu sais faire'].map((b) => (
+            <li key={b} className="flex items-center gap-3">
+              <Check className="size-4 text-[#2dd4bf]" />
+              {b}
+            </li>
+          ))}
+        </ul>
+        {/* Djeli, en grand, posé en bas du panneau */}
+        <Djeli pose={signup ? 'wave' : 'laptop'} size={300} eager className="absolute -bottom-6 right-6" />
       </aside>
 
-      <main id="main" className="flex flex-1 flex-col px-3 py-4 sm:px-8">
-        <Link to="/" className="inline-flex items-center gap-1.5 self-end text-[13px] font-medium text-muted hover:text-fg">
-          <ArrowLeft className="size-4" />
-          {t('common.back')}
-        </Link>
-        <div className="dh-page mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-10">
-          <h1 className="text-[42px] leading-[1.05] font-bold tracking-[-0.045em] text-fg">Connexion</h1>
-          <p className="mt-2 text-[14px] text-muted">Ton profil se remplit tout seul depuis tes dépôts publics. Aucun mot de passe à retenir.</p>
+      <main id="main" className="flex flex-1 flex-col px-4 py-5 sm:px-10">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="lg:hidden">
+            <BrandLogo size={32} />
+          </Link>
+          <Link to="/" className="ml-auto inline-flex items-center gap-1.5 text-[13px] font-medium text-muted hover:text-fg">
+            <ArrowLeft className="size-4" />
+            {t('common.back')}
+          </Link>
+        </div>
 
-          {!found && !manual && (
-            <div className="mt-8 flex flex-col gap-2.5">
-              {providerBtn('github', 'Continuer avec GitHub', 'GitHub', true)}
-              {providerBtn('gitlab', 'Continuer avec GitLab', 'GitLab')}
-              {providerBtn('google', 'Continuer avec Google', 'Google')}
-              <p className="mt-1 flex items-start gap-2 text-[12px] leading-relaxed text-subtle">
-                <Lock className="mt-0.5 size-3.5 shrink-0" />
-                Lecture seule de ton profil public et de ton e-mail. On n’écrit jamais dans tes dépôts.
+        <div className="dh-page mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-10">
+          <div className="flex items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="mt-2 text-[36px] leading-[1.05] font-bold tracking-[-0.03em] text-fg">{signup ? 'Créer ton compte' : 'Se connecter'}</h1>
+              <p className="mt-2 text-[14px] text-muted">
+                {signup ? 'Déjà inscrit ? ' : 'Pas encore de compte ? '}
+                <Link to={`${signup ? '/connexion' : '/inscription'}${email ? `?email=${encodeURIComponent(email)}` : ''}`} className="font-semibold text-accent-text hover:underline">
+                  {signup ? 'Se connecter' : 'Créer un compte'}
+                </Link>
               </p>
             </div>
+            <Djeli pose="wave" size={88} eager className="shrink-0" />
+          </div>
+
+          {!ghMode && (
+            <>
+              <div className={cn('mt-7 grid gap-2', available.length === 2 && 'sm:grid-cols-2', available.length === 3 && 'sm:grid-cols-3')}>
+                {available.map((p) => (
+                  <Button key={p} variant="secondary" size="lg" className="w-full justify-center" onClick={() => oauth(p)} disabled={busy}>
+                    <TechLogo name={label[p]} size={18} />
+                    {available.length > 1 ? label[p] : `Continuer avec ${label[p]}`}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="my-6 flex items-center gap-3 text-[12px] text-subtle">
+                <span className="h-px flex-1 bg-line-strong" />
+                ou avec ton e-mail
+                <span className="h-px flex-1 bg-line-strong" />
+              </div>
+
+              <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
+                {signup && (
+                  <Field label="Nom" htmlFor="au-name">
+                    <Input id="au-name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Awa Koné" />
+                  </Field>
+                )}
+                <Field label="Adresse e-mail" htmlFor="au-email">
+                  <Input id="au-email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="awa@exemple.com" required />
+                </Field>
+                <Field label="Mot de passe" htmlFor="au-pw" hint={signup ? '8 caractères au moins. Une phrase courte est plus sûre qu’un mot compliqué.' : undefined}>
+                  <div className="relative">
+                    <Input id="au-pw" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} className="pr-11" required />
+                    <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-muted hover:text-fg">
+                      {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </Field>
+                {signup && password && (
+                  <div className="-mt-2 flex items-center gap-2" aria-live="polite">
+                    <div className="flex flex-1 gap-1">
+                      {[0, 1, 2, 3].map((i) => (
+                        <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i < Math.max(1, pw) ? STRENGTH_COLOR[pw] : 'bg-surface-3')} />
+                      ))}
+                    </div>
+                    <span className="w-20 text-right text-[12px] text-muted">{password.length < 8 ? STRENGTH[0] : STRENGTH[pw]}</span>
+                  </div>
+                )}
+                {signup && (
+                  <label className="flex items-start gap-2.5 text-[13px] text-muted">
+                    <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5 size-4 accent-[var(--accent)]" />
+                    <span>
+                      J’accepte les{' '}
+                      <Link to="/regles" target="_blank" className="font-medium text-accent-text hover:underline">
+                        règles de la communauté
+                      </Link>{' '}
+                      : bienveillance, entraide honnête, pas de spam.
+                    </span>
+                  </label>
+                )}
+                {error && (
+                  <p role="alert" className="rounded-[12px] bg-danger-soft px-3 py-2.5 text-[13px] text-danger">
+                    {error}
+                  </p>
+                )}
+                <Button type="submit" variant="primary" size="lg" loading={busy}>
+                  {signup ? 'Créer mon compte' : 'Se connecter'}
+                  <ArrowRight />
+                </Button>
+              </form>
+            </>
           )}
 
-          {manual && !found && (
-            <form onSubmit={importProfile} className="mt-8 flex flex-col gap-3">
+          {ghMode && !found && (
+            <form onSubmit={importGh} className="mt-7 flex flex-col gap-3">
+              <p className="text-[13.5px] text-muted">On lit ton profil GitHub public (dépôts et langages) pour remplir tes compétences. Aucun droit d’écriture.</p>
               <Field label={t('auth.githubLabel')} htmlFor="gh" error={error}>
-                <Input id="gh" autoFocus autoComplete="username" autoCapitalize="off" spellCheck={false} value={handle} onChange={(e) => setHandle(e.target.value)} placeholder={t('auth.githubPlaceholder')} aria-invalid={!!error || undefined} />
+                <Input id="gh" autoFocus autoComplete="username" autoCapitalize="off" spellCheck={false} value={handle} onChange={(e) => setHandle(e.target.value)} placeholder={t('auth.githubPlaceholder')} />
               </Field>
               <Button type="submit" variant="primary" size="lg" loading={busy}>
-                <BrandLogo name="GitHub" size={18} mono />
+                <TechLogo name="GitHub" size={18} mono />
                 {busy ? t('auth.importing') : t('auth.importBtn')}
               </Button>
-              <button type="button" onClick={() => setManual(false)} className="text-[13px] font-medium text-muted hover:text-fg">
-                Autres moyens de connexion
+              <button type="button" onClick={() => setGhMode(false)} className="text-[13px] font-medium text-muted hover:text-fg">
+                Revenir à l’e-mail
               </button>
             </form>
           )}
 
           {found && (
-            <div className="dh-page mt-8 flex flex-col gap-5 rounded-[24px] bg-surface-1 p-5">
+            <div className="dh-page mt-7 flex flex-col gap-4 rounded-[24px] bg-surface-1 p-5">
               <div className="flex items-center gap-4">
-                <Avatar name={found.displayName} src={found.avatarUrl} size={56} />
+                <Avatar name={found.displayName} src={found.avatarUrl} size={52} />
                 <div className="min-w-0">
-                  <p className="truncate text-[17px] font-bold text-fg">{found.displayName}</p>
+                  <p className="truncate text-[16px] font-bold text-fg">{found.displayName}</p>
                   <p className="truncate text-[13px] text-muted">
-                    @{found.handle}
-                    {found.location ? ` · ${found.location}` : ''}
+                    @{found.handle} · {found.publicRepos} dépôts publics
                   </p>
                 </div>
               </div>
-              <p className="text-[13px] text-fg">
-                <b className="font-semibold">{found.publicRepos}</b> <span className="text-muted">dépôts publics analysés</span>
-              </p>
-              {skills.length > 0 && (
+              {Object.keys(found.skills).length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {skills.slice(0, 10).map(([slug, n]) => (
-                    <TechTag key={slug} label={`${slug} · ${n}`} />
-                  ))}
+                  {Object.entries(found.skills)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 8)
+                    .map(([slug, n]) => (
+                      <TechTag key={slug} label={`${slug} · ${n}`} />
+                    ))}
                 </div>
               )}
-              <div className="flex flex-col gap-2 sm:flex-row-reverse">
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setFound(null)}>
+                  {t('auth.notMe')}
+                </Button>
                 <Button
                   variant="primary"
-                  size="lg"
                   className="flex-1"
                   loading={busy}
                   onClick={async () => {
                     setBusy(true)
                     try {
-                      await finish(found)
+                      const u = await api.signUpWithGitHub(found)
+                      done(u)
                     } catch (err) {
                       toast.error(errorText(t, err))
                       setBusy(false)
                     }
                   }}
                 >
+                  <Check />
                   {t('auth.confirm')}
-                  <ArrowRight />
-                </Button>
-                <Button variant="ghost" size="lg" onClick={() => setFound(null)}>
-                  {t('auth.notMe')}
                 </Button>
               </div>
             </div>
           )}
 
-          <div className="my-7 flex items-center gap-3 text-[12px] text-subtle">
-            <span className="h-px flex-1 bg-line-strong" />
-            {t('common.or')}
-            <span className="h-px flex-1 bg-line-strong" />
-          </div>
-          <div className="rounded-[24px] bg-surface-1 p-5">
-            <p className="text-[15px] font-bold text-fg">{t('auth.demoTitle')}</p>
-            <p className="mt-1 text-[13px] text-muted">{t('auth.demoText')}</p>
-            <Button variant="secondary" size="lg" className="mt-4 w-full" loading={busy} onClick={demo}>
+          <div className="mt-8 flex items-center justify-between gap-3 rounded-[18px] bg-surface-1 px-4 py-3">
+            <p className="text-[13px] text-muted">Juste regarder ? Entre sur un compte de démonstration.</p>
+            <Button variant="secondary" size="sm" onClick={demo} disabled={busy}>
               {t('auth.demoBtn')}
             </Button>
           </div>
-          {providers && !providers.github && (
-            <p className="mt-5 flex items-start gap-2 text-[12px] leading-relaxed text-subtle">
-              <Info className="mt-0.5 size-3.5 shrink-0" />
-              La connexion OAuth s’active dès que les clés GitHub, GitLab et Google sont renseignées sur le serveur. En attendant, GitHub passe par l’import de ton profil public.
-            </p>
-          )}
+          <p className="mt-4 flex items-start gap-2 text-[12px] leading-relaxed text-subtle">
+            <Lock className="mt-0.5 size-3.5 shrink-0" />
+            Mot de passe chiffré (scrypt), session sécurisée par cookie. On ne revend aucune donnée.
+          </p>
         </div>
       </main>
     </div>

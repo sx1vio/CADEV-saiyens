@@ -6,7 +6,7 @@ export const COMMUNITIES: Community[] = [
     slug: 'ia',
     name: 'Intelligence artificielle',
     description: 'Agents de code, modèles, prompts, MCP, skills : ce qui marche vraiment en production.',
-    color: '#8b7cf8',
+    color: '#0ea5e9',
     icon: 'sparkles',
     members: 18420,
     online: 612,

@@ -21,7 +21,7 @@ export function useNetStatus() {
   return { online, sim, pending, errors, state }
 }
 
-/** O3 : indicateur toujours visible. En ligne · Hors ligne · N en attente · Synchronisation · Erreur. */
+/** O3 : indicateur discret, visible seulement quand le réseau pose problème : Hors ligne · N en attente · Synchronisation · Erreur. */
 export function NetworkIndicator({ compact, className }: { compact?: boolean; className?: string }) {
   const { t } = useTranslation()
   const { state, pending, sim } = useNetStatus()
@@ -37,6 +37,8 @@ export function NetworkIndicator({ compact, className }: { compact?: boolean; cl
             ? t('network.sim2g')
             : t('network.online')
   const tone = state === 'offline' ? 'warning' : state === 'error' ? 'danger' : state === 'syncing' ? 'accent' : 'success'
+  // Tout va bien : rien à afficher. L'indicateur n'apparaît qu'en cas de coupure, d'envoi en attente ou d'erreur.
+  if (state === 'online' && !pending && sim !== '2g') return null
   return (
     <button
       type="button"

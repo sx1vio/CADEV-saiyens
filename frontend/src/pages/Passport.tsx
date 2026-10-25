@@ -93,7 +93,7 @@ export default function Passport() {
               />
             </div>
             <div className="min-w-0 lg:mt-4">
-              <h1 className="flex flex-wrap items-center gap-2 text-[28px] leading-tight font-bold tracking-[-0.04em] text-fg">
+              <h1 className="flex flex-wrap items-center gap-2 text-[28px] leading-tight font-bold tracking-[-0.028em] text-fg">
                 {u.displayName}
                 {u.isDemo && <DemoBadge />}
               </h1>
@@ -202,7 +202,7 @@ export default function Passport() {
               <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
                 <StatCard dark label="proof xp" value={formatNumber(p.totalXp, lang)} spark={sparkFrom(p.heatmap)} note={p.countryRank ? `#${p.countryRank} · ${countryName(u.country, lang)}` : undefined} />
                 <StatCard label={t('passport.stats.unblocked')} value={p.stats.devsUnblocked} cube={CUBE.orange} note={`${p.stats.answersAccepted} réponses validées`} />
-                <StatCard label={t('passport.stats.median')} value={p.stats.medianResponseMinutes !== null ? duration(p.stats.medianResponseMinutes, lang) : '—'} cube={CUBE.purple} note="avant la première réponse" />
+                <StatCard label={t('passport.stats.median')} value={p.stats.medianResponseMinutes !== null ? duration(p.stats.medianResponseMinutes, lang) : '—'} cube={CUBE.navy} note="avant la première réponse" />
                 <StatCard label={t('passport.stats.contributions')} value={p.stats.contributions} cube={CUBE.green} note={`${p.rooms.length} projets`} />
               </div>
 

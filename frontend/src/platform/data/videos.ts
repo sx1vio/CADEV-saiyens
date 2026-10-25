@@ -30,7 +30,7 @@ export const VIDEOS: Video[] = [
     publishedAt: ago(20),
     description: 'Instructions de projet, découpage en étapes, relecture de chaque diff, tests comme garde-fou. Le guide « Créer avec l’IA » de DevHub, appliqué en vrai.',
     chapters: [{ at: '0:00', title: 'Le plan' }, { at: '4:30', title: 'Le fichier d’instructions' }, { at: '11:00', title: 'Première fonctionnalité' }, { at: '19:40', title: 'Relire le diff' }, { at: '26:15', title: 'Tests et déploiement' }],
-    thumb: { bg: 'linear-gradient(135deg,#2a1b5c,#6a5ae6)', fg: '#ffffff', kicker: 'AGENT IA', big: 'Zéro → app en ligne', avatar: true , accent: '#d97757', logo: 'Claude', file: 'AGENTS.md', editor: "# Règles du projet\n- Tests : npm test\n- Une étape = un commit\n- Jamais de secret dans le code\n\n> plan → code → test → relire" },
+    thumb: { bg: 'linear-gradient(135deg,#0b1d4f,#2563eb)', fg: '#ffffff', kicker: 'AGENT IA', big: 'Zéro → app en ligne', avatar: true , accent: '#d97757', logo: 'Claude', file: 'AGENTS.md', editor: "# Règles du projet\n- Tests : npm test\n- Une étape = un commit\n- Jamais de secret dans le code\n\n> plan → code → test → relire" },
     tags: ['Agents IA', 'Claude Code', 'Méthode'],
   },
   {
@@ -101,7 +101,7 @@ export const VIDEOS: Video[] = [
     publishedAt: ago(33),
     description: 'Un serveur MCP qui donne à ton agent un accès en lecture seule à ta base. Schéma des outils, sécurité, et test dans Claude Code.',
     chapters: [{ at: '0:00', title: 'Ce qu’est MCP' }, { at: '2:40', title: 'Déclarer un outil' }, { at: '8:00', title: 'Rôle en lecture seule' }, { at: '12:20', title: 'Brancher l’agent' }],
-    thumb: { bg: 'linear-gradient(135deg,#312e81,#8b7cf8)', fg: '#ffffff', kicker: 'MCP', big: '1er serveur MCP', code: 'server.tool("query")' , accent: '#8b7cf8', logo: 'MCP', file: 'server.ts', editor: "server.tool('query', {\n  sql: z.string(),\n}, async ({ sql }) => {\n  const rows = await ro.query(sql)\n  return rows.slice(0, 200)\n})" },
+    thumb: { bg: 'linear-gradient(135deg,#1e3a8a,#0ea5e9)', fg: '#ffffff', kicker: 'MCP', big: '1er serveur MCP', code: 'server.tool("query")' , accent: '#0ea5e9', logo: 'MCP', file: 'server.ts', editor: "server.tool('query', {\n  sql: z.string(),\n}, async ({ sql }) => {\n  const rows = await ro.query(sql)\n  return rows.slice(0, 200)\n})" },
     tags: ['MCP', 'Node.js'],
   },
   {

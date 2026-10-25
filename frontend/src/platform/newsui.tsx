@@ -7,7 +7,7 @@ import { RELEASE_LOGO, domainOf, img, type NewsItem } from './news'
 import { Ago, LANG_COLOR, compact } from './ui'
 
 const CAT_COLOR: Record<string, string> = {
-  ia: '#8d6cf0',
+  ia: '#2563eb',
   tech: '#0b0b0c',
   apple: '#6b7280',
   google: '#3b82f6',

@@ -42,10 +42,10 @@ export const MAIN_NAV: NavEntry[] = [
 export const SERVICES_NAV: NavEntry[] = [
   { to: '/emplois', label: 'Emplois', short: 'Emplois', icon: Briefcase, color: '#22a3ee' },
   { to: '/certifications', label: 'Certifications', short: 'Certifs', icon: Award, color: '#f0b232' },
-  { to: '/skills', label: 'Skills & plugins IA', short: 'Skills', icon: Puzzle, color: '#8b7cf8' },
+  { to: '/skills', label: 'Skills & plugins IA', short: 'Skills', icon: Puzzle, color: '#0ea5e9' },
   { to: '/videos', label: 'Vidéos', short: 'Vidéos', icon: PlaySquare, color: '#e5333b' },
   { to: '/apprendre', label: 'Apprendre', short: 'Apprendre', icon: GraduationCap, color: '#3ccf8e' },
-  { to: '/creer', label: 'Créer une app avec l’IA', short: 'Créer', icon: Wand2, color: '#6a5ae6' },
+  { to: '/creer', label: 'Créer une app avec l’IA', short: 'Créer', icon: Wand2, color: '#2563eb' },
   { to: '/templates', label: 'Templates', short: 'Templates', icon: LayoutTemplate, color: '#e879f9' },
   { to: '/projets', label: 'Projets', short: 'Projets', icon: FolderGit2, tour: 'projects', color: '#4f7cff' },
 ]

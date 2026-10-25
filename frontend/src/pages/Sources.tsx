@@ -35,7 +35,7 @@ export default function Sources() {
         <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
           <StatCard dark label="éléments indexés" value={total} spark={[3, 4, 4, 6, 7, 7, 8, 9, 9, 10]} note="sur les 45 derniers jours" />
           <StatCard label="flux rss" value={data.sources.filter((s) => s.kind === 'rss').length} cube={CUBE.orange} note="médias tech, IA, mobile, dev" />
-          <StatCard label="chaînes youtube" value={data.sources.filter((s) => s.kind === 'youtube').length} cube={CUBE.purple} note="en français et en anglais" />
+          <StatCard label="chaînes youtube" value={data.sources.filter((s) => s.kind === 'youtube').length} cube={CUBE.navy} note="en français et en anglais" />
           <StatCard label="api" value={data.sources.filter((s) => s.kind === 'api').length} cube={CUBE.green} note="Hacker News, DEV, GitHub" />
         </div>
       )}

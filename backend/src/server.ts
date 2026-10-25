@@ -8,6 +8,7 @@ import cookie from '@fastify/cookie'
 import Fastify from 'fastify'
 import { z } from 'zod'
 import { authorizeUrl, completeLogin, configuredProviders, endSession, userFromSession } from './auth/oauth.js'
+import { AuthError, login, register, savePrefs, tooManyAttempts, updateProfile } from './auth/password.js'
 import { config, type Provider } from './config.js'
 import { getDb } from './db.js'
 import { ingestAll } from './news/ingest.js'
@@ -79,7 +80,7 @@ app.get<{ Params: { provider: string }; Querystring: { code?: string; state?: st
   if (!p.success || !req.query.code || !req.query.state) return reply.redirect(`${config.appUrl}/connexion?erreur=oauth`)
   try {
     const { sid, nextPath } = await completeLogin(p.data as Provider, req.query.code, req.query.state)
-    reply.setCookie(SID, sid, { path: '/', httpOnly: true, sameSite: 'lax', secure: config.isProd, maxAge: 30 * 24 * 3600 })
+    reply.setCookie(SID, sid, cookieOpts)
     return reply.redirect(`${config.appUrl}/connexion?oauth=ok&next=${encodeURIComponent(nextPath)}`)
   } catch (e) {
     req.log.warn({ err: e }, 'échec OAuth')
@@ -91,6 +92,65 @@ app.get('/api/me', async (req, reply) => {
   const user = await userFromSession(req.cookies[SID])
   if (!user) return reply.code(401).send({ error: 'non connecté' })
   return user
+})
+
+const cookieOpts = { path: '/', httpOnly: true, sameSite: 'lax' as const, secure: config.isProd, maxAge: 30 * 24 * 3600 }
+
+const registerBody = z.object({
+  name: z.string().trim().min(2).max(60),
+  email: z.string().trim().email().max(160),
+  password: z.string().min(8).max(200),
+})
+const loginBody = z.object({ email: z.string().trim().email().max(160), password: z.string().min(1).max(200) })
+
+app.post('/api/auth/register', async (req, reply) => {
+  if (tooManyAttempts(req.ip)) return reply.code(429).send({ error: 'Trop de tentatives. Réessaie dans quelques minutes.', code: 'rate_limited' })
+  const body = registerBody.parse(req.body)
+  try {
+    const { sid } = await register(body)
+    reply.setCookie(SID, sid, cookieOpts)
+    return { user: await userFromSession(sid) }
+  } catch (e) {
+    if (e instanceof AuthError) return reply.code(409).send({ error: e.message, code: e.code })
+    throw e
+  }
+})
+
+app.post('/api/auth/login', async (req, reply) => {
+  if (tooManyAttempts(req.ip)) return reply.code(429).send({ error: 'Trop de tentatives. Réessaie dans quelques minutes.', code: 'rate_limited' })
+  const body = loginBody.parse(req.body)
+  try {
+    const { sid } = await login(body)
+    reply.setCookie(SID, sid, cookieOpts)
+    return { user: await userFromSession(sid) }
+  } catch (e) {
+    if (e instanceof AuthError) return reply.code(401).send({ error: e.message, code: e.code })
+    throw e
+  }
+})
+
+/** Préférences de l'onboarding (niveau, objectifs, stack, pays…) : elles suivent le compte d'un appareil à l'autre. */
+app.put('/api/me/prefs', async (req, reply) => {
+  const user = (await userFromSession(req.cookies[SID])) as { id: string } | null
+  if (!user) return reply.code(401).send({ error: 'non connecté' })
+  const body = z.object({ prefs: z.record(z.string(), z.unknown()).refine((p) => JSON.stringify(p).length < 8000), onboarded: z.boolean().optional() }).parse(req.body)
+  await savePrefs(user.id, body.prefs, !!body.onboarded)
+  return userFromSession(req.cookies[SID])
+})
+
+app.patch('/api/me', async (req, reply) => {
+  const user = (await userFromSession(req.cookies[SID])) as { id: string } | null
+  if (!user) return reply.code(401).send({ error: 'non connecté' })
+  const body = z.object({ displayName: z.string().trim().min(2).max(60).optional(), bio: z.string().max(400).optional(), location: z.string().max(80).optional() }).parse(req.body)
+  await updateProfile(user.id, body)
+  return userFromSession(req.cookies[SID])
+})
+
+app.post('/api/newsletter', async (req) => {
+  const { email } = z.object({ email: z.string().trim().email().max(160) }).parse(req.body)
+  const db = await getDb()
+  await db.query('INSERT INTO newsletter (email) VALUES ($1) ON CONFLICT DO NOTHING', [email.toLowerCase()])
+  return { ok: true }
 })
 
 app.post('/api/auth/logout', async (req, reply) => {

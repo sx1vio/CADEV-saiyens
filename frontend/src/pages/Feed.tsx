@@ -57,10 +57,10 @@ const MATCH: Record<FeedTab, (p: Post) => boolean> = {
 const SERVICES = [
   { to: '/emplois', icon: Briefcase, label: 'Emplois', color: '#22a3ee', stat: `${JOBS.length} offres` },
   { to: '/certifications', icon: Award, label: 'Certifications', color: '#f0b232', stat: 'Gratuites et payantes' },
-  { to: '/skills', icon: Puzzle, label: 'Skills IA', color: '#8b7cf8', stat: 'Claude, Codex, Antigravity' },
+  { to: '/skills', icon: Puzzle, label: 'Skills IA', color: '#0ea5e9', stat: 'Claude, Codex, Antigravity' },
   { to: '/videos', icon: PlaySquare, label: 'Vidéos', color: '#e5333b', stat: '1 live en cours' },
   { to: '/apprendre', icon: GraduationCap, label: 'Apprendre', color: '#3ccf8e', stat: '6 parcours' },
-  { to: '/creer', icon: Wand2, label: 'Créer avec l’IA', color: '#6a5ae6', stat: 'Guide en 11 étapes' },
+  { to: '/creer', icon: Wand2, label: 'Créer avec l’IA', color: '#2563eb', stat: 'Guide en 11 étapes' },
 ]
 
 export default function Feed() {
@@ -292,7 +292,7 @@ function FeedStats() {
     <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
       <StatCard dark label="proof xp" value={passport ? passport.totalXp : '—'} spark={spark.length ? spark : [1, 2, 2, 3, 3, 4, 5, 5, 6, 7]} delta={`+${xpWeek}`} note="cette semaine" to={`/u/${me.handle}`} />
       <StatCard label="questions dans tes stacks" value={home?.openInMyStacks.length ?? '—'} cube={CUBE.orange} delta={`${home?.unanswered.length ?? 0}`} note="sans réponse sur la plateforme" to="/sos" />
-      <StatCard label="candidatures" value={applications.length} cube={CUBE.purple} delta={`${JOBS.length}`} note="offres ouvertes en ce moment" to="/emplois" />
+      <StatCard label="candidatures" value={applications.length} cube={CUBE.navy} delta={`${JOBS.length}`} note="offres ouvertes en ce moment" to="/emplois" />
       <StatCard label="badges obtenus" value={badges} cube={CUBE.green} delta={`${PLATFORM_CERTS.length - badges}`} note="certifications gratuites à passer" to="/certifications" />
     </div>
   )

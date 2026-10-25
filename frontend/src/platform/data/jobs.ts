@@ -10,7 +10,7 @@ export const COMPANIES: Company[] = [
   { slug: 'shamba', name: 'Shamba Data', logoColor: '#a3e635', logoText: 'SD', sector: 'Agritech', size: '10-50', city: 'Kigali', country: 'RW', about: 'Prévisions météo et prix des récoltes pour les coopératives.', verified: false },
   { slug: 'kalanda', name: 'Kalanda Studio', logoColor: '#e879f9', logoText: 'KS', sector: 'Agence produit', size: '10-50', city: 'Lomé', country: 'TG', about: 'Studio qui conçoit des applications web et mobiles pour des ONG et des PME.', verified: true },
   { slug: 'mosala', name: 'Mosala', logoColor: '#22d3ee', logoText: 'M', sector: 'RH', size: '1-10', city: 'Kinshasa', country: 'CD', about: 'Plateforme de missions courtes pour les artisans et techniciens.', verified: false },
-  { slug: 'teranga', name: 'Teranga EdTech', logoColor: '#8b7cf8', logoText: 'T', sector: 'Éducation', size: '50-200', city: 'Saint-Louis', country: 'SN', about: 'Cours en ligne et examens surveillés pour les universités.', verified: true },
+  { slug: 'teranga', name: 'Teranga EdTech', logoColor: '#0ea5e9', logoText: 'T', sector: 'Éducation', size: '50-200', city: 'Saint-Louis', country: 'SN', about: 'Cours en ligne et examens surveillés pour les universités.', verified: true },
 ]
 
 export const JOBS: Job[] = [

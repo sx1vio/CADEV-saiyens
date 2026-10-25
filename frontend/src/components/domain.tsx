@@ -103,7 +103,7 @@ export function QuestionCard({ q, className, showBlocked }: { q: QuestionListIte
       </div>
       <h3 className="mt-1.5 line-clamp-2 text-[16px] font-semibold leading-snug text-fg">{q.title}</h3>
       {snippet && (
-        <pre className={cn('mt-2 overflow-hidden rounded-[10px] border-l-[3px] bg-canvas px-3 py-2 font-mono text-[12.5px] leading-relaxed whitespace-pre-wrap text-muted', resolved ? 'border-success/70' : urgent ? 'border-danger/80' : 'border-accent/70')}>
+        <pre className="mt-2 overflow-hidden rounded-[10px] bg-canvas px-3 py-2 font-mono text-[12.5px] leading-relaxed whitespace-pre-wrap text-muted">
           <span className="line-clamp-2">{snippet}</span>
         </pre>
       )}
@@ -308,7 +308,7 @@ export function PageHeader({ eyebrow, title, subtitle, actions, className }: { e
     <header className={cn('flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between', className)}>
       <div className="min-w-0">
         {eyebrow && <p className="mb-1 text-[14px] font-medium text-muted">{eyebrow}</p>}
-        <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.045em] text-fg sm:text-[42px]">{title}</h1>
+        <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.03em] text-fg sm:text-[42px]">{title}</h1>
         {subtitle && <p className="mt-2 max-w-2xl text-[14px] text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}

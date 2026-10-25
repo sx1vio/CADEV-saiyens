@@ -114,7 +114,7 @@ export async function userFromSession(sid: string | undefined) {
   if (!sid) return null
   const db = await getDb()
   const rows = await db.query<Record<string, unknown>>(
-    `SELECT u.id, u.provider, u.handle, u.display_name AS "displayName", u.email, u.avatar_url AS "avatarUrl", u.bio, u.location, u.profile_url AS "profileUrl", u.created_at AS "createdAt"
+    `SELECT u.id, u.provider, u.handle, u.display_name AS "displayName", u.email, u.avatar_url AS "avatarUrl", u.bio, u.location, u.profile_url AS "profileUrl", u.created_at AS "createdAt", u.prefs, u.onboarded_at AS "onboardedAt"
      FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = $1 AND s.expires_at > now()`,
     [sid],
   )

@@ -334,7 +334,7 @@ function tokenize(line: string) {
   if (/^\s*(\/\/|#|>|\/\*)/.test(line)) return [{ t: line, c: '#6b7280' }]
   return line.split(/('[^']*'|"[^"]*"|\b\d+\b|\w+)/).filter(Boolean).map((t) => ({
     t,
-    c: /^['"]/.test(t) ? '#86efac' : /^\d+$/.test(t) ? '#fdba74' : KW.test(t) ? '#c4b5fd' : /^[A-Z]/.test(t) ? '#93c5fd' : '#e5e7eb',
+    c: /^['"]/.test(t) ? '#86efac' : /^\d+$/.test(t) ? '#fdba74' : KW.test(t) ? '#93c5fd' : /^[A-Z]/.test(t) ? '#93c5fd' : '#e5e7eb',
   }))
 }
 
@@ -344,7 +344,7 @@ function tokenize(line: string) {
  */
 export function VideoThumb({ video, className, big }: { video: Video; className?: string; big?: boolean }) {
   const t = video.thumb
-  const accent = t.accent ?? '#8b7cf8'
+  const accent = t.accent ?? '#0ea5e9'
   const lines = (t.editor ?? t.code ?? '').split('\n').slice(0, 7)
   return (
     <div className={cn('@container relative aspect-video overflow-hidden rounded-[10px] bg-[#0e1015]', className)}>
@@ -512,7 +512,7 @@ export function ServiceHeader({ title, subtitle, actions, children }: { icon?: L
     <header className="flex flex-col gap-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.045em] text-fg sm:text-[42px]">{title}</h1>
+          <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.03em] text-fg sm:text-[42px]">{title}</h1>
           <p className="mt-2 max-w-2xl text-[14px] text-muted">{subtitle}</p>
         </div>
         {actions && <div className="flex shrink-0 flex-wrap gap-2 sm:pt-1.5">{actions}</div>}
@@ -565,7 +565,7 @@ export function StatCard({ label, value, delta, note, dark, cube, spark, to }: {
         )}
       </div>
       <div className="mt-2 flex items-end justify-between gap-2">
-        <span className={cn('text-[26px] leading-none font-bold tracking-[-0.04em] tabular sm:text-[34px]', dark ? 'text-white' : 'text-fg')}>{value}</span>
+        <span className={cn('text-[26px] leading-none font-bold tracking-[-0.028em] tabular sm:text-[34px]', dark ? 'text-white' : 'text-fg')}>{value}</span>
         {spark && <Sparkline values={spark} className="hidden h-10 w-[45%] sm:block" />}
       </div>
       {(delta || note) && (
@@ -586,7 +586,7 @@ export function StatCard({ label, value, delta, note, dark, cube, spark, to }: {
   )
 }
 
-export const CUBE = { orange: '#ff9f1a', purple: '#8d6cf0', green: '#22c55e', blue: '#3b82f6', pink: '#ec4899' } as const
+export const CUBE = { orange: '#ff9f1a', navy: '#1d4ed8', green: '#22c55e', blue: '#3b82f6', pink: '#ec4899' } as const
 
 /** Petite carte latérale (colonne de droite façon Reddit). */
 export function SideCard({ title, children, action, className }: { title: ReactNode; children: ReactNode; action?: ReactNode; className?: string }) {
@@ -610,10 +610,10 @@ export const SERVICE_COLORS = {
   help: '#f2575a',
   jobs: '#22a3ee',
   certs: '#f0b232',
-  skills: '#8b7cf8',
+  skills: '#0ea5e9',
   videos: '#e5333b',
   learn: '#3ccf8e',
-  build: '#6a5ae6',
+  build: '#2563eb',
   templates: '#e879f9',
   projects: '#4f7cff',
   communities: '#fb923c',

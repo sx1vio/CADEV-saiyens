@@ -12,7 +12,7 @@
 **Équipe :** 5 personnes
 **Branche de travail :** `sylvio-frontend` (périmètre : frontend)
 **Dépôt :** `git@github.com:sx1vio/CADEV-saiyens.git`
-**Dates clés :** gel des P2 le 15 oct. · gel du code le 22 oct. · soumission le 24 oct. · date limite le 25 oct.
+**Dates clés :** gel des P2 le 15 oct. · gel du code le 22 oct. · ~~date limite le 25 oct.~~ **fin du concours repoussée au 15 nov.** (annoncé le 25/10) · démo web déployée obligatoire
 
 **Documents de référence :**
 - `Cahier_des_charges_v3_DevHub_Africa.pdf` — cahier des charges de référence (v3, 5 oct.)
@@ -139,6 +139,23 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 25/10/2026 — Refonte : bleu, sidebar, landing GitHub, vrais comptes, onboarding, Djeli
+- **Échange** — Sylvio : la fin du concours passe au 15/11 ; le jury testera un lien déployé, donc le web d'abord. Kotlin Multiplatform étudié (Android/desktop possibles, iOS impossible sans Mac, UI React à réécrire) et remis après le web.
+- **Fix** — Le front ne s'ouvrait pas depuis Windows (`ERR_CONNECTION_RESET`) : Vite n'écoutait que dans WSL. Lancement avec `npx vite --host 0.0.0.0 --port 5199`.
+- **Design** — Violet remplacé par le bleu (`#1d4ed8`). Barre latérale bleu nuit façon référence « Success » : l'entrée active prend la couleur du contenu et s'y fond par des coins inversés, compteurs, carte de série de Djeli en pied, flèches haut/bas quand la liste défile. Barre du haut : recherche, Créer, notifications, compte.
+- **Design** — Nouveau logo DevHub (chevrons `</>` et barre en S, dégradé bleu → turquoise) en SVG : barre latérale, en-têtes, connexion, favicon, icônes PWA.
+- **Design** — Typographie : Bricolage Grotesque (titres) + IBM Plex Sans (texte) + JetBrains Mono, toutes OFL et auto-hébergées ; Inter retiré. Accents : or kente (série, XP) et turquoise du logo (progrès).
+- **Design** — Verre façon Apple (`.glass-apple` sur `.glass-stage`) réservé au guide « Créer ». Liseré bleu à gauche des extraits de code supprimé. Point vert de connectivité masqué quand tout va bien.
+- **Front** — Landing sur la structure de github.com (annonce, héros centré + e-mail, produit à onglets, logos défilants en couleur, sections, appel final, pied de page à colonnes + lettre d'info), en sobre : 3 vraies captures, un quiz jouable du parcours web (Djeli réagit, XP), chiffres réels. Une première version (halos, verre, image de planète générée) jugée « AI slop » a été refaite.
+- **Front** — En-tête public façon GitHub : menus Plateforme / Carrière / Ressources / À propos (survol ou clic, Échap), recherche, Se connecter, S'inscrire.
+- **Back** — Comptes e-mail + mot de passe : `POST /api/auth/register`, `POST /api/auth/login` (scrypt, sel aléatoire, comparaison à temps constant, 10 tentatives / IP / 15 min), `PUT /api/me/prefs` (préférences de l'onboarding, suivent le compte), `PATCH /api/me`, `POST /api/newsletter`. Migration 2.
+- **Front** — Connexion et Inscription (`/connexion`, `/inscription`) : e-mail + mot de passe avec jauge de force, GitHub (OAuth ou import du profil public), GitLab/Google quand configurés, essai sans compte. `src/lib/account.ts` relie le compte serveur au profil de l'appareil.
+- **Front** — Onboarding en 6 étapes façon Duolingo (niveau, objectifs, domaines + compétences, rythme, pays, plan + règles). Le plan suit les parcours, rejoint les communautés et ouvre la bonne première page.
+- **Front** — Guide « Créer avec l'IA » : étapes propres à chaque projet (site 10, app web 11, mobile 12 avec permissions/hors ligne et stores, agent IA 12 avec évaluation et garde-fous). `src/platform/data/guide-tracks.ts`.
+- **Front** — Apprendre : série quotidienne, XP d'apprentissage, objectif du jour. Paramètres : apparence en premier (clair/sombre), simulateur réseau retiré.
+- **Design** — Djeli : 3 nouvelles poses Higgsfield (lecture, série, trophée), les 4 anciennes recolorées en bleu roi. Fix : l'image débordait de sa boîte (chevauchements).
+- **Test** — `frontend/scripts/qa/` : inscription → onboarding OK (compte et préférences en base, arrivée sur le parcours recommandé, 0 erreur JS) ; 28 routes à 1440 et 390 px sans erreur ni débordement ; 183 liens internes, 0 mort.
 
 ### 07/10/2026 — Backend : vraies données, vraies connexions, accueil rempli
 

@@ -10,7 +10,6 @@ import { Card, CardHeader, Field, Input, Textarea } from '@/components/ui/primit
 import { Segmented } from '@/components/ui/segmented'
 import { setLanguage, useLang, type AppLang } from '@/i18n'
 import { invalidate } from '@/lib/query'
-import { useNetwork, type SimMode } from '@/offline/network'
 import { api } from '@/services'
 import { resetLocalServer } from '@/services/local'
 import { useSession, useUI, type Theme } from '@/stores/app'
@@ -23,8 +22,6 @@ export default function Settings() {
   const me = useSession((s) => s.user)!
   const setUser = useSession((s) => s.setUser)
   const { theme, setTheme, startTour } = useUI()
-  const sim = useNetwork((s) => s.sim)
-  const setSim = useNetwork((s) => s.setSim)
   const [name, setName] = useState(me.displayName)
   const [bio, setBio] = useState(me.bio)
   const [busy, setBusy] = useState(false)
@@ -34,6 +31,46 @@ export default function Settings() {
     <Page className="max-w-3xl">
       <PageHeader title={t('settings.title')} />
       <div className="mt-6 flex flex-col gap-4">
+        <Card className="flex flex-col gap-5 p-5 sm:p-6">
+          <CardHeader title={t('settings.appearance')} />
+          <Row label={t('nav.theme')}>
+            <Segmented<Theme>
+              label={t('nav.theme')}
+              size="sm"
+              value={theme}
+              onChange={setTheme}
+              items={[
+                { value: 'light', label: t('nav.themeLight'), icon: <Sun /> },
+                { value: 'dark', label: t('nav.themeDark'), icon: <Moon /> },
+              ]}
+            />
+          </Row>
+          <Row label={t('settings.language')}>
+            <Segmented<AppLang>
+              label={t('settings.language')}
+              size="sm"
+              value={lang}
+              onChange={setLanguage}
+              items={[
+                { value: 'fr', label: 'Français', icon: <Languages /> },
+                { value: 'en', label: 'English' },
+              ]}
+            />
+          </Row>
+          <Row label={t('settings.tour')} hint={t('settings.tourText')}>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Map />}
+              onClick={() => {
+                nav('/')
+                startTour()
+              }}
+            >
+              {t('tour.restart')}
+            </Button>
+          </Row>
+        </Card>
         <Card className="flex flex-col gap-4 p-5 sm:p-6">
           <CardHeader title={t('settings.profile')} />
           <Field label={t('settings.displayName')} htmlFor="st-name">
@@ -64,62 +101,6 @@ export default function Settings() {
           </Button>
         </Card>
 
-        <Card className="flex flex-col gap-5 p-5 sm:p-6">
-          <CardHeader title={t('settings.appearance')} />
-          <Row label={t('nav.theme')}>
-            <Segmented<Theme>
-              label={t('nav.theme')}
-              size="sm"
-              value={theme}
-              onChange={setTheme}
-              items={[
-                { value: 'dark', label: t('nav.themeDark'), icon: <Moon /> },
-                { value: 'light', label: t('nav.themeLight'), icon: <Sun /> },
-              ]}
-            />
-          </Row>
-          <Row label={t('settings.language')}>
-            <Segmented<AppLang>
-              label={t('settings.language')}
-              size="sm"
-              value={lang}
-              onChange={setLanguage}
-              items={[
-                { value: 'fr', label: 'Français', icon: <Languages /> },
-                { value: 'en', label: 'English' },
-              ]}
-            />
-          </Row>
-          <Row label={t('network.simulator')} hint={t('network.simHint')}>
-            <Segmented<SimMode>
-              label={t('network.simulator')}
-              size="sm"
-              value={sim}
-              onChange={setSim}
-              items={[
-                { value: 'off', label: t('network.simOff') },
-                { value: 'offline', label: t('network.simOffline') },
-                { value: '2g', label: t('network.sim2gLabel') },
-              ]}
-            />
-          </Row>
-          <Row label={t('settings.tour')} hint={t('settings.tourText')}>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Map />}
-              onClick={() => {
-                nav('/')
-                startTour()
-              }}
-            >
-              {t('tour.restart')}
-            </Button>
-          </Row>
-          <Row label={t('settings.mode')}>
-            <span className="text-sm text-muted">{api.mode === 'local' ? t('settings.modeLocal') : t('settings.modeHttp')}</span>
-          </Row>
-        </Card>
 
         {api.mode === 'local' && me.isDemo && (
           <Card className="p-5 sm:p-6">

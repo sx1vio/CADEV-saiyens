@@ -101,6 +101,21 @@ const MIGRATIONS: { id: number; sql: string }[] = [
       );
     `,
   },
+  {
+    // Comptes par e-mail et mot de passe, préférences de l'onboarding (gardées côté serveur, suivent l'utilisateur)
+    id: 2,
+    sql: `
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS prefs JSONB NOT NULL DEFAULT '{}'::jsonb;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarded_at TIMESTAMPTZ;
+      CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower ON users (lower(email)) WHERE provider = 'email';
+
+      CREATE TABLE IF NOT EXISTS newsletter (
+        email       TEXT PRIMARY KEY,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `,
+  },
 ]
 
 let db: Db | null = null

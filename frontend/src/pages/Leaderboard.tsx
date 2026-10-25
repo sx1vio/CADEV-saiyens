@@ -41,7 +41,7 @@ export default function Leaderboard() {
               <StatCard key={r.country} dark label={`1er · ${countryName(r.country, lang).toLowerCase()}`} value={formatNumber(r.xp, lang)} spark={[2, 3, 3, 5, 4, 6, 7, 7, 9, 10]} delta={`${r.devs}`} note={`${t('leaderboard.devs').toLowerCase()} · Proof XP`} />
             ))}
             {data.slice(1, 4).map((r, i) => (
-              <StatCard key={r.country} label={`${i + 2}e · ${countryName(r.country, lang).toLowerCase()}`} value={formatNumber(r.xp, lang)} cube={[CUBE.orange, CUBE.purple, CUBE.green][i]} delta={`${r.resolved}`} note="questions résolues" />
+              <StatCard key={r.country} label={`${i + 2}e · ${countryName(r.country, lang).toLowerCase()}`} value={formatNumber(r.xp, lang)} cube={[CUBE.orange, CUBE.navy, CUBE.green][i]} delta={`${r.resolved}`} note="questions résolues" />
             ))}
           </div>
 

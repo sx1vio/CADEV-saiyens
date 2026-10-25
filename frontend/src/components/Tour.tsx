@@ -21,7 +21,6 @@ const STEPS: Step[] = [
   { key: 's2', targets: ['[data-tour="ask"]', '[data-tour="ask-mobile"]', '[data-tour="hero-ask"]'], pose: 'point' },
   { key: 's3', targets: ['[data-tour="projects"]'], pose: 'point' },
   { key: 's4', targets: ['[data-tour="passport"]', '[data-tour="xp"]'], pose: 'point' },
-  { key: 's5', targets: ['[data-tour="network"]'], pose: 'laptop' },
   { key: 's6', targets: ['[data-tour="palette"]'], pose: 'celebrate' },
 ]
 

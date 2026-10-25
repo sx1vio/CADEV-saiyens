@@ -118,7 +118,7 @@ function Root() {
     <>
       <NavProgress />
       <ScrollRestoration />
-      {location.pathname === '/bienvenue' || location.pathname === '/connexion' ? (
+      {location.pathname === '/bienvenue' || location.pathname === '/connexion' || location.pathname === '/inscription' ? (
         <Outlet />
       ) : user ? (
         <Suspense fallback={<PageSkeleton />}>
@@ -163,6 +163,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <IndexSwitch /> },
       { path: 'connexion', lazy: lazy('login') },
+      { path: 'inscription', lazy: lazy('login') },
       {
         path: 'bienvenue',
         lazy: async () => {
