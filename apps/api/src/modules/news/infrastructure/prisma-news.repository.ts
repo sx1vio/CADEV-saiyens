@@ -112,16 +112,19 @@ export class PrismaNewsRepository implements NewsRepository {
   }
 
   async purgeOlderThan(days: number): Promise<void> {
-    // Les versions restent : le radar affiche la dernière version de chaque projet.
+    // Les versions restent (le radar affiche la dernière de chaque projet), le catalogue Microsoft aussi
+    // (sa date est celle de la dernière modification d'une certification, pas une date de publication).
     await this.prisma.$executeRaw`
       DELETE FROM news_items
-      WHERE kind <> 'release' AND published_at < now() - make_interval(days => ${days}::int)`;
+      WHERE kind <> 'release' AND source <> 'microsoft-learn' AND published_at < now() - make_interval(days => ${days}::int)`;
   }
 
   async list(q: NewsQuery): Promise<NewsItem[]> {
     const where = [NOT_NOISE];
     if (q.category) where.push(Prisma.sql`category = ${q.category}`);
+    // Emplois et certifications ont leurs écrans : ils n'entrent pas dans le fil sans filtre `kind`.
     if (q.kind) where.push(Prisma.sql`kind = ${q.kind}::"NewsKind"`);
+    else where.push(Prisma.sql`kind NOT IN ('job', 'cert')`);
     if (q.q) where.push(Prisma.sql`(title ILIKE ${`%${q.q}%`} OR summary ILIKE ${`%${q.q}%`})`);
     if (q.before) where.push(Prisma.sql`published_at < ${new Date(q.before)}`);
     const limit = Math.min(100, Math.max(1, q.limit ?? 30));

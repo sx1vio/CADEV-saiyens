@@ -17,11 +17,12 @@ import { LEVEL_LABEL, MARKET_CERTS, PLATFORM_CERTS } from '@/platform/data/certs
 import { usePlatform } from '@/platform/store';
 import type { CertLevel, MarketCert, PlatformCert } from '@/platform/types';
 import { CertBadge, Chips, SERVICE_COLORS, ServiceHeader, compact } from '@/platform/ui';
+import { LiveBoard } from '@/platform/LiveBoard';
 import { ProviderMark } from '@/platform/logos';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/stores/app';
 
-type View = 'gratuites' | 'payantes' | 'base' | 'mes-badges';
+type View = 'gratuites' | 'payantes' | 'base' | 'direct' | 'mes-badges';
 
 const LEVEL_TONE: Record<CertLevel, string> = {
   debutant: 'bg-success-soft text-success',
@@ -63,6 +64,7 @@ export default function Certifications() {
             { id: 'gratuites', label: 'Gratuites' },
             { id: 'payantes', label: 'Payantes' },
             { id: 'base', label: 'Base de données' },
+            { id: 'direct', label: 'En direct' },
             { id: 'mes-badges', label: `Mes badges${passed.length ? ` · ${passed.length}` : ''}` },
           ]}
         />
@@ -71,6 +73,7 @@ export default function Certifications() {
         {view === 'gratuites' && <FreeView />}
         {view === 'payantes' && <PaidView />}
         {view === 'base' && <Database />}
+        {view === 'direct' && <LiveBoard kind="cert" title="Catalogue officiel Microsoft Learn" />}
         {view === 'mes-badges' && <MyBadges certs={passed} />}
       </div>
     </div>

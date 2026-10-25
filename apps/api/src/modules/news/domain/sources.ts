@@ -596,6 +596,62 @@ export const RELEASE_REPOS = [
   'ollama/ollama',
 ];
 
+/**
+ * Offres d'emploi publiées par les entreprises elles-mêmes, via l'API publique de leur outil de
+ * recrutement (Greenhouse, Ashby). Aucune clé, aucun scraping.
+ */
+export interface JobBoard {
+  id: string;
+  name: string;
+  ats: 'greenhouse' | 'ashby';
+  slug: string;
+  africa?: boolean;
+}
+
+export const JOB_BOARDS: JobBoard[] = [
+  { id: 'jumia', name: 'Jumia', ats: 'greenhouse', slug: 'jumia', africa: true },
+  { id: 'moniepoint', name: 'Moniepoint', ats: 'greenhouse', slug: 'moniepoint', africa: true },
+  { id: 'andela', name: 'Andela', ats: 'ashby', slug: 'andela', africa: true },
+  { id: 'cloudflare', name: 'Cloudflare', ats: 'greenhouse', slug: 'cloudflare' },
+  { id: 'gitlab', name: 'GitLab', ats: 'greenhouse', slug: 'gitlab' },
+  { id: 'datadog', name: 'Datadog', ats: 'greenhouse', slug: 'datadog' },
+  { id: 'vercel', name: 'Vercel', ats: 'greenhouse', slug: 'vercel' },
+  { id: 'elastic', name: 'Elastic', ats: 'greenhouse', slug: 'elastic' },
+  { id: 'mongodb', name: 'MongoDB', ats: 'greenhouse', slug: 'mongodb' },
+  { id: 'anthropic', name: 'Anthropic', ats: 'greenhouse', slug: 'anthropic' },
+  { id: 'stripe', name: 'Stripe', ats: 'greenhouse', slug: 'stripe' },
+  { id: 'twilio', name: 'Twilio', ats: 'greenhouse', slug: 'twilio' },
+  { id: 'linear', name: 'Linear', ats: 'ashby', slug: 'linear' },
+];
+
+/** Annonces officielles de nouvelles certifications et formations (blogs des éditeurs). */
+export const CERT_FEEDS: FeedSource[] = [
+  {
+    id: 'aws-training',
+    name: 'AWS Training and Certification',
+    url: 'https://aws.amazon.com/blogs/training-and-certification/feed/',
+    homepage: 'https://aws.amazon.com/blogs/training-and-certification/',
+    category: 'cloud',
+    lang: 'en',
+  },
+  {
+    id: 'cisco-learning',
+    name: 'Cisco Learning',
+    url: 'https://blogs.cisco.com/learning/feed',
+    homepage: 'https://blogs.cisco.com/learning',
+    category: 'cloud',
+    lang: 'en',
+  },
+  {
+    id: 'linux-foundation-training',
+    name: 'Linux Foundation Training',
+    url: 'https://training.linuxfoundation.org/feed/',
+    homepage: 'https://training.linuxfoundation.org',
+    category: 'cloud',
+    lang: 'en',
+  },
+];
+
 export const CATEGORY_LABEL: Record<Category, string> = {
   ia: 'Intelligence artificielle',
   tech: 'Tech',

@@ -49,6 +49,22 @@ export const JOBS = {
     queue: { policy: 'exclusive' },
     cron: '5 * * * *',
   },
+  /** E1 : offres d'emploi à distance (Remotive, Jobicy), toutes les 6 h : Remotive limite l'accès à 4 requêtes par jour. */
+  newsIngestJobs: {
+    name: 'news.ingest-jobs',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 120 },
+    queue: { policy: 'exclusive' },
+    cron: '10 */6 * * *',
+  },
+  /** E1 : catalogue de certifications Microsoft Learn, une fois par jour. */
+  newsIngestCerts: {
+    name: 'news.ingest-certs',
+    payload: z.object({}),
+    options: { retryLimit: 0, expireInSeconds: 120 },
+    queue: { policy: 'exclusive' },
+    cron: '20 4 * * *',
+  },
   /** Y1, Y5 : sonde chaque service Systalink toutes les 5 minutes ; écrit status_checks. */
   statusCheck: {
     name: 'status.check',

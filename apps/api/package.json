@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "dev:worker": "nest start --watch --entryFile worker",
+    "dev:worker": "PROCESS_ROLE=worker nest start --watch --entryFile worker",
     "ai:try": "tsx src/modules/ai/cli.ts",
     "build": "prisma generate && nest build",
     "start": "node dist/main.js",

@@ -1,7 +1,14 @@
 import { diverse } from '../domain/diversity';
 import type { LangFilter, NewsItem, NewsQuery } from '../domain/news-item';
 import type { NewsRepository } from '../domain/ports';
-import { CATEGORY_LABEL, CHANNELS, FEEDS, type Category } from '../domain/sources';
+import {
+  CATEGORY_LABEL,
+  CERT_FEEDS,
+  CHANNELS,
+  FEEDS,
+  JOB_BOARDS,
+  type Category,
+} from '../domain/sources';
 
 const HOME_CATEGORIES: Category[] = [
   'ia',
@@ -78,7 +85,7 @@ export class ReadNews {
       repos,
       releases,
       updatedAt: run?.finishedAt ?? null,
-      sources: FEEDS.length + CHANNELS.length + 4,
+      sources: FEEDS.length + CHANNELS.length + 9 + JOB_BOARDS.length + CERT_FEEDS.length,
     };
   }
 
@@ -121,6 +128,23 @@ export class ReadNews {
       api('devto', 'DEV Community', 'https://dev.to'),
       api('github-trending', 'GitHub · dépôts de la semaine', 'https://github.com'),
       api('github-releases', 'GitHub · nouvelles versions', 'https://github.com'),
+      api('remotive', 'Remotive · emplois', 'https://remotive.com'),
+      api('jobicy', 'Jobicy · emplois', 'https://jobicy.com'),
+      api('himalayas', 'Himalayas · emplois', 'https://himalayas.app'),
+      api('myjobmag', 'MyJobMag · emplois Nigeria', 'https://www.myjobmag.com'),
+      ...JOB_BOARDS.map((b) =>
+        api(
+          `jobs:${b.id}`,
+          `${b.name} · carrières`,
+          `https://${b.ats === 'ashby' ? 'jobs.ashbyhq.com' : 'boards.greenhouse.io'}/${b.slug}`,
+        ),
+      ),
+      api(
+        'microsoft-learn',
+        'Microsoft Learn · certifications',
+        'https://learn.microsoft.com/credentials/',
+      ),
+      ...CERT_FEEDS.map((f) => api(f.id, f.name, f.homepage)),
     ];
   }
 

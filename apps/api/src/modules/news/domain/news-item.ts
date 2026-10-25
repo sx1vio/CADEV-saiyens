@@ -1,6 +1,6 @@
 import type { Category } from './sources';
 
-export type NewsKind = 'article' | 'video' | 'hn' | 'devto' | 'repo' | 'release';
+export type NewsKind = 'article' | 'video' | 'hn' | 'devto' | 'repo' | 'release' | 'job' | 'cert';
 
 /** Élément collecté chez une source, avant enregistrement. */
 export interface CollectedNews {

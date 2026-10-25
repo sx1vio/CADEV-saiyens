@@ -1,13 +1,17 @@
 import Parser from 'rss-parser';
 import type { CollectedNews } from '../domain/news-item';
+import { isTechRole, opensToAfrica } from '../domain/jobs';
 import { pool } from '../domain/pool';
 import type { NewsCollectors } from '../domain/ports';
 import {
+  CERT_FEEDS,
   CHANNELS,
   FEEDS,
+  JOB_BOARDS,
   RELEASE_REPOS,
   type ChannelSource,
   type FeedSource,
+  type JobBoard,
 } from '../domain/sources';
 import { cleanText, decode, firstImage } from '../domain/text';
 
@@ -89,16 +93,17 @@ function authorOf(it: FeedItem): string | null {
   return null;
 }
 
-const recent = (d: Date) =>
-  Date.now() - d.getTime() < MAX_AGE_DAYS * 864e5 && d.getTime() <= Date.now() + 3600_000;
+const recent = (d: Date, days = MAX_AGE_DAYS) =>
+  Date.now() - d.getTime() < days * 864e5 && d.getTime() <= Date.now() + 3600_000;
 
-async function collectFeed(f: FeedSource): Promise<CollectedNews[]> {
+async function collectFeed(f: FeedSource, maxAgeDays = MAX_AGE_DAYS): Promise<CollectedNews[]> {
   const feed = await parser.parseString(await fetchText(f.url));
   return feed.items
     .map((it): CollectedNews | null => {
       const url = it.link?.trim();
       const date = new Date(it.isoDate ?? it.pubDate ?? Date.now());
-      if (!url || !it.title || Number.isNaN(date.getTime()) || !recent(date)) return null;
+      if (!url || !it.title || Number.isNaN(date.getTime()) || !recent(date, maxAgeDays))
+        return null;
       return {
         kind: 'article',
         source: f.id,
@@ -318,6 +323,282 @@ async function collectReleases(): Promise<CollectedNews[]> {
     .map((r) => r.value);
 }
 
+// Emplois à distance. Remotive impose le lien vers l'offre et la mention de la source, et limite
+// l'accès à 4 requêtes par jour (job toutes les 6 h, une seule requête). Jobicy : mêmes règles.
+interface RemotiveJob {
+  url: string;
+  title: string;
+  company_name: string;
+  company_logo?: string;
+  category: string;
+  tags: string[];
+  job_type: string;
+  publication_date: string;
+  candidate_required_location: string;
+  salary: string;
+  description: string;
+}
+
+async function collectRemotive(): Promise<CollectedNews[]> {
+  const data = await fetchJson<{ jobs: RemotiveJob[] }>(
+    'https://remotive.com/api/remote-jobs?category=software-dev',
+  );
+  return data.jobs
+    .filter((j) => opensToAfrica(j.candidate_required_location))
+    .map((j) => ({
+      kind: 'job' as const,
+      source: 'remotive',
+      sourceName: 'Remotive',
+      category: 'dev' as const,
+      lang: 'en' as const,
+      title: j.title,
+      summary: cleanText(j.description, 240),
+      url: j.url,
+      image: j.company_logo || null,
+      author: j.company_name,
+      // Date sans fuseau dans la réponse : on la lit en UTC.
+      publishedAt: new Date(`${j.publication_date}Z`),
+      extra: {
+        location: j.candidate_required_location,
+        jobType: j.job_type,
+        salary: j.salary || null,
+        tags: j.tags,
+      },
+    }));
+}
+
+interface JobicyJob {
+  url: string;
+  jobTitle: string;
+  companyName: string;
+  companyLogo?: string;
+  jobIndustry: string[];
+  jobType: string[];
+  jobGeo: string;
+  jobLevel: string;
+  jobExcerpt: string;
+  pubDate: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  salaryPeriod?: string;
+}
+
+async function collectJobicy(): Promise<CollectedNews[]> {
+  const data = await fetchJson<{ jobs: JobicyJob[] }>(
+    'https://jobicy.com/api/v2/remote-jobs?count=50&industry=dev',
+  );
+  return data.jobs
+    .filter((j) => opensToAfrica(j.jobGeo))
+    .map((j) => ({
+      kind: 'job' as const,
+      source: 'jobicy',
+      sourceName: 'Jobicy',
+      category: 'dev' as const,
+      lang: 'en' as const,
+      title: decode(j.jobTitle),
+      summary: cleanText(j.jobExcerpt, 240),
+      url: j.url,
+      image: j.companyLogo || null,
+      author: decode(j.companyName),
+      publishedAt: new Date(j.pubDate),
+      extra: {
+        location: j.jobGeo.replace(/\s+/g, ' ').trim(),
+        jobType: j.jobType.join(', ').toLowerCase(),
+        level: j.jobLevel,
+        salary: j.salaryMin
+          ? `${j.salaryMin}-${j.salaryMax ?? j.salaryMin} ${j.salaryCurrency ?? ''}/${j.salaryPeriod ?? ''}`.trim()
+          : null,
+        tags: j.jobIndustry,
+      },
+    }));
+}
+
+// Offres publiées par les entreprises sur leur propre page carrières (Greenhouse, Ashby).
+interface BoardJob {
+  title: string;
+  location: string;
+  url: string;
+  publishedAt: Date;
+  extra?: Record<string, unknown>;
+}
+
+async function boardJobs(b: JobBoard): Promise<BoardJob[]> {
+  if (b.ats === 'greenhouse') {
+    const d = await fetchJson<{
+      jobs: {
+        title: string;
+        absolute_url: string;
+        location: { name: string };
+        first_published?: string;
+        updated_at: string;
+      }[];
+    }>(`https://boards-api.greenhouse.io/v1/boards/${b.slug}/jobs`);
+    return d.jobs.map((j) => ({
+      title: j.title,
+      location: j.location.name,
+      url: j.absolute_url,
+      publishedAt: new Date(j.first_published ?? j.updated_at),
+    }));
+  }
+  const d = await fetchJson<{
+    jobs: {
+      title: string;
+      location: string;
+      secondaryLocations?: { location: string }[];
+      jobUrl: string;
+      publishedAt: string;
+      isListed: boolean;
+      employmentType?: string;
+      workplaceType?: string;
+    }[];
+  }>(`https://api.ashbyhq.com/posting-api/job-board/${b.slug}`);
+  return d.jobs
+    .filter((j) => j.isListed)
+    .map((j) => ({
+      title: j.title,
+      location: [j.location, ...(j.secondaryLocations ?? []).map((s) => s.location)].join(', '),
+      url: j.jobUrl,
+      publishedAt: new Date(j.publishedAt),
+      extra: { jobType: j.employmentType, workplace: j.workplaceType },
+    }));
+}
+
+const PER_COMPANY = 12;
+
+async function collectBoard(b: JobBoard): Promise<CollectedNews[]> {
+  return (await boardJobs(b))
+    .filter((j) => isTechRole(j.title) && opensToAfrica(j.location))
+    .sort((a, c) => c.publishedAt.getTime() - a.publishedAt.getTime())
+    .slice(0, PER_COMPANY)
+    .map((j) => ({
+      kind: 'job' as const,
+      source: `jobs:${b.id}`,
+      sourceName: b.name,
+      category: 'dev' as const,
+      lang: 'en' as const,
+      title: decode(j.title),
+      summary: '',
+      url: j.url,
+      image: null,
+      author: b.name,
+      publishedAt: j.publishedAt,
+      extra: { location: j.location, african: !!b.africa, ...j.extra },
+    }));
+}
+
+// Himalayas : offres à distance, avec les pays autorisés (liste vide = partout).
+interface HimalayasJob {
+  title: string;
+  excerpt: string;
+  companyName: string;
+  companyLogo: string;
+  employmentType: string;
+  minSalary: number | null;
+  maxSalary: number | null;
+  currency: string | null;
+  locationRestrictions: string[];
+  categories: string[];
+  guid: string;
+  pubDate: number;
+}
+
+async function collectHimalayas(): Promise<CollectedNews[]> {
+  const data = await fetchJson<{ jobs: HimalayasJob[] }>(
+    'https://himalayas.app/jobs/api?limit=100',
+  );
+  return data.jobs
+    .filter(
+      (j) =>
+        isTechRole(j.title) &&
+        (j.locationRestrictions.length === 0 || j.locationRestrictions.some(opensToAfrica)),
+    )
+    .map((j) => ({
+      kind: 'job' as const,
+      source: 'himalayas',
+      sourceName: 'Himalayas',
+      category: 'dev' as const,
+      lang: 'en' as const,
+      title: decode(j.title),
+      summary: cleanText(j.excerpt, 240),
+      // Lien vers la fiche Himalayas, comme l'exigent ses conditions d'utilisation.
+      url: j.guid,
+      image: j.companyLogo || null,
+      author: j.companyName,
+      publishedAt: new Date(j.pubDate * 1000),
+      extra: {
+        location: j.locationRestrictions.join(', ') || 'Worldwide',
+        jobType: j.employmentType,
+        salary: j.minSalary
+          ? `${j.minSalary}-${j.maxSalary ?? j.minSalary} ${j.currency ?? ''}`.trim()
+          : null,
+        tags: j.categories.slice(0, 3),
+      },
+    }));
+}
+
+// MyJobMag : offres au Nigeria, flux public. On ne garde que les métiers du numérique.
+async function collectMyJobMag(): Promise<CollectedNews[]> {
+  const feed = await parser.parseString(await fetchText('https://www.myjobmag.com/jobsxml.xml'));
+  return feed.items
+    .filter((it) => it.link && it.title && isTechRole(it.title))
+    .map((it) => ({
+      kind: 'job' as const,
+      source: 'myjobmag',
+      sourceName: 'MyJobMag',
+      category: 'dev' as const,
+      lang: 'en' as const,
+      title: decode(it.title!).trim(),
+      summary: cleanText(it.contentSnippet || it.content, 240),
+      url: it.link!.trim(),
+      image: null,
+      author: null,
+      publishedAt: new Date(it.isoDate ?? it.pubDate ?? Date.now()),
+      extra: { location: 'Nigeria', african: true },
+    }));
+}
+
+// Certifications : catalogue officiel Microsoft Learn (API publique, sans clé).
+interface MsCertification {
+  title: string;
+  subtitle: string;
+  url: string;
+  icon_url: string;
+  last_modified: string;
+  certification_type: string;
+  exams: string[];
+  levels: string[];
+  roles: string[];
+}
+
+async function collectMicrosoftCertifications(): Promise<CollectedNews[]> {
+  const data = await fetchJson<{ certifications: MsCertification[] }>(
+    'https://learn.microsoft.com/api/catalog/?type=certifications&locale=en-us',
+  );
+  return data.certifications
+    .filter((c) => !/has been retired/i.test(c.subtitle))
+    .map((c) => ({
+      kind: 'cert' as const,
+      source: 'microsoft-learn',
+      sourceName: 'Microsoft Learn',
+      category: 'cloud' as const,
+      lang: 'en' as const,
+      title: decode(c.title),
+      summary: cleanText(c.subtitle, 240),
+      // Le suffixe ?WT.mc_id=… est un marqueur de suivi de l'API, inutile pour le lien.
+      url: c.url.split('?')[0]!,
+      image: c.icon_url,
+      author: 'Microsoft',
+      publishedAt: new Date(c.last_modified),
+      extra: {
+        certificationType: c.certification_type,
+        levels: c.levels,
+        roles: c.roles,
+        exams: c.exams.length,
+      },
+    }));
+}
+
 export class HttpNewsCollectors implements NewsCollectors {
   feeds() {
     return [
@@ -333,6 +614,27 @@ export class HttpNewsCollectors implements NewsCollectors {
     return [
       { source: 'github-trending', run: collectTrendingRepos },
       { source: 'github-releases', run: collectReleases },
+    ];
+  }
+
+  jobs() {
+    return [
+      { source: 'remotive', run: collectRemotive },
+      { source: 'jobicy', run: collectJobicy },
+      { source: 'himalayas', run: collectHimalayas },
+      { source: 'myjobmag', run: collectMyJobMag },
+      ...JOB_BOARDS.map((b) => ({ source: `jobs:${b.id}`, run: () => collectBoard(b) })),
+    ];
+  }
+
+  certs() {
+    return [
+      { source: 'microsoft-learn', run: collectMicrosoftCertifications },
+      // Annonces des éditeurs : on garde 4 mois, ces billets sont rares.
+      ...CERT_FEEDS.map((f) => ({
+        source: f.id,
+        run: async () => (await collectFeed(f, 120)).map((i) => ({ ...i, kind: 'cert' as const })),
+      })),
     ];
   }
 

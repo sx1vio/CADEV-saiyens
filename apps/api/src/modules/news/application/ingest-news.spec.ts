@@ -32,6 +32,8 @@ function fakes() {
       { source: 'ko', run: async () => Promise.reject(new Error('HTTP 503')) },
     ],
     github: () => [{ source: 'gh', run: async () => [row('https://github.com/a/b')] }],
+    jobs: () => [{ source: 'jb', run: async () => [{ ...row('https://a.b/job'), kind: 'job' }] }],
+    certs: () => [],
     ogImage: async () => 'https://a.b/og.png',
   };
   return {
@@ -44,7 +46,7 @@ function fakes() {
 describe('IngestNews', () => {
   it('enregistre les sources qui répondent et journalise celles en échec', async () => {
     const { repo, ingest } = fakes();
-    const r = await ingest.execute({ github: false });
+    const r = await ingest.execute({ group: 'feeds' });
     expect(r).toMatchObject({
       sourcesOk: 1,
       items: 2,
@@ -61,8 +63,15 @@ describe('IngestNews', () => {
 
   it('la passe GitHub ne touche ni aux images ni à la purge', async () => {
     const { repo, ingest } = fakes();
-    expect((await ingest.execute({ github: true })).items).toBe(1);
+    expect((await ingest.execute({ group: 'github' })).items).toBe(1);
     expect(repo.missingImages).not.toHaveBeenCalled();
+    expect(repo.purgeOlderThan).not.toHaveBeenCalled();
+  });
+
+  it('la passe emplois enregistre les offres sans purge ni images', async () => {
+    const { repo, ingest } = fakes();
+    expect(await ingest.execute({ group: 'jobs' })).toMatchObject({ sourcesOk: 1, items: 1 });
+    expect(repo.upsert).toHaveBeenCalledWith([expect.objectContaining({ kind: 'job' })]);
     expect(repo.purgeOlderThan).not.toHaveBeenCalled();
   });
 });
