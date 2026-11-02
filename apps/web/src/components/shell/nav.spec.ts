@@ -18,6 +18,7 @@ describe('isEcosystemPreview (ADR-0020)', () => {
       '/emplois',
       '/emplois/42',
       '/apprendre',
+      '/certifications',
       '/creer',
     ]) {
       expect(isEcosystemPreview(p)).toBe(false);

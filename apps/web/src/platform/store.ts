@@ -10,6 +10,10 @@ export interface CertResult {
   score: number;
   passed: boolean;
   at: string;
+  /** Code de vérification du certificat, posé à la réussite */
+  code?: string;
+  /** Dernière tentative (réussie ou non) : délai avant la suivante */
+  lastAttemptAt?: string;
 }
 
 interface Persisted {
@@ -191,10 +195,20 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
   recordCert: (certId, score, passScore) =>
     set((s) => {
       const prev = s.certResults[certId];
-      const next = { score, passed: score >= passScore, at: new Date().toISOString() };
-      // On garde le meilleur résultat obtenu
+      const now = new Date().toISOString();
+      const passed = score >= passScore;
+      const code =
+        prev?.code ??
+        (passed
+          ? `DH-${certId.split('-')[0]!.toUpperCase().slice(0, 4)}-${uuid().slice(0, 4).toUpperCase()}-${uuid().slice(0, 4).toUpperCase()}`
+          : undefined);
+      // On garde le meilleur résultat obtenu, et la date de la dernière tentative.
+      const best = prev && prev.score > score ? prev : { score, passed, at: now };
       return {
-        certResults: { ...s.certResults, [certId]: prev && prev.score > score ? prev : next },
+        certResults: {
+          ...s.certResults,
+          [certId]: { ...best, passed: best.passed || !!prev?.passed, code, lastAttemptAt: now },
+        },
       };
     }),
   completeLesson: (key, xp = 10) =>

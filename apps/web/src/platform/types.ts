@@ -70,6 +70,10 @@ export interface QuizQuestion {
   choices: string[];
   answer: number;
   explain: string;
+  /** Code à lire avant de répondre */
+  code?: string;
+  /** Index du thème dans le programme (syllabus) : score détaillé par thème */
+  topic?: number;
 }
 
 /** Certification de la plateforme : gratuite, examen en ligne, badge vérifiable. */
@@ -78,36 +82,52 @@ export interface PlatformCert {
   title: string;
   track: string;
   level: CertLevel;
+  /** Durée de l'examen (chronomètre) */
   minutes: number;
+  /** Score minimal pour obtenir la certification, en % */
   passScore: number;
   skills: string[];
   description: string;
+  /** Thèmes évalués ; les questions y renvoient par `topic` */
   syllabus: string[];
+  /** Banque de questions ; chaque examen en tire `draw` au hasard */
   quiz: QuizQuestion[];
-  holders: number;
+  draw: number;
   color: string;
   /** Logo de la techno affiché dans le badge */
   logo?: string;
+  /** Cours DevHub qui prépare à l'examen (id de cours façon Duolingo) */
+  course?: string;
+  /** Langage des extraits de code des questions (coloration) */
+  codeLang?: string;
 }
 
-/** Fiche de la base de données des certifications du marché (éditeurs externes). */
+/** Certification officielle d'un éditeur : fiche vérifiée, lien vers la page officielle. */
 export interface MarketCert {
   id: string;
   title: string;
+  /** Code d'examen officiel (CLF-C02, AZ-900…) */
+  code?: string;
   provider: string;
   providerColor: string;
   domain: string;
   level: CertLevel;
   free: boolean;
-  /** Prix indicatif, à vérifier chez l'éditeur */
-  price?: string;
+  /** Prix public indicatif, à vérifier chez l'éditeur */
+  price: string;
+  /** Durée, nombre de questions, type d'épreuve */
   format: string;
+  passScore?: string;
   validity: string;
   url: string;
   language: string[];
   description: string;
-  /** Partenariat DevHub : préparation gratuite sur la plateforme */
+  /** Préparation officielle gratuite */
+  prep?: { label: string; url: string };
+  /** Cours ou parcours DevHub utile pour s'y préparer */
   prepPath?: string;
+  /** Point d'attention daté (nouvelle version, retrait…) */
+  note?: string;
 }
 
 /* ---------------- Skills et plugins IA ---------------- */

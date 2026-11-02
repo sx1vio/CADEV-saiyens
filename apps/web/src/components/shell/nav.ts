@@ -96,15 +96,7 @@ export const ALL_NAV = [
  * Les cours (/apprendre) et le guide (/creer) ont un contenu réel : seule la progression
  * reste sur l'appareil, ce qui ne justifie pas le bandeau.
  */
-const ECOSYSTEM_PREVIEW = [
-  '/communautes',
-  '/c/',
-  '/certifications',
-  '/skills',
-  '/post/',
-  '/publier',
-  '/templates',
-];
+const ECOSYSTEM_PREVIEW = ['/communautes', '/c/', '/skills', '/post/', '/publier', '/templates'];
 
 export const isEcosystemPreview = (path: string) =>
   ECOSYSTEM_PREVIEW.some((p) =>

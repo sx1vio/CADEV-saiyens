@@ -120,7 +120,7 @@ export const units: CourseUnit[] = [
           ['Un message d’erreur', 'Oui, utile'],
           ['Un mot de passe', 'Jamais'],
           ['Le code d’une fonction', 'Oui, sans secrets'],
-          ['Le fichier .env', 'Jamais'],
+          ['Le fichier .env', 'Jamais : il contient les secrets'],
         ]),
         vf(
           'Certaines entreprises interdisent d’envoyer leur code à des IA non approuvées.',

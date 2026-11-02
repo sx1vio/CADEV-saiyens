@@ -141,7 +141,7 @@ export const PATHS: LearnPath[] = [
     hours: 12,
     color: '#0ea5e9',
     icon: 'sparkles',
-    certId: 'dev-avec-ia',
+    certId: 'ia-usage-responsable',
     outcomes: [
       'Écrire des instructions de projet efficaces',
       'Découper une fonctionnalité pour un agent',
@@ -221,7 +221,7 @@ export const PATHS: LearnPath[] = [
     hours: 40,
     color: '#f0b232',
     icon: 'server',
-    certId: 'sql-pratique',
+    certId: 'sql-fondamentaux',
     outcomes: [
       'Concevoir une API REST claire',
       'Modéliser une base PostgreSQL',

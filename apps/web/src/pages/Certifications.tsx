@@ -7,16 +7,16 @@ import {
   GraduationCap,
   Search,
   Share2,
-  Users,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { ButtonLink } from '@/components/ui/button';
-import { LEVEL_LABEL, MARKET_CERTS, PLATFORM_CERTS } from '@/platform/data/certs';
+import { CHECKED_AT, LEVEL_LABEL, MARKET_CERTS, PLATFORM_CERTS } from '@/platform/data/certs';
+import { COURSE_META } from '@/platform/data/courses/meta';
 import { usePlatform } from '@/platform/store';
 import type { CertLevel, MarketCert, PlatformCert } from '@/platform/types';
-import { CertBadge, Chips, SERVICE_COLORS, ServiceHeader, compact } from '@/platform/ui';
+import { CertBadge, Chips, SERVICE_COLORS, ServiceHeader } from '@/platform/ui';
 import { LiveBoard } from '@/platform/LiveBoard';
 import { ProviderMark } from '@/platform/logos';
 import { cn } from '@/lib/utils';
@@ -73,7 +73,9 @@ export default function Certifications() {
         {view === 'gratuites' && <FreeView />}
         {view === 'payantes' && <PaidView />}
         {view === 'base' && <Database />}
-        {view === 'direct' && <LiveBoard kind="cert" title="Catalogue officiel Microsoft Learn" />}
+        {view === 'direct' && (
+          <LiveBoard kind="cert" title="Catalogue officiel Microsoft Learn, mis à jour en direct" />
+        )}
         {view === 'mes-badges' && <MyBadges certs={passed} />}
       </div>
     </div>
@@ -94,12 +96,12 @@ function FreeView() {
           {
             icon: Clock,
             title: 'Passe l’examen en ligne',
-            text: '15 à 25 minutes, sans chronomètre bloquant, tentatives illimitées. Ton meilleur score est gardé.',
+            text: '20 questions tirées dans une banque, 25 à 30 minutes chronométrées, 75 % pour réussir. Score détaillé par thème.',
           },
           {
             icon: BadgeCheck,
-            title: 'Montre un badge vérifiable',
-            text: 'Le badge apparaît sur ton profil, avec un lien public, et il est joint à tes candidatures.',
+            title: 'Montre ton badge',
+            text: 'Le badge apparaît sur ton Passport avec un code de vérification unique.',
           },
         ].map((s, i) => (
           <li key={s.title} className="flex gap-3 rounded-[10px] bg-surface-1 p-4">
@@ -118,8 +120,7 @@ function FreeView() {
       </ol>
       <h2 className="text-[16px] font-semibold text-fg">Certifications DevHub</h2>
       <p className="mt-0.5 text-[14px] text-muted">
-        Gratuites, en ligne, sans limite de tentatives. Le badge apparaît sur ton profil et dans tes
-        candidatures.
+        Gratuites, en ligne, chronométrées. En cas d’échec, nouvelle tentative une heure plus tard.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {PLATFORM_CERTS.map((c) => (
@@ -132,7 +133,9 @@ function FreeView() {
         ))}
       </div>
       <h2 className="mt-10 text-[16px] font-semibold text-fg">Gratuites chez les éditeurs</h2>
-      <p className="mt-0.5 text-[14px] text-muted">Des certificats reconnus qui ne coûtent rien.</p>
+      <p className="mt-0.5 text-[14px] text-muted">
+        Des certificats reconnus qui ne coûtent rien, chacun avec le lien vers sa page officielle.
+      </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MARKET_CERTS.filter((c) => c.free).map((c) => (
           <MarketCertCard key={c.id} cert={c} />
@@ -146,9 +149,10 @@ function PaidView() {
   return (
     <>
       <div className="rounded-[10px] bg-surface-1 p-4 text-[14px] text-muted">
-        <b className="text-fg">Préparation gratuite, examen payant chez l’éditeur.</b> Les prix sont
-        indicatifs et varient selon le pays : vérifie toujours sur le site officiel avant de
-        t’inscrire.
+        <b className="text-fg">Préparation gratuite, examen payant chez l’éditeur.</b> Fiches
+        relevées en {CHECKED_AT} sur les sites officiels. Les prix sont des prix publics indicatifs
+        en dollars US : ils varient selon le pays et changent, l’éditeur fait foi avant toute
+        inscription.
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MARKET_CERTS.filter((c) => !c.free).map((c) => (
@@ -196,11 +200,7 @@ function PlatformCertCard({
       <div className="mt-auto flex items-center gap-3 border-t border-line pt-3 text-[12px] text-subtle">
         <span className="inline-flex items-center gap-1">
           <Clock className="size-3.5" />
-          {cert.minutes} min · {cert.quiz.length} questions
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Users className="size-3.5" />
-          {compact(cert.holders)}
+          {cert.minutes} min · {Math.min(cert.draw, cert.quiz.length)} questions
         </span>
         {passed ? (
           <span className="ml-auto inline-flex items-center gap-1 font-medium text-success">
@@ -217,9 +217,12 @@ function PlatformCertCard({
   );
 }
 
+const COURSE_IDS = new Set(COURSE_META.map((c) => c.id));
+
 function MarketCertCard({ cert }: { cert: MarketCert }) {
   const saved = usePlatform((s) => s.savedCerts.includes(cert.id));
   const toggle = usePlatform((s) => s.toggle);
+  const setCourse = usePlatform((s) => s.setCourse);
   return (
     <article className="flex flex-col gap-2 rounded-[10px] bg-surface-1 p-4">
       <div className="flex items-center gap-2.5">
@@ -240,7 +243,14 @@ function MarketCertCard({ cert }: { cert: MarketCert }) {
           <Bookmark className="size-4" fill={saved ? 'currentColor' : 'none'} />
         </button>
       </div>
-      <h3 className="text-[14px] leading-snug font-semibold text-fg">{cert.title}</h3>
+      <h3 className="text-[14px] leading-snug font-semibold text-fg">
+        {cert.title}
+        {cert.code && (
+          <span className="ml-1.5 rounded-[5px] bg-surface-3 px-1.5 py-0.5 font-mono text-[11.5px] font-medium text-muted">
+            {cert.code}
+          </span>
+        )}
+      </h3>
       <div className="flex flex-wrap items-center gap-1.5">
         <LevelPill level={cert.level} />
         <span
@@ -256,24 +266,47 @@ function MarketCertCard({ cert }: { cert: MarketCert }) {
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[12.5px]">
         <dt className="text-subtle">Format</dt>
         <dd className="text-fg">{cert.format}</dd>
+        {cert.passScore && (
+          <>
+            <dt className="text-subtle">Pour réussir</dt>
+            <dd className="text-fg">{cert.passScore}</dd>
+          </>
+        )}
         <dt className="text-subtle">Validité</dt>
         <dd className="text-fg">{cert.validity}</dd>
       </dl>
+      {cert.note && (
+        <p className="rounded-[6px] bg-warning-soft px-2 py-1 text-[12px] font-medium text-warning">
+          {cert.note}
+        </p>
+      )}
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
         {cert.prepPath && (
           <ButtonLink
-            to={`/apprendre/${cert.prepPath}`}
+            to={COURSE_IDS.has(cert.prepPath) ? '/apprendre' : `/apprendre/${cert.prepPath}`}
+            onClick={() => COURSE_IDS.has(cert.prepPath!) && setCourse(cert.prepPath!)}
             variant="secondary"
             size="sm"
             icon={<GraduationCap />}
           >
-            Se préparer
+            Se préparer sur DevHub
           </ButtonLink>
+        )}
+        {cert.prep && (
+          <a
+            href={cert.prep.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-3 text-sm font-semibold text-fg hover:bg-surface-2"
+          >
+            {cert.prep.label}
+            <ExternalLink className="size-3.5" />
+          </a>
         )}
         <a
           href={cert.url}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-3 text-sm font-semibold text-accent-text hover:bg-surface-2"
         >
           Site officiel
@@ -304,7 +337,7 @@ function Database() {
     }));
     const market = MARKET_CERTS.map((c) => ({
       id: c.id,
-      title: c.title,
+      title: c.code ? `${c.title} (${c.code})` : c.title,
       provider: c.provider,
       domain: c.domain,
       level: c.level,
@@ -443,7 +476,7 @@ function MyBadges({ certs }: { certs: PlatformCert[] }) {
         <Award className="mx-auto size-10 text-subtle" />
         <p className="mt-3 font-semibold text-fg">Pas encore de badge</p>
         <p className="mt-1 text-sm text-muted">
-          Passe une certification gratuite : 15 à 25 minutes, sans limite de tentatives.
+          Passe une certification DevHub gratuite : 20 questions, une demi-heure au plus.
         </p>
         <ButtonLink to="/certifications" variant="primary" className="mt-4">
           Voir les certifications
@@ -464,6 +497,9 @@ function MyBadges({ certs }: { certs: PlatformCert[] }) {
               Score {results[c.id]?.score} % ·{' '}
               {new Date(results[c.id]!.at).toLocaleDateString('fr-FR')}
             </p>
+            {results[c.id]?.code && (
+              <p className="mt-1 font-mono text-[12px] text-muted">{results[c.id]!.code}</p>
+            )}
           </div>
           <button
             type="button"
