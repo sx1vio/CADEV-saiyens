@@ -234,11 +234,8 @@ export interface LearnPath {
   outcomes: string[];
   modules: LearnModule[];
   certId?: string;
-  learners: number;
   /** Technos couvertes (logos) */
   stack: string[];
-  /** Auteur·rice du parcours */
-  author: string;
 }
 
 /* ---------------- Guide « Créer avec l'IA » ---------------- */

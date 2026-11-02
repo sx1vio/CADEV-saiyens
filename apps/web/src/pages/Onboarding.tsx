@@ -27,6 +27,7 @@ import { BrandLogo } from '@/components/brand';
 import { Djeli, type DjeliPose } from '@/components/djeli';
 import { errorText } from '@/components/domain';
 import { TagGrid, useTags } from '@/components/TagPicker';
+import { TimezoneSelect } from '@/components/TimezoneSelect';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/primitives';
 import { useLang } from '@/i18n';
@@ -34,6 +35,7 @@ import { COUNTRIES } from '@/lib/geo';
 import { invalidate, useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { PATHS } from '@/platform/data/learn';
+import { COURSE_META, courseMeta } from '@/platform/data/courses/meta';
 import { COMMUNITIES } from '@/platform/data/feed';
 import { usePlatform } from '@/platform/store';
 import { api, type AvailabilityStatus, type Lang, type User } from '@/services';
@@ -115,32 +117,71 @@ const RHYTHMS = [
   { min: 30, title: 'Intensif', text: '30 min par jour' },
 ];
 
-const STEPS: { q: string; hint: string; pose: DjeliPose }[] = [
-  {
+type StepId = 'level' | 'goals' | 'course' | 'domains' | 'rhythm' | 'help' | 'where' | 'plan';
+
+const STEP_COPY: Record<StepId, { q: string; hint: string; pose: DjeliPose }> = {
+  level: {
     q: 'Où en es-tu avec le code ?',
     hint: 'Pas de mauvaise réponse : on adapte tout le reste.',
     pose: 'wave',
   },
-  { q: 'Qu’est-ce qui t’amène ?', hint: 'Choisis tout ce qui compte pour toi.', pose: 'point' },
-  {
+  goals: {
+    q: 'Qu’est-ce qui t’amène ?',
+    hint: 'Choisis tout ce qui compte pour toi.',
+    pose: 'point',
+  },
+  course: {
+    q: 'Qu’est-ce que tu veux apprendre ?',
+    hint: 'Choisis un cours : des leçons de quelques minutes, des exercices corrigés tout de suite.',
+    pose: 'book',
+  },
+  domains: {
     q: 'Qu’est-ce qui t’attire ?',
     hint: 'On s’en sert pour tes parcours, tes communautés et ton fil.',
     pose: 'laptop',
   },
-  { q: 'À quel rythme ?', hint: 'Tu pourras le changer quand tu veux.', pose: 'streak' },
-  {
+  rhythm: {
+    q: 'À quel rythme ?',
+    hint: 'Ton objectif du jour. Tu pourras le changer quand tu veux.',
+    pose: 'streak',
+  },
+  help: {
+    q: 'Comment veux-tu aider ?',
+    hint: 'Les questions que tu sais résoudre arriveront directement chez toi.',
+    pose: 'laptop',
+  },
+  where: {
     q: 'D’où codes-tu ?',
     hint: 'Pour te présenter des devs et des offres proches de toi.',
     pose: 'wave',
   },
-  {
+  plan: {
     q: 'Voici ton plan.',
     hint: 'Dernière étape : les règles de la communauté.',
     pose: 'celebrate',
   },
-];
+};
 
-/** Onboarding en 6 étapes courtes, guidé par Djeli : niveau, objectifs, domaines, rythme, profil, plan. */
+/**
+ * Les étapes suivent le niveau : un débutant choisit un cours et un rythme ; un dev confirmé
+ * n'apprend pas ici, il dit seulement comment il veut aider.
+ */
+function flowFor(level: Level | null): StepId[] {
+  if (level === 'curious' || level === 'beginner')
+    return ['level', 'goals', 'course', 'rhythm', 'where', 'plan'];
+  if (level === 'senior') return ['level', 'goals', 'domains', 'help', 'where', 'plan'];
+  return ['level', 'goals', 'domains', 'rhythm', 'where', 'plan'];
+}
+
+const browserTz = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+};
+
+/** Onboarding en 6 étapes courtes, guidé par Djeli, qui s'adaptent au niveau choisi. */
 export default function Onboarding() {
   const { t } = useTranslation();
   const lang = useLang();
@@ -157,12 +198,15 @@ export default function Onboarding() {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [skillIds, setSkillIds] = useState<string[]>([]);
   const [filter, setFilter] = useState('');
+  const [course, setCourse] = useState<string | null>(null);
   const [rhythm, setRhythm] = useState(10);
   const [avail, setAvail] = useState<AvailabilityStatus>(me.availability.status);
   const [mission, setMission] = useState(me.availability.forMission);
   const [country, setCountry] = useState(me.country);
   const [city, setCity] = useState(me.city);
-  const [timezone, setTimezone] = useState(me.timezone);
+  const [timezone, setTimezone] = useState(
+    !me.timezone || me.timezone === 'UTC' ? browserTz() : me.timezone,
+  );
   const [languages, setLanguages] = useState<Lang[]>(me.languages.length ? me.languages : [lang]);
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -172,30 +216,30 @@ export default function Onboarding() {
   }, [passport]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const experienced = level === 'junior' || level === 'senior';
-  const canNext = [
-    !!level,
-    goals.length > 0,
-    domains.length > 0 && (!experienced || skillIds.length >= 3),
-    true,
-    !!country && languages.length > 0,
-    accepted,
-  ][step];
+  const learner = level === 'curious' || level === 'beginner';
+  const flow = flowFor(level);
+  const id = flow[step]!;
+  const canNext: boolean = {
+    level: !!level,
+    goals: goals.length > 0,
+    course: !!course,
+    domains: domains.length > 0 && (!experienced || skillIds.length >= 3),
+    rhythm: true,
+    help: true,
+    where: !!country && languages.length > 0,
+    plan: accepted,
+  }[id];
+  // Un dev confirmé n'apprend pas ici : l'objectif « Apprendre à coder » ne lui est pas proposé.
+  const goalChoices = level === 'senior' ? GOALS.filter((g) => g.id !== 'learn') : GOALS;
+  const chosenCourse = courseMeta(course);
 
   // Le plan découle des choix : parcours, communautés, première page.
   const plan = useMemo(() => {
-    const picked = DOMAINS.filter((d) => domains.includes(d.id));
+    const picked = DOMAINS.filter((d) =>
+      learner ? d.id === chosenCourse?.domain : domains.includes(d.id),
+    );
     const paths =
-      level === 'senior'
-        ? []
-        : [
-            ...new Set(
-              picked.map((d) =>
-                (level === 'curious' || level === 'beginner') && d.id === 'backend'
-                  ? 'dev-web'
-                  : d.path,
-              ),
-            ),
-          ].slice(0, 2);
+      level === 'senior' || learner ? [] : [...new Set(picked.map((d) => d.path))].slice(0, 2);
     const communities = [
       ...new Set([
         ...picked.map((d) => d.community),
@@ -203,18 +247,17 @@ export default function Onboarding() {
         ...(goals.includes('project') ? ['showcase', 'opensource'] : []),
       ]),
     ];
-    const first =
-      level === 'curious' && goals.includes('build-ai')
-        ? '/creer'
-        : paths.length && goals.includes('learn')
-          ? `/apprendre/${paths[0]}`
-          : goals.includes('job')
-            ? '/emplois'
-            : goals.includes('help')
-              ? '/sos'
-              : '/';
+    const first = learner
+      ? '/apprendre'
+      : paths.length && goals.includes('learn')
+        ? `/apprendre/${paths[0]}`
+        : goals.includes('job')
+          ? '/emplois'
+          : goals.includes('help')
+            ? '/sos'
+            : '/';
     return { paths, communities, first };
-  }, [domains, goals, level]);
+  }, [domains, goals, level, learner, chosenCourse]);
 
   const intent: NonNullable<User['intent']> =
     goals.includes('help') && experienced
@@ -256,7 +299,12 @@ export default function Onboarding() {
         ...profile,
         codeOfConductAcceptedAt: new Date().toISOString(),
       });
-      applyOnboarding({ enroll: plan.paths, join: plan.communities, dailyGoal: rhythm });
+      applyOnboarding({
+        enroll: plan.paths,
+        join: plan.communities,
+        dailyGoal: rhythm,
+        course: learner ? course : null,
+      });
       setUser(u);
       invalidate('');
       nav(plan.first, { replace: true });
@@ -266,7 +314,7 @@ export default function Onboarding() {
     }
   };
 
-  const s = STEPS[step];
+  const s = STEP_COPY[id];
   const toggle = <T,>(list: T[], v: T) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 
@@ -279,17 +327,17 @@ export default function Onboarding() {
           className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2"
           role="progressbar"
           aria-valuemin={1}
-          aria-valuemax={STEPS.length}
+          aria-valuemax={flow.length}
           aria-valuenow={step + 1}
-          aria-label={`Étape ${step + 1} sur ${STEPS.length}`}
+          aria-label={`Étape ${step + 1} sur ${flow.length}`}
         >
           <div
             className="h-full rounded-full bg-accent transition-[width] duration-500 ease-out"
-            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+            style={{ width: `${((step + 1) / flow.length) * 100}%` }}
           />
         </div>
         <span className="text-[13px] font-medium text-subtle tabular-nums">
-          {step + 1}/{STEPS.length}
+          {step + 1}/{flow.length}
         </span>
       </header>
 
@@ -311,13 +359,16 @@ export default function Onboarding() {
           </div>
 
           <div className="mt-6 flex flex-col gap-6">
-            {step === 0 && (
+            {id === 'level' && (
               <div className="grid gap-3 sm:grid-cols-2">
                 {LEVELS.map((l) => (
                   <Choice
                     key={l.id}
                     on={level === l.id}
-                    onClick={() => setLevel(l.id)}
+                    onClick={() => {
+                      setLevel(l.id);
+                      if (l.id === 'senior') setGoals((g) => g.filter((x) => x !== 'learn'));
+                    }}
                     className="items-center gap-4 p-4"
                   >
                     <Djeli pose={l.pose} size={56} eager />
@@ -330,15 +381,15 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 1 && (
+            {id === 'goals' && (
               <div className="grid gap-2.5 sm:grid-cols-2">
-                {GOALS.map((g) => (
+                {goalChoices.map((g) => (
                   <Choice
                     key={g.id}
                     on={goals.includes(g.id)}
                     onClick={() => setGoals(toggle(goals, g.id))}
                     className="items-center gap-3 px-4 py-3.5"
-                    check
+                    check="center"
                   >
                     <g.icon className="size-5 shrink-0 text-muted" />
                     <span className="text-[15px] font-medium text-fg">{g.title}</span>
@@ -347,7 +398,33 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 2 && (
+            {id === 'course' && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {COURSE_META.map((c) => (
+                  <Choice
+                    key={c.id}
+                    on={course === c.id}
+                    onClick={() => setCourse(c.id)}
+                    className="items-start gap-3.5 p-4"
+                  >
+                    <span
+                      className="grid size-12 shrink-0 place-items-center rounded-[14px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.18)]"
+                      style={{ backgroundColor: c.color }}
+                    >
+                      <c.icon className="size-6" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[16px] font-semibold text-fg">{c.title}</span>
+                      <span className="mt-0.5 block text-[13.5px] leading-snug text-muted">
+                        {c.forWho}
+                      </span>
+                    </span>
+                  </Choice>
+                ))}
+              </div>
+            )}
+
+            {id === 'domains' && (
               <>
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                   {DOMAINS.map((d) => (
@@ -395,27 +472,31 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 3 && (
+            {(id === 'rhythm' || id === 'help') && (
               <>
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                  {RHYTHMS.map((r) => (
-                    <Choice
-                      key={r.min}
-                      on={rhythm === r.min}
-                      onClick={() => setRhythm(r.min)}
-                      className="flex-col items-start gap-1 p-4"
-                    >
-                      <span className="font-display text-[28px] leading-none font-bold text-fg tabular-nums">
-                        {r.min}
-                      </span>
-                      <span className="text-[14px] font-semibold text-fg">{r.title}</span>
-                      <span className="text-[12.5px] text-muted">{r.text}</span>
-                    </Choice>
-                  ))}
-                </div>
+                {id === 'rhythm' && (
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {RHYTHMS.map((r) => (
+                      <Choice
+                        key={r.min}
+                        on={rhythm === r.min}
+                        onClick={() => setRhythm(r.min)}
+                        className="flex-col items-start gap-1 p-4"
+                      >
+                        <span className="font-display text-[28px] leading-none font-bold text-fg tabular-nums">
+                          {r.min}
+                        </span>
+                        <span className="text-[14px] font-semibold text-fg">{r.title}</span>
+                        <span className="text-[12.5px] text-muted">{r.text}</span>
+                      </Choice>
+                    ))}
+                  </div>
+                )}
                 {experienced && (
                   <div className="flex flex-col gap-3">
-                    <h2 className="text-[16px] font-semibold text-fg">Pour aider les autres</h2>
+                    {id === 'rhythm' && (
+                      <h2 className="text-[16px] font-semibold text-fg">Pour aider les autres</h2>
+                    )}
                     <div className="grid gap-2.5 sm:grid-cols-3">
                       {(
                         [
@@ -456,7 +537,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 4 && (
+            {id === 'where' && (
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Pays" htmlFor="ob-country">
@@ -491,11 +572,7 @@ export default function Onboarding() {
                   </Field>
                 </div>
                 <Field label="Fuseau horaire" htmlFor="ob-tz">
-                  <Input
-                    id="ob-tz"
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                  />
+                  <TimezoneSelect id="ob-tz" value={timezone} onChange={setTimezone} />
                 </Field>
                 <Field label="Langues dans lesquelles tu peux échanger">
                   <div className="flex gap-2">
@@ -505,7 +582,7 @@ export default function Onboarding() {
                         on={languages.includes(l)}
                         onClick={() => setLanguages(toggle(languages, l))}
                         className="items-center px-5 py-3"
-                        check
+                        check="center"
                       >
                         <span className="text-[15px] font-medium text-fg">
                           {l === 'fr' ? 'Français' : 'English'}
@@ -517,9 +594,16 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 5 && (
+            {id === 'plan' && (
               <>
                 <ol className="flex flex-col divide-y divide-line overflow-hidden rounded-[18px] border border-line-strong">
+                  {learner && chosenCourse && (
+                    <PlanRow
+                      icon={chosenCourse.icon}
+                      title={`Cours « ${chosenCourse.title} »`}
+                      text={`Des leçons de quelques minutes, objectif ${rhythm} min par jour. Ta première leçon t’attend.`}
+                    />
+                  )}
                   {plan.paths.map((id) => {
                     const p = PATHS.find((x) => x.id === id)!;
                     return (
@@ -600,7 +684,7 @@ export default function Onboarding() {
             >
               Retour
             </Button>
-            {step < STEPS.length - 1 ? (
+            {step < flow.length - 1 ? (
               <Button
                 variant="primary"
                 size="lg"
@@ -657,7 +741,8 @@ function Choice({
   onClick: () => void;
   children: ReactNode;
   className?: string;
-  check?: boolean;
+  /** `true` : coche en coin ; `'center'` : coche centrée verticalement (pastilles sur une ligne) */
+  check?: boolean | 'center';
 }) {
   return (
     <button
@@ -670,6 +755,8 @@ function Choice({
           ? 'border-accent bg-accent-soft'
           : 'border-line-strong bg-canvas hover:border-[color-mix(in_oklab,var(--accent),transparent_55%)]',
         className,
+        // Place réservée à la coche en coin, après className pour que le padding ne la recouvre pas.
+        check && 'pr-10',
       )}
     >
       {children}
@@ -677,7 +764,8 @@ function Choice({
         <span
           aria-hidden
           className={cn(
-            'absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full transition-colors',
+            'absolute right-2.5 grid size-5 place-items-center rounded-full transition-colors',
+            check === 'center' ? 'top-1/2 -translate-y-1/2' : 'top-2.5',
             on ? 'bg-accent text-white' : 'border border-line-strong',
           )}
         >

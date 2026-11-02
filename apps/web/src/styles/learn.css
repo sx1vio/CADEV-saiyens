@@ -1,0 +1,208 @@
+/* Apprendre façon Duolingo : boutons en relief, retours animés, chemin des leçons. */
+
+/* Bouton en relief : l'ombre dure sous le bouton s'écrase à l'appui. */
+.lx-3d {
+  --lx-depth: 4px;
+  --lx-edge: color-mix(in oklab, var(--line-strong), black 12%);
+  box-shadow: 0 var(--lx-depth) 0 var(--lx-edge);
+  transition:
+    transform 90ms ease-out,
+    box-shadow 90ms ease-out,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.lx-3d:active:not(:disabled) {
+  transform: translateY(var(--lx-depth));
+  box-shadow: 0 0 0 var(--lx-edge);
+}
+.lx-3d:disabled {
+  cursor: not-allowed;
+}
+
+/* Choix sélectionné : bord et relief bleus. */
+.lx-picked {
+  --lx-edge: color-mix(in oklab, var(--accent), black 25%);
+  border-color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+  color: var(--accent-text);
+}
+
+/* Bouton principal (Vérifier, Continuer) */
+.lx-primary {
+  --lx-edge: color-mix(in oklab, var(--accent), black 30%);
+  background: var(--accent);
+  color: white;
+}
+.lx-primary:disabled {
+  --lx-edge: color-mix(in oklab, var(--surface-3), black 8%);
+  background: var(--surface-3);
+  color: var(--subtle);
+}
+.lx-good {
+  --lx-edge: color-mix(in oklab, var(--success), black 30%);
+  background: var(--success);
+  color: white;
+}
+.lx-bad {
+  --lx-edge: color-mix(in oklab, var(--danger), black 30%);
+  background: var(--danger);
+  color: white;
+}
+
+/* Nœud du chemin */
+.lx-node {
+  --lx-depth: 7px;
+}
+.lx-node-current {
+  animation: lx-breathe 2.4s ease-in-out infinite;
+}
+
+/* Bulle « Commencer » au-dessus de la leçon en cours */
+.lx-bubble {
+  animation: lx-bob 1.6s ease-in-out infinite;
+}
+
+/* Feuille de correction qui monte du bas */
+.lx-sheet {
+  animation: lx-sheet-up 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+/* Mauvaise réponse : secousse ; bonne réponse : petit rebond */
+.lx-shake {
+  animation: lx-shake 380ms ease-in-out;
+}
+.lx-pop {
+  animation: lx-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+/* Changement d'exercice */
+.lx-enter {
+  animation: lx-enter 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Barre de progression : reflet qui glisse */
+.lx-progress-fill {
+  position: relative;
+  transition: width 500ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+.lx-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 3px 8px auto 8px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.35);
+}
+
+/* Confettis de fin de leçon */
+.lx-confetti {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: lx-confetti 1400ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+  animation-delay: var(--lx-delay, 0ms);
+}
+
+/* Compteur de série qui s'allume */
+.lx-flame {
+  animation: lx-pop 600ms cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+@keyframes lx-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+@keyframes lx-bob {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -6px);
+  }
+}
+@keyframes lx-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes lx-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(7px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+@keyframes lx-pop {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes lx-enter {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lx-confetti {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--lx-dx)), var(--lx-dy)) rotate(var(--lx-rot));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-node-current,
+  .lx-bubble,
+  .lx-sheet,
+  .lx-shake,
+  .lx-pop,
+  .lx-enter,
+  .lx-flame,
+  .lx-confetti {
+    animation: none;
+  }
+  .lx-bubble {
+    transform: translate(-50%, 0);
+  }
+  .lx-confetti {
+    display: none;
+  }
+}

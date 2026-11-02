@@ -149,6 +149,16 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 02/11/2026 — Contenu réel partout, onboarding selon le niveau, apprentissage façon Duolingo
+
+- **Demande de Sylvio** (captures de l'onboarding) : un dev confirmé n'a pas à choisir un rythme d'apprentissage ; un débutant doit avoir un parcours façon Duolingo selon ce qu'il veut apprendre ; les pastilles de langue cassent ; le fuseau horaire doit être une liste. Puis : de vraies certifications (officielles avec liens, et DevHub), de vraies offres d'emploi tenues par l'admin, un espace admin caché et sécurisé (pas accessible par `/admin` ni depuis le front), de vrais skills et plugins IA, « un vrai contenu partout », plateforme prête à être soumise.
+- Branche `sylvio-contenu` depuis `main`.
+- **Lancement local** : PostgreSQL et Mailpit dans Docker Desktop, `.env` local (non suivi), front sur le port 5199 (`APP_URL` aligné), Node 22 avec `npm_config_engine_strict=false` en attendant Node 24.
+- **Onboarding** (`pages/Onboarding.tsx`) : étapes selon le niveau. Débutant ou curieux : niveau, objectifs, **cours choisi**, rythme, profil, plan. Dev confirmé : pas d'objectif « Apprendre à coder », pas de rythme, une étape « Comment veux-tu aider ? » (disponibilité, missions). Dev avec quelques projets : domaines et compétences, rythme et disponibilité. Coche des pastilles décalée (plus de chevauchement avec « Français »), centrée sur les pastilles en ligne. **Fuseau horaire** : liste IANA groupée par région, Afrique en premier, avec le décalage UTC (`components/TimezoneSelect.tsx`), fuseau du navigateur par défaut.
+- **Apprendre façon Duolingo** : 6 cours (sites web, Python, Git et GitHub, SQL, Flutter, Créer avec l'IA), 4 unités de 3 leçons chacun, soit 72 leçons et environ 430 exercices rédigés (`platform/data/courses/`, chargés à la demande). Chaque leçon : une fiche de cours puis des exercices de 5 types (choix, vrai ou faux, code à trou, lignes à remettre dans l'ordre, association). `/apprendre` montre le chemin du cours en zigzag (leçon en cours qui pulse avec sa bulle, leçons verrouillées, trophée de fin d'unité, Djeli), la série, les XP et l'objectif du jour réglable. Lecteur plein écran `/lecon/:cours/:leçon` : barre de progression, compteur de bonnes réponses d'affilée, correction animée (secousse, rebond, feuille verte ou rouge avec l'explication), les erreurs reviennent en fin de leçon, raccourcis clavier (1-4, Entrée), écran de fin avec confettis, XP, précision et temps. Animations coupées si « réduire les animations » est actif.
+- Parcours approfondis gardés sous le chemin (« Pour aller plus loin ») ; auteurs fictifs et nombres d'apprenants inventés retirés.
+- Bandeau « contenus de démonstration » retiré de `/apprendre` et `/creer` (contenu réel, seule la progression reste sur l'appareil). La carte de série de la barre latérale suit l'objectif du jour réel.
+
 ### 25-26/10/2026 — Refonte bleue reportée dans le monorepo, comptes par e-mail dans l'API
 
 - PR #181 (emplois, certifications et skills collectés en direct) fusionnée dans `main`.

@@ -42,6 +42,8 @@ interface Persisted {
   /** XP d'apprentissage : 10 par leçon, 5 par bonne réponse de quiz */
   learnXp: number;
   enrolled: string[];
+  /** Cours façon Duolingo suivi en ce moment (choisi à l'onboarding ou sur /apprendre) */
+  course: string | null;
   /** Objectif quotidien d'apprentissage, en minutes (onboarding) */
   dailyGoal: number;
   guideTrack: BuildTrack | null;
@@ -75,7 +77,14 @@ interface Actions {
   toggleGuideCheck: (stepId: string, item: string) => void;
   resetGuide: () => void;
   /** Applique les choix de l'onboarding : parcours suivis, communautés rejointes, objectif du jour */
-  applyOnboarding: (o: { enroll: string[]; join: string[]; dailyGoal: number }) => void;
+  applyOnboarding: (o: {
+    enroll: string[];
+    join: string[];
+    dailyGoal: number;
+    course?: string | null;
+  }) => void;
+  setCourse: (id: string) => void;
+  setDailyGoal: (min: number) => void;
   publishJob: (j: Omit<Job, 'id' | 'applicants' | 'postedAt'>) => Job;
 }
 
@@ -97,6 +106,14 @@ export function selectStreak(s: { learnDays: string[] }) {
     d.setDate(d.getDate() - 1);
   }
   return n;
+}
+
+/** Minutes comptées par leçon terminée pour l'objectif du jour (une leçon dure 3 à 5 minutes). */
+export const MIN_PER_LESSON = 4;
+
+/** Objectif du jour atteint : leçons du jour × durée moyenne ≥ objectif choisi. */
+export function selectGoalReached(s: { lessonsToday: () => number; dailyGoal: number }) {
+  return s.lessonsToday() * MIN_PER_LESSON >= s.dailyGoal;
 }
 
 const DEFAULTS: Persisted = {
@@ -126,6 +143,7 @@ const DEFAULTS: Persisted = {
   learnDays: [],
   learnXp: 0,
   enrolled: [],
+  course: null,
   dailyGoal: 10,
   guideTrack: null,
   guideChecks: {},
@@ -226,12 +244,15 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
       };
     }),
   resetGuide: () => set({ guideChecks: {}, guideTrack: null }),
-  applyOnboarding: ({ enroll, join, dailyGoal }) =>
+  applyOnboarding: ({ enroll, join, dailyGoal, course }) =>
     set((s) => ({
       enrolled: [...new Set([...s.enrolled, ...enroll])],
       joined: [...new Set([...s.joined, ...join])],
       dailyGoal,
+      course: course ?? s.course,
     })),
+  setCourse: (id) => set({ course: id }),
+  setDailyGoal: (min) => set({ dailyGoal: min }),
   publishJob: (j) => {
     const job: Job = {
       ...j,
@@ -266,6 +287,7 @@ usePlatform.subscribe((s) => {
     learnDays: s.learnDays,
     learnXp: s.learnXp,
     enrolled: s.enrolled,
+    course: s.course,
     dailyGoal: s.dailyGoal,
     guideTrack: s.guideTrack,
     guideChecks: s.guideChecks,

@@ -13,7 +13,6 @@ const L = (
 export const PATHS: LearnPath[] = [
   {
     stack: ['HTML', 'CSS', 'JavaScript', 'React'],
-    author: 'grace-uwase',
     id: 'dev-web',
     title: 'Devenir développeur·se web',
     tagline: 'De ta première page HTML à une app React en ligne.',
@@ -21,7 +20,6 @@ export const PATHS: LearnPath[] = [
     hours: 60,
     color: '#4f7cff',
     icon: 'globe',
-    learners: 8420,
     certId: 'react-essentiel',
     outcomes: [
       'Construire des pages accessibles et responsives',
@@ -136,7 +134,6 @@ export const PATHS: LearnPath[] = [
   },
   {
     stack: ['Claude', 'Cursor', 'MCP', 'GitHub'],
-    author: 'mariam-k',
     id: 'dev-ia',
     title: 'Développer avec l’IA',
     tagline: 'Cadrer un agent de code, relire ses changements et livrer sans dette.',
@@ -144,7 +141,6 @@ export const PATHS: LearnPath[] = [
     hours: 12,
     color: '#0ea5e9',
     icon: 'sparkles',
-    learners: 11230,
     certId: 'dev-avec-ia',
     outcomes: [
       'Écrire des instructions de projet efficaces',
@@ -218,7 +214,6 @@ export const PATHS: LearnPath[] = [
   },
   {
     stack: ['Node.js', 'PostgreSQL', 'NestJS', 'Docker'],
-    author: 'ousmane-sow',
     id: 'backend-node',
     title: 'Backend avec Node.js',
     tagline: 'API REST, base de données, authentification et déploiement.',
@@ -226,7 +221,6 @@ export const PATHS: LearnPath[] = [
     hours: 40,
     color: '#f0b232',
     icon: 'server',
-    learners: 5310,
     certId: 'sql-pratique',
     outcomes: [
       'Concevoir une API REST claire',
@@ -292,7 +286,6 @@ export const PATHS: LearnPath[] = [
   },
   {
     stack: ['Linux', 'Docker', 'Kubernetes', 'GitHub Actions'],
-    author: 'thandi-d',
     id: 'cloud-devops',
     title: 'Cloud & DevOps',
     tagline: 'Linux, Docker, CI/CD et cloud : faire tourner la prod sereinement.',
@@ -300,7 +293,6 @@ export const PATHS: LearnPath[] = [
     hours: 45,
     color: '#f2575a',
     icon: 'container',
-    learners: 3980,
     certId: 'docker-deploiement',
     outcomes: [
       'Administrer un serveur Linux',
@@ -339,7 +331,6 @@ export const PATHS: LearnPath[] = [
   },
   {
     stack: ['Python', 'Pandas', 'PostgreSQL', 'Kaggle'],
-    author: 'amina-bello',
     id: 'data-ia',
     title: 'Data & ML avec Python',
     tagline: 'pandas, SQL, visualisation et premiers modèles.',
@@ -347,7 +338,6 @@ export const PATHS: LearnPath[] = [
     hours: 50,
     color: '#a3e635',
     icon: 'database',
-    learners: 4620,
     outcomes: [
       'Nettoyer des données avec pandas',
       'Écrire des requêtes SQL d’analyse',
@@ -385,7 +375,6 @@ export const PATHS: LearnPath[] = [
   },
   {
     stack: ['Flutter', 'Dart', 'Firebase', 'SQLite'],
-    author: 'je-hounkpatin',
     id: 'mobile-flutter',
     title: 'Mobile avec Flutter',
     tagline: 'Des apps rapides, même hors ligne et sur des téléphones modestes.',
@@ -393,7 +382,6 @@ export const PATHS: LearnPath[] = [
     hours: 40,
     color: '#3ccf8e',
     icon: 'smartphone',
-    learners: 3540,
     outcomes: [
       'Construire des écrans Flutter',
       'Gérer l’état',

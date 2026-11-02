@@ -9,10 +9,8 @@ import {
   Clock,
   Code2,
   FlaskConical,
-  GraduationCap,
   ListChecks,
   Rocket,
-  Users,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -23,9 +21,8 @@ import { LEVEL_LABEL, PLATFORM_CERTS } from '@/platform/data/certs';
 import { PATHS, lessonCount } from '@/platform/data/learn';
 import { usePlatform } from '@/platform/store';
 import type { LearnPath, Lesson } from '@/platform/types';
-import { CertBadge, PersonAvatar, SERVICE_COLORS, ServiceHeader, compact } from '@/platform/ui';
+import { CertBadge } from '@/platform/ui';
 import { BrandLogo, logoFor } from '@/platform/logos';
-import { person } from '@/platform/data/people';
 import { cn } from '@/lib/utils';
 import NotFound from './NotFound';
 
@@ -52,37 +49,29 @@ function useProgress(path: LearnPath) {
   return { n, total, pct: Math.round((n / total) * 100), done };
 }
 
-/** Catalogue des parcours. */
-export default function Learn() {
+/** Parcours approfondis (au-delà des cours pour débutants), affichés sous le chemin d'apprentissage. */
+export function PathsSection() {
   const enrolled = usePlatform((s) => s.enrolled);
   const mine = PATHS.filter((p) => enrolled.includes(p.id));
   return (
-    <div className="dh-page mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6">
-      <ServiceHeader
-        icon={GraduationCap}
-        color={SERVICE_COLORS.learn}
-        title="Apprendre"
-        subtitle="Des parcours gratuits, du premier HTML aux agents IA. Chaque parcours mène à une certification."
-      />
+    <section>
+      <h2 className="text-[20px] font-bold tracking-[-0.01em] text-fg">Pour aller plus loin</h2>
+      <p className="mt-1 text-[14px] text-muted">
+        Des parcours plus complets, avec projets, pour celles et ceux qui ont déjà les bases.
+      </p>
       {mine.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-[16px] font-semibold text-fg">Reprendre</h2>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {mine.map((p) => (
-              <ResumeCard key={p.id} path={p} />
-            ))}
-          </div>
-        </section>
-      )}
-      <section className="mt-8">
-        <h2 className="text-[16px] font-semibold text-fg">Tous les parcours</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PATHS.map((p) => (
-            <PathCard key={p.id} path={p} />
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {mine.map((p) => (
+            <ResumeCard key={p.id} path={p} />
           ))}
         </div>
-      </section>
-    </div>
+      )}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {PATHS.map((p) => (
+          <PathCard key={p.id} path={p} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -165,17 +154,9 @@ function PathCard({ path }: { path: LearnPath }) {
         ))}
       </ol>
       <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-[12px] text-subtle">
-        <span className="inline-flex items-center gap-1.5">
-          <PersonAvatar handle={path.author} size={16} />
-          {person(path.author).name}
-        </span>
         <span className="inline-flex items-center gap-1">
           <Clock className="size-3.5" />
           {path.hours} h
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Users className="size-3.5" />
-          {compact(path.learners)}
         </span>
         {cert && (
           <span className="ml-auto inline-flex items-center gap-1 text-fg">
@@ -238,14 +219,9 @@ function PathView({
           </h1>
           <p className="mt-1.5 max-w-2xl text-[14px] text-muted">{path.tagline}</p>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <PersonAvatar handle={path.author} size={20} />
-              par {person(path.author).name}
-            </span>
             <span>{LEVEL_LABEL[path.level]}</span>
             <span>{path.hours} heures</span>
             <span>{total} leçons</span>
-            <span>{compact(path.learners)} apprenants</span>
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button variant="primary" onClick={onStart}>

@@ -47,7 +47,7 @@ import {
 import { NetworkIndicator, OfflineBanner } from './network';
 import { Djeli } from '../djeli';
 import { BrandLogo } from '../brand';
-import { selectStreak, usePlatform } from '@/platform/store';
+import { selectGoalReached, selectStreak, usePlatform } from '@/platform/store';
 import * as Popover from '@radix-ui/react-popover';
 
 /* ================================================================
@@ -198,6 +198,7 @@ function SideItem({
 function LearnNudge({ onNavigate }: { onNavigate?: () => void }) {
   const streak = usePlatform(selectStreak);
   const today = usePlatform((s) => s.lessonsToday());
+  const reached = usePlatform(selectGoalReached);
   return (
     <Link
       to="/apprendre"
@@ -210,10 +211,14 @@ function LearnNudge({ onNavigate }: { onNavigate?: () => void }) {
           {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suite` : 'Lance ta série'}
         </p>
         <p className="mt-0.5 text-[11.5px] leading-snug text-white/70">
-          {today > 0 ? 'Objectif du jour atteint. Bravo !' : 'Une leçon de 10 min aujourd’hui ?'}
+          {reached
+            ? 'Objectif du jour atteint. Bravo !'
+            : today > 0
+              ? 'Encore une leçon pour ton objectif ?'
+              : 'Une leçon de quelques minutes aujourd’hui ?'}
         </p>
       </div>
-      <Djeli pose={today > 0 ? 'celebrate' : 'point'} size={58} className="-mt-6 -mr-1" />
+      <Djeli pose={reached ? 'celebrate' : 'point'} size={58} className="-mt-6 -mr-1" />
     </Link>
   );
 }

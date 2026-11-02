@@ -82,7 +82,8 @@ const pages = {
   watch: () => import('@/pages/Videos').then((m) => ({ default: m.Watch })),
   ytWatch: () => import('@/pages/Videos').then((m) => ({ default: m.YtWatch })),
   sources: () => import('@/pages/Sources'),
-  learn: () => import('@/pages/Learn'),
+  learn: () => import('@/pages/Course'),
+  lessonPlayer: () => import('@/pages/LessonPlayer'),
   learnPath: () => import('@/pages/Learn').then((m) => ({ default: m.PathPage })),
   lesson: () => import('@/pages/Learn').then((m) => ({ default: m.LessonPage })),
   build: () => import('@/pages/BuildGuide'),
@@ -137,7 +138,8 @@ function Root() {
   return (
     <>
       <ScrollRestoration />
-      {['/bienvenue', '/connexion', '/inscription'].includes(location.pathname) ? (
+      {['/bienvenue', '/connexion', '/inscription'].includes(location.pathname) ||
+      location.pathname.startsWith('/lecon/') ? (
         <Outlet />
       ) : user ? (
         <Suspense fallback={<PageSkeleton />}>
@@ -281,6 +283,7 @@ export const router = createBrowserRouter([
       { path: 'videos/:id', lazy: lazy('watch') },
       { path: 'sources', lazy: lazy('sources') },
       { path: 'apprendre', lazy: lazy('learn') },
+      { path: 'lecon/:courseId/:lessonId', lazy: lazy('lessonPlayer') },
       { path: 'apprendre/:pathId', lazy: lazy('learnPath') },
       { path: 'apprendre/:pathId/:lessonId', lazy: lazy('lesson') },
       { path: 'creer', lazy: lazy('build') },
