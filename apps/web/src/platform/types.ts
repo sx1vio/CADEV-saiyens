@@ -135,20 +135,29 @@ export interface MarketCert {
 export type AgentTool = 'claude' | 'codex' | 'antigravity' | 'cursor';
 export type SkillKind = 'skill' | 'plugin' | 'mcp' | 'rules' | 'prompt';
 
+export interface InstallSnippet {
+  /** Où coller ou lancer le code (« Terminal », « ~/.codex/config.toml »…) */
+  where: string;
+  code: string;
+  lang: string;
+}
+
 export interface AgentSkill {
   id: string;
   name: string;
   kind: SkillKind;
   tools: AgentTool[];
-  author: string;
-  summary: string;
-  readme: string;
+  /** Éditeur réel (Anthropic, Microsoft…) ou « DevHub » */
+  publisher: string;
+  /** Publié par l'éditeur officiel de l'outil ou du service */
+  official: boolean;
   category: string;
-  installs: number;
-  stars: number;
-  version: string;
-  updatedAt: string;
-  verified: boolean;
+  summary: string;
+  /** Présentation en Markdown : ce que ça fait, quand l'utiliser, précautions */
+  readme: string;
+  repo?: string;
+  docs?: string;
+  install: Partial<Record<AgentTool, InstallSnippet[]>>;
   files: { path: string; content: string }[];
 }
 
