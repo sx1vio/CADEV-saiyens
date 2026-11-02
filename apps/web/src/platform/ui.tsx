@@ -32,11 +32,10 @@ import { toast } from 'sonner';
 import { relativeTime, useLang } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { COMMUNITIES } from './data/feed';
-import { COMPANIES } from './data/jobs';
 import { person } from './data/people';
 import { usePlatform } from './store';
 import { BrandLogo, TechChip, logoFor } from './logos';
-import type { Company, Post, Template, Video } from './types';
+import type { Post, Template, Video } from './types';
 
 export const ICONS: Record<string, LucideIcon> = {
   sparkles: Sparkles,
@@ -462,33 +461,6 @@ export const LANG_COLOR: Record<string, string> = {
 };
 
 /* ---------------- Entreprises ---------------- */
-
-export function companyOf(slug: string): Company {
-  return COMPANIES.find((c) => c.slug === slug) ?? COMPANIES[0];
-}
-
-export function CompanyLogo({
-  slug,
-  size = 44,
-  className,
-}: {
-  slug: string;
-  size?: number;
-  className?: string;
-}) {
-  const c = companyOf(slug);
-  return (
-    <span
-      className={cn(
-        'grid shrink-0 place-items-center rounded-[10px] font-semibold text-white',
-        className,
-      )}
-      style={{ width: size, height: size, background: c.logoColor, fontSize: size * 0.36 }}
-    >
-      {c.logoText}
-    </span>
-  );
-}
 
 /* ---------------- Vidéos (YouTube) ---------------- */
 

@@ -18,6 +18,8 @@ services:
     ports: ['80:80', '443:443', '443:443/udp']
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:?domaine public manquant}
+      # Adresse de l'administration (ex. admin.devhub.africa) ; à reporter dans ADMIN_URL côté API.
+      ADMIN_ADDRESS: ${ADMIN_ADDRESS:-http://127.0.0.1:8081}
     volumes:
       - caddy_data:/data
       - caddy_config:/config

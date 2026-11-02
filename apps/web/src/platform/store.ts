@@ -1,18 +1,11 @@
 import { create } from 'zustand';
 import { storageGet, storageSet, uuid } from '@/lib/utils';
-import type { BuildTrack, Comment, Job, Post } from './types';
+import type { BuildTrack, Comment, Post } from './types';
 
 /**
  * État personnel sur les services de l'écosystème, gardé sur l'appareil (fonctionne hors ligne).
  * Il sera synchronisé avec l'API quand le serveur exposera ces services.
  */
-export interface Application {
-  jobId: string;
-  at: string;
-  message: string;
-  status: 'envoyee' | 'vue' | 'entretien';
-}
-
 export interface CertResult {
   score: number;
   passed: boolean;
@@ -26,7 +19,6 @@ interface Persisted {
   myPosts: Post[];
   myComments: Comment[];
   savedJobs: string[];
-  applications: Application[];
   certResults: Record<string, CertResult>;
   savedCerts: string[];
   installedSkills: string[];
@@ -48,7 +40,6 @@ interface Persisted {
   dailyGoal: number;
   guideTrack: BuildTrack | null;
   guideChecks: Record<string, string[]>;
-  publishedJobs: Job[];
 }
 
 interface Actions {
@@ -69,7 +60,6 @@ interface Actions {
   ) => void;
   addPost: (p: Omit<Post, 'id' | 'score' | 'comments' | 'createdAt'>) => Post;
   addComment: (postId: string, parentId: string | null, author: string, body: string) => void;
-  apply: (jobId: string, message: string) => void;
   recordCert: (certId: string, score: number, passScore: number) => void;
   completeLesson: (key: string, xp?: number) => void;
   lessonsToday: () => number;
@@ -85,7 +75,6 @@ interface Actions {
   }) => void;
   setCourse: (id: string) => void;
   setDailyGoal: (min: number) => void;
-  publishJob: (j: Omit<Job, 'id' | 'applicants' | 'postedAt'>) => Job;
 }
 
 const KEY = 'dh-platform';
@@ -123,7 +112,6 @@ const DEFAULTS: Persisted = {
   myPosts: [],
   myComments: [],
   savedJobs: [],
-  applications: [],
   certResults: {},
   savedCerts: [],
   installedSkills: [],
@@ -147,7 +135,6 @@ const DEFAULTS: Persisted = {
   dailyGoal: 10,
   guideTrack: null,
   guideChecks: {},
-  publishedJobs: [],
 };
 
 function load(): Persisted {
@@ -201,13 +188,6 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
         },
       ],
     })),
-  apply: (jobId, message) =>
-    set((s) => ({
-      applications: [
-        ...s.applications.filter((a) => a.jobId !== jobId),
-        { jobId, message, at: new Date().toISOString(), status: 'envoyee' },
-      ],
-    })),
   recordCert: (certId, score, passScore) =>
     set((s) => {
       const prev = s.certResults[certId];
@@ -253,16 +233,6 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
     })),
   setCourse: (id) => set({ course: id }),
   setDailyGoal: (min) => set({ dailyGoal: min }),
-  publishJob: (j) => {
-    const job: Job = {
-      ...j,
-      id: `mine-${uuid()}`,
-      applicants: 0,
-      postedAt: new Date().toISOString(),
-    };
-    set((s) => ({ publishedJobs: [job, ...s.publishedJobs] }));
-    return job;
-  },
 }));
 
 // Sauvegarde sur l'appareil à chaque changement (les fonctions ne sont pas sérialisées).
@@ -274,7 +244,6 @@ usePlatform.subscribe((s) => {
     myPosts: s.myPosts,
     myComments: s.myComments,
     savedJobs: s.savedJobs,
-    applications: s.applications,
     certResults: s.certResults,
     savedCerts: s.savedCerts,
     installedSkills: s.installedSkills,
@@ -291,7 +260,6 @@ usePlatform.subscribe((s) => {
     dailyGoal: s.dailyGoal,
     guideTrack: s.guideTrack,
     guideChecks: s.guideChecks,
-    publishedJobs: s.publishedJobs,
   };
   try {
     storageSet(KEY, JSON.stringify(data));

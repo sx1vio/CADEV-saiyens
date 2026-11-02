@@ -3,6 +3,7 @@ import {
   type ExecutionContext,
   ForbiddenException,
   Inject,
+  NotFoundException,
   Injectable,
   SetMetadata,
 } from '@nestjs/common';
@@ -22,15 +23,19 @@ export const AllowCrossOrigin = () => SetMetadata(ALLOW_CROSS_ORIGIN, true);
 
 // Protection CSRF des écritures (docs/architecture/10-securite.md) : en plus de SameSite=Lax,
 // toute requête qui modifie l'état doit venir de l'origine de l'application et porter X-DevHub-Client: web.
+// Exception : les routes /api/v1/admin/* n'acceptent que l'origine de l'administration (ADMIN_URL)
+// avec X-DevHub-Client: admin, jamais celle de l'application publique.
 @Injectable()
 export class OriginGuard implements CanActivate {
   private readonly appOrigin: string;
+  private readonly adminOrigin: string | null;
 
   constructor(
     @Inject(ENV) env: Env,
     private readonly reflector: Reflector,
   ) {
     this.appOrigin = new URL(env.APP_URL).origin;
+    this.adminOrigin = env.ADMIN_URL ? new URL(env.ADMIN_URL).origin : null;
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -38,8 +43,22 @@ export class OriginGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<Request>();
     if (SAFE_METHODS.has(req.method)) return true;
     if (this.reflector.get<boolean>(ALLOW_CROSS_ORIGIN, context.getHandler())) return true;
+    if (isAdminPath(req.path)) {
+      if (
+        this.adminOrigin &&
+        req.headers.origin === this.adminOrigin &&
+        req.headers['x-devhub-client'] === 'admin'
+      )
+        return true;
+      // Rien ne doit révéler l'existence de l'administration : même réponse qu'une route absente.
+      throw new NotFoundException({ code: 'not_found', title: 'Not found' });
+    }
     if (req.headers.origin === this.appOrigin && req.headers['x-devhub-client'] === 'web')
       return true;
     throw new ForbiddenException({ code: 'csrf.origin_rejected', title: 'Origin not allowed' });
   }
 }
+
+/** Routes de l'espace d'administration (apps/admin). */
+export const isAdminPath = (path: string): boolean =>
+  path === '/api/v1/admin' || path.startsWith('/api/v1/admin/');

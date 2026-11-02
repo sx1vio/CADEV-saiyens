@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
 import type { CollectedNews } from '../domain/news-item';
-import { isTechRole, opensToAfrica } from '../domain/jobs';
+import { isSoftwareRole, isTechRole, opensToAfrica } from '../domain/jobs';
 import { pool } from '../domain/pool';
 import type { NewsCollectors } from '../domain/ports';
 import {
@@ -519,7 +519,7 @@ async function collectHimalayas(): Promise<CollectedNews[]> {
 async function collectMyJobMag(): Promise<CollectedNews[]> {
   const feed = await parser.parseString(await fetchText('https://www.myjobmag.com/jobsxml.xml'));
   return feed.items
-    .filter((it) => it.link && it.title && isTechRole(it.title))
+    .filter((it) => it.link && it.title && isSoftwareRole(it.title))
     .map((it) => ({
       kind: 'job' as const,
       source: 'myjobmag',

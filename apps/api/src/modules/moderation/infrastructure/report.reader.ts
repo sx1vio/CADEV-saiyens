@@ -22,14 +22,6 @@ type Target = AdminReportView['target'];
 export class ReportReader {
   constructor(private readonly prisma: PrismaService) {}
 
-  async isAdmin(userId: string): Promise<boolean> {
-    const u = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { isAdmin: true },
-    });
-    return u?.isAdmin === true;
-  }
-
   async list(query: ListReportsQuery): Promise<ListReportsResponse> {
     const rows = await this.prisma.report.findMany({
       where: { status: query.status, ...afterCursor(decodeCursor(query.cursor)) },
@@ -86,7 +78,7 @@ export class ReportReader {
         id: r.id,
         // Colonnes texte du journal, écrites uniquement par la modération (AUDIT_ACTION).
         action: r.action as AuditEntry['action'],
-        targetType: r.targetType as ReportTargetType,
+        targetType: r.targetType as AuditEntry['targetType'],
         targetId: r.targetId,
         reason: r.reason,
         admin: r.admin,

@@ -66,7 +66,27 @@ export const EnvSchema = z
     ),
     // R7 : index.html construit du front, enrichi des balises de partage (défaut : ./web/index.html).
     WEB_INDEX_HTML: optional(z.string()),
+    // Espace d'administration (apps/admin), servi sur sa propre origine. Absent : désactivé,
+    // toutes les routes /api/v1/admin/* répondent 404.
+    ADMIN_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+    // Plages CIDR IPv4 autorisées à ouvrir l'administration (séparées par des virgules). Vide : toutes.
+    ADMIN_ALLOWED_IPS: z.preprocess(
+      (v) => (v === undefined ? '' : v),
+      z.string().transform((v) =>
+        v
+          .split(',')
+          .map((r) => r.trim())
+          .filter(Boolean),
+      ),
+    ),
   })
+  .refine(
+    (env) => !env.ADMIN_URL || new URL(env.ADMIN_URL).origin !== new URL(env.APP_URL).origin,
+    {
+      message: "ADMIN_URL doit être une origine distincte de l'application (sous-domaine ou port)",
+      path: ['ADMIN_URL'],
+    },
+  )
   .refine((env) => !(env.NODE_ENV === 'production' && env.AUTH_FAKE_PROVIDER), {
     message: 'AUTH_FAKE_PROVIDER est interdit en production',
     path: ['AUTH_FAKE_PROVIDER'],

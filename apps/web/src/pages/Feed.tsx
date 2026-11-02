@@ -18,7 +18,7 @@ import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { api } from '@/services';
 import { POSTS } from '@/platform/data/feed';
-import { JOBS } from '@/platform/data/jobs';
+import { fetchJobs } from '@/platform/jobs';
 import {
   NEWS_CATEGORIES,
   domainOf,
@@ -30,7 +30,7 @@ import {
 } from '@/platform/news';
 import { SourceMark } from '@/platform/newsui';
 import { usePlatform } from '@/platform/store';
-import { Ago, PostCard, companyOf } from '@/platform/ui';
+import { Ago, PostCard } from '@/platform/ui';
 import { useSession, useUI } from '@/stores/app';
 
 /**
@@ -492,6 +492,11 @@ function trends(home: HomeNews) {
 }
 
 function Rail({ home }: { home?: HomeNews }) {
+  const { data: jobs } = useQuery('jobs', fetchJobs);
+  const { data: liveJobs } = useQuery<NewsItem[]>(
+    jobs?.length === 0 ? 'rail:live-jobs' : null,
+    () => fetchNews({ kind: 'job', limit: 3 }),
+  );
   if (!home) return <Skeleton className="h-[320px] rounded-[10px]" />;
   const top = trends(home);
   const talks = home.hn.filter((h) => h.comments > 0).slice(0, 3);
@@ -546,18 +551,31 @@ function Rail({ home }: { home?: HomeNews }) {
           </Link>
         </div>
         <ul className="mt-2 flex flex-col gap-3">
-          {JOBS.slice(0, 2).map((j) => (
+          {(jobs ?? []).slice(0, 3).map((j) => (
             <li key={j.id}>
               <Link to={`/emplois/${j.id}`} className="group block">
                 <span className="block leading-snug font-medium text-fg group-hover:text-accent-text">
                   {j.title}
                 </span>
                 <span className="mt-0.5 block text-[12.5px] text-subtle">
-                  {companyOf(j.company).name} · {j.city} · démo
+                  {j.company} · {j.location}
                 </span>
               </Link>
             </li>
           ))}
+          {jobs?.length === 0 &&
+            (liveJobs ?? []).slice(0, 3).map((j) => (
+              <li key={j.id}>
+                <a href={j.url} target="_blank" rel="noopener noreferrer" className="group block">
+                  <span className="block leading-snug font-medium text-fg group-hover:text-accent-text">
+                    {j.title}
+                  </span>
+                  <span className="mt-0.5 block text-[12.5px] text-subtle">
+                    {[j.author, j.sourceName].filter(Boolean).join(' · ')}
+                  </span>
+                </a>
+              </li>
+            ))}
         </ul>
       </section>
 

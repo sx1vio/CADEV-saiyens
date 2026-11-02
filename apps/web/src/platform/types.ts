@@ -63,49 +63,6 @@ export interface Comment {
 
 /* ---------------- Emplois ---------------- */
 
-export type ContractType = 'cdi' | 'cdd' | 'freelance' | 'stage' | 'alternance';
-export type WorkMode = 'remote' | 'hybrid' | 'onsite';
-export type Seniority = 'junior' | 'confirme' | 'senior' | 'lead';
-
-export interface Company {
-  slug: string;
-  name: string;
-  logoColor: string;
-  logoText: string;
-  sector: string;
-  size: string;
-  city: string;
-  country: string;
-  about: string;
-  verified: boolean;
-}
-
-export interface Job {
-  id: string;
-  company: string;
-  title: string;
-  contract: ContractType;
-  mode: WorkMode;
-  seniority: Seniority;
-  city: string;
-  country: string;
-  salary?: { min: number; max: number; currency: string; period: 'mois' | 'an' | 'jour' };
-  stack: string[];
-  summary: string;
-  missions: string[];
-  profile: string[];
-  perks: string[];
-  /** Compétences prouvées exigées (score minimal sur le Passport) */
-  provenSkills?: { tag: string; min: number }[];
-  /** Certification appréciée */
-  certs?: string[];
-  applicants: number;
-  postedAt: string;
-  closesAt?: string;
-}
-
-/* ---------------- Certifications ---------------- */
-
 export type CertLevel = 'debutant' | 'intermediaire' | 'avance' | 'expert';
 
 export interface QuizQuestion {

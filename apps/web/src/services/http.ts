@@ -25,8 +25,6 @@ import type {
   ListNotificationsResponse,
   ListPairSessionsResponse,
   ListQuestionsResponse,
-  ListAuditResponse,
-  ListReportsResponse,
   ListRoomsResponse,
   ListTagsResponse,
   ListTasksResponse,
@@ -554,16 +552,6 @@ export const httpApi: DevHubApi = {
 
   report: async (targetType, targetId, _label, reason) => {
     await post('/reports', { targetType: m.reportTypeToApi(targetType), targetId, reason });
-  },
-  listReports: async () =>
-    (await get<ListReportsResponse>('/admin/reports', { limit: 50 })).data.map(m.report),
-  listAudit: async (cursor) =>
-    m.auditPage(await get<ListAuditResponse>('/admin/audit', { cursor, limit: 20 })),
-  handleReport: async (id, remove) => {
-    await post(`/admin/reports/${id}/action`, {
-      action: remove ? 'hide' : 'dismiss',
-      reason: remove ? 'Retiré par la modération' : 'Signalement rejeté',
-    });
   },
 
   sync: async (items) => {

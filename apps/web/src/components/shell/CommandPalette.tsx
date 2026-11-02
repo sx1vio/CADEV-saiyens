@@ -30,7 +30,7 @@ import { Sheet } from '../ui/overlay';
 import { Avatar, Kbd } from '../ui/primitives';
 import { ALL_NAV } from './nav';
 import { POSTS } from '@/platform/data/feed';
-import { JOBS } from '@/platform/data/jobs';
+import { fetchJobs } from '@/platform/jobs';
 import { SKILLS } from '@/platform/data/skills';
 import { VIDEOS } from '@/platform/data/videos';
 import { PATHS } from '@/platform/data/learn';
@@ -55,6 +55,7 @@ export function CommandPalette() {
     api.listQuestions('all'),
   );
   const { data: rooms } = useQuery(open ? 'palette:rooms' : null, () => api.listRooms());
+  const { data: jobs } = useQuery(open ? 'jobs' : null, fetchJobs);
   const { data: devs } = useQuery(open ? 'palette:devs' : null, () => api.discoverDevs({}));
   // Recherche dans les actualités réelles (serveur), avec un léger délai pour ne pas surcharger
   const [newsQ, setNewsQ] = useState('');
@@ -81,7 +82,7 @@ export function CommandPalette() {
 
   const pages = useMemo(
     () => [
-      ...ALL_NAV.filter((e) => e.to !== '/admin' || me?.isAdmin).map((e) => ({
+      ...ALL_NAV.map((e) => ({
         ...e,
         label: t(e.label),
       })),
@@ -128,13 +129,6 @@ export function CommandPalette() {
                 <Command.Item value="publier post publish" onSelect={() => go('/publier')}>
                   <PenSquare />
                   {t('navEntry.createPost')}
-                </Command.Item>
-                <Command.Item
-                  value="offre emploi publier job"
-                  onSelect={() => go('/emplois/publier')}
-                >
-                  <Briefcase />
-                  {t('navEntry.createJobLong')}
                 </Command.Item>
                 <Command.Item
                   value="new room nouvelle salle"
@@ -217,15 +211,15 @@ export function CommandPalette() {
                     ))}
                   </Command.Group>
                   <Command.Group heading={t('navEntry.groupJobs')}>
-                    {JOBS.map((x) => (
+                    {(jobs ?? []).map((x) => (
                       <Command.Item
                         key={x.id}
-                        value={`j ${x.title} ${x.stack.join(' ')} ${x.city}`}
+                        value={`j ${x.title} ${x.company} ${x.tags.join(' ')} ${x.location}`}
                         onSelect={() => go(`/emplois/${x.id}`)}
                       >
                         <Briefcase />
                         <span className="truncate">
-                          {x.title} <span className="text-subtle">· {x.city}</span>
+                          {x.title} <span className="text-subtle">· {x.company}</span>
                         </span>
                       </Command.Item>
                     ))}

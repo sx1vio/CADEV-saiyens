@@ -5,7 +5,6 @@
  */
 import type {
   AppNotification,
-  AuditPage,
   DevCard,
   DiscoverFilters,
   HomeFeed,
@@ -171,17 +170,13 @@ export interface DevHubApi {
   listNotifications(): Promise<AppNotification[]>;
   markNotificationsRead(): Promise<void>;
 
-  /* Modération — /reports, /admin/reports */
+  /* Signalement d'un contenu — /reports (traité dans l'application d'administration) */
   report(
     targetType: Report['targetType'],
     targetId: ID,
     targetLabel: string,
     reason: string,
   ): Promise<void>;
-  listReports(): Promise<(Report & { reporter: UserSummary })[]>;
-  handleReport(id: ID, remove: boolean): Promise<void>;
-  /** M4 — GET /admin/audit : journal des décisions de modération, du plus récent au plus ancien. */
-  listAudit(cursor?: string): Promise<AuditPage>;
 
   /**
    * O2 — POST /sync : rejoue un lot d'actions hors ligne (50 au plus, dans l'ordre). L'`opId`

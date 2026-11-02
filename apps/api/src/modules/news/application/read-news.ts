@@ -1,4 +1,5 @@
 import { diverse } from '../domain/diversity';
+import { keepJob } from '../domain/jobs';
 import type { LangFilter, NewsItem, NewsQuery } from '../domain/news-item';
 import type { NewsRepository } from '../domain/ports';
 import {
@@ -89,8 +90,10 @@ export class ReadNews {
     };
   }
 
-  list(query: NewsQuery): Promise<NewsItem[]> {
-    return this.repo.list(query);
+  async list(query: NewsQuery): Promise<NewsItem[]> {
+    const items = await this.repo.list(query);
+    // Les offres déjà stockées repassent par le filtre des métiers du logiciel (il a été resserré).
+    return query.kind === 'job' ? items.filter((i) => keepJob(i.source, i.title)) : items;
   }
 
   async sources(): Promise<SourceInfo[]> {

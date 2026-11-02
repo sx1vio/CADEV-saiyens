@@ -1,7 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   Bell,
-  Briefcase,
   ChevronDown,
   ChevronUp,
   Flame,
@@ -36,7 +35,6 @@ import { serverLogout } from '@/platform/auth';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
 import {
-  ADMIN_NAV,
   CREATE_NAV,
   EXPLORE_NAV,
   MAIN_NAV,
@@ -78,12 +76,6 @@ function useCreateActions() {
       run: () => nav('/publier'),
     },
     { icon: Zap, label: t('nav.ask'), hint: t('navEntry.askHint'), run: () => setAsk(true) },
-    {
-      icon: Briefcase,
-      label: t('navEntry.createJob'),
-      hint: t('navEntry.createJobHint'),
-      run: () => nav('/emplois/publier'),
-    },
     {
       icon: FolderPlus,
       label: t('navEntry.createRoom'),
@@ -231,7 +223,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { data: home } = useQuery(me ? 'home' : null, () => api.getHome());
   const help = home?.openInMyStacks.length ?? 0;
   const enrolled = usePlatform((s) => s.enrolled.length);
-  const applications = usePlatform((s) => s.applications.length);
+  const savedJobs = usePlatform((s) => s.savedJobs.length);
   const merge = !onNavigate;
   const navRef = useRef<HTMLElement>(null);
   const [more, setMore] = useState(false);
@@ -265,7 +257,6 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             ]
           : []),
         NETWORK_NAV[1]!,
-        ...(me?.isAdmin ? [ADMIN_NAV] : []),
       ],
     },
     ...(me
@@ -280,7 +271,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const counts: Record<string, number | undefined> = {
     '/sos': help,
     '/apprendre': enrolled,
-    '/emplois': applications,
+    '/emplois': savedJobs,
   };
   return (
     <div
@@ -639,7 +630,7 @@ function DemoSwitcher() {
   const setUser = useSession((s) => s.setUser);
   const nav = useNavigate();
   const { data } = useQuery('demo-accounts', () => api.listDemoAccounts());
-  const picks = ['awa-kone', 'moussa-diop', 'kwame-dev', 'ousmane-sow', 'devhub-admin'];
+  const picks = ['awa-kone', 'moussa-diop', 'kwame-dev', 'ousmane-sow'];
   return (
     <>
       {data

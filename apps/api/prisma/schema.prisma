@@ -191,6 +191,8 @@ model User {
   githubCreatedAt    DateTime? @map("github_created_at") @db.Timestamptz // signal de confiance PR11
   cocAcceptedAt      DateTime? @map("coc_accepted_at") @db.Timestamptz // M3
   isAdmin            Boolean   @default(false) @map("is_admin")
+  /// Espace d'administration : secret TOTP chiffré (AES-256-GCM), posé uniquement par la CLI admin.
+  adminTotpSecret    Bytes?    @map("admin_totp_secret")
   isDemo             Boolean   @default(false) @map("is_demo")
   lastSeenAt         DateTime? @map("last_seen_at") @db.Timestamptz
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
@@ -199,6 +201,8 @@ model User {
   community         Community?         @relation(fields: [communityId], references: [id])
   oauthAccounts     OAuthAccount[]
   sessions          Session[]
+  adminSessions     AdminSession[]
+  jobOffers         JobOffer[]
   skills            UserSkill[]
   questions         Question[]
   answers           Answer[]
@@ -866,4 +870,51 @@ model SystalinkReferral {
 
   @@index([createdAt])
   @@map("systalink_referrals")
+}
+
+/// Session de l'application d'administration (apps/admin) : séparée des sessions des membres,
+/// courte (30 min d'inactivité, 8 h au plus) et ouverte seulement avec le double facteur.
+model AdminSession {
+  id         String   @id // SHA-256 du jeton ; le jeton brut n'est que dans le cookie
+  userId     String   @map("user_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz
+  lastUsedAt DateTime @default(now()) @map("last_used_at") @db.Timestamptz
+  userAgent  String?  @map("user_agent")
+  ipHash     String?  @map("ip_hash")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("admin_sessions")
+}
+
+/// Offre d'emploi publiée par l'administration, avec le lien vers sa source officielle.
+model JobOffer {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  company     String
+  companyUrl  String?   @map("company_url")
+  location    String
+  country     String?   @db.Char(2)
+  workMode    String    @map("work_mode") // remote | hybrid | onsite
+  contract    String // cdi | cdd | freelance | stage | alternance
+  seniority   String // junior | confirme | senior | lead
+  salary      String?
+  description String
+  applyUrl    String    @map("apply_url")
+  sourceUrl   String    @map("source_url")
+  tags        String[]  @default([])
+  status      String    @default("draft") // draft | published | archived
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz
+  publishedAt DateTime? @map("published_at") @db.Timestamptz
+  createdById String?   @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+  @@map("job_offers")
 }

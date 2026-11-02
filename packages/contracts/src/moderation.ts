@@ -79,8 +79,23 @@ export const ReportActionResponse = z.object({
 export type ReportActionResponse = z.infer<typeof ReportActionResponse>;
 
 /** GET /api/v1/admin/audit (M4) : journal des décisions de modération, plus récentes d'abord. */
+/** Cibles du journal : contenus modérés, offres d'emploi, comptes (connexion à l'administration). */
+export const AuditTargetType = z.enum([...ReportTargetType.options, 'job_offer']);
+export type AuditTargetType = z.infer<typeof AuditTargetType>;
+
+export const AuditAction = z.enum([
+  'hide_content',
+  'restore_content',
+  'dismiss_report',
+  'job_create',
+  'job_update',
+  'job_delete',
+  'admin_sign_in',
+]);
+export type AuditAction = z.infer<typeof AuditAction>;
+
 export const ListAuditQuery = z.object({
-  targetType: ReportTargetType.optional(),
+  targetType: AuditTargetType.optional(),
   targetId: z.uuid().optional(),
   cursor: z.string().max(200).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
@@ -89,8 +104,8 @@ export type ListAuditQuery = z.infer<typeof ListAuditQuery>;
 
 export const AuditEntry = z.object({
   id: z.uuid(),
-  action: z.enum(['hide_content', 'restore_content', 'dismiss_report']),
-  targetType: ReportTargetType,
+  action: AuditAction,
+  targetType: AuditTargetType,
   targetId: z.uuid(),
   reason: z.string(),
   admin: PublicAuthor,

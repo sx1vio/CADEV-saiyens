@@ -1,36 +1,36 @@
 import {
   ArrowLeft,
-  BadgeCheck,
+  ArrowUpRight,
   Bookmark,
   Briefcase,
-  Building2,
+  CalendarClock,
   Check,
-  Clock,
+  ExternalLink,
+  Globe,
   MapPin,
   Search,
-  Send,
   ShieldCheck,
-  Users,
   Wallet,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { toast } from 'sonner';
-import { Button, ButtonLink } from '@/components/ui/button';
-import { Sheet, useMedia } from '@/components/ui/overlay';
-import { Avatar, Textarea } from '@/components/ui/primitives';
+import { Markdown } from '@/components/ui/code';
+import { useMedia } from '@/components/ui/overlay';
 import { countryName } from '@/lib/geo';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
-import { api } from '@/services';
-import { useSession } from '@/stores/app';
-import { CONTRACT_LABEL, JOBS, MODE_LABEL, SENIORITY_LABEL } from '@/platform/data/jobs';
-import { PLATFORM_CERTS } from '@/platform/data/certs';
-import { usePlatform } from '@/platform/store';
-import type { Job } from '@/platform/types';
-import { Ago, CompanyLogo, DemoTag, SERVICE_COLORS, ServiceHeader, companyOf } from '@/platform/ui';
+import {
+  CONTRACT_LABEL,
+  MODE_LABEL,
+  SENIORITY_LABEL,
+  fetchJobs,
+  hostOf,
+  type JobOffer,
+} from '@/platform/jobs';
 import { LiveBoard } from '@/platform/LiveBoard';
-import { BrandLogo, TechChip, logoFor } from '@/platform/logos';
+import { BrandLogo, logoFor } from '@/platform/logos';
+import { usePlatform } from '@/platform/store';
+import { Ago, SERVICE_COLORS, ServiceHeader } from '@/platform/ui';
 
 type Filter = 'remote' | 'cdi' | 'freelance' | 'stage' | 'junior' | 'saved';
 const FILTERS: { id: Filter; label: string }[] = [
@@ -42,37 +42,28 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'saved', label: 'Enregistrées' },
 ];
 
-export function salaryText(j: Job) {
-  if (!j.salary) return null;
-  const f = (n: number) => new Intl.NumberFormat('fr-FR').format(n);
-  const range =
-    j.salary.min === j.salary.max ? f(j.salary.min) : `${f(j.salary.min)} – ${f(j.salary.max)}`;
-  return `${range} ${j.salary.currency} / ${j.salary.period}`;
-}
+const placeOf = (j: JobOffer) =>
+  j.country && !j.location.toLowerCase().includes(countryName(j.country, 'fr').toLowerCase())
+    ? `${j.location} · ${countryName(j.country, 'fr')}`
+    : j.location;
 
-/** Espace Emplois : recherche, liste et détail côte à côte. */
+/** Emplois : la sélection publiée par l'équipe DevHub, puis les offres collectées en direct. */
 export default function Jobs() {
   const { id } = useParams();
   const nav = useNavigate();
   const wide = useMedia('(min-width: 1024px)');
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get('q') ?? '');
-  const [where, setWhere] = useState('');
   const active = (params.get('filtres') ?? '').split(',').filter(Boolean) as Filter[];
   const saved = usePlatform((s) => s.savedJobs);
-  const mine = usePlatform((s) => s.publishedJobs);
-  const all = useMemo(() => [...mine, ...JOBS], [mine]);
+  const { data: jobs, error } = useQuery('jobs', fetchJobs);
 
   const list = useMemo(() => {
     const text = q.trim().toLowerCase();
-    const place = where.trim().toLowerCase();
-    return all.filter((j) => {
-      const c = companyOf(j.company);
-      if (text && ![j.title, c.name, ...j.stack].join(' ').toLowerCase().includes(text))
-        return false;
-      if (place && ![j.city, countryName(j.country, 'fr')].join(' ').toLowerCase().includes(place))
-        return false;
-      if (active.includes('remote') && j.mode !== 'remote') return false;
+    return (jobs ?? []).filter((j) => {
+      const hay = [j.title, j.company, j.location, ...j.tags].join(' ').toLowerCase();
+      if (text && !hay.includes(text)) return false;
+      if (active.includes('remote') && j.workMode !== 'remote') return false;
       if (active.includes('cdi') && j.contract !== 'cdi') return false;
       if (active.includes('freelance') && j.contract !== 'freelance') return false;
       if (active.includes('stage') && j.contract !== 'stage' && j.contract !== 'alternance')
@@ -81,9 +72,9 @@ export default function Jobs() {
       if (active.includes('saved') && !saved.includes(j.id)) return false;
       return true;
     });
-  }, [all, q, where, active, saved]);
+  }, [jobs, q, active, saved]);
 
-  const selected = all.find((j) => j.id === id) ?? (wide ? list[0] : undefined);
+  const selected = (jobs ?? []).find((j) => j.id === id) ?? (wide ? list[0] : undefined);
 
   const toggleFilter = (f: Filter) => {
     const next = active.includes(f) ? active.filter((x) => x !== f) : [...active, f];
@@ -105,7 +96,9 @@ export default function Jobs() {
           <ArrowLeft className="size-4" />
           Toutes les offres
         </button>
-        <JobDetail job={selected} />
+        <div className="rounded-[10px] bg-surface-1">
+          <JobDetail job={selected} />
+        </div>
       </div>
     );
   }
@@ -116,37 +109,20 @@ export default function Jobs() {
         icon={Briefcase}
         color={SERVICE_COLORS.jobs}
         title="Emplois"
-        subtitle="Des offres pour les devs, avec des compétences prouvées plutôt que des CV déclaratifs."
-        actions={
-          <ButtonLink to="/emplois/publier" variant="secondary" icon={<Building2 />}>
-            Publier une offre
-          </ButtonLink>
-        }
+        subtitle="Des offres réelles, chacune reliée à son annonce officielle : sélectionnées par l’équipe DevHub, ou collectées en direct chez les entreprises qui recrutent en Afrique et à distance."
       >
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="flex flex-col overflow-hidden rounded-[10px] border border-line-strong bg-canvas sm:flex-row sm:rounded-full"
+          className="flex h-12 items-center gap-2.5 rounded-full border border-line-strong bg-canvas px-4"
         >
-          <label className="flex flex-1 items-center gap-2.5 px-4">
-            <Search className="size-4 shrink-0 text-subtle" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Poste, techno ou entreprise"
-              className="h-12 w-full bg-transparent text-[14px] text-fg outline-none placeholder:text-subtle"
-              aria-label="Poste, techno ou entreprise"
-            />
-          </label>
-          <label className="flex flex-1 items-center gap-2.5 border-t border-line px-4 sm:border-t-0 sm:border-l">
-            <MapPin className="size-4 shrink-0 text-subtle" />
-            <input
-              value={where}
-              onChange={(e) => setWhere(e.target.value)}
-              placeholder="Ville ou pays"
-              className="h-12 w-full bg-transparent text-[14px] text-fg outline-none placeholder:text-subtle"
-              aria-label="Ville ou pays"
-            />
-          </label>
+          <Search className="size-4 shrink-0 text-subtle" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Poste, techno, entreprise ou ville"
+            className="h-full w-full bg-transparent text-[14px] text-fg outline-none placeholder:text-subtle"
+            aria-label="Poste, techno, entreprise ou ville"
+          />
         </form>
         <div className="no-scrollbar flex gap-2 overflow-x-auto">
           {FILTERS.map((f) => (
@@ -167,39 +143,80 @@ export default function Jobs() {
         </div>
       </ServiceHeader>
 
-      <LiveBoard kind="job" title="Offres en direct · dev à distance" />
-
-      <h2 className="mt-8 text-[16px] font-semibold text-fg">Exemples DevHub</h2>
-      <p className="mt-5 mb-2 text-[13px] text-subtle">
-        {list.length} offre{list.length > 1 ? 's' : ''}
-      </p>
-      <div className="flex gap-5">
-        <ul className="flex w-full flex-col gap-2 lg:w-[440px] lg:shrink-0">
-          {list.map((j) => (
-            <li key={j.id}>
-              <JobRow job={j} active={selected?.id === j.id} />
-            </li>
-          ))}
-          {list.length === 0 && (
-            <li className="rounded-[10px] bg-surface-1 p-8 text-center text-muted">
-              Aucune offre ne correspond. Retire un filtre.
-            </li>
-          )}
-        </ul>
-        {wide && selected && (
-          <div className="sticky top-[72px] max-h-[calc(100dvh-88px)] min-w-0 flex-1 self-start overflow-y-auto rounded-[10px] bg-surface-1">
-            <JobDetail job={selected} />
+      <section aria-labelledby="selection" className="mt-6">
+        <div className="mb-3 flex flex-wrap items-baseline gap-2">
+          <h2
+            id="selection"
+            className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-fg"
+          >
+            <ShieldCheck className="size-4 text-accent-text" aria-hidden />
+            Sélection DevHub
+          </h2>
+          <span className="text-[12.5px] text-subtle">
+            Offres vérifiées une à une par l’équipe, avec le lien vers l’annonce officielle
+          </span>
+        </div>
+        {!jobs && !error && (
+          <p className="rounded-[10px] bg-surface-1 p-5 text-muted">Chargement…</p>
+        )}
+        {!!error && !jobs && (
+          <p className="rounded-[10px] bg-surface-1 p-5 text-muted">
+            Impossible de charger les offres. Réessaie dans un instant.
+          </p>
+        )}
+        {jobs && jobs.length === 0 && (
+          <p className="rounded-[10px] bg-surface-1 p-5 text-muted">
+            Pas encore d’offre sélectionnée cette semaine. Les offres collectées en direct sont
+            juste en dessous.
+          </p>
+        )}
+        {jobs && jobs.length > 0 && (
+          <div className="flex gap-5">
+            <ul className="flex w-full flex-col gap-2 lg:w-[440px] lg:shrink-0">
+              {list.map((j) => (
+                <li key={j.id}>
+                  <JobRow job={j} active={wide && selected?.id === j.id} />
+                </li>
+              ))}
+              {list.length === 0 && (
+                <li className="rounded-[10px] bg-surface-1 p-8 text-center text-muted">
+                  Aucune offre ne correspond. Retire un filtre.
+                </li>
+              )}
+            </ul>
+            {wide && selected && (
+              <div className="sticky top-[72px] max-h-[calc(100dvh-88px)] min-w-0 flex-1 self-start overflow-y-auto rounded-[10px] bg-surface-1">
+                <JobDetail job={selected} />
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </section>
+
+      <LiveBoard kind="job" title="Offres en direct · dev en Afrique et à distance" />
     </div>
   );
 }
 
-function JobRow({ job, active }: { job: Job; active: boolean }) {
-  const c = companyOf(job.company);
+function CompanyMark({ name, size }: { name: string; size: number }) {
+  const initials = name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+  return (
+    <span
+      aria-hidden
+      className="grid shrink-0 place-items-center rounded-[10px] bg-accent-soft font-bold text-accent-text"
+      style={{ width: size, height: size, fontSize: size * 0.36 }}
+    >
+      {initials}
+    </span>
+  );
+}
+
+function JobRow({ job, active }: { job: JobOffer; active: boolean }) {
   const saved = usePlatform((s) => s.savedJobs.includes(job.id));
-  const applied = usePlatform((s) => s.applications.some((a) => a.jobId === job.id));
   const toggle = usePlatform((s) => s.toggle);
   return (
     <Link
@@ -209,57 +226,43 @@ function JobRow({ job, active }: { job: Job; active: boolean }) {
         active ? 'border-fg bg-surface-1' : 'border-transparent bg-surface-1 hover:bg-surface-2',
       )}
     >
-      <CompanyLogo slug={job.company} size={48} />
+      <CompanyMark name={job.company} size={48} />
       <div className="min-w-0 flex-1">
         <h3 className="pr-8 text-[14px] leading-snug font-semibold text-fg group-hover:underline">
           {job.title}
         </h3>
-        <p className="mt-0.5 flex items-center gap-1 text-[13px] text-muted">
-          {c.name}
-          {c.verified && <BadgeCheck className="size-3.5 text-accent-text" />}
-        </p>
+        <p className="mt-0.5 text-[13px] text-muted">{job.company}</p>
         <p className="text-[13px] text-subtle">
-          {job.city}, {countryName(job.country, 'fr')} · {MODE_LABEL[job.mode]}
+          {placeOf(job)} · {MODE_LABEL[job.workMode]}
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           <span className="rounded-[6px] bg-surface-3 px-2 py-0.5 text-[12px] font-semibold text-fg">
-            {CONTRACT_LABEL[job.contract]}
+            {CONTRACT_LABEL[job.contract]} · {SENIORITY_LABEL[job.seniority]}
           </span>
-          {salaryText(job) && (
+          {job.salary && (
             <span className="rounded-[6px] bg-success-soft px-2 py-0.5 text-[12px] font-semibold text-success">
-              {salaryText(job)}
-            </span>
-          )}
-          {job.provenSkills && (
-            <span className="inline-flex items-center gap-1 rounded-[6px] bg-accent-soft px-2 py-0.5 text-[12px] font-medium text-accent-text">
-              <ShieldCheck className="size-3" />
-              Compétences prouvées
+              {job.salary}
             </span>
           )}
         </div>
-        <div className="mt-2 flex items-center gap-1.5">
-          {job.stack
-            .filter((t) => logoFor(t))
-            .slice(0, 5)
-            .map((t) => (
-              <span
-                key={t}
-                title={t}
-                className="grid size-6 place-items-center rounded-[6px] bg-canvas"
-              >
-                <BrandLogo name={t} size={13} />
-              </span>
-            ))}
-        </div>
-        <p className="mt-2 flex items-center gap-1.5 text-[12px] text-subtle">
-          {applied ? (
-            <span className="font-semibold text-success">Candidature envoyée</span>
-          ) : (
-            <Ago iso={job.postedAt} />
-          )}
-          <span>·</span>
-          {job.applicants} candidat{job.applicants > 1 ? 's' : ''}
-          {!job.id.startsWith('mine-') && <DemoTag className="ml-1" />}
+        {job.tags.some((t) => logoFor(t)) && (
+          <div className="mt-2 flex items-center gap-1.5">
+            {job.tags
+              .filter((t) => logoFor(t))
+              .slice(0, 5)
+              .map((t) => (
+                <span
+                  key={t}
+                  title={t}
+                  className="grid size-6 place-items-center rounded-[6px] bg-canvas"
+                >
+                  <BrandLogo name={t} size={13} />
+                </span>
+              ))}
+          </div>
+        )}
+        <p className="mt-2 text-[12px] text-subtle">
+          Publiée <Ago iso={job.publishedAt} />
         </p>
       </div>
       <button
@@ -281,36 +284,37 @@ function JobRow({ job, active }: { job: Job; active: boolean }) {
   );
 }
 
-function JobDetail({ job }: { job: Job }) {
-  const me = useSession((s) => s.user);
-  const c = companyOf(job.company);
+function JobDetail({ job }: { job: JobOffer }) {
   const saved = usePlatform((s) => s.savedJobs.includes(job.id));
-  const application = usePlatform((s) => s.applications.find((a) => a.jobId === job.id));
   const toggle = usePlatform((s) => s.toggle);
-  const certResults = usePlatform((s) => s.certResults);
-  const [applyOpen, setApplyOpen] = useState(false);
-  const { data: passport } = useQuery(me ? `passport:${me.handle}` : null, () =>
-    api.getPassport(me!.handle),
-  );
-  const scoreOf = (tag: string) =>
-    passport?.skills.find((s) => s.tag.label.toLowerCase() === tag.toLowerCase())?.score ?? 0;
-  const badges = PLATFORM_CERTS.filter((x) => certResults[x.id]?.passed);
+  const expires = job.expiresAt
+    ? new Date(job.expiresAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    : null;
 
   return (
     <article className="p-5 sm:p-6">
       <div className="flex items-start gap-4">
-        <CompanyLogo slug={job.company} size={56} />
+        <CompanyMark name={job.company} size={56} />
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1 text-[14px] font-semibold text-muted">
-            {c.name}
-            {c.verified && (
-              <BadgeCheck className="size-4 text-accent-text" aria-label="Entreprise vérifiée" />
+          <p className="text-[14px] font-semibold text-muted">
+            {job.companyUrl ? (
+              <a
+                href={job.companyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:text-accent-text"
+              >
+                {job.company}
+                <Globe className="size-3.5" aria-hidden />
+              </a>
+            ) : (
+              job.company
             )}
           </p>
           <h2 className="mt-0.5 text-[19px] leading-tight font-semibold text-fg">{job.title}</h2>
           <p className="mt-1 text-[13px] text-subtle">
-            {job.city}, {countryName(job.country, 'fr')} · <Ago iso={job.postedAt} /> ·{' '}
-            {job.applicants} candidats
+            Publiée <Ago iso={job.publishedAt} />
+            {expires && <> · jusqu’au {expires}</>}
           </p>
         </div>
       </div>
@@ -322,211 +326,76 @@ function JobDetail({ job }: { job: Job }) {
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-[8px] bg-surface-2 px-2.5 py-1.5 font-semibold text-fg">
           <MapPin className="size-4 text-subtle" />
-          {MODE_LABEL[job.mode]}
+          {placeOf(job)} · {MODE_LABEL[job.workMode]}
         </span>
-        {salaryText(job) && (
+        {job.salary && (
           <span className="inline-flex items-center gap-1.5 rounded-[8px] bg-success-soft px-2.5 py-1.5 font-semibold text-success">
             <Wallet className="size-4" />
-            {salaryText(job)}
+            {job.salary}
           </span>
         )}
-        {job.closesAt && (
+        {expires && (
           <span className="inline-flex items-center gap-1.5 rounded-[8px] bg-surface-2 px-2.5 py-1.5 font-semibold text-fg">
-            <Clock className="size-4 text-subtle" />
-            Clôture{' '}
-            {new Date(job.closesAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+            <CalendarClock className="size-4 text-subtle" />
+            Expire le {expires}
           </span>
         )}
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {application ? (
-          <Button variant="success" icon={<Check />} disabled>
-            Candidature envoyée
-          </Button>
-        ) : me ? (
-          <Button variant="primary" icon={<Send />} onClick={() => setApplyOpen(true)}>
-            Postuler avec mon profil
-          </Button>
-        ) : (
-          <ButtonLink to="/connexion" variant="primary">
-            Se connecter pour postuler
-          </ButtonLink>
-        )}
-        <Button
-          variant="secondary"
-          icon={<Bookmark fill={saved ? 'currentColor' : 'none'} />}
-          onClick={() => toggle('savedJobs', job.id)}
+        <a
+          href={job.applyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-[14px] font-semibold text-white hover:bg-accent-hover"
         >
+          Postuler
+          <ArrowUpRight className="size-4" />
+        </a>
+        <button
+          type="button"
+          onClick={() => toggle('savedJobs', job.id)}
+          aria-pressed={saved}
+          className="inline-flex h-10 items-center gap-2 rounded-full bg-surface-2 px-4 text-[14px] font-semibold text-fg hover:bg-surface-3"
+        >
+          <Bookmark className="size-4" fill={saved ? 'currentColor' : 'none'} />
           {saved ? 'Enregistrée' : 'Enregistrer'}
-        </Button>
+        </button>
       </div>
+      <p className="mt-2 text-[12.5px] text-subtle">
+        La candidature se fait chez {hostOf(job.applyUrl)}. DevHub ne collecte aucune donnée de
+        candidature.
+      </p>
 
-      <p className="mt-6 text-[14px] leading-relaxed text-fg">{job.summary}</p>
-
-      {(job.provenSkills || job.certs) && (
-        <section className="mt-6 rounded-[8px] bg-canvas p-4">
-          <h3 className="flex items-center gap-2 text-[14px] font-semibold text-fg">
-            <ShieldCheck className="size-4 text-accent-text" />
-            Ce que l’entreprise veut voir prouvé
-          </h3>
-          <ul className="mt-3 flex flex-col gap-3">
-            {job.provenSkills?.map((s) => {
-              const mineScore = scoreOf(s.tag);
-              const ok = mineScore >= s.min;
-              return (
-                <li key={s.tag}>
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="font-semibold text-fg">{s.tag}</span>
-                    <span
-                      className={cn('font-semibold tabular', ok ? 'text-success' : 'text-muted')}
-                    >
-                      {me ? `ton score ${mineScore}/100 · ` : ''}demandé {s.min}
-                    </span>
-                  </div>
-                  <div className="relative mt-1.5 h-2 rounded-full bg-surface-3">
-                    <div
-                      className={cn('h-full rounded-full', ok ? 'bg-success' : 'bg-accent')}
-                      style={{ width: `${Math.min(100, mineScore)}%` }}
-                    />
-                    <span
-                      className="absolute -top-1 h-4 w-0.5 rounded-full bg-fg"
-                      style={{ left: `${s.min}%` }}
-                      aria-hidden
-                    />
-                  </div>
-                </li>
-              );
-            })}
-            {job.certs?.map((cert) => (
-              <li key={cert} className="flex items-center justify-between gap-2 text-[13px]">
-                <span className="text-muted">
-                  Certification appréciée : <b className="text-fg">{cert}</b>
-                </span>
-                <Link
-                  to="/certifications?vue=base"
-                  className="shrink-0 font-semibold text-accent-text hover:underline"
-                >
-                  Voir la fiche
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {me && job.provenSkills?.some((s) => scoreOf(s.tag) < s.min) && (
-            <p className="mt-3 text-[13px] text-muted">
-              Pas encore au niveau ? Aide sur{' '}
-              <Link to="/sos" className="font-semibold text-accent-text hover:underline">
-                l’entraide
-              </Link>{' '}
-              pour gagner des Proof XP, ou passe une{' '}
-              <Link to="/certifications" className="font-semibold text-accent-text hover:underline">
-                certification gratuite
-              </Link>
-              .
-            </p>
-          )}
-        </section>
-      )}
-
-      <Block title="Tes missions" items={job.missions} />
-      <Block title="Profil recherché" items={job.profile} />
-      <Block title="Avantages" items={job.perks} />
-
-      <section className="mt-6">
-        <h3 className="text-[14px] font-semibold text-fg">Stack</h3>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {job.stack.map((s) => (
-            <TechChip key={s} label={s} />
+      {job.tags.length > 0 && (
+        <div className="mt-5 flex flex-wrap gap-1.5">
+          {job.tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1.5 rounded-[8px] bg-surface-2 px-2.5 py-1 text-[13px] font-medium text-fg"
+            >
+              {logoFor(t) && <BrandLogo name={t} size={14} />}
+              {t}
+            </span>
           ))}
         </div>
-      </section>
-
-      <section className="mt-6 flex gap-3 rounded-[8px] border border-line p-4">
-        <CompanyLogo slug={job.company} size={44} />
-        <div>
-          <h3 className="text-[14px] font-semibold text-fg">À propos de {c.name}</h3>
-          <p className="text-[13px] text-subtle">
-            {c.sector} · {c.size} personnes · {c.city}
-          </p>
-          <p className="mt-1.5 text-[14px] text-muted">{c.about}</p>
-          <p className="mt-2 text-[12px] text-subtle">Entreprise fictive de démonstration.</p>
-        </div>
-      </section>
-
-      <Sheet
-        open={applyOpen}
-        onOpenChange={setApplyOpen}
-        title={`Postuler · ${job.title}`}
-        description="L’entreprise reçoit ton profil DevHub : compétences prouvées, projets, certifications. Ton e-mail reste privé."
-      >
-        <ApplyForm
-          job={job}
-          badges={badges.map((b) => b.title)}
-          onDone={() => setApplyOpen(false)}
-        />
-      </Sheet>
-    </article>
-  );
-}
-
-function Block({ title, items }: { title: string; items: string[] }) {
-  return (
-    <section className="mt-6">
-      <h3 className="text-[14px] font-semibold text-fg">{title}</h3>
-      <ul className="mt-2 flex flex-col gap-1.5">
-        {items.map((m) => (
-          <li key={m} className="flex gap-2 text-[13.5px] text-muted">
-            <Check className="mt-0.5 size-4 shrink-0 text-success" />
-            {m}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function ApplyForm({ job, badges, onDone }: { job: Job; badges: string[]; onDone: () => void }) {
-  const me = useSession((s) => s.user)!;
-  const apply = usePlatform((s) => s.apply);
-  const [msg, setMsg] = useState(`Bonjour, votre offre « ${job.title} » m’intéresse. `);
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 rounded-[10px] bg-surface-2 p-3">
-        <Avatar name={me.displayName} src={me.avatarUrl} size={40} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-fg">{me.displayName}</p>
-          <p className="text-[12.5px] text-subtle">devhub.africa/u/{me.handle}</p>
-        </div>
-        <Users className="size-4 text-subtle" />
-      </div>
-      {badges.length > 0 && (
-        <p className="text-[13px] text-muted">
-          Badges joints : <b className="text-fg">{badges.join(', ')}</b>
-        </p>
       )}
-      <label className="flex flex-col gap-1.5">
-        <span className="text-[13px] font-medium text-fg">Message à l’entreprise</span>
-        <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} className="min-h-32" />
-      </label>
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" onClick={onDone}>
-          Annuler
-        </Button>
-        <Button
-          variant="primary"
-          icon={<Send />}
-          disabled={msg.trim().length < 20}
-          onClick={() => {
-            apply(job.id, msg.trim());
-            toast.success('Candidature envoyée', {
-              description: `${companyOf(job.company).name} a reçu ton profil.`,
-            });
-            onDone();
-          }}
-        >
-          Envoyer ma candidature
-        </Button>
+
+      <div className="mt-6 border-t border-line pt-5 text-[14.5px] leading-relaxed text-fg">
+        <Markdown>{job.description}</Markdown>
       </div>
-    </div>
+
+      <a
+        href={job.sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-6 flex items-center gap-2 rounded-[10px] border border-line p-3 text-[13px] text-muted hover:border-line-strong hover:text-fg"
+      >
+        <ExternalLink className="size-4 shrink-0" />
+        <span className="min-w-0">
+          Annonce officielle : <span className="font-semibold">{hostOf(job.sourceUrl)}</span>
+        </span>
+      </a>
+    </article>
   );
 }

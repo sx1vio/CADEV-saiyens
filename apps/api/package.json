@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "test": "prisma generate && vitest run",
     "prisma:generate": "prisma generate",
-    "news:ingest": "prisma generate && tsx src/modules/news/cli.ts"
+    "news:ingest": "prisma generate && tsx src/modules/news/cli.ts",
+    "admin": "tsx src/modules/backoffice/cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

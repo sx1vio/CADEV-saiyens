@@ -12,7 +12,6 @@ import {
   PlaySquare,
   Puzzle,
   ServerCog,
-  ShieldCheck,
   Trophy,
   Users,
   Wand2,
@@ -83,15 +82,12 @@ export const PLATFORM_NAV: NavEntry[] = [
   { to: '/regles', label: 'navEntry.rules', icon: BookOpenCheck },
 ];
 
-export const ADMIN_NAV: NavEntry = { to: '/admin', label: 'navEntry.admin', icon: ShieldCheck };
-
 export const ALL_NAV = [
   ...MAIN_NAV,
   ...EXPLORE_NAV,
   ...CREATE_NAV,
   NETWORK_NAV[1]!,
   ...PLATFORM_NAV,
-  ADMIN_NAV,
 ];
 
 /**
@@ -103,7 +99,6 @@ export const ALL_NAV = [
 const ECOSYSTEM_PREVIEW = [
   '/communautes',
   '/c/',
-  '/emplois',
   '/certifications',
   '/skills',
   '/post/',

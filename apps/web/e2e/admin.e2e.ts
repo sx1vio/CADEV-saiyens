@@ -2,15 +2,32 @@ import { expect, test } from '@playwright/test';
 import { promoteAdmin, signIn, uniqueLogin } from './support/session';
 
 /**
- * M1, M4 : un compte signalé arrive dans la file de modération ; l'admin ne peut que classer
- * (un compte n'est pas un contenu à masquer, BUG-036) ; la décision apparaît dans le journal.
+ * L'administration vit dans une application à part (apps/admin, sa propre origine, double facteur).
+ * Le site public n'en contient aucune trace : pas de page /admin, pas d'entrée de menu, et l'API
+ * répond 404 aux routes d'administration, même pour un compte administrateur connecté au site.
  */
-test('modérer un compte signalé, puis retrouver la décision dans le journal', async ({
-  browser,
-}) => {
-  const target = uniqueLogin('spam');
-  const reason = `Messages promotionnels en série ${Date.now()}`;
+test('le site public ne donne aucun accès à l’administration', async ({ page }) => {
+  const login = uniqueLogin('admin');
+  await signIn(page, login, '/sos');
+  promoteAdmin(login);
+  await page.reload();
 
+  await page.goto('/admin');
+  await expect(page.getByText('Page introuvable')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Modération' })).toHaveCount(0);
+
+  const res = await page.request.get('/api/v1/admin/reports');
+  expect(res.status()).toBe(404);
+  const write = await page.request.post('/api/v1/admin/jobs', {
+    headers: { 'X-DevHub-Client': 'web' },
+    data: {},
+  });
+  expect(write.status()).toBe(404);
+});
+
+/** Un signalement part toujours du site ; il est traité dans l'application d'administration. */
+test('signaler un compte depuis son Passport', async ({ browser }) => {
+  const target = uniqueLogin('spam');
   const spammer = await (await browser.newContext()).newPage();
   await signIn(spammer, target, `/u/${target}`);
 
@@ -18,27 +35,7 @@ test('modérer un compte signalé, puis retrouver la décision dans le journal',
   await signIn(reporter, uniqueLogin('witness'), `/u/${target}`);
   await reporter.getByRole('button', { name: 'Signaler' }).click();
   const sheet = reporter.getByRole('dialog', { name: 'Signaler ce compte' });
-  await sheet.getByLabel('Pourquoi ?').fill(reason);
+  await sheet.getByLabel('Pourquoi ?').fill(`Messages promotionnels en série ${Date.now()}`);
   await sheet.getByRole('button', { name: 'Signaler' }).click();
   await expect(reporter.getByText('Signalement envoyé.')).toBeVisible();
-
-  const adminLogin = uniqueLogin('admin');
-  const admin = await (await browser.newContext()).newPage();
-  await signIn(admin, adminLogin, '/sos');
-  promoteAdmin(adminLogin);
-  await admin.goto('/admin');
-
-  const report = admin.getByRole('listitem').filter({ hasText: reason });
-  await expect(report).toBeVisible();
-  await expect(report.getByText('Compte', { exact: true })).toBeVisible();
-  await expect(report.getByRole('button', { name: 'Retirer le contenu' })).toHaveCount(0);
-  await report.getByRole('button', { name: 'Classer sans suite' }).click();
-  await expect(admin.getByText('Signalement classé.')).toBeVisible();
-
-  await admin.getByRole('tab', { name: 'Journal' }).click();
-  // Le journal garde la décision de l'admin (son motif), pas le texte du signalement.
-  const entry = admin.getByRole('listitem').filter({ hasText: adminLogin });
-  await expect(entry.getByText('Signalement classé', { exact: true })).toBeVisible();
-  await expect(entry.getByText('Compte', { exact: true })).toBeVisible();
-  await expect(entry.getByText('« Signalement rejeté »')).toBeVisible();
 });

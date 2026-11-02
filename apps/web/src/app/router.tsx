@@ -73,7 +73,6 @@ const pages = {
   community: () => import('@/pages/Communities'),
   communities: () => import('@/pages/Communities').then((m) => ({ default: m.CommunityList })),
   jobs: () => import('@/pages/Jobs'),
-  jobPublish: () => import('@/pages/JobPublish'),
   certs: () => import('@/pages/Certifications'),
   certExam: () => import('@/pages/CertExam'),
   skills: () => import('@/pages/Skills'),
@@ -101,7 +100,6 @@ const pages = {
   systalinkHelp: () => import('@/pages/SystalinkHelp'),
   impact: () => import('@/pages/Impact'),
   rules: () => import('@/pages/Rules'),
-  admin: () => import('@/pages/Admin'),
   settings: () => import('@/pages/Settings'),
   notFound: () => import('@/pages/NotFound'),
 };
@@ -259,19 +257,6 @@ export const router = createBrowserRouter([
       },
       { path: 'communautes', lazy: lazy('communities') },
       { path: 'c/:slug', lazy: lazy('community') },
-      {
-        path: 'emplois/publier',
-        lazy: async () => {
-          const m = await pages.jobPublish();
-          return {
-            element: (
-              <RequireAuth>
-                <m.default />
-              </RequireAuth>
-            ),
-          };
-        },
-      },
       { path: 'emplois', lazy: lazy('jobs') },
       { path: 'emplois/:id', lazy: lazy('jobs') },
       { path: 'certifications', lazy: lazy('certs') },
@@ -313,19 +298,6 @@ export const router = createBrowserRouter([
       { path: 'systalink/aide', lazy: lazy('systalinkHelp') },
       { path: 'impact', lazy: lazy('impact') },
       { path: 'regles', lazy: lazy('rules') },
-      {
-        path: 'admin',
-        lazy: async () => {
-          const m = await pages.admin();
-          return {
-            element: (
-              <RequireAuth>
-                <m.default />
-              </RequireAuth>
-            ),
-          };
-        },
-      },
       {
         path: 'reglages',
         lazy: async () => {

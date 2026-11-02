@@ -11,6 +11,7 @@ import { ActionsModule } from './infrastructure/actions/action-registry';
 import { IdempotencyModule } from './infrastructure/idempotency/idempotency.module';
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { RealtimeModule } from './infrastructure/realtime/realtime.module';
+import { BackofficeModule } from './modules/backoffice';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
@@ -63,6 +64,7 @@ import { ReputationModule } from './modules/reputation';
     DiscoveryModule,
     NewsModule,
     PlatformModule,
+    BackofficeModule,
     ModerationModule,
     ShareModule,
   ],

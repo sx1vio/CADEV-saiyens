@@ -8,8 +8,7 @@
  * - une étiquette est identifiée par son slug (l'API reçoit des `tagSlugs`).
  */
 import type {
-  AdminReportView,
-  ListAuditResponse,
+  ReportTargetType,
   AnswerView as ApiAnswer,
   DevCard as ApiDevCard,
   FeedbackRequestView,
@@ -39,7 +38,6 @@ import type {
 } from '@devhub/contracts';
 import type {
   AIStatus,
-  AuditPage,
   AnswerView,
   AppNotification,
   Availability,
@@ -772,48 +770,8 @@ export const impact = (i: ImpactResponse): ImpactStats => ({
   source: 'live',
 });
 
-const REPORT_TYPE: Record<AdminReportView['targetType'], Report['targetType']> = {
-  question: 'question',
-  answer: 'answer',
-  room: 'room',
-  room_message: 'message',
-  user: 'user',
-};
-
-const AUDIT_ACTION = {
-  hide_content: 'hide',
-  restore_content: 'restore',
-  dismiss_report: 'dismiss',
-} as const;
-
-export const auditPage = (r: ListAuditResponse): AuditPage => ({
-  entries: r.data.map((e) => ({
-    id: e.id,
-    action: AUDIT_ACTION[e.action],
-    targetType: REPORT_TYPE[e.targetType],
-    targetId: e.targetId,
-    reason: e.reason,
-    admin: summary(e.admin),
-    createdAt: e.createdAt,
-  })),
-  next: r.page.hasMore ? r.page.nextCursor : null,
-});
-
-export const reportTypeToApi = (t: Report['targetType']): AdminReportView['targetType'] =>
+export const reportTypeToApi = (t: Report['targetType']): ReportTargetType =>
   t === 'message' ? 'room_message' : t;
-
-export const report = (r: AdminReportView): Report & { reporter: UserSummary } => ({
-  id: r.id,
-  reporterId: r.reporter.handle,
-  targetType: REPORT_TYPE[r.targetType],
-  targetId: r.targetId,
-  targetLabel: r.target?.excerpt ?? '',
-  reason: r.reason,
-  status: r.status === 'actioned' ? 'removed' : r.status,
-  handledBy: null,
-  createdAt: r.createdAt,
-  reporter: summary(r.reporter),
-});
 
 /** S7 : au plus trois questions similaires, avant de publier comme sur une fiche. */
 export const SIMILAR_LIMIT = 3;

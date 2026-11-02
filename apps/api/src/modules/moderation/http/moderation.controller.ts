@@ -13,7 +13,7 @@ import {
   UnprocessableEntityException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiExcludeEndpoint, ApiOkResponse } from '@nestjs/swagger';
 import {
   CreateReportRequest,
   ListAuditQuery,
@@ -29,6 +29,7 @@ import { createZodDto } from 'nestjs-zod';
 import { IdempotencyKey } from '../../../infrastructure/idempotency/idempotency-key.decorator';
 import { IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
 import { type AuthenticatedUser, CurrentUser, SessionGuard } from '../../identity';
+import { AdminSessionGuard } from '../../backoffice';
 import { Moderation } from '../application/moderation';
 import {
   ReportAlreadyHandledError,
@@ -39,7 +40,6 @@ import {
 import type { ReportState } from '../domain/ports';
 import { PrismaModerationWriter } from '../infrastructure/prisma-moderation.writer';
 import { ReportReader } from '../infrastructure/report.reader';
-import { AdminGuard } from './admin.guard';
 
 class CreateReportRequestDto extends createZodDto(CreateReportRequest) {}
 class ReportViewDto extends createZodDto(ReportView) {}
@@ -112,7 +112,8 @@ export class ModerationController {
 
   /** M1 : file de modération, signalements ouverts par défaut. */
   @Get('admin/reports')
-  @UseGuards(SessionGuard, AdminGuard)
+  @ApiExcludeEndpoint()
+  @UseGuards(AdminSessionGuard)
   @ApiOkResponse({ type: ListReportsResponseDto })
   list(@Query() query: ListReportsQueryDto): Promise<ListReportsResponse> {
     return this.reader.list(query);
@@ -120,7 +121,8 @@ export class ModerationController {
 
   /** M4 : journal d'audit des décisions de modération (filtrable par contenu). */
   @Get('admin/audit')
-  @UseGuards(SessionGuard, AdminGuard)
+  @ApiExcludeEndpoint()
+  @UseGuards(AdminSessionGuard)
   @ApiOkResponse({ type: ListAuditResponseDto })
   audit(@Query() query: ListAuditQueryDto): Promise<ListAuditResponse> {
     return this.reader.audit(query);
@@ -129,7 +131,8 @@ export class ModerationController {
   /** M1, M4 : masquer, rétablir ou rejeter ; annuler les Proof XP sur demande. */
   @Post('admin/reports/:id/action')
   @HttpCode(200)
-  @UseGuards(SessionGuard, AdminGuard)
+  @ApiExcludeEndpoint()
+  @UseGuards(AdminSessionGuard)
   @ApiOkResponse({ type: ReportActionResponseDto })
   async act(
     @CurrentUser() auth: AuthenticatedUser,

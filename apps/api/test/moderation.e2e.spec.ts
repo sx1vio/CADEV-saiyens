@@ -9,9 +9,15 @@ import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 import { applyTestEnv } from './env.fixture';
 import { WRITE_HEADERS, signInAs } from './sign-in.helper';
 import { ensureTags } from './tags.fixture';
+import { ADMIN_HEADERS, adminSignIn, makeAdmin } from './admin.helper';
 
 // M1 et M4 de bout en bout : Kwame signale une réponse de spam, l'administratrice la masque.
-applyTestEnv({ AUTH_FAKE_PROVIDER: 'true', NODE_ENV: 'test', LOG_LEVEL: 'warn' });
+applyTestEnv({
+  AUTH_FAKE_PROVIDER: 'true',
+  NODE_ENV: 'test',
+  LOG_LEVEL: 'warn',
+  ADMIN_URL: 'http://localhost:5299',
+});
 
 const suffix = randomBytes(4).toString('hex');
 
@@ -24,15 +30,18 @@ describe('signalement et modération (M1, M4)', () => {
   let answerId: string;
   let reportId: string;
 
+  // L'administratrice passe par l'application d'administration (session et en-têtes à part).
+  const headers = (who: string) => (who === 'admin' ? ADMIN_HEADERS : WRITE_HEADERS);
   const post = (who: string, path: string, body: object = {}, key = randomUUID()) =>
     request(app.getHttpServer())
       .post(path)
-      .set(WRITE_HEADERS)
+      .set(headers(who))
       .set('Cookie', cookie.get(who)!)
       .set('Idempotency-Key', key)
       .send(body);
   const get = (path: string, who?: string) => {
     const r = request(app.getHttpServer()).get(path);
+    if (who === 'admin') r.set(ADMIN_HEADERS);
     return who ? r.set('Cookie', cookie.get(who)!) : r;
   };
 
@@ -45,7 +54,7 @@ describe('signalement et modération (M1, M4)', () => {
     await ensureTags(prisma, [{ slug: 'docker', label: 'Docker' }]);
     for (const n of ['awa', 'spammer', 'kwame', 'admin'])
       cookie.set(n, await signInAs(app, handle(n)));
-    await prisma.user.update({ where: { handle: handle('admin') }, data: { isAdmin: true } });
+    cookie.set('admin', await adminSignIn(app, await makeAdmin(prisma, handle('admin'))));
 
     const q = await post('awa', '/api/v1/questions', {
       clientId: randomUUID(),
@@ -92,7 +101,8 @@ describe('signalement et modération (M1, M4)', () => {
   });
 
   it('file de modération : administrateurs seulement, avec l’extrait du contenu', async () => {
-    expect((await get('/api/v1/admin/reports', 'kwame').expect(403)).body.code).toBe('forbidden');
+    // Un membre n'a pas d'accès : la route n'existe pas pour lui.
+    expect((await get('/api/v1/admin/reports', 'kwame').expect(404)).body.code).toBe('not_found');
     const res = await get('/api/v1/admin/reports?limit=50', 'admin').expect(200);
     const mine = res.body.data.find((r: { id: string }) => r.id === reportId);
     expect(mine).toMatchObject({
@@ -110,7 +120,7 @@ describe('signalement et modération (M1, M4)', () => {
     await post('kwame', `/api/v1/admin/reports/${reportId}/action`, {
       action: 'hide',
       reason: 'Spam',
-    }).expect(403);
+    }).expect(404);
     const res = await post('admin', `/api/v1/admin/reports/${reportId}/action`, {
       action: 'hide',
       reason: 'Spam publicitaire',
@@ -142,7 +152,7 @@ describe('signalement et modération (M1, M4)', () => {
   });
 
   it('journal d’audit (M4) : administrateurs seulement, filtrable par contenu', async () => {
-    await get('/api/v1/admin/audit', 'kwame').expect(403);
+    await get('/api/v1/admin/audit', 'kwame').expect(404);
     const res = await get(
       `/api/v1/admin/audit?targetType=answer&targetId=${answerId}`,
       'admin',

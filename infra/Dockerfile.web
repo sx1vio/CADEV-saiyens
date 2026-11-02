@@ -6,7 +6,10 @@ WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @devhub/web... build
+# Espace d'administration : build à part, servi sur sa propre adresse (ADMIN_ADDRESS).
+RUN pnpm --filter @devhub/admin... build
 
 FROM caddy:2-alpine
 COPY infra/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/apps/web/dist /srv/www
+COPY --from=build /repo/apps/admin/dist /srv/admin

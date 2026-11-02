@@ -767,38 +767,6 @@ export const localApi: DevHubApi = {
   async report(targetType, targetId, targetLabel, reason) {
     await write((e, me) => e.report(me.id, targetType, targetId, targetLabel, reason, Date.now()));
   },
-  async listReports() {
-    return read((e) => {
-      const me = currentUser(e);
-      if (!me?.isAdmin) throw new DomainError('forbidden');
-      return e.s.reports
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        .map((r) => ({ ...r, reporter: e.summaryById(r.reporterId) }));
-    });
-  },
-  async handleReport(id, remove) {
-    await write((e, me) => e.handleReport(id, me.id, remove, Date.now()));
-  },
-  // Serveur simulé : le journal est reconstitué à partir des signalements traités (sans pagination).
-  async listAudit() {
-    return read((e) => {
-      const me = currentUser(e);
-      if (!me?.isAdmin) throw new DomainError('forbidden');
-      const entries = e.s.reports
-        .filter((r) => r.status !== 'open' && r.handledBy)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        .map((r) => ({
-          id: r.id,
-          action: r.status === 'removed' ? ('hide' as const) : ('dismiss' as const),
-          targetType: r.targetType,
-          targetId: r.targetId,
-          reason: r.reason,
-          admin: e.summaryById(r.handledBy as string),
-          createdAt: r.createdAt,
-        }));
-      return { entries, next: null };
-    });
-  },
 
   async getStatus() {
     // Mesures réelles : latence de l'hébergeur de cette page et de la base locale du navigateur.
