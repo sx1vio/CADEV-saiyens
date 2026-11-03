@@ -31,9 +31,9 @@ export function servesToken(body: string, token: string): boolean {
 export const sameOrigin = (a: string, b: string): boolean =>
   new URL(a).origin === new URL(b).origin;
 
-// Déplacé dans l'infrastructure (partagé avec la liste d'IP de l'espace d'administration).
-export { inCidr } from '../../../infrastructure/net/cidr';
-import { inCidr } from '../../../infrastructure/net/cidr';
+// Partagé avec la liste d'IP de l'espace d'administration (@devhub/core).
+import { inCidr } from '@devhub/core';
+export { inCidr };
 
 export const onSystalink = (ips: string[], ranges: string[]): boolean =>
   ips.some((ip) => ranges.some((r) => inCidr(ip, r)));

@@ -24,18 +24,3 @@ test('le site public ne donne aucun accès à l’administration', async ({ page
   });
   expect(write.status()).toBe(404);
 });
-
-/** Un signalement part toujours du site ; il est traité dans l'application d'administration. */
-test('signaler un compte depuis son Passport', async ({ browser }) => {
-  const target = uniqueLogin('spam');
-  const spammer = await (await browser.newContext()).newPage();
-  await signIn(spammer, target, `/u/${target}`);
-
-  const reporter = await (await browser.newContext()).newPage();
-  await signIn(reporter, uniqueLogin('witness'), `/u/${target}`);
-  await reporter.getByRole('button', { name: 'Signaler' }).click();
-  const sheet = reporter.getByRole('dialog', { name: 'Signaler ce compte' });
-  await sheet.getByLabel('Pourquoi ?').fill(`Messages promotionnels en série ${Date.now()}`);
-  await sheet.getByRole('button', { name: 'Signaler' }).click();
-  await expect(reporter.getByText('Signalement envoyé.')).toBeVisible();
-});

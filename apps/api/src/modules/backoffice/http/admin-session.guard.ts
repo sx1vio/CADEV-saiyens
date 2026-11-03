@@ -8,7 +8,7 @@ import {
 import type { Request } from 'express';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
-import { inCidr } from '../../../infrastructure/net/cidr';
+import { inCidr } from '@devhub/core';
 import { hashSessionToken, readCookie } from '../../identity';
 import { type ActiveAdminSession, AdminSessionStore } from '../infrastructure/admin-session.store';
 

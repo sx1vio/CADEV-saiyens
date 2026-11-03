@@ -1,4 +1,5 @@
-const ipv4ToInt = (ip: string): number | null => {
+// Plages réseau IPv4 (CIDR) : règle pure, partagée par les salles (Systalink) et l'administration.
+export const ipv4ToInt = (ip: string): number | null => {
   const parts = ip.split('.').map(Number);
   if (parts.length !== 4 || parts.some((p) => !Number.isInteger(p) || p < 0 || p > 255)) {
     return null;

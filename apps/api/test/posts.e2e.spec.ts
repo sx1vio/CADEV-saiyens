@@ -28,13 +28,25 @@ describe('fil de la communauté', () => {
   let postId: string;
   let commentId: string;
 
-  const send = (method: 'post' | 'put' | 'delete', who: string, path: string, body: object = {}) =>
-    request(app.getHttpServer())
-      [method](path)
+  const send = (
+    method: 'post' | 'put' | 'delete',
+    who: string,
+    path: string,
+    body: object = {},
+  ) => {
+    const server = request(app.getHttpServer());
+    const req =
+      method === 'post'
+        ? server.post(path)
+        : method === 'put'
+          ? server.put(path)
+          : server.delete(path);
+    return req
       .set(WRITE_HEADERS)
       .set('Idempotency-Key', randomUUID())
       .set('Cookie', cookie.get(who)!)
       .send(body);
+  };
   const get = (path: string, who?: string) => {
     const r = request(app.getHttpServer()).get(path);
     return who ? r.set('Cookie', cookie.get(who)!) : r;
