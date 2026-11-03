@@ -53,3 +53,57 @@ export const hostOf = (url: string) => {
     return url;
   }
 };
+
+/* ---------------- Candidatures sur DevHub (offres d'entreprises inscrites) ---------------- */
+
+import type { CompanyPublicView, MyApplicationView } from '@devhub/contracts';
+import { DomainError } from '@/services/types';
+
+async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (method !== 'GET') {
+    headers['X-DevHub-Client'] = 'web';
+    headers['Idempotency-Key'] = crypto.randomUUID();
+  }
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const res = await fetch(`/api/v1${path}`, {
+    method,
+    headers,
+    credentials: 'include',
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }).catch(() => {
+    throw new DomainError('network.offline');
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { code?: string };
+    throw new DomainError(err.code ?? `http.${res.status}`);
+  }
+  return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
+}
+
+export type { MyApplicationView, CompanyPublicView };
+
+export const careers = {
+  apply: (jobId: string, message: string) =>
+    send<void>('POST', `/jobs/${jobId}/apply`, { message }),
+  mine: () => send<{ data: MyApplicationView[] }>('GET', '/me/applications').then((r) => r.data),
+  withdraw: (id: string) => send<void>('DELETE', `/me/applications/${id}`),
+  company: (slug: string) =>
+    send<CompanyPublicView>('GET', `/companies/${encodeURIComponent(slug)}`),
+};
+
+export const APPLICATION_STATUS: Record<MyApplicationView['status'], string> = {
+  submitted: 'Envoyée',
+  seen: 'Consultée',
+  interview: 'Entretien proposé',
+  rejected: 'Non retenue',
+  hired: 'Acceptée',
+  withdrawn: 'Retirée',
+};
+
+/** Portail entreprise (business.<domaine> en production, port 5399 en local). */
+export const BUSINESS_URL: string =
+  (import.meta.env.VITE_BUSINESS_URL as string | undefined) ??
+  (location.hostname === 'localhost'
+    ? 'http://localhost:5399'
+    : `${location.protocol}//business.${location.hostname.replace(/^www\./, '')}`);

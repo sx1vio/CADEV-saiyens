@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   ArrowUpRight,
+  Building2,
   Bookmark,
   Briefcase,
   CalendarClock,
@@ -19,14 +20,21 @@ import { useMedia } from '@/components/ui/overlay';
 import { countryName } from '@/lib/geo';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/primitives';
+import { invalidate } from '@/lib/query';
 import {
+  APPLICATION_STATUS,
+  BUSINESS_URL,
   CONTRACT_LABEL,
   MODE_LABEL,
   SENIORITY_LABEL,
+  careers,
   fetchJobs,
   hostOf,
   type JobOffer,
 } from '@/platform/jobs';
+import { useSession } from '@/stores/app';
 import { LiveBoard } from '@/platform/LiveBoard';
 import { BrandLogo, logoFor } from '@/platform/logos';
 import { usePlatform } from '@/platform/store';
@@ -109,7 +117,7 @@ export default function Jobs() {
         icon={Briefcase}
         color={SERVICE_COLORS.jobs}
         title="Emplois"
-        subtitle="Des offres réelles, chacune reliée à son annonce officielle : sélectionnées par l’équipe DevHub, ou collectées en direct chez les entreprises qui recrutent en Afrique et à distance."
+        subtitle="Des offres réelles : publiées par des entreprises vérifiées par DevHub, sélectionnées par l’équipe, ou collectées en direct chez les entreprises qui recrutent en Afrique et à distance."
       >
         <form
           onSubmit={(e) => e.preventDefault()}
@@ -143,6 +151,18 @@ export default function Jobs() {
         </div>
       </ServiceHeader>
 
+      <a
+        href={BUSINESS_URL}
+        className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-[10px] border border-line px-4 py-3 text-[13.5px] text-muted hover:border-line-strong hover:text-fg"
+      >
+        <Building2 className="size-4 text-accent-text" />
+        <span className="font-semibold text-fg">Vous recrutez ?</span>
+        Inscrivez votre entreprise sur DevHub Business et publiez vos offres gratuitement.
+        <ArrowUpRight className="ml-auto size-4" />
+      </a>
+
+      <MyApplications />
+
       <section aria-labelledby="selection" className="mt-6">
         <div className="mb-3 flex flex-wrap items-baseline gap-2">
           <h2
@@ -153,7 +173,7 @@ export default function Jobs() {
             Sélection DevHub
           </h2>
           <span className="text-[12.5px] text-subtle">
-            Offres vérifiées une à une par l’équipe, avec le lien vers l’annonce officielle
+            Offres d’entreprises vérifiées et offres sélectionnées par l’équipe
           </span>
         </div>
         {!jobs && !error && (
@@ -307,6 +327,10 @@ function JobDetail({ job }: { job: JobOffer }) {
                 {job.company}
                 <Globe className="size-3.5" aria-hidden />
               </a>
+            ) : job.companyRef ? (
+              <Link to={`/entreprises/${job.companyRef.slug}`} className="hover:text-accent-text">
+                {job.company}
+              </Link>
             ) : (
               job.company
             )}
@@ -343,15 +367,19 @@ function JobDetail({ job }: { job: JobOffer }) {
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <a
-          href={job.applyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-[14px] font-semibold text-white hover:bg-accent-hover"
-        >
-          Postuler
-          <ArrowUpRight className="size-4" />
-        </a>
+        {job.applyUrl ? (
+          <a
+            href={job.applyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-[14px] font-semibold text-white hover:bg-accent-hover"
+          >
+            Postuler
+            <ArrowUpRight className="size-4" />
+          </a>
+        ) : (
+          <ApplyOnDevHub job={job} />
+        )}
         <button
           type="button"
           onClick={() => toggle('savedJobs', job.id)}
@@ -363,8 +391,9 @@ function JobDetail({ job }: { job: JobOffer }) {
         </button>
       </div>
       <p className="mt-2 text-[12.5px] text-subtle">
-        La candidature se fait chez {hostOf(job.applyUrl)}. DevHub ne collecte aucune donnée de
-        candidature.
+        {job.applyUrl
+          ? `La candidature se fait chez ${hostOf(job.applyUrl)}. DevHub ne collecte aucune donnée de candidature.`
+          : 'Entreprise vérifiée par DevHub : tu postules avec ton Passport et tu suis l’avancement ici.'}
       </p>
 
       {job.tags.length > 0 && (
@@ -385,17 +414,180 @@ function JobDetail({ job }: { job: JobOffer }) {
         <Markdown>{job.description}</Markdown>
       </div>
 
-      <a
-        href={job.sourceUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-6 flex items-center gap-2 rounded-[10px] border border-line p-3 text-[13px] text-muted hover:border-line-strong hover:text-fg"
-      >
-        <ExternalLink className="size-4 shrink-0" />
-        <span className="min-w-0">
-          Annonce officielle : <span className="font-semibold">{hostOf(job.sourceUrl)}</span>
-        </span>
-      </a>
+      {job.sourceUrl ? (
+        <a
+          href={job.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 flex items-center gap-2 rounded-[10px] border border-line p-3 text-[13px] text-muted hover:border-line-strong hover:text-fg"
+        >
+          <ExternalLink className="size-4 shrink-0" />
+          <span className="min-w-0">
+            Annonce officielle : <span className="font-semibold">{hostOf(job.sourceUrl)}</span>
+          </span>
+        </a>
+      ) : (
+        job.companyRef && (
+          <Link
+            to={`/entreprises/${job.companyRef.slug}`}
+            className="mt-6 flex items-center gap-2 rounded-[10px] border border-line p-3 text-[13px] text-muted hover:border-line-strong hover:text-fg"
+          >
+            <ShieldCheck className="size-4 shrink-0 text-accent-text" />
+            <span className="min-w-0">
+              Publiée par <span className="font-semibold">{job.companyRef.name}</span>, entreprise
+              vérifiée : voir sa page et ses autres offres
+            </span>
+          </Link>
+        )
+      )}
     </article>
+  );
+}
+
+const APPLY_ERRORS: Record<string, string> = {
+  'application.exists': 'Tu as déjà postulé à cette offre.',
+  'http.401': 'Connecte-toi pour postuler.',
+  'auth.required': 'Connecte-toi pour postuler.',
+  not_found: 'Cette offre n’est plus ouverte.',
+  'validation.failed': 'Ton message doit faire au moins 30 caractères.',
+};
+
+/** Candidature avec le Passport, pour les offres des entreprises inscrites sur DevHub. */
+function ApplyOnDevHub({ job }: { job: JobOffer }) {
+  const me = useSession((s) => s.user);
+  const nav = useNavigate();
+  const { data: mine } = useQuery(me ? 'my-applications' : null, () => careers.mine());
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const app = mine?.find((a) => a.job.id === job.id && a.status !== 'withdrawn');
+
+  if (app)
+    return (
+      <span className="inline-flex h-10 items-center gap-2 rounded-full bg-success-soft px-4 text-[14px] font-semibold text-success">
+        <Check className="size-4" />
+        Candidature : {APPLICATION_STATUS[app.status].toLowerCase()}
+      </span>
+    );
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => (me ? setOpen(true) : nav('/connexion'))}
+        className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-[14px] font-semibold text-white hover:bg-accent-hover"
+      >
+        Postuler avec mon Passport
+      </button>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="apply-title"
+        >
+          <form
+            className="w-full max-w-[520px] rounded-[16px] bg-canvas p-5"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setBusy(true);
+              try {
+                await careers.apply(job.id, message.trim());
+                invalidate('my-applications');
+                toast.success('Candidature envoyée. Tu verras ici chaque étape.');
+                setOpen(false);
+              } catch (err) {
+                const code = (err as { code?: string }).code ?? '';
+                toast.error(APPLY_ERRORS[code] ?? 'Envoi impossible. Réessaie dans un instant.');
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            <h2 id="apply-title" className="text-[18px] font-semibold text-fg">
+              Postuler : {job.title}
+            </h2>
+            <p className="mt-1 text-[13.5px] text-muted">
+              {job.company} verra ton Passport public (compétences, Proof XP, projets) et ce
+              message.
+            </p>
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="mt-4 min-h-36"
+              maxLength={3000}
+              aria-label="Message de candidature"
+              placeholder="Pourquoi ce poste, ce que tu as déjà construit de proche, tes disponibilités…"
+            />
+            <p className="mt-1 text-[12px] text-subtle">
+              {message.trim().length} / 30 caractères minimum
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="h-10 rounded-full px-4 text-[14px] font-semibold text-muted hover:bg-surface-2"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={busy || message.trim().length < 30}
+                className="h-10 rounded-full bg-accent px-5 text-[14px] font-semibold text-white disabled:opacity-50"
+              >
+                {busy ? 'Envoi…' : 'Envoyer ma candidature'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** « Mes candidatures » : suivi des offres auxquelles j'ai postulé sur DevHub. */
+function MyApplications() {
+  const me = useSession((s) => s.user);
+  const { data } = useQuery(me ? 'my-applications' : null, () => careers.mine());
+  if (!data?.length) return null;
+  return (
+    <section aria-labelledby="mine" className="mt-6">
+      <h2 id="mine" className="mb-3 text-[16px] font-semibold text-fg">
+        Mes candidatures
+      </h2>
+      <ul className="grid gap-2 md:grid-cols-2">
+        {data.map((a) => (
+          <li key={a.id}>
+            <Link
+              to={`/emplois/${a.job.id}`}
+              className="flex items-center gap-3 rounded-[10px] bg-surface-1 p-3 hover:bg-surface-2"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14px] font-semibold text-fg">
+                  {a.job.title}
+                </span>
+                <span className="block truncate text-[12.5px] text-subtle">
+                  {a.job.company} · {a.job.location}
+                </span>
+              </span>
+              <span
+                className={cn(
+                  'shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold',
+                  a.status === 'hired'
+                    ? 'bg-success-soft text-success'
+                    : a.status === 'interview'
+                      ? 'bg-warning-soft text-warning'
+                      : a.status === 'rejected' || a.status === 'withdrawn'
+                        ? 'bg-surface-3 text-muted'
+                        : 'bg-accent-soft text-accent-text',
+                )}
+              >
+                {APPLICATION_STATUS[a.status]}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

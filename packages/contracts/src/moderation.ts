@@ -88,7 +88,7 @@ export type ReportActionResponse = z.infer<typeof ReportActionResponse>;
 
 /** GET /api/v1/admin/audit (M4) : journal des décisions de modération, plus récentes d'abord. */
 /** Cibles du journal : contenus modérés, offres d'emploi, comptes (connexion à l'administration). */
-export const AuditTargetType = z.enum([...ReportTargetType.options, 'job_offer']);
+export const AuditTargetType = z.enum([...ReportTargetType.options, 'job_offer', 'company']);
 export type AuditTargetType = z.infer<typeof AuditTargetType>;
 
 export const AuditAction = z.enum([
@@ -99,6 +99,10 @@ export const AuditAction = z.enum([
   'job_update',
   'job_delete',
   'admin_sign_in',
+  'company_verify',
+  'company_reject',
+  'company_suspend',
+  'company_restore',
 ]);
 export type AuditAction = z.infer<typeof AuditAction>;
 

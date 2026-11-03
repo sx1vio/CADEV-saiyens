@@ -347,7 +347,9 @@ export type NotificationType =
   | 'pair'
   | 'contact'
   | 'pair-accepted'
-  | 'pair-declined';
+  | 'pair-declined'
+  | 'application'
+  | 'message';
 
 export interface AppNotification {
   id: ID;

@@ -20,6 +20,8 @@ services:
       SITE_ADDRESS: ${SITE_ADDRESS:?domaine public manquant}
       # Adresse de l'administration (ex. admin.devhub.africa) ; à reporter dans ADMIN_URL côté API.
       ADMIN_ADDRESS: ${ADMIN_ADDRESS:-http://127.0.0.1:8081}
+      # Portail entreprise (ex. business.devhub.africa) ; à reporter dans BUSINESS_URL côté API.
+      BUSINESS_ADDRESS: ${BUSINESS_ADDRESS:-http://127.0.0.1:8082}
     volumes:
       - caddy_data:/data
       - caddy_config:/config

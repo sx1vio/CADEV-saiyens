@@ -69,6 +69,8 @@ export const EnvSchema = z
     // Espace d'administration (apps/admin), servi sur sa propre origine. Absent : désactivé,
     // toutes les routes /api/v1/admin/* répondent 404.
     ADMIN_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+    // Portail entreprise (apps/business), servi sur sa propre origine. Absent : désactivé.
+    BUSINESS_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
     // Plages CIDR IPv4 autorisées à ouvrir l'administration (séparées par des virgules). Vide : toutes.
     ADMIN_ALLOWED_IPS: z.preprocess(
       (v) => (v === undefined ? '' : v),

@@ -7,7 +7,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import { ENV } from './infrastructure/config/config.module';
 import type { Env } from './infrastructure/config/env';
-import { isAdminPath } from './modules/identity';
+import { isAdminPath, isBusinessPath } from './modules/identity';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
@@ -19,12 +19,13 @@ async function bootstrap(): Promise<void> {
   app.set('trust proxy', 'loopback, uniquelocal');
   // L'application publique peut appeler l'API depuis son origine ; jamais les routes
   // d'administration, servies sur leur propre origine sans CORS.
-  app.enableCors((req: { url?: string }, cb) =>
+  app.enableCors((req: { url?: string }, cb) => {
+    const path = (req.url ?? '').split('?')[0] ?? '';
     cb(null, {
-      origin: isAdminPath((req.url ?? '').split('?')[0] ?? '') ? false : env.APP_URL,
+      origin: isAdminPath(path) || isBusinessPath(path) ? false : env.APP_URL,
       credentials: true,
-    }),
-  );
+    });
+  });
 
   if (env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder().setTitle('DevHub Africa API').setVersion('v1').build();

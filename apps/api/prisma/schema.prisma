@@ -207,6 +207,7 @@ model User {
   posts             Post[]
   postComments      PostComment[]
   postVotes         PostVote[]
+  jobApplications   JobApplication[]
   jobOffers         JobOffer[]
   skills            UserSkill[]
   questions         Question[]
@@ -908,8 +909,12 @@ model JobOffer {
   seniority   String // junior | confirme | senior | lead
   salary      String?
   description String
-  applyUrl    String    @map("apply_url")
-  sourceUrl   String    @map("source_url")
+  /// Lien externe ; null pour une offre d'entreprise inscrite (candidature sur DevHub)
+  applyUrl    String?   @map("apply_url")
+  /// Annonce officielle ; null quand l'entreprise publie elle-même sur DevHub
+  sourceUrl   String?   @map("source_url")
+  /// Entreprise inscrite qui publie l'offre (portail business) ; null pour une offre de l'admin
+  companyId   String?   @map("company_id") @db.Uuid
   tags        String[]  @default([])
   status      String    @default("draft") // draft | published | archived
   expiresAt   DateTime? @map("expires_at") @db.Timestamptz
@@ -918,9 +923,12 @@ model JobOffer {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
-  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy    User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  companyRef   Company?         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
 
   @@index([status, publishedAt])
+  @@index([companyId])
   @@map("job_offers")
 }
 
@@ -975,4 +983,78 @@ model PostVote {
 
   @@id([postId, userId])
   @@map("post_votes")
+}
+
+/// Entreprise inscrite sur le portail business ; ses offres ne sont publiques qu'une fois validée.
+model Company {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug         String    @unique
+  name         String
+  website      String?
+  country      String?   @db.Char(2)
+  city         String?
+  sector       String
+  size         String // 1-10 | 11-50 | 51-200 | 201-1000 | 1000+
+  about        String    @default("")
+  status       String    @default("pending") // pending | verified | rejected | suspended
+  statusReason String?   @map("status_reason")
+  verifiedAt   DateTime? @map("verified_at") @db.Timestamptz
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  members BusinessAccount[]
+  offers  JobOffer[]
+
+  @@index([status])
+  @@map("companies")
+}
+
+/// Compte d'un recruteur, distinct des comptes devs (jamais dans l'annuaire ni le classement).
+model BusinessAccount {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId    String    @map("company_id") @db.Uuid
+  email        String    @unique @db.Citext
+  name         String
+  role         String    @default("owner") // owner | recruiter
+  passwordHash String    @map("password_hash")
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz
+  disabledAt   DateTime? @map("disabled_at") @db.Timestamptz
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  company  Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sessions BusinessSession[]
+
+  @@index([companyId])
+  @@map("business_accounts")
+}
+
+model BusinessSession {
+  id         String   @id // SHA-256 du jeton
+  accountId  String   @map("account_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz
+  lastUsedAt DateTime @default(now()) @map("last_used_at") @db.Timestamptz
+
+  account BusinessAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@map("business_sessions")
+}
+
+/// Candidature d'un dev à une offre d'entreprise inscrite, avec son Passport.
+model JobApplication {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId     String   @map("job_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  message   String
+  status    String   @default("submitted") // submitted | seen | interview | rejected | hired | withdrawn
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  job  JobOffer @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, userId])
+  @@index([userId])
+  @@map("job_applications")
 }

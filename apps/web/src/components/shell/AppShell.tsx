@@ -456,13 +456,17 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
   const { data } = useQuery(me ? `notifications:${me.id}` : null, () => api.listNotifications());
   const unread = data?.filter((n) => !n.readAt).length ?? 0;
   const href = (n: AppNotification) =>
-    n.type === 'contact'
-      ? `/u/${n.payload.by}`
-      : n.payload.questionId
-        ? `/sos/${n.payload.questionId}`
-        : n.payload.code
-          ? `/p/${n.payload.code}`
-          : '/';
+    n.type === 'application'
+      ? `/emplois/${n.payload.jobId}`
+      : n.type === 'message'
+        ? `/messages/${n.payload.conversationId}`
+        : n.type === 'contact'
+          ? `/u/${n.payload.by}`
+          : n.payload.questionId
+            ? `/sos/${n.payload.questionId}`
+            : n.payload.code
+              ? `/p/${n.payload.code}`
+              : '/';
   return (
     <Popover.Root
       onOpenChange={(o) => {

@@ -470,6 +470,8 @@ const NOTIF: Record<NotificationView['type'], NotificationType> = {
   'pair.proposed': 'pair',
   // Remplacé selon la décision (pair-accepted ou pair-declined), voir notification().
   'pair.answered': 'pair-accepted',
+  'application.status': 'application',
+  'message.received': 'message',
 };
 
 /** Les libellés du front attendent `author`, `title`, `room`, `task`, `user`, `points`. */

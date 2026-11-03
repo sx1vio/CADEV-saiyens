@@ -29,6 +29,7 @@ export const AllowCrossOrigin = () => SetMetadata(ALLOW_CROSS_ORIGIN, true);
 export class OriginGuard implements CanActivate {
   private readonly appOrigin: string;
   private readonly adminOrigin: string | null;
+  private readonly businessOrigin: string | null;
 
   constructor(
     @Inject(ENV) env: Env,
@@ -36,6 +37,7 @@ export class OriginGuard implements CanActivate {
   ) {
     this.appOrigin = new URL(env.APP_URL).origin;
     this.adminOrigin = env.ADMIN_URL ? new URL(env.ADMIN_URL).origin : null;
+    this.businessOrigin = env.BUSINESS_URL ? new URL(env.BUSINESS_URL).origin : null;
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -53,6 +55,15 @@ export class OriginGuard implements CanActivate {
       // Rien ne doit révéler l'existence de l'administration : même réponse qu'une route absente.
       throw new NotFoundException({ code: 'not_found', title: 'Not found' });
     }
+    if (isBusinessPath(req.path)) {
+      if (
+        this.businessOrigin &&
+        req.headers.origin === this.businessOrigin &&
+        req.headers['x-devhub-client'] === 'business'
+      )
+        return true;
+      throw new NotFoundException({ code: 'not_found', title: 'Not found' });
+    }
     if (req.headers.origin === this.appOrigin && req.headers['x-devhub-client'] === 'web')
       return true;
     throw new ForbiddenException({ code: 'csrf.origin_rejected', title: 'Origin not allowed' });
@@ -62,3 +73,7 @@ export class OriginGuard implements CanActivate {
 /** Routes de l'espace d'administration (apps/admin). */
 export const isAdminPath = (path: string): boolean =>
   path === '/api/v1/admin' || path.startsWith('/api/v1/admin/');
+
+/** Routes du portail entreprise (apps/business). */
+export const isBusinessPath = (path: string): boolean =>
+  path === '/api/v1/business' || path.startsWith('/api/v1/business/');

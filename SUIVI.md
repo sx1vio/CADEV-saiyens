@@ -149,6 +149,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 04/11/2026 — Portail entreprise (DevHub Business)
+
+- **Demande de Sylvio** : pouvoir s'inscrire en tant qu'entreprise sur un sous-domaine (`business.devhub…`) pour publier des offres ; un admin avec la main sur toute la plateforme ; une messagerie entre devs ; le profil GitHub (dépôts, commits, activité) sur le Passport. Choix validés : entreprise validée une fois par l'admin puis publication directe, candidatures sur DevHub, gratuit pour le concours, admin complet (utilisateurs, contenus, entreprises, admins, annonces, statistiques, flux et activité).
+- **API** (module `business`) : tables `companies`, `business_accounts` (séparés des comptes devs), `business_sessions`, `job_applications` ; `job_offers` gagne `company_id` et accepte une offre sans lien externe. Routes `/api/v1/business/*` (inscription, connexion, profil, offres, candidatures, statut) invisibles hors de `BUSINESS_URL`, CORS fermé, tentatives limitées. Côté devs : `POST /api/v1/jobs/:id/apply`, `GET/DELETE /api/v1/me/applications`, `GET /api/v1/companies/:slug`. Une offre d'entreprise n'est publique que si l'entreprise est validée. Notification `application.status` au dev à chaque étape.
+- **Admin** : onglet « Entreprises » (à vérifier, validées, refusées, suspendues ; comptes, activité ; valider, refuser avec motif, suspendre, réactiver), actions journalisées ; suspendre ferme les sessions des recruteurs. Les offres d'entreprise sont signalées dans la liste ; l'admin peut seulement les retirer ou changer leur échéance.
+- **`apps/business`** (port 5399) : accueil pour les recruteurs avec inscription, connexion, tableau de bord, offres (éditeur, brouillon tant que l'entreprise n'est pas validée), candidatures avec le Passport du candidat et changement de statut, profil de l'entreprise. Caddy : bloc `BUSINESS_ADDRESS`. Documentation : `apps/business/README.md`.
+- **Site** : « Postuler avec mon Passport » sur les offres d'entreprise, « Mes candidatures » sur `/emplois`, page publique `/entreprises/:slug`, lien « Vous recrutez ? » vers le portail.
+- Tests : `business.e2e.spec.ts` (invisible hors de son origine, attente puis validation, publication, candidature, notification, isolement entre entreprises, suspension) ; parcours complet vérifié dans le navigateur (inscription → validation admin → offre → candidature → entretien → statut vu par le dev).
+
 ### 02/11/2026 — Contenu réel partout, onboarding selon le niveau, apprentissage façon Duolingo
 
 - **Demande de Sylvio** (captures de l'onboarding) : un dev confirmé n'a pas à choisir un rythme d'apprentissage ; un débutant doit avoir un parcours façon Duolingo selon ce qu'il veut apprendre ; les pastilles de langue cassent ; le fuseau horaire doit être une liste. Puis : de vraies certifications (officielles avec liens, et DevHub), de vraies offres d'emploi tenues par l'admin, un espace admin caché et sécurisé (pas accessible par `/admin` ni depuis le front), de vrais skills et plugins IA, « un vrai contenu partout », plateforme prête à être soumise.

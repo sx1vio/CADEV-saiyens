@@ -2,6 +2,7 @@
 export * from './admin';
 export * from './answers';
 export * from './auth';
+export * from './business';
 export * from './discovery';
 export * from './errors';
 export * from './feedback';

@@ -1,15 +1,17 @@
 import type { AdminSessionView } from '@devhub/contracts';
-import { Briefcase, Gauge, LogOut, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Briefcase, Building2, Gauge, LogOut, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { api, isSignedOut } from './api';
+import { Companies } from './pages/Companies';
 import { Jobs } from './pages/Jobs';
 import { Login } from './pages/Login';
 import { Moderation } from './pages/Moderation';
 import { Overview } from './pages/Overview';
 
-type Tab = 'overview' | 'jobs' | 'moderation';
+type Tab = 'overview' | 'companies' | 'jobs' | 'moderation';
 const TABS: { id: Tab; label: string; icon: typeof Gauge }[] = [
   { id: 'overview', label: 'Vue d’ensemble', icon: Gauge },
+  { id: 'companies', label: 'Entreprises', icon: Building2 },
   { id: 'jobs', label: 'Offres d’emploi', icon: Briefcase },
   { id: 'moderation', label: 'Modération', icon: ShieldAlert },
 ];
@@ -84,6 +86,7 @@ export function App() {
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8">
         {tab === 'overview' && <Overview onError={onError} />}
+        {tab === 'companies' && <Companies onError={onError} />}
         {tab === 'jobs' && <Jobs onError={onError} />}
         {tab === 'moderation' && <Moderation onError={onError} />}
       </main>

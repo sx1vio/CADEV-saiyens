@@ -7,7 +7,7 @@ export {
   OptionalUser,
   SessionGuard,
 } from './http/session.guard';
-export { AllowCrossOrigin, OriginGuard, isAdminPath } from './http/origin.guard';
+export { AllowCrossOrigin, OriginGuard, isAdminPath, isBusinessPath } from './http/origin.guard';
 export { type TrustSignals, trustSignals } from './domain/trust';
 export { type ResolvedPrivacy, resolvePrivacy } from './domain/privacy';
 export { GithubTokenReader } from './infrastructure/github-token.reader';

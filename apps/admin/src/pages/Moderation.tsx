@@ -10,6 +10,10 @@ const ACTION_LABEL: Record<AuditEntry['action'], string> = {
   job_update: 'Offre modifiée',
   job_delete: 'Offre supprimée',
   admin_sign_in: 'Connexion à l’administration',
+  company_verify: 'Entreprise validée',
+  company_reject: 'Entreprise refusée',
+  company_suspend: 'Entreprise suspendue',
+  company_restore: 'Entreprise réactivée',
 };
 
 const TARGET_LABEL: Record<string, string> = {
@@ -19,6 +23,9 @@ const TARGET_LABEL: Record<string, string> = {
   room_message: 'Message de salle',
   user: 'Compte',
   job_offer: 'Offre',
+  company: 'Entreprise',
+  post: 'Publication',
+  post_comment: 'Commentaire',
 };
 
 const when = (iso: string) =>

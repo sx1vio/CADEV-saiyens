@@ -1,4 +1,6 @@
 import type {
+  AdminCompanyAction,
+  AdminCompanyView,
   AdminJobView,
   AdminJobsResponse,
   AdminOverview,
@@ -69,6 +71,10 @@ export const api = {
   reportAction: (id: string, body: ReportActionRequest) =>
     call<ReportActionResponse>('POST', `/reports/${id}/action`, body, true),
   audit: () => call<ListAuditResponse>('GET', '/audit?limit=50'),
+  companies: (status?: string) =>
+    call<{ data: AdminCompanyView[] }>('GET', `/companies${status ? `?status=${status}` : ''}`),
+  companyAction: (id: string, body: AdminCompanyAction) =>
+    call<void>('POST', `/companies/${id}/action`, body),
 };
 
 /** Une erreur 404 sur une route d'administration veut dire : session expirée ou absente. */

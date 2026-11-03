@@ -46,8 +46,16 @@ const EMPTY: JobOfferInput = {
 };
 
 const toInput = (j: AdminJobView): JobOfferInput => {
-  const { id: _i, publishedAt: _p, createdAt: _c, updatedAt: _u, ...rest } = j;
-  return rest;
+  const {
+    id: _i,
+    publishedAt: _p,
+    createdAt: _c,
+    updatedAt: _u,
+    companyRef: _r,
+    applications: _a,
+    ...rest
+  } = j;
+  return { ...rest, applyUrl: rest.applyUrl ?? '', sourceUrl: rest.sourceUrl ?? '' };
 };
 
 const fmt = (iso: string | null) =>
@@ -172,7 +180,15 @@ export function Jobs({ onError }: { onError: (e: unknown) => void }) {
               <tr key={j.id} className="border-b border-line last:border-0 hover:bg-page/60">
                 <td className="px-4 py-3">
                   <p className="font-semibold">{j.title}</p>
-                  <p className="text-[13px] text-muted">{j.company}</p>
+                  <p className="text-[13px] text-muted">
+                    {j.company}
+                    {j.companyRef && (
+                      <span className="ml-1.5 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand">
+                        portail entreprise · {j.applications} candidature
+                        {j.applications > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </p>
                 </td>
                 <td className="px-4 py-3 text-muted">{j.location}</td>
                 <td className="px-4 py-3">
@@ -183,7 +199,8 @@ export function Jobs({ onError }: { onError: (e: unknown) => void }) {
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
                     <a
-                      href={j.sourceUrl}
+                      href={j.sourceUrl ?? undefined}
+                      hidden={!j.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="grid size-8 place-items-center rounded-lg text-muted hover:bg-page hover:text-ink"
@@ -322,140 +339,150 @@ function JobEditor({
           </button>
         </header>
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <F label="Intitulé du poste" error={fields.title} wide>
-              <input
-                className="field"
-                required
-                value={v.title}
-                onChange={(e) => set('title', e.target.value)}
-                placeholder="Développeur·se back-end Node.js"
-              />
-            </F>
-            <F label="Entreprise" error={fields.company}>
-              <input
-                className="field"
-                required
-                value={v.company}
-                onChange={(e) => set('company', e.target.value)}
-              />
-            </F>
-            <F label="Site de l’entreprise" error={fields.companyUrl} hint="facultatif, https://">
-              <input
-                className="field"
-                type="url"
-                value={v.companyUrl ?? ''}
-                onChange={(e) => set('companyUrl', opt(e.target.value))}
-              />
-            </F>
-            <F label="Lieu" error={fields.location}>
-              <input
-                className="field"
-                required
-                value={v.location}
-                onChange={(e) => set('location', e.target.value)}
-                placeholder="Dakar, Sénégal · ou Télétravail (Afrique)"
-              />
-            </F>
-            <F label="Pays (code ISO)" error={fields.country} hint="facultatif, ex. SN, CI, NG">
-              <input
-                className="field uppercase"
-                maxLength={2}
-                value={v.country ?? ''}
-                onChange={(e) => set('country', opt(e.target.value.toUpperCase()))}
-              />
-            </F>
-            <F label="Contrat">
-              <select
-                className="field"
-                value={v.contract}
-                onChange={(e) => set('contract', e.target.value as JobOfferInput['contract'])}
+          {job?.companyRef && (
+            <p className="mb-4 rounded-lg bg-brand-soft px-3 py-2 text-[13px] text-brand">
+              Offre publiée par {job.companyRef.name} depuis le portail entreprise : seuls le statut
+              et l’échéance sont modifiables ici (le contenu appartient à l’entreprise).
+            </p>
+          )}
+          <fieldset disabled={!!job?.companyRef} className="contents">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <F label="Intitulé du poste" error={fields.title} wide>
+                <input
+                  className="field"
+                  required
+                  value={v.title}
+                  onChange={(e) => set('title', e.target.value)}
+                  placeholder="Développeur·se back-end Node.js"
+                />
+              </F>
+              <F label="Entreprise" error={fields.company}>
+                <input
+                  className="field"
+                  required
+                  value={v.company}
+                  onChange={(e) => set('company', e.target.value)}
+                />
+              </F>
+              <F label="Site de l’entreprise" error={fields.companyUrl} hint="facultatif, https://">
+                <input
+                  className="field"
+                  type="url"
+                  value={v.companyUrl ?? ''}
+                  onChange={(e) => set('companyUrl', opt(e.target.value))}
+                />
+              </F>
+              <F label="Lieu" error={fields.location}>
+                <input
+                  className="field"
+                  required
+                  value={v.location}
+                  onChange={(e) => set('location', e.target.value)}
+                  placeholder="Dakar, Sénégal · ou Télétravail (Afrique)"
+                />
+              </F>
+              <F label="Pays (code ISO)" error={fields.country} hint="facultatif, ex. SN, CI, NG">
+                <input
+                  className="field uppercase"
+                  maxLength={2}
+                  value={v.country ?? ''}
+                  onChange={(e) => set('country', opt(e.target.value.toUpperCase()))}
+                />
+              </F>
+              <F label="Contrat">
+                <select
+                  className="field"
+                  value={v.contract}
+                  onChange={(e) => set('contract', e.target.value as JobOfferInput['contract'])}
+                >
+                  {CONTRACTS.map(([k, l]) => (
+                    <option key={k} value={k}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </F>
+              <F label="Mode de travail">
+                <select
+                  className="field"
+                  value={v.workMode}
+                  onChange={(e) => set('workMode', e.target.value as JobOfferInput['workMode'])}
+                >
+                  {MODES.map(([k, l]) => (
+                    <option key={k} value={k}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </F>
+              <F label="Niveau">
+                <select
+                  className="field"
+                  value={v.seniority}
+                  onChange={(e) => set('seniority', e.target.value as JobOfferInput['seniority'])}
+                >
+                  {LEVELS.map(([k, l]) => (
+                    <option key={k} value={k}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </F>
+              <F label="Rémunération" error={fields.salary} hint="facultatif, telle qu’annoncée">
+                <input
+                  className="field"
+                  value={v.salary ?? ''}
+                  onChange={(e) => set('salary', opt(e.target.value))}
+                  placeholder="800 000 – 1 200 000 FCFA / mois"
+                />
+              </F>
+              <F
+                label="Description"
+                error={fields.description}
+                hint="40 caractères minimum ; missions, profil, avantages"
+                wide
               >
-                {CONTRACTS.map(([k, l]) => (
-                  <option key={k} value={k}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </F>
-            <F label="Mode de travail">
-              <select
-                className="field"
-                value={v.workMode}
-                onChange={(e) => set('workMode', e.target.value as JobOfferInput['workMode'])}
+                <textarea
+                  className="field"
+                  rows={9}
+                  required
+                  value={v.description}
+                  onChange={(e) => set('description', e.target.value)}
+                />
+              </F>
+              <F label="Lien pour postuler" error={fields.applyUrl} hint="https:// ou mailto:" wide>
+                <input
+                  className="field"
+                  required
+                  value={v.applyUrl}
+                  onChange={(e) => set('applyUrl', e.target.value)}
+                />
+              </F>
+              <F
+                label="Source officielle de l’offre"
+                error={fields.sourceUrl}
+                hint="page carrière ou annonce officielle, https://"
+                wide
               >
-                {MODES.map(([k, l]) => (
-                  <option key={k} value={k}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </F>
-            <F label="Niveau">
-              <select
-                className="field"
-                value={v.seniority}
-                onChange={(e) => set('seniority', e.target.value as JobOfferInput['seniority'])}
-              >
-                {LEVELS.map(([k, l]) => (
-                  <option key={k} value={k}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </F>
-            <F label="Rémunération" error={fields.salary} hint="facultatif, telle qu’annoncée">
-              <input
-                className="field"
-                value={v.salary ?? ''}
-                onChange={(e) => set('salary', opt(e.target.value))}
-                placeholder="800 000 – 1 200 000 FCFA / mois"
-              />
-            </F>
-            <F
-              label="Description"
-              error={fields.description}
-              hint="40 caractères minimum ; missions, profil, avantages"
-              wide
-            >
-              <textarea
-                className="field"
-                rows={9}
-                required
-                value={v.description}
-                onChange={(e) => set('description', e.target.value)}
-              />
-            </F>
-            <F label="Lien pour postuler" error={fields.applyUrl} hint="https:// ou mailto:" wide>
-              <input
-                className="field"
-                required
-                value={v.applyUrl}
-                onChange={(e) => set('applyUrl', e.target.value)}
-              />
-            </F>
-            <F
-              label="Source officielle de l’offre"
-              error={fields.sourceUrl}
-              hint="page carrière ou annonce officielle, https://"
-              wide
-            >
-              <input
-                className="field"
-                type="url"
-                required
-                value={v.sourceUrl}
-                onChange={(e) => set('sourceUrl', e.target.value)}
-              />
-            </F>
-            <F label="Compétences" error={fields.tags} hint="séparées par des virgules" wide>
-              <input
-                className="field"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="Node.js, PostgreSQL, Docker"
-              />
-            </F>
+                <input
+                  className="field"
+                  type="url"
+                  required
+                  value={v.sourceUrl}
+                  onChange={(e) => set('sourceUrl', e.target.value)}
+                />
+              </F>
+              <F label="Compétences" error={fields.tags} hint="séparées par des virgules" wide>
+                <input
+                  className="field"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="Node.js, PostgreSQL, Docker"
+                />
+              </F>
+            </div>
+          </fieldset>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <F label="Date d’expiration" error={fields.expiresAt} hint="facultatif">
               <input
                 className="field"

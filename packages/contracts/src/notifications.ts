@@ -18,6 +18,8 @@ export const NotificationType = z.enum([
   'feedback.cancelled', // R6 : la demande que tu relisais a été retirée
   'pair.proposed', // S5 : un aidant te propose un créneau de pair programming
   'pair.answered', // S5 : l'auteur a accepté ou refusé ton créneau
+  'application.status', // une entreprise a fait avancer ta candidature
+  'message.received', // nouveau message privé
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 

@@ -152,6 +152,8 @@ const fr = {
     contact: '{{byName}} t’a écrit : « {{message}} »',
     'pair-accepted': '{{guest}} a accepté ta session de pair programming sur « {{title}} »',
     'pair-declined': '{{guest}} a décliné ta session de pair programming sur « {{title}} »',
+    application: 'Ta candidature « {{title}} » chez {{company}} : {{label}}',
+    message: '{{author}} t’a envoyé un message',
   },
   network: {
     online: 'En ligne',

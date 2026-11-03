@@ -78,3 +78,37 @@
 		file_server
 	}
 }
+
+# Portail entreprise (apps/business) : business.<domaine>. Seules les routes /api/v1/business/*
+# sont relayées ; l'API refuse ces routes si BUSINESS_URL n'est pas défini.
+{$BUSINESS_ADDRESS:http://127.0.0.1:8082} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://avatars.githubusercontent.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"
+		-Server
+	}
+
+	@bizapi path /api/v1/business /api/v1/business/*
+	handle @bizapi {
+		reverse_proxy api:3000
+	}
+	handle /api/* {
+		respond 404
+	}
+
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	handle {
+		root * /srv/business
+		try_files {path} /index.html
+		file_server
+	}
+}

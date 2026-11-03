@@ -153,6 +153,8 @@ const en: Dict = {
     contact: '{{byName}} wrote to you: “{{message}}”',
     'pair-accepted': '{{guest}} accepted your pair programming session on “{{title}}”',
     'pair-declined': '{{guest}} declined your pair programming session on “{{title}}”',
+    application: 'Your application “{{title}}” at {{company}}: {{label}}',
+    message: '{{author}} sent you a message',
   },
   network: {
     online: 'Online',

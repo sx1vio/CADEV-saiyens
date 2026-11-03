@@ -48,9 +48,18 @@ export const JobOfferInput = z.object({
 });
 export type JobOfferInput = z.infer<typeof JobOfferInput>;
 
+/** Entreprise inscrite qui publie l'offre (portail business), ou null pour une offre de l'admin. */
+export const JobCompanyRef = z.object({ id: z.uuid(), slug: z.string(), name: z.string() });
+
 /** Offre telle que l'administration la voit (brouillons et archives compris). */
 export const AdminJobView = JobOfferInput.extend({
   id: z.uuid(),
+  /** null : candidature sur DevHub (offre d'une entreprise inscrite) */
+  applyUrl: z.string().nullable(),
+  /** null : l'entreprise publie elle-même sur DevHub */
+  sourceUrl: z.string().nullable(),
+  companyRef: JobCompanyRef.nullable(),
+  applications: z.number().int(),
   publishedAt: z.iso.datetime().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -61,7 +70,11 @@ export const AdminJobsResponse = z.object({ data: z.array(AdminJobView) });
 export type AdminJobsResponse = z.infer<typeof AdminJobsResponse>;
 
 /** GET /api/v1/jobs : offres publiées et non expirées, les plus récentes d'abord. */
-export const PublicJobView = AdminJobView.omit({ status: true, createdAt: true }).extend({
+export const PublicJobView = AdminJobView.omit({
+  status: true,
+  createdAt: true,
+  applications: true,
+}).extend({
   publishedAt: z.iso.datetime(),
 });
 export type PublicJobView = z.infer<typeof PublicJobView>;
