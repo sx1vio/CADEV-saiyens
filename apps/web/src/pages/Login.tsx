@@ -68,7 +68,10 @@ export default function Login() {
   // Retour d'OAuth : le serveur a ouvert la session, on ouvre le profil de l'appareil.
   const handled = useRef(false);
   useEffect(() => {
-    if (params.get('erreur')) toast.error(t('pub.authFailed'));
+    if (params.get('erreur'))
+      toast.error(
+        params.get('erreur') === 'suspended' ? t('pub.authSuspended') : t('pub.authFailed'),
+      );
     if (params.get('oauth') !== 'ok' || handled.current) return;
     handled.current = true;
     setBusy(true);

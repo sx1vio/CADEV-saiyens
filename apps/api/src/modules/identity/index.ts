@@ -18,3 +18,4 @@ export { AesGcmTokenCipher } from './infrastructure/aes-gcm-token-cipher';
 export { AttemptLimiter } from './http/attempt-limiter';
 export { baseCookie, readCookie } from './http/cookies';
 export { hashSessionToken, newSessionToken } from './application/session-token';
+export { AccountDeletion } from './infrastructure/account-deletion';

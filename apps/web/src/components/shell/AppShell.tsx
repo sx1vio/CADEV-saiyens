@@ -36,6 +36,7 @@ import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '.
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
 import { CREATE_NAV, EXPLORE_NAV, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
+import { AnnouncementBar } from './announcements';
 import { Djeli } from '../djeli';
 import { BrandLogo } from '../brand';
 import { selectGoalReached, selectStreak, usePlatform } from '@/platform/store';
@@ -820,6 +821,7 @@ export function AppShell() {
           {isLg && <TopBar />}
           {isLg && <OfflineBanner />}
           {api.mode === 'local' && <LocalDataBanner />}
+          <AnnouncementBar />
           <main
             id="main"
             tabIndex={-1}

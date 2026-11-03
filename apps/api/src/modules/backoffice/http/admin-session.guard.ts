@@ -2,6 +2,7 @@ import {
   type CanActivate,
   type ExecutionContext,
   Inject,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -60,4 +61,10 @@ export class AdminSessionGuard implements CanActivate {
     req.auth = { userId: session.userId, sessionIdHash: session.idHash };
     return true;
   }
+}
+
+/** Réservé aux super-administrateurs (gestion des admins, suppression de comptes). Sinon : 403. */
+export function assertSuper(req: AdminRequest): void {
+  if (req.admin?.role !== 'super')
+    throw new ForbiddenException({ code: 'admin.super_only', title: 'Super admin only' });
 }

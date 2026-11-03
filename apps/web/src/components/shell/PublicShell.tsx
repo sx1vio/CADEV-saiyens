@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { useUI } from '@/stores/app';
 import { Sheet } from '../ui/overlay';
 import { OfflineBanner } from './network';
+import { AnnouncementBar } from './announcements';
 import { BrandLogo } from '../brand';
 
 export function Logo({ className, onDark }: { className?: string; onDark?: boolean }) {
@@ -445,6 +446,9 @@ export function PublicShell() {
       </header>
 
       <main id="main" className="flex-1">
+        <div className="mx-auto max-w-[1280px] empty:hidden">
+          <AnnouncementBar />
+        </div>
         <Outlet />
       </main>
 

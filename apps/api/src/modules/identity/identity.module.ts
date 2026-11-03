@@ -63,6 +63,12 @@ import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
         }),
     },
   ],
-  exports: [SessionGuard, OptionalSessionGuard, PrismaSessionStore, GithubTokenReader],
+  exports: [
+    SessionGuard,
+    OptionalSessionGuard,
+    PrismaSessionStore,
+    GithubTokenReader,
+    AccountDeletion,
+  ],
 })
 export class IdentityModule {}

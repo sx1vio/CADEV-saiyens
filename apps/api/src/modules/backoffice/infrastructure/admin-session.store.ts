@@ -12,6 +12,7 @@ export interface ActiveAdminSession {
   expiresAt: Date;
   handle: string;
   displayName: string;
+  role: 'super' | 'moderator';
 }
 
 @Injectable()
@@ -52,7 +53,7 @@ export class AdminSessionStore {
         id: true,
         userId: true,
         expiresAt: true,
-        user: { select: { handle: true, displayName: true } },
+        user: { select: { handle: true, displayName: true, adminRole: true } },
       },
     });
     if (!s) return null;
@@ -63,6 +64,7 @@ export class AdminSessionStore {
       expiresAt: s.expiresAt,
       handle: s.user.handle,
       displayName: s.user.displayName,
+      role: s.user.adminRole === 'moderator' ? 'moderator' : 'super',
     };
   }
 

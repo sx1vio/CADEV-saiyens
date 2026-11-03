@@ -279,6 +279,8 @@ const en: Dict = {
     signIn: 'Sign in',
     createAccount: 'Create an account',
     authFailed: 'Sign-in failed or was cancelled. Try again.',
+    authSuspended:
+      'This account has been suspended by moderation. Contact the DevHub team to learn more.',
     brandLine: 'The developers’ feed.',
     brandText: 'News, peer help and a profile that proves what you can do.',
     homeAria: 'DevHub, home',

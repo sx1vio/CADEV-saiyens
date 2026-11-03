@@ -94,6 +94,7 @@ export class AuthController {
               .slice(0, 32)
           : null,
       });
+      if (await this.sessions.rejectIfSuspended(result.userId)) return this.fail(res, 'suspended');
       res.cookie(SESSION_COOKIE, result.sessionToken, {
         ...baseCookie,
         expires: result.sessionExpiresAt,

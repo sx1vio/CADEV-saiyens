@@ -7,9 +7,23 @@ Le site public n'en contient aucune trace : pas de page `/admin`, pas d'entrée 
 ## Ce qu'on y fait
 
 - **Vue d'ensemble** : chiffres réels de la plateforme (membres, questions, salles, signalements, offres).
-- **Offres d'emploi** : créer, modifier, publier, archiver ou supprimer une offre. Chaque offre exige le
-  lien vers son **annonce officielle** ; seules les offres publiées et non expirées sont visibles sur `/emplois`.
-- **Modération** : file des signalements (masquer, rétablir, rejeter) et journal de toutes les décisions.
+- **Activité** : courbes des 30 derniers jours (inscriptions, questions, réponses, publications,
+  projets, candidatures), membres actifs, et fil de tout ce qui se passe (filtrable, actualisé en direct).
+- **Utilisateurs** : recherche, filtres (nouveaux, suspendus, admins, démo, supprimés), Proof XP et
+  activité de chaque compte ; suspendre (sessions fermées, reconnexion refusée), réactiver, marquer
+  démo, supprimer (anonymisation, super-admin uniquement).
+- **Contenus** : publications, commentaires, questions, réponses, projets et messages de projet ;
+  chercher, masquer, rétablir sans attendre un signalement.
+- **Signalements** : file des signalements (masquer, rétablir, rejeter) et journal de toutes les décisions.
+- **Entreprises** : vérifier les entreprises du portail `apps/business` (valider, refuser, suspendre).
+- **Offres d'emploi** : créer, modifier, publier, archiver ou supprimer une offre de l'équipe (lien vers
+  l'annonce officielle obligatoire) ; retirer une offre d'entreprise.
+- **Flux** : volumes collectés, derniers passages du worker et erreurs par source ; relance d'une collecte.
+- **Annonces** : bandeau en haut du site, avec période, ton et lien.
+- **Administrateurs** : rôles (super-admin, modérateur), ajout d'un administrateur avec mot de passe
+  et double facteur affichés une seule fois, retrait d'accès.
+
+Toutes les actions qui modifient quelque chose sont inscrites au journal (`admin_actions`).
 
 ## Sécurité
 

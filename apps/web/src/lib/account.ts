@@ -20,6 +20,7 @@ const MESSAGES: Record<number, string> = {
   400: 'Vérifie les champs du formulaire.',
   401: 'E-mail ou mot de passe incorrect.',
   409: 'Un compte existe déjà avec cet e-mail. Connecte-toi.',
+  403: 'Ce compte est suspendu par la modération. Écris à l’équipe DevHub pour en savoir plus.',
   429: 'Trop de tentatives. Réessaie dans quelques minutes.',
 };
 

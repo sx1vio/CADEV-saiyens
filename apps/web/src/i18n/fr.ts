@@ -277,6 +277,8 @@ const fr = {
     signIn: 'Se connecter',
     createAccount: 'Créer un compte',
     authFailed: 'La connexion a échoué ou a été annulée. Réessaie.',
+    authSuspended:
+      'Ce compte est suspendu par la modération. Écris à l’équipe DevHub pour en savoir plus.',
     brandLine: 'Le fil des développeurs.',
     brandText: 'Actu, entraide et un profil qui prouve ce que tu sais faire.',
     homeAria: 'DevHub, accueil',

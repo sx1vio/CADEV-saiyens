@@ -24,10 +24,10 @@ export class PrismaSessionStore implements SessionStore {
     });
   }
 
-  /** Session non expirée d'un compte non supprimé. */
+  /** Session non expirée d'un compte ni supprimé ni suspendu. */
   async findActive(idHash: string, now: Date): Promise<ActiveSession | null> {
     const session = await this.prisma.session.findFirst({
-      where: { id: idHash, expiresAt: { gt: now }, user: { deletedAt: null } },
+      where: { id: idHash, expiresAt: { gt: now }, user: { deletedAt: null, suspendedAt: null } },
       select: { id: true, userId: true, lastUsedAt: true },
     });
     return session
@@ -48,5 +48,16 @@ export class PrismaSessionStore implements SessionStore {
 
   async revoke(idHash: string): Promise<void> {
     await this.prisma.session.deleteMany({ where: { id: idHash } });
+  }
+
+  /** Compte suspendu par l'administration : ferme ses sessions et le signale à la connexion. */
+  async rejectIfSuspended(userId: string): Promise<boolean> {
+    const u = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { suspendedAt: true },
+    });
+    if (!u?.suspendedAt) return false;
+    await this.prisma.session.deleteMany({ where: { userId } });
+    return true;
   }
 }

@@ -149,6 +149,16 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 04/11/2026 — Administration complète
+
+- **Demande de Sylvio** : « gestion administration et main totale sur toute la plateforme : les flux, les activités, vraiment tout ».
+- **API** (`admin-platform.controller.ts`, toutes les routes en 404 sans session d'administration) : utilisateurs (recherche, filtres, statistiques par compte, suspendre / réactiver / marquer démo / supprimer), contenus des six types (lister, chercher, masquer, rétablir), fil d'activité, statistiques sur 30 jours, flux collectés (passages, erreurs, relance d'une collecte), annonces, administrateurs (liste, ajout avec mot de passe et double facteur, rôle, retrait). Chaque action est journalisée.
+- **Rôles** : `super` (tout) et `moderator` (pas de gestion des admins ni de suppression de compte). Les admins existants deviennent `super` (migration `20261104120000_admin_full`), la CLI crée des super-admins.
+- **Suspension** : un compte suspendu perd ses sessions, et sa reconnexion (GitHub ou e-mail) est refusée avec un message dédié.
+- **Annonces** : `GET /api/v1/announcements` (public) et bandeau refermable sur le site, connecté ou non.
+- **`apps/admin`** : onglets Activité, Utilisateurs, Contenus, Flux, Annonces, Administrateurs, en plus des existants ; rôle affiché dans la barre latérale.
+- Tests : `admin-platform.e2e.spec.ts` (8 scénarios : invisibilité, rôles, suspension et reconnexion refusée, contenus, activité/statistiques/flux, annonces et lien piégé refusé, gestion des admins, suppression). API : 527 tests verts.
+
 ### 04/11/2026 — Portail entreprise (DevHub Business)
 
 - **Demande de Sylvio** : pouvoir s'inscrire en tant qu'entreprise sur un sous-domaine (`business.devhub…`) pour publier des offres ; un admin avec la main sur toute la plateforme ; une messagerie entre devs ; le profil GitHub (dépôts, commits, activité) sur le Passport. Choix validés : entreprise validée une fois par l'admin puis publication directe, candidatures sur DevHub, gratuit pour le concours, admin complet (utilisateurs, contenus, entreprises, admins, annonces, statistiques, flux et activité).

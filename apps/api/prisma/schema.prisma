@@ -193,6 +193,11 @@ model User {
   githubCreatedAt    DateTime? @map("github_created_at") @db.Timestamptz // signal de confiance PR11
   cocAcceptedAt      DateTime? @map("coc_accepted_at") @db.Timestamptz // M3
   isAdmin            Boolean   @default(false) @map("is_admin")
+  /// Rôle d'administration : super (gère aussi les admins) | moderator. null pour un membre.
+  adminRole          String?   @map("admin_role")
+  /// Compte suspendu par l'administration : ses sessions ne sont plus acceptées.
+  suspendedAt        DateTime? @map("suspended_at") @db.Timestamptz
+  suspensionReason   String?   @map("suspension_reason")
   /// Espace d'administration : secret TOTP chiffré (AES-256-GCM), posé uniquement par la CLI admin.
   adminTotpSecret    Bytes?    @map("admin_totp_secret")
   isDemo             Boolean   @default(false) @map("is_demo")
@@ -1057,4 +1062,21 @@ model JobApplication {
   @@unique([jobId, userId])
   @@index([userId])
   @@map("job_applications")
+}
+
+/// Annonce affichée en bandeau sur le site, publiée depuis l'administration.
+model Announcement {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message   String
+  level     String    @default("info") // info | warning | success
+  linkUrl   String?   @map("link_url")
+  linkLabel String?   @map("link_label")
+  startsAt  DateTime  @default(now()) @map("starts_at") @db.Timestamptz
+  endsAt    DateTime? @map("ends_at") @db.Timestamptz
+  active    Boolean   @default(true)
+  createdBy String?   @map("created_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([active, startsAt])
+  @@map("announcements")
 }

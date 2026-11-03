@@ -57,6 +57,7 @@ async function main(): Promise<void> {
         const existing = await prisma.user.findFirst({ where: { email, deletedAt: null } });
         const data = {
           isAdmin: true,
+          adminRole: 'super',
           passwordHash: await hasher.hash(password),
           adminTotpSecret: Buffer.from(cipher.encrypt(secret)),
         };
@@ -111,7 +112,7 @@ async function main(): Promise<void> {
         if (!email) fail('--email requis');
         const { count } = await prisma.user.updateMany({
           where: { email },
-          data: { isAdmin: false, adminTotpSecret: null },
+          data: { isAdmin: false, adminRole: null, adminTotpSecret: null },
         });
         await prisma.adminSession.deleteMany({ where: { user: { email } } });
         console.log(count ? `Accès retiré à ${email}.` : 'Aucun compte avec cette adresse.');

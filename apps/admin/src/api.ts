@@ -1,4 +1,19 @@
 import type {
+  AdminAccountView,
+  AdminActivityItem,
+  AdminContentAction,
+  AdminContentType,
+  AdminContentView,
+  AdminFeedJob,
+  AdminFeedsView,
+  AdminInviteRequest,
+  AdminInviteResponse,
+  AdminRole,
+  AdminStats,
+  AdminUserAction,
+  AdminUsersResponse,
+  AnnouncementInput,
+  AnnouncementView,
   AdminCompanyAction,
   AdminCompanyView,
   AdminJobView,
@@ -75,7 +90,42 @@ export const api = {
     call<{ data: AdminCompanyView[] }>('GET', `/companies${status ? `?status=${status}` : ''}`),
   companyAction: (id: string, body: AdminCompanyAction) =>
     call<void>('POST', `/companies/${id}/action`, body),
+  users: (p: { q?: string; filter?: string; offset?: number }) =>
+    call<AdminUsersResponse>('GET', `/users?${qs(p)}`),
+  userAction: (id: string, body: AdminUserAction) =>
+    call<void>('POST', `/users/${id}/action`, body),
+  content: (p: { type: AdminContentType; q?: string; state?: string }) =>
+    call<{ data: AdminContentView[] }>('GET', `/content?${qs(p)}`),
+  contentAction: (type: AdminContentType, id: string, body: AdminContentAction) =>
+    call<void>('POST', `/content/${type}/${id}`, body),
+  activity: () => call<{ data: AdminActivityItem[] }>('GET', '/activity'),
+  stats: () => call<AdminStats>('GET', '/stats'),
+  feeds: () => call<AdminFeedsView>('GET', '/feeds'),
+  runFeed: (job: AdminFeedJob) => call<void>('POST', '/feeds/run', { job }),
+  announcements: () => call<{ data: AnnouncementView[] }>('GET', '/announcements'),
+  createAnnouncement: (body: AnnouncementInput) =>
+    call<AnnouncementView>('POST', '/announcements', body),
+  updateAnnouncement: (id: string, body: AnnouncementInput) =>
+    call<AnnouncementView>('PUT', `/announcements/${id}`, body),
+  deleteAnnouncement: (id: string) => call<void>('DELETE', `/announcements/${id}`),
+  admins: () => call<{ data: AdminAccountView[] }>('GET', '/admins'),
+  inviteAdmin: (body: AdminInviteRequest) => call<AdminInviteResponse>('POST', '/admins', body),
+  setAdminRole: (id: string, role: AdminRole | null) =>
+    call<void>('PATCH', `/admins/${id}`, { role }),
 };
+
+function qs(p: Record<string, string | number | undefined>): string {
+  const u = new URLSearchParams();
+  for (const [k, v] of Object.entries(p)) if (v !== undefined && v !== '') u.set(k, String(v));
+  return u.toString();
+}
+
+/** Site public, pour ouvrir un contenu ou un profil depuis l'administration. */
+export const SITE_URL: string =
+  (import.meta.env.VITE_SITE_URL as string | undefined) ??
+  (location.hostname === 'localhost'
+    ? 'http://localhost:5199'
+    : `${location.protocol}//${location.hostname.replace(/^admin\./, '')}`);
 
 /** Une erreur 404 sur une route d'administration veut dire : session expirée ou absente. */
 export const isSignedOut = (e: unknown) => e instanceof ApiError && e.status === 404;
@@ -85,6 +135,12 @@ export function errorMessage(e: unknown): string {
     if (e.code === 'admin.bad_credentials') return 'E-mail, mot de passe ou code incorrect.';
     if (e.code === 'rate_limited') return 'Trop de tentatives. Réessaie dans 15 minutes.';
     if (e.code === 'validation.failed') return 'Certains champs ne sont pas valides.';
+    if (e.code === 'admin.super_only') return 'Réservé aux super-administrateurs.';
+    if (e.code === 'admin.target_is_admin')
+      return 'C’est un administrateur : retire d’abord son accès dans l’onglet Administrateurs.';
+    if (e.code === 'admin.self') return 'Tu ne peux pas changer ton propre rôle.';
+    if (e.code === 'admin.reason_required') return 'Indique une raison (3 caractères au moins).';
+    if (e.code === 'auth.email_taken') return 'Cette adresse est déjà utilisée par un compte.';
     return e.message;
   }
   return 'Le serveur ne répond pas. Vérifie ta connexion.';

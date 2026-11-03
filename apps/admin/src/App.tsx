@@ -1,19 +1,54 @@
 import type { AdminSessionView } from '@devhub/contracts';
-import { Briefcase, Building2, Gauge, LogOut, ShieldAlert, ShieldCheck } from 'lucide-react';
+import {
+  Activity as ActivityIcon,
+  Briefcase,
+  Building2,
+  FileText,
+  Gauge,
+  KeyRound,
+  LogOut,
+  Megaphone,
+  Rss,
+  ShieldAlert,
+  ShieldCheck,
+  Users as UsersIcon,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { api, isSignedOut } from './api';
+import { Activity } from './pages/Activity';
+import { Admins } from './pages/Admins';
+import { Announcements } from './pages/Announcements';
 import { Companies } from './pages/Companies';
+import { Content } from './pages/Content';
+import { Feeds } from './pages/Feeds';
 import { Jobs } from './pages/Jobs';
 import { Login } from './pages/Login';
 import { Moderation } from './pages/Moderation';
 import { Overview } from './pages/Overview';
+import { Users } from './pages/Users';
 
-type Tab = 'overview' | 'companies' | 'jobs' | 'moderation';
+type Tab =
+  | 'overview'
+  | 'activity'
+  | 'users'
+  | 'content'
+  | 'moderation'
+  | 'companies'
+  | 'jobs'
+  | 'feeds'
+  | 'announcements'
+  | 'admins';
 const TABS: { id: Tab; label: string; icon: typeof Gauge }[] = [
   { id: 'overview', label: 'Vue d’ensemble', icon: Gauge },
+  { id: 'activity', label: 'Activité', icon: ActivityIcon },
+  { id: 'users', label: 'Utilisateurs', icon: UsersIcon },
+  { id: 'content', label: 'Contenus', icon: FileText },
+  { id: 'moderation', label: 'Signalements', icon: ShieldAlert },
   { id: 'companies', label: 'Entreprises', icon: Building2 },
   { id: 'jobs', label: 'Offres d’emploi', icon: Briefcase },
-  { id: 'moderation', label: 'Modération', icon: ShieldAlert },
+  { id: 'feeds', label: 'Flux', icon: Rss },
+  { id: 'announcements', label: 'Annonces', icon: Megaphone },
+  { id: 'admins', label: 'Administrateurs', icon: KeyRound },
 ];
 
 const tabFromHash = (): Tab => {
@@ -73,7 +108,9 @@ export function App() {
         </nav>
         <div className="mt-auto hidden border-t border-white/10 px-5 py-4 lg:block">
           <p className="truncate text-[13px] font-semibold">{session.displayName}</p>
-          <p className="truncate text-[12px] text-white/60">@{session.handle}</p>
+          <p className="truncate text-[12px] text-white/60">
+            @{session.handle} · {session.role === 'super' ? 'super-admin' : 'modérateur'}
+          </p>
           <button
             type="button"
             onClick={() => api.signOut().finally(() => setSession(null))}
@@ -89,6 +126,12 @@ export function App() {
         {tab === 'companies' && <Companies onError={onError} />}
         {tab === 'jobs' && <Jobs onError={onError} />}
         {tab === 'moderation' && <Moderation onError={onError} />}
+        {tab === 'activity' && <Activity onError={onError} />}
+        {tab === 'users' && <Users role={session.role} onError={onError} />}
+        {tab === 'content' && <Content onError={onError} />}
+        {tab === 'feeds' && <Feeds onError={onError} />}
+        {tab === 'announcements' && <Announcements onError={onError} />}
+        {tab === 'admins' && <Admins me={session.handle} role={session.role} onError={onError} />}
       </main>
     </div>
   );

@@ -82,7 +82,12 @@ export class AdminAuthController {
   @UseGuards(AdminSessionGuard)
   me(@Req() req: AdminRequest): AdminSessionView {
     const s = req.admin!;
-    return { handle: s.handle, displayName: s.displayName, expiresAt: s.expiresAt.toISOString() };
+    return {
+      handle: s.handle,
+      displayName: s.displayName,
+      role: s.role,
+      expiresAt: s.expiresAt.toISOString(),
+    };
   }
 
   @Delete()

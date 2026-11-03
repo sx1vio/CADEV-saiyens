@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import {
+  ForbiddenException,
   Body,
   ConflictException,
   Controller,
@@ -21,6 +22,7 @@ import {
   EmailTakenError,
   SignInWithEmail,
 } from '../application/sign-in-with-email';
+import { PrismaSessionStore } from '../infrastructure/prisma-session.store';
 import { AttemptLimiter } from './attempt-limiter';
 import { SESSION_COOKIE, baseCookie } from './cookies';
 import { EmailLoginRequestDto, EmailRegisterRequestDto } from './email-auth.dto';
@@ -34,6 +36,7 @@ export class EmailAuthController {
   constructor(
     @Inject(ENV) private readonly env: Env,
     private readonly auth: SignInWithEmail,
+    private readonly sessions: PrismaSessionStore,
   ) {}
 
   @Post('register')
@@ -70,7 +73,10 @@ export class EmailAuthController {
     const context = this.context(req);
     this.guard(context);
     try {
-      this.open(res, await this.auth.signIn(body.email, body.password, context));
+      const result = await this.auth.signIn(body.email, body.password, context);
+      if (await this.sessions.rejectIfSuspended(result.userId))
+        throw new ForbiddenException({ code: 'auth.suspended', title: 'Account suspended' });
+      this.open(res, result);
     } catch (err) {
       if (err instanceof BadCredentialsError) {
         this.limiter.fail(context.ipHash ?? 'unknown');
