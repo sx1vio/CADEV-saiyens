@@ -4,7 +4,15 @@ import { PageInfo } from './xp';
 
 // M1 : signalement d'un contenu et retrait par un administrateur, chaque décision journalisée (M4).
 
-export const ReportTargetType = z.enum(['question', 'answer', 'room', 'room_message', 'user']);
+export const ReportTargetType = z.enum([
+  'question',
+  'answer',
+  'room',
+  'room_message',
+  'user',
+  'post',
+  'post_comment',
+]);
 export type ReportTargetType = z.infer<typeof ReportTargetType>;
 export const ReportStatus = z.enum(['open', 'actioned', 'dismissed']);
 

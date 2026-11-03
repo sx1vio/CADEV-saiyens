@@ -12,6 +12,7 @@ export * from './notifications';
 export * from './pair';
 export * from './passport';
 export * from './platform';
+export * from './posts';
 export * from './questions';
 export * from './rooms';
 export * from './skills';

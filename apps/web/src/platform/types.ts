@@ -1,16 +1,8 @@
 /**
- * Modèle des services de l'écosystème (fil, communautés, emplois, certifications,
- * skills IA, vidéos, apprentissage, guide de création, templates).
- * Données de démonstration locales en attendant l'API ; aucune n'est présentée comme réelle.
+ * Modèle des contenus rédigés de l'écosystème (communautés, certifications, skills IA,
+ * apprentissage, guide de création, templates). Les publications, les offres d'emploi et les
+ * vidéos viennent de l'API (@devhub/contracts).
  */
-
-export interface Person {
-  handle: string;
-  name: string;
-  avatar: string;
-  country: string;
-  city: string;
-}
 
 /* ---------------- Fil et communautés (Reddit) ---------------- */
 
@@ -21,44 +13,8 @@ export interface Community {
   /** Couleur d'accent de la communauté (icône et bannière) */
   color: string;
   icon: string;
-  members: number;
-  online: number;
   rules: string[];
   banner?: string;
-}
-
-export type PostKind =
-  'news' | 'launch' | 'opensource' | 'discussion' | 'showcase' | 'question' | 'video' | 'job';
-
-export interface Post {
-  id: string;
-  kind: PostKind;
-  community: string;
-  author: string;
-  title: string;
-  body: string;
-  /** Lien externe (actu) ou interne (/emplois/…, /videos/…) */
-  link?: { url: string; domain: string };
-  image?: string;
-  /** Bloc de code mis en avant */
-  code?: string;
-  tags: string[];
-  score: number;
-  comments: number;
-  createdAt: string;
-  /** Actu IA et tech, éditorialisée par l'équipe */
-  editorial?: boolean;
-  repo?: { name: string; stars: number; language: string };
-}
-
-export interface Comment {
-  id: string;
-  postId: string;
-  parentId: string | null;
-  author: string;
-  body: string;
-  score: number;
-  createdAt: string;
 }
 
 /* ---------------- Emplois ---------------- */
@@ -163,34 +119,6 @@ export interface AgentSkill {
 
 /* ---------------- Vidéos (YouTube) ---------------- */
 
-export interface Video {
-  id: string;
-  title: string;
-  channel: string;
-  category: string;
-  duration: string;
-  views: number;
-  likes: number;
-  publishedAt: string;
-  description: string;
-  chapters: { at: string; title: string }[];
-  /** Vignette composée : couleur de fond, mot-clé et visuel */
-  thumb: {
-    bg: string;
-    fg: string;
-    kicker: string;
-    big: string;
-    avatar?: boolean;
-    code?: string;
-    accent?: string;
-    logo?: string;
-    file?: string;
-    editor?: string;
-  };
-  live?: boolean;
-  tags: string[];
-}
-
 /* ---------------- Apprendre ---------------- */
 
 export interface Lesson {
@@ -252,12 +180,15 @@ export interface Template {
   category:
     'landing' | 'saas' | 'ecommerce' | 'portfolio' | 'mobile' | 'dashboard' | 'blog' | 'api';
   stack: string[];
-  author: string;
+  /** Éditeur officiel du starter */
+  publisher: string;
   summary: string;
   features: string[];
-  uses: number;
-  stars: number;
-  free: boolean;
+  /** Commande officielle de création du projet */
+  command: string;
+  docs: string;
+  repo?: string;
+  license: string;
   /** Maquette composée en CSS (pas d'image lourde) */
   preview: {
     bg: string;

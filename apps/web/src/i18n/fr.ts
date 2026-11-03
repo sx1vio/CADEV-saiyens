@@ -48,8 +48,6 @@ const fr = {
     reportReason: 'Pourquoi ?',
     reportPlaceholder: 'Spam, contenu offensant, secret exposé…',
     reportSent: 'Signalement envoyé. Un administrateur va le traiter.',
-    ecosystemPreview:
-      "Aperçu : ce service n'a pas encore de serveur. Contenus de démonstration, ce que tu fais reste sur cet appareil.",
     demoData: 'Données de démonstration',
     demoDataHint:
       "Comptes et chiffres de démonstration, marqués comme tels. Les vrais chiffres s'afficheront dès que l'API sera en ligne.",

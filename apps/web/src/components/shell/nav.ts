@@ -89,16 +89,3 @@ export const ALL_NAV = [
   NETWORK_NAV[1]!,
   ...PLATFORM_NAV,
 ];
-
-/**
- * ADR-0020 : services de l'écosystème sans API (contenus de démonstration, état gardé sur
- * l'appareil). Le fil d'actualités et les vidéos ont une vraie API : ils n'y figurent pas.
- * Les cours (/apprendre) et le guide (/creer) ont un contenu réel : seule la progression
- * reste sur l'appareil, ce qui ne justifie pas le bandeau.
- */
-const ECOSYSTEM_PREVIEW = ['/communautes', '/c/', '/post/', '/publier', '/templates'];
-
-export const isEcosystemPreview = (path: string) =>
-  ECOSYSTEM_PREVIEW.some((p) =>
-    p.endsWith('/') ? path.startsWith(p) : path === p || path.startsWith(`${p}/`),
-  );

@@ -34,14 +34,7 @@ import { useSession, useUI } from '@/stores/app';
 import { serverLogout } from '@/platform/auth';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
-import {
-  CREATE_NAV,
-  EXPLORE_NAV,
-  MAIN_NAV,
-  NETWORK_NAV,
-  isEcosystemPreview,
-  type NavEntry,
-} from './nav';
+import { CREATE_NAV, EXPLORE_NAV, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
 import { Djeli } from '../djeli';
 import { BrandLogo } from '../brand';
@@ -822,11 +815,7 @@ export function AppShell() {
           {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
           {isLg && <TopBar />}
           {isLg && <OfflineBanner />}
-          {api.mode === 'local' ? (
-            <LocalDataBanner />
-          ) : (
-            isEcosystemPreview(location.pathname) && <EcosystemBanner />
-          )}
+          {api.mode === 'local' && <LocalDataBanner />}
           <main
             id="main"
             tabIndex={-1}
@@ -853,18 +842,6 @@ function LocalDataBanner() {
       title={t('common.demoDataHint')}
     >
       {t('common.demoData')}
-    </p>
-  );
-}
-
-function EcosystemBanner() {
-  const { t } = useTranslation();
-  return (
-    <p
-      role="status"
-      className="border-b border-line bg-surface-2 px-4 py-1.5 text-center text-xs text-muted"
-    >
-      {t('common.ecosystemPreview')}
     </p>
   );
 }

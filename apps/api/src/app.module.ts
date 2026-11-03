@@ -12,6 +12,7 @@ import { IdempotencyModule } from './infrastructure/idempotency/idempotency.modu
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { RealtimeModule } from './infrastructure/realtime/realtime.module';
 import { BackofficeModule } from './modules/backoffice';
+import { CommunityModule } from './modules/community';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
 import { AiModule } from './modules/ai';
@@ -65,6 +66,7 @@ import { ReputationModule } from './modules/reputation';
     NewsModule,
     PlatformModule,
     BackofficeModule,
+    CommunityModule,
     ModerationModule,
     ShareModule,
   ],

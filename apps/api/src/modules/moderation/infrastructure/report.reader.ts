@@ -136,6 +136,26 @@ export class ReportReader {
         });
         return m && { excerpt: excerpt(m.body), author: m.author, hidden: m.hiddenAt !== null };
       }
+      case 'post': {
+        const p = await this.prisma.post.findUnique({
+          where: { id },
+          select: { ...select, title: true, body: true },
+        });
+        return (
+          p && {
+            excerpt: excerpt(`${p.title} : ${p.body}`),
+            author: p.author,
+            hidden: p.hiddenAt !== null,
+          }
+        );
+      }
+      case 'post_comment': {
+        const c = await this.prisma.postComment.findUnique({
+          where: { id },
+          select: { ...select, body: true },
+        });
+        return c && { excerpt: excerpt(c.body), author: c.author, hidden: c.hiddenAt !== null };
+      }
       case 'user': {
         const u = await this.prisma.user.findUnique({
           where: { id },

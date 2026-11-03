@@ -1,4 +1,4 @@
-import { Check, LayoutTemplate, Star, Wand2 } from 'lucide-react';
+import { Check, ExternalLink, LayoutTemplate, Scale, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -10,15 +10,7 @@ import { TEMPLATES, TEMPLATE_CATEGORIES } from '@/platform/data/templates';
 import { TechChip } from '@/platform/logos';
 import { usePlatform } from '@/platform/store';
 import type { Template } from '@/platform/types';
-import {
-  Chips,
-  DemoTag,
-  PersonLink,
-  SERVICE_COLORS,
-  ServiceHeader,
-  TemplatePreview,
-  compact,
-} from '@/platform/ui';
+import { Chips, SERVICE_COLORS, ServiceHeader, TemplatePreview } from '@/platform/ui';
 
 type Cat = Template['category'] | 'all';
 
@@ -33,7 +25,7 @@ export default function Templates() {
         icon={LayoutTemplate}
         color={SERVICE_COLORS.templates}
         title="Templates"
-        subtitle="Des bases de projets éprouvées, avec leur fichier d’instructions pour agent IA. Pars de là plutôt que d’une page blanche."
+        subtitle="Les starters officiels des frameworks, avec la commande de leur documentation. Pars de là plutôt que d’une page blanche, puis suis le guide « Créer avec l’IA »."
       />
       <Chips className="mt-5" items={TEMPLATE_CATEGORIES} value={cat} onChange={setCat} />
       <div className="mt-5 grid gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -52,24 +44,15 @@ export default function Templates() {
                 </h3>
                 <p className="line-clamp-2 text-[13px] text-muted">{t.summary}</p>
               </div>
-              <span
-                className={
-                  t.free
-                    ? 'rounded-full bg-success-soft px-2 py-0.5 text-[11.5px] font-semibold text-success'
-                    : 'rounded-full bg-surface-3 px-2 py-0.5 text-[11.5px] font-semibold text-fg'
-                }
-              >
-                {t.free ? 'Gratuit' : 'Premium'}
+              <span className="rounded-full bg-success-soft px-2 py-0.5 text-[11.5px] font-semibold text-success">
+                {t.license}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               {t.stack.map((s) => (
                 <TechChip key={s} label={s} />
               ))}
-              <span className="ml-auto inline-flex items-center gap-1 text-[12.5px] text-subtle">
-                <Star className="size-3.5" />
-                {compact(t.stars)}
-              </span>
+              <span className="ml-auto text-[12.5px] text-subtle">{t.publisher}</span>
             </div>
           </button>
         ))}
@@ -89,18 +72,36 @@ export default function Templates() {
 function TemplateDetail({ tpl, onClose }: { tpl: Template; onClose: () => void }) {
   const nav = useNavigate();
   const setTrack = usePlatform((s) => s.setGuideTrack);
-  const cmd = `npx degit devhub-templates/${tpl.id} mon-projet\ncd mon-projet && cp .env.example .env`;
+  const cmd = tpl.command;
   return (
     <div className="flex flex-col gap-5">
       <TemplatePreview tpl={tpl} />
       <div className="flex flex-wrap items-center gap-3 text-[13px] text-subtle">
-        <PersonLink handle={tpl.author} size={22} />
-        <span>{compact(tpl.uses)} projets créés</span>
+        <span className="font-semibold text-fg">{tpl.publisher}</span>
         <span className="inline-flex items-center gap-1">
-          <Star className="size-3.5" />
-          {compact(tpl.stars)}
+          <Scale className="size-3.5" />
+          Licence {tpl.license}
         </span>
-        <DemoTag />
+        <a
+          href={tpl.docs}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-accent-text hover:underline"
+        >
+          Documentation officielle
+          <ExternalLink className="size-3.5" />
+        </a>
+        {tpl.repo && (
+          <a
+            href={tpl.repo}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-accent-text hover:underline"
+          >
+            Code source
+            <ExternalLink className="size-3.5" />
+          </a>
+        )}
       </div>
       <p className="text-[14px] text-fg">{tpl.summary}</p>
       <ul className="grid gap-2 sm:grid-cols-2">
@@ -112,7 +113,9 @@ function TemplateDetail({ tpl, onClose }: { tpl: Template; onClose: () => void }
         ))}
       </ul>
       <div>
-        <p className="mb-1.5 text-[13px] font-semibold text-fg">Démarrer en local</p>
+        <p className="mb-1.5 text-[13px] font-semibold text-fg">
+          Créer le projet (commande officielle)
+        </p>
         <CodeBlock code={cmd} lang="bash" compact />
       </div>
       <div className="flex flex-wrap justify-end gap-2 border-t border-line pt-4">

@@ -17,7 +17,7 @@ import { Avatar, Skeleton } from '@/components/ui/primitives';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { api } from '@/services';
-import { POSTS } from '@/platform/data/feed';
+import { PostCard, communityApi } from '@/platform/community';
 import { fetchJobs } from '@/platform/jobs';
 import {
   NEWS_CATEGORIES,
@@ -30,7 +30,7 @@ import {
 } from '@/platform/news';
 import { SourceMark } from '@/platform/newsui';
 import { usePlatform } from '@/platform/store';
-import { Ago, PostCard } from '@/platform/ui';
+import { Ago } from '@/platform/ui';
 import { useSession, useUI } from '@/stores/app';
 
 /**
@@ -444,19 +444,61 @@ function Wrap({
 /* ---------------- Discussions de la communauté ---------------- */
 
 function Discussions() {
-  const myPosts = usePlatform((s) => s.myPosts);
-  const posts = useMemo(
-    () => [...myPosts, ...POSTS].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [myPosts],
-  );
+  const [sort, setSort] = useState<'recent' | 'top'>('recent');
+  const { data, error } = useQuery(`posts:feed:${sort}`, () => communityApi.list({ sort }));
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <p className="text-[13px] text-subtle">
-        Les publications marquées « démo » sont des exemples, en attendant celles de la communauté.
-      </p>
-      {posts.map((p) => (
+      <div className="flex items-center gap-2">
+        {(
+          [
+            ['recent', 'Récentes'],
+            ['top', 'Populaires'],
+          ] as const
+        ).map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={sort === k}
+            onClick={() => setSort(k)}
+            className={cn(
+              'h-8 rounded-full px-3.5 text-[13px] font-medium',
+              sort === k ? 'lg-tint' : 'lg-clear text-fg',
+            )}
+          >
+            {l}
+          </button>
+        ))}
+        <Link
+          to="/publier"
+          className="ml-auto inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-[13px] font-semibold text-white hover:bg-accent-hover"
+        >
+          Publier
+        </Link>
+      </div>
+      {!data && !error && <PostSkeletons />}
+      {!!error && !data && (
+        <p className="rounded-[10px] bg-surface-1 p-6 text-center text-muted">
+          Impossible de charger les discussions. Réessaie dans un instant.
+        </p>
+      )}
+      {data?.data.map((p) => (
         <PostCard key={p.id} post={p} />
       ))}
+      {data && data.data.length === 0 && (
+        <div className="rounded-[10px] bg-surface-1 p-8 text-center">
+          <p className="font-semibold text-fg">Pas encore de discussion.</p>
+          <p className="mt-1 text-[14px] text-muted">
+            Pose une question, montre ton projet ou partage une actu : la première publication lance
+            la communauté.
+          </p>
+          <Link
+            to="/publier"
+            className="mt-4 inline-flex h-10 items-center rounded-full bg-accent px-5 text-[14px] font-semibold text-white hover:bg-accent-hover"
+          >
+            Publier
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

@@ -361,7 +361,7 @@ export interface AppNotification {
 export interface Report {
   id: ID;
   reporterId: ID;
-  targetType: 'question' | 'answer' | 'room' | 'message' | 'user';
+  targetType: 'question' | 'answer' | 'room' | 'message' | 'user' | 'post' | 'post_comment';
   targetId: ID;
   targetLabel: string;
   reason: string;

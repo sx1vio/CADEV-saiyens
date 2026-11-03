@@ -29,10 +29,10 @@ import { RoomMark } from '../domain';
 import { Sheet } from '../ui/overlay';
 import { Avatar, Kbd } from '../ui/primitives';
 import { ALL_NAV } from './nav';
-import { POSTS } from '@/platform/data/feed';
+
 import { fetchJobs } from '@/platform/jobs';
+import { communityApi } from '@/platform/community';
 import { SKILLS } from '@/platform/data/skills';
-import { VIDEOS } from '@/platform/data/videos';
 import { PATHS } from '@/platform/data/learn';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
 import { fetchNews, type NewsItem } from '@/platform/news';
@@ -56,6 +56,9 @@ export function CommandPalette() {
   );
   const { data: rooms } = useQuery(open ? 'palette:rooms' : null, () => api.listRooms());
   const { data: jobs } = useQuery(open ? 'jobs' : null, fetchJobs);
+  const { data: posts } = useQuery(open ? 'posts:palette' : null, () =>
+    communityApi.list({ sort: 'recent' }),
+  );
   const { data: devs } = useQuery(open ? 'palette:devs' : null, () => api.discoverDevs({}));
   // Recherche dans les actualités réelles (serveur), avec un léger délai pour ne pas surcharger
   const [newsQ, setNewsQ] = useState('');
@@ -199,7 +202,7 @@ export function CommandPalette() {
                     </Command.Group>
                   )}
                   <Command.Group heading={t('navEntry.groupFeed')}>
-                    {POSTS.map((x) => (
+                    {(posts?.data ?? []).map((x) => (
                       <Command.Item
                         key={x.id}
                         value={`p ${x.title} ${x.tags.join(' ')}`}
@@ -233,18 +236,6 @@ export function CommandPalette() {
                       >
                         <FileCode2 />
                         <span className="truncate font-mono">{x.name}</span>
-                      </Command.Item>
-                    ))}
-                  </Command.Group>
-                  <Command.Group heading={t('navEntry.groupVideos')}>
-                    {VIDEOS.map((x) => (
-                      <Command.Item
-                        key={x.id}
-                        value={`v ${x.title} ${x.tags.join(' ')}`}
-                        onSelect={() => go(`/videos/${x.id}`)}
-                      >
-                        <PlaySquare />
-                        <span className="truncate">{x.title}</span>
                       </Command.Item>
                     ))}
                   </Command.Group>

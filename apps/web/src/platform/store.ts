@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { storageGet, storageSet, uuid } from '@/lib/utils';
-import type { BuildTrack, Comment, Post } from './types';
+import type { BuildTrack } from './types';
 
 /**
  * État personnel sur les services de l'écosystème, gardé sur l'appareil (fonctionne hors ligne).
@@ -17,19 +17,13 @@ export interface CertResult {
 }
 
 interface Persisted {
-  votes: Record<string, 1 | -1>;
   saved: string[];
   joined: string[];
-  myPosts: Post[];
-  myComments: Comment[];
   savedJobs: string[];
   certResults: Record<string, CertResult>;
   savedCerts: string[];
   installedSkills: string[];
   starredSkills: string[];
-  likedVideos: string[];
-  subscriptions: string[];
-  watchLater: string[];
   lessonsDone: string[];
   /** Jour de fin de chaque leçon */
   lessonsLog: Record<string, string>;
@@ -47,7 +41,6 @@ interface Persisted {
 }
 
 interface Actions {
-  vote: (id: string, dir: 1 | -1) => void;
   toggle: (
     key:
       | 'saved'
@@ -56,14 +49,9 @@ interface Actions {
       | 'savedCerts'
       | 'installedSkills'
       | 'starredSkills'
-      | 'likedVideos'
-      | 'subscriptions'
-      | 'watchLater'
       | 'enrolled',
     id: string,
   ) => void;
-  addPost: (p: Omit<Post, 'id' | 'score' | 'comments' | 'createdAt'>) => Post;
-  addComment: (postId: string, parentId: string | null, author: string, body: string) => void;
   recordCert: (certId: string, score: number, passScore: number) => void;
   completeLesson: (key: string, xp?: number) => void;
   lessonsToday: () => number;
@@ -110,26 +98,13 @@ export function selectGoalReached(s: { lessonsToday: () => number; dailyGoal: nu
 }
 
 const DEFAULTS: Persisted = {
-  votes: {},
   saved: [],
   joined: ['ia', 'web', 'showcase', 'carriere'],
-  myPosts: [],
-  myComments: [],
   savedJobs: [],
   certResults: {},
   savedCerts: [],
   installedSkills: [],
   starredSkills: [],
-  likedVideos: [],
-  subscriptions: [
-    'moussa-diop',
-    'grace-uwase',
-    'kwame-dev',
-    'je-hounkpatin',
-    'nadia-benali',
-    'esi-owusu',
-  ],
-  watchLater: [],
   lessonsDone: [],
   lessonsLog: {},
   learnDays: [],
@@ -152,13 +127,6 @@ function load(): Persisted {
 
 export const usePlatform = create<Persisted & Actions>((set, get) => ({
   ...load(),
-  vote: (id, dir) =>
-    set((s) => {
-      const votes = { ...s.votes };
-      if (votes[id] === dir) delete votes[id];
-      else votes[id] = dir;
-      return { votes };
-    }),
   toggle: (key, id) =>
     set((s) => {
       const list = s[key];
@@ -166,32 +134,6 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
         [key]: list.includes(id) ? list.filter((x) => x !== id) : [...list, id],
       } as Partial<Persisted>;
     }),
-  addPost: (p) => {
-    const post: Post = {
-      ...p,
-      id: `mine-${uuid()}`,
-      score: 1,
-      comments: 0,
-      createdAt: new Date().toISOString(),
-    };
-    set((s) => ({ myPosts: [post, ...s.myPosts], votes: { ...s.votes, [post.id]: 1 } }));
-    return post;
-  },
-  addComment: (postId, parentId, author, body) =>
-    set((s) => ({
-      myComments: [
-        ...s.myComments,
-        {
-          id: `mc-${uuid()}`,
-          postId,
-          parentId,
-          author,
-          body,
-          score: 1,
-          createdAt: new Date().toISOString(),
-        },
-      ],
-    })),
   recordCert: (certId, score, passScore) =>
     set((s) => {
       const prev = s.certResults[certId];
@@ -252,19 +194,13 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
 // Sauvegarde sur l'appareil à chaque changement (les fonctions ne sont pas sérialisées).
 usePlatform.subscribe((s) => {
   const data: Persisted = {
-    votes: s.votes,
     saved: s.saved,
     joined: s.joined,
-    myPosts: s.myPosts,
-    myComments: s.myComments,
     savedJobs: s.savedJobs,
     certResults: s.certResults,
     savedCerts: s.savedCerts,
     installedSkills: s.installedSkills,
     starredSkills: s.starredSkills,
-    likedVideos: s.likedVideos,
-    subscriptions: s.subscriptions,
-    watchLater: s.watchLater,
     lessonsDone: s.lessonsDone,
     lessonsLog: s.lessonsLog,
     learnDays: s.learnDays,

@@ -3,60 +3,73 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Textarea } from '@/components/ui/primitives';
+import { COMMUNITY_SLUGS } from '@devhub/contracts';
+import { invalidate } from '@/lib/query';
+import {
+  POST_KINDS,
+  PostKindBadge,
+  communityApi,
+  communityError,
+  type PostKind,
+} from '@/platform/community';
 import { COMMUNITIES } from '@/platform/data/feed';
 import { usePlatform } from '@/platform/store';
-import type { PostKind } from '@/platform/types';
-import { CommunityIcon, KindBadge } from '@/platform/ui';
+import { CommunityIcon } from '@/platform/ui';
 import { cn } from '@/lib/utils';
-import { useSession } from '@/stores/app';
 
-const KINDS: { id: PostKind; label: string; hint: string }[] = [
-  { id: 'discussion', label: 'Discussion', hint: 'Lancer un échange, demander un avis' },
-  { id: 'launch', label: 'Lancement', hint: 'Présenter un projet que tu viens de sortir' },
-  {
-    id: 'opensource',
-    label: 'Open source',
-    hint: 'Partager un dépôt qui cherche des contributeurs',
-  },
-  { id: 'showcase', label: 'Projet', hint: 'Montrer ce que tu construis, demander des retours' },
-  { id: 'news', label: 'Actu', hint: 'Partager une nouveauté avec sa source' },
-];
+const KINDS = (Object.keys(POST_KINDS) as PostKind[]).map((id) => ({ id, ...POST_KINDS[id] }));
 
 /** Publier dans le fil : type, communauté, titre, texte, lien et dépôt. */
 export default function Publish() {
-  const me = useSession((s) => s.user)!;
   const nav = useNavigate();
   const [params] = useSearchParams();
-  const addPost = usePlatform((s) => s.addPost);
   const joined = usePlatform((s) => s.joined);
-  const [kind, setKind] = useState<PostKind>((params.get('type') as PostKind) || 'discussion');
-  const [community, setCommunity] = useState(params.get('c') || joined[0] || 'showcase');
+  const [kind, setKind] = useState<PostKind>(
+    (params.get('type') as PostKind) in POST_KINDS
+      ? (params.get('type') as PostKind)
+      : 'discussion',
+  );
+  const initial = params.get('c') || joined[0] || 'showcase';
+  const [community, setCommunity] = useState<(typeof COMMUNITY_SLUGS)[number]>(
+    (COMMUNITY_SLUGS as readonly string[]).includes(initial)
+      ? (initial as (typeof COMMUNITY_SLUGS)[number])
+      : 'showcase',
+  );
+  const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState('');
   const [title, setTitle] = useState(params.get('title') ?? '');
   const [body, setBody] = useState('');
   const [link, setLink] = useState(params.get('url') ?? '');
   const [repo, setRepo] = useState('');
   const [tags, setTags] = useState('');
-  const linkOk = !link || /^https?:\/\/\S+\.\S+/.test(link);
+  const linkOk = !link || /^https:\/\/\S+\.\S+/.test(link);
   const repoOk = !repo || /^[\w.-]+\/[\w.-]+$/.test(repo);
   const valid = title.trim().length >= 8 && linkOk && repoOk && (kind !== 'news' || !!link);
 
-  const submit = () => {
-    const post = addPost({
-      kind,
-      community,
-      author: me.handle,
-      title: title.trim(),
-      body: body.trim(),
-      link: link ? { url: link, domain: new URL(link).hostname.replace(/^www\./, '') } : undefined,
-      repo: repo ? { name: repo, stars: 0, language: '' } : undefined,
-      tags: tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean)
-        .slice(0, 5),
-    });
-    toast.success('Publié dans c/' + community);
-    nav(`/post/${post.id}`);
+  const submit = async () => {
+    setBusy(true);
+    try {
+      const { id } = await communityApi.create({
+        community,
+        kind,
+        title: title.trim(),
+        body: body.trim(),
+        linkUrl: link.trim() || (repo ? `https://github.com/${repo}` : null),
+        code: code.trim() || null,
+        tags: tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .slice(0, 5),
+      });
+      invalidate('posts');
+      invalidate('communities');
+      toast.success('Publié dans c/' + community);
+      nav(`/post/${id}`);
+    } catch (e) {
+      toast.error(communityError(e));
+      setBusy(false);
+    }
   };
 
   return (
@@ -80,7 +93,7 @@ export default function Publish() {
                   kind === k.id ? 'border-accent bg-accent-soft' : 'border-line ',
                 )}
               >
-                <KindBadge kind={k.id} />
+                <PostKindBadge kind={k.id} />
                 <span className="text-[12.5px] leading-snug text-muted">{k.hint}</span>
               </button>
             ))}
@@ -94,7 +107,7 @@ export default function Publish() {
                 key={c.slug}
                 type="button"
                 aria-pressed={community === c.slug}
-                onClick={() => setCommunity(c.slug)}
+                onClick={() => setCommunity(c.slug as (typeof COMMUNITY_SLUGS)[number])}
                 className={cn(
                   'inline-flex h-9 shrink-0 items-center gap-2 rounded-full border pr-3 pl-1 text-[13px] font-semibold',
                   community === c.slug
@@ -138,7 +151,7 @@ export default function Publish() {
             label="Lien"
             htmlFor="pub-link"
             optional={kind === 'news' ? 'obligatoire pour une actu' : 'facultatif'}
-            error={!linkOk ? 'Lien invalide (https://…)' : undefined}
+            error={!linkOk ? 'Lien https:// attendu' : undefined}
           >
             <Input
               id="pub-link"
@@ -165,6 +178,17 @@ export default function Publish() {
           </Field>
         </div>
 
+        <Field label="Code" htmlFor="pub-code" optional="facultatif, 5 000 caractères au plus">
+          <Textarea
+            id="pub-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="min-h-24 font-mono text-[13px]"
+            maxLength={5000}
+            placeholder="Colle un extrait de code (sans clé ni mot de passe)"
+          />
+        </Field>
+
         <Field
           label="Étiquettes"
           htmlFor="pub-tags"
@@ -182,7 +206,7 @@ export default function Publish() {
           <Button variant="ghost" onClick={() => nav(-1)}>
             Annuler
           </Button>
-          <Button variant="primary" disabled={!valid} onClick={submit}>
+          <Button variant="primary" disabled={!valid} loading={busy} onClick={() => void submit()}>
             Publier
           </Button>
         </div>
