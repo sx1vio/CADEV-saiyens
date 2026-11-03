@@ -10,6 +10,7 @@ import {
   ImageDown,
   Mail,
   MapPin,
+  MessageCircle,
   Share2,
   Flag,
   Sparkles,
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { DemoBadge, errorText } from '@/components/domain';
@@ -40,6 +41,7 @@ import {
   type XPEvent,
 } from '@/services';
 import { useSession } from '@/stores/app';
+import { MESSAGE_ERRORS, messages as messagesApi } from '@/platform/messages';
 import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
@@ -60,6 +62,8 @@ export default function Passport() {
   const { data: status } = useQuery('status:lite', () => api.getStatus());
   const [proofSkill, setProofSkill] = useState<SkillView | null>(null);
   const [contact, setContact] = useState(false);
+  const [opening, setOpening] = useState(false);
+  const nav = useNavigate();
   const [card, setCard] = useState(false);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -157,11 +161,25 @@ export default function Passport() {
             ) : (
               <Button
                 variant="primary"
-                icon={<Mail />}
-                onClick={() => setContact(true)}
+                icon={<MessageCircle />}
+                loading={opening}
+                onClick={async () => {
+                  // Connecté : on ouvre la conversation ; sinon, invitation à se connecter.
+                  if (!me) return setContact(true);
+                  setOpening(true);
+                  try {
+                    nav(`/messages/${await messagesApi.start(u.handle)}`);
+                  } catch (e) {
+                    toast.error(
+                      MESSAGE_ERRORS[(e as { code?: string }).code ?? ''] ?? errorText(t, e),
+                    );
+                  } finally {
+                    setOpening(false);
+                  }
+                }}
                 className="flex-1"
               >
-                {t('passport.contact')}
+                {t('passport.message')}
               </Button>
             )}
             <Button

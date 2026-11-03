@@ -13,6 +13,7 @@ const subscriber = (userId: string | null, topics: string[] = []) => {
     topics: new Set(topics),
     onUserEvent: () => seen.push('user'),
     onPublicEvent: (event, data) => seen.push(`${event}:${JSON.stringify(data)}`),
+    onUserSignal: (kind) => seen.push(`signal:${kind}`),
   };
   return { s, seen };
 };
@@ -27,6 +28,14 @@ describe('RealtimeHub', () => {
     h.dispatch(USER_CHANNEL, JSON.stringify({ u: 'awa' }));
     expect(awa.seen).toEqual(['user']);
     expect(moussa.seen).toEqual([]);
+  });
+
+  it('transmet un signal personnel sans relire les notifications', () => {
+    const h = hub();
+    const awa = subscriber('awa');
+    h.add(awa.s);
+    h.dispatch(USER_CHANNEL, JSON.stringify({ u: 'awa', s: 'dm' }));
+    expect(awa.seen).toEqual(['signal:dm']);
   });
 
   it('distribue les événements publics aux abonnés du sujet', () => {

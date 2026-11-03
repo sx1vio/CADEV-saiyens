@@ -13,6 +13,7 @@ import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { RealtimeModule } from './infrastructure/realtime/realtime.module';
 import { BackofficeModule } from './modules/backoffice';
 import { BusinessModule } from './modules/business';
+import { MessagingModule } from './modules/messaging';
 import { CommunityModule } from './modules/community';
 import { IdentityModule, OriginGuard } from './modules/identity';
 import { PassportModule } from './modules/passport';
@@ -68,6 +69,7 @@ import { ReputationModule } from './modules/reputation';
     PlatformModule,
     BackofficeModule,
     BusinessModule,
+    MessagingModule,
     CommunityModule,
     ModerationModule,
     ShareModule,

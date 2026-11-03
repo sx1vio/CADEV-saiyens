@@ -26,6 +26,7 @@ const TARGET_LABEL: Record<string, string> = {
   company: 'Entreprise',
   post: 'Publication',
   post_comment: 'Commentaire',
+  direct_message: 'Message privé',
 };
 
 const when = (iso: string) =>

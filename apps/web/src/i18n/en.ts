@@ -848,6 +848,7 @@ const en: Dict = {
     cardDownload: 'Download',
     cardAlt: '{{name}}’s Proof Card',
     contact: 'Contact',
+    message: 'Send a message',
     contactHint: 'The message is relayed by email without exposing the address.',
     contactMessage: 'Your message',
     contactRules:

@@ -21,7 +21,8 @@ export class Moderation {
     writer: ModerationWriter,
     input: { reporterId: string; targetType: ReportTargetType; targetId: string; reason: string },
   ): Promise<{ report: ReportState; created: boolean }> {
-    if (!(await writer.findTarget(input.targetType, input.targetId))) {
+    const target = await writer.findTarget(input.targetType, input.targetId);
+    if (!target || (target.members && !target.members.includes(input.reporterId))) {
       throw new ReportTargetNotFoundError();
     }
     return writer.createReport(input);

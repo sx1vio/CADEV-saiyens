@@ -862,6 +862,7 @@ const fr = {
     cardDownload: 'Télécharger',
     cardAlt: 'Proof Card de {{name}}',
     contact: 'Contacter',
+    message: 'Envoyer un message',
     contactHint: "Le message est relayé par e-mail, sans exposer l'adresse.",
     contactMessage: 'Ton message',
     contactRules:

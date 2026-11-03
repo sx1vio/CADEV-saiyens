@@ -156,6 +156,13 @@ export class ReportReader {
         });
         return c && { excerpt: excerpt(c.body), author: c.author, hidden: c.hiddenAt !== null };
       }
+      case 'direct_message': {
+        const m = await this.prisma.directMessage.findUnique({
+          where: { id },
+          select: { ...select, body: true },
+        });
+        return m && { excerpt: excerpt(m.body), author: m.author, hidden: m.hiddenAt !== null };
+      }
       case 'user': {
         const u = await this.prisma.user.findUnique({
           where: { id },

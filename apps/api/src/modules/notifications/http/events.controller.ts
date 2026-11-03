@@ -23,7 +23,8 @@ import { RealtimeHub } from '../../../infrastructure/realtime/realtime.hub';
 const PING_MS = 25_000;
 const REPLAY_LIMIT = 100;
 const MAX_TOPICS = 5;
-const TOPIC = /^(?:question|room):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const TOPIC =
+  /^(?:question|room|dm):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Format d'un événement SSE (https://html.spec.whatwg.org/multipage/server-sent-events.html). */
 export function sseFrame(event: string, data: unknown, id?: string): string {
@@ -41,7 +42,15 @@ export class EventsController {
   ) {}
 
   private async canFollow(topic: string, viewerId: string | null): Promise<boolean> {
-    const [kind, id] = topic.split(':') as ['question' | 'room', string];
+    const [kind, id] = topic.split(':') as ['question' | 'room' | 'dm', string];
+    // Conversation privée : réservée à ses deux membres.
+    if (kind === 'dm')
+      return (
+        viewerId !== null &&
+        (await this.prisma.conversationMember.count({
+          where: { conversationId: id, userId: viewerId },
+        })) > 0
+      );
     if (kind === 'question') {
       return (await this.prisma.question.count({ where: { id, hiddenAt: null } })) > 0;
     }
@@ -166,6 +175,9 @@ export class EventsController {
       onUserEvent: flushUser,
       onPublicEvent: (event, data) => {
         if (!closed) res.write(sseFrame(event, data));
+      },
+      onUserSignal: (kind) => {
+        if (!closed && /^[a-z]+$/.test(kind)) res.write(sseFrame(`signal.${kind}`, {}));
       },
     });
     const ping = setInterval(() => {

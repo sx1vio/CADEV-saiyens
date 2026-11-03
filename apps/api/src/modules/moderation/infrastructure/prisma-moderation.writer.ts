@@ -51,6 +51,23 @@ export class PrismaModerationWriter implements ModerationWriter {
         });
         return c && { topic: null, hidden: c.hiddenAt !== null };
       }
+      case 'direct_message': {
+        const m = await this.tx.directMessage.findUnique({
+          where: { id },
+          select: {
+            hiddenAt: true,
+            conversationId: true,
+            conversation: { select: { members: { select: { userId: true } } } },
+          },
+        });
+        return (
+          m && {
+            topic: `dm:${m.conversationId}`,
+            hidden: m.hiddenAt !== null,
+            members: m.conversation.members.map((x) => x.userId),
+          }
+        );
+      }
       case 'user': {
         const u = await this.tx.user.findFirst({
           where: { id, deletedAt: null },
@@ -99,6 +116,7 @@ export class PrismaModerationWriter implements ModerationWriter {
     else if (type === 'room_message') await this.tx.roomMessage.update({ where: { id }, data });
     else if (type === 'post') await this.tx.post.update({ where: { id }, data });
     else if (type === 'post_comment') await this.tx.postComment.update({ where: { id }, data });
+    else if (type === 'direct_message') await this.tx.directMessage.update({ where: { id }, data });
   }
 
   async closeReports(

@@ -16,6 +16,13 @@ export async function publishToUsers(db: Db, userIds: string[]): Promise<void> {
   }
 }
 
+/** Signal personnel sans notification : l'onglet rafraîchit les données concernées. */
+export async function signalUsers(db: Db, userIds: string[], kind: 'dm'): Promise<void> {
+  for (const u of new Set(userIds)) {
+    await db.$executeRaw`SELECT pg_notify(${USER_CHANNEL}, ${JSON.stringify({ u, s: kind })})`;
+  }
+}
+
 export type PublicEvent =
   | 'question.ai_hint'
   | 'question.matched'
@@ -24,7 +31,8 @@ export type PublicEvent =
   | 'task.updated'
   | 'room_message.created'
   | 'feedback.updated'
-  | 'content.hidden';
+  | 'content.hidden'
+  | 'dm.message';
 
 /** Événement public sur un sujet (« question:<id> », « room:<id> ») : les pages ouvertes se rafraîchissent. */
 export async function publishToTopic(

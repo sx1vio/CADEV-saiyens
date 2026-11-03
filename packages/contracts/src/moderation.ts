@@ -12,6 +12,7 @@ export const ReportTargetType = z.enum([
   'user',
   'post',
   'post_comment',
+  'direct_message',
 ]);
 export type ReportTargetType = z.infer<typeof ReportTargetType>;
 export const ReportStatus = z.enum(['open', 'actioned', 'dismissed']);

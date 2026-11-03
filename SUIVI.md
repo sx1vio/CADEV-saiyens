@@ -149,6 +149,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 04/11/2026 — Messagerie entre devs
+
+- **Demande de Sylvio** : « sur la plateforme DevHub elle-même, je veux un chat, pouvoir contacter et discuter avec les devs ».
+- **API** (module `messaging`) : tables `conversations` (une seule par paire), `conversation_members` (lecture), `direct_messages` (idempotents par `clientId`), `user_blocks`. Routes `GET/POST /api/v1/conversations`, `GET/POST /api/v1/conversations/:id/messages`, `POST …/read`, `POST/DELETE /api/v1/users/:handle/block`. Garde-fous : 20 nouvelles conversations par jour, 30 messages par minute, pas d'écriture vers un compte suspendu, supprimé, bloqué ou d'administration.
+- **Temps réel** : sujet SSE `dm:<id>` réservé aux deux membres (le fil se met à jour en direct) et signal personnel `signal.dm` (liste et compteur de non-lus). Une seule notification « message reçu » par série de messages non lus, pas une par message.
+- **Modération** : un message privé peut être signalé, uniquement par un membre de la conversation ; la modération le masque comme les autres contenus (`direct_message`).
+- **Site** : page `/messages` (liste, recherche, fil avec séparateurs par jour, envoi avec Entrée, nouvel essai si l'envoi échoue, messages précédents, bloquer, signaler), icône Messages avec le nombre de non-lus dans la barre du haut, bouton « Envoyer un message » sur le Passport (remplace le contact par e-mail). Logo de la barre mobile lisible en thème clair.
+- Tests : `messages.e2e.spec.ts` (7 scénarios : paire unique, non-lus et notification par série, idempotence, confidentialité y compris le flux temps réel, blocage, signalement, compte suspendu) ; vérifié dans le navigateur avec deux comptes (desktop et mobile). API : 535 tests verts.
+
 ### 04/11/2026 — Administration complète
 
 - **Demande de Sylvio** : « gestion administration et main totale sur toute la plateforme : les flux, les activités, vraiment tout ».

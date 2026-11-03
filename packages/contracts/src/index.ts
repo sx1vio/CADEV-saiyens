@@ -21,3 +21,4 @@ export * from './sync';
 export * from './tasks';
 export * from './translations';
 export * from './xp';
+export * from './messages';

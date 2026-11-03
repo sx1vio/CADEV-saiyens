@@ -1,7 +1,14 @@
 // Règles pures de la modération (M1, M4). Aucune dépendance à Nest ni à Prisma.
 
 export type ReportTargetType =
-  'question' | 'answer' | 'room' | 'room_message' | 'user' | 'post' | 'post_comment';
+  | 'question'
+  | 'answer'
+  | 'room'
+  | 'room_message'
+  | 'user'
+  | 'post'
+  | 'post_comment'
+  | 'direct_message';
 export type ReportStatus = 'open' | 'actioned' | 'dismissed';
 export type ModerationAction = 'hide' | 'restore' | 'dismiss';
 

@@ -149,6 +149,7 @@ enum ReportTargetType {
   user
   post
   post_comment
+  direct_message
 }
 
 enum ReportStatus {
@@ -205,7 +206,7 @@ model User {
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz // A3 : anonymisation
 
-  community         Community?         @relation(fields: [communityId], references: [id])
+  community         Community?           @relation(fields: [communityId], references: [id])
   oauthAccounts     OAuthAccount[]
   sessions          Session[]
   adminSessions     AdminSession[]
@@ -213,30 +214,34 @@ model User {
   postComments      PostComment[]
   postVotes         PostVote[]
   jobApplications   JobApplication[]
+  conversations     ConversationMember[]
+  directMessages    DirectMessage[]
+  blocksMade        UserBlock[]          @relation("block_from")
+  blocksReceived    UserBlock[]          @relation("block_to")
   jobOffers         JobOffer[]
   skills            UserSkill[]
   questions         Question[]
   answers           Answer[]
   votes             Vote[]
   matchEvents       MatchEvent[]
-  hostedPairs       PairSession[]      @relation("pair_host")
-  guestPairs        PairSession[]      @relation("pair_guest")
+  hostedPairs       PairSession[]        @relation("pair_host")
+  guestPairs        PairSession[]        @relation("pair_guest")
   ownedRooms        Room[]
   roomMemberships   RoomMember[]
   joinRequests      JoinRequest[]
-  assignedTasks     Task[]             @relation("task_assignee")
-  mentoredTasks     Task[]             @relation("task_mentor")
+  assignedTasks     Task[]               @relation("task_assignee")
+  mentoredTasks     Task[]               @relation("task_mentor")
   roomMessages      RoomMessage[]
-  feedbackRequests  FeedbackRequest[]  @relation("feedback_requester")
-  feedbackReviews   FeedbackRequest[]  @relation("feedback_reviewer")
+  feedbackRequests  FeedbackRequest[]    @relation("feedback_requester")
+  feedbackReviews   FeedbackRequest[]    @relation("feedback_reviewer")
   xpEvents          XpEvent[]
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
-  reportsMade       Report[]           @relation("report_reporter")
-  reportsHandled    Report[]           @relation("report_handler")
+  reportsMade       Report[]             @relation("report_reporter")
+  reportsHandled    Report[]             @relation("report_handler")
   adminActions      AdminAction[]
-  endorsementsGiven Endorsement[]      @relation("endorsement_from")
-  endorsementsRecv  Endorsement[]      @relation("endorsement_to")
+  endorsementsGiven Endorsement[]        @relation("endorsement_from")
+  endorsementsRecv  Endorsement[]        @relation("endorsement_to")
   idempotencyKeys   IdempotencyKey[]
   aiRequests        AiRequest[]
 
@@ -1079,4 +1084,61 @@ model Announcement {
 
   @@index([active, startsAt])
   @@map("announcements")
+}
+
+/// Messagerie privée entre deux membres. `pairKey` = les deux identifiants triés : une seule
+/// conversation par paire.
+model Conversation {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pairKey       String   @unique @map("pair_key")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  lastMessageAt DateTime @default(now()) @map("last_message_at") @db.Timestamptz
+
+  members  ConversationMember[]
+  messages DirectMessage[]
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  conversationId String   @map("conversation_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  lastReadAt     DateTime @default(now()) @map("last_read_at") @db.Timestamptz
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+model DirectMessage {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String    @map("conversation_id") @db.Uuid
+  authorId       String    @map("author_id") @db.Uuid
+  clientId       String    @map("client_id") @db.Uuid
+  body           String
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  hiddenAt       DateTime? @map("hidden_at") @db.Timestamptz // modération après signalement
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author       User         @relation(fields: [authorId], references: [id])
+
+  @@unique([authorId, clientId])
+  @@index([conversationId, createdAt])
+  @@map("direct_messages")
+}
+
+/// Un membre ne reçoit plus de messages de la personne qu'il a bloquée.
+model UserBlock {
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  blocker User @relation("block_from", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("block_to", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@map("user_blocks")
 }

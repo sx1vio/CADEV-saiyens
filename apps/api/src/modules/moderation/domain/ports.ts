@@ -13,6 +13,8 @@ export interface TargetState {
   /** Sujet temps réel des pages qui l'affichent (« question:<id> », « room:<id> »). */
   topic: string | null;
   hidden: boolean;
+  /** Message privé : seuls les membres de la conversation peuvent le signaler. */
+  members?: string[];
 }
 
 export interface ModerationWriter {

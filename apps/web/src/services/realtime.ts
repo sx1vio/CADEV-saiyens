@@ -28,6 +28,7 @@ export const PUBLIC_EVENTS = [
   'room_message.created',
   'feedback.updated',
   'content.hidden',
+  'dm.message',
 ] as const;
 
 interface State {
@@ -79,6 +80,7 @@ export function openStream() {
   source.addEventListener('notification.created', (e) => {
     remember(e as MessageEvent);
     if (state.userKey) invalidate(`notifications:${state.userKey}`);
+    invalidate('conversations'); // nouveau message privé possible : badge et liste à jour
   });
   const refreshFollowed = () => {
     for (const keys of state.topics.values()) for (const k of keys) invalidate(k);
@@ -94,6 +96,8 @@ export function openStream() {
   // Les données publiques ne disent pas toujours quel sujet est concerné (content.hidden) :
   // on rafraîchit les pages suivies, cinq au plus.
   for (const event of PUBLIC_EVENTS) source.addEventListener(event, refreshFollowed);
+  // Message privé reçu : liste des conversations et compteur de non-lus.
+  source.addEventListener('signal.dm', () => invalidate('conversations'));
   source.addEventListener('session.ended', () => {
     close();
     void clearApiReadCache(); // session terminée ailleurs : on ne garde rien de ce compte

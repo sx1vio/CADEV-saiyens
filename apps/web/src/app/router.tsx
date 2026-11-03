@@ -74,6 +74,7 @@ const pages = {
   communities: () => import('@/pages/Communities').then((m) => ({ default: m.CommunityList })),
   jobs: () => import('@/pages/Jobs'),
   company: () => import('@/pages/CompanyPage'),
+  messages: () => import('@/pages/Messages'),
   certs: () => import('@/pages/Certifications'),
   certExam: () => import('@/pages/CertExam'),
   skills: () => import('@/pages/Skills'),
@@ -260,6 +261,19 @@ export const router = createBrowserRouter([
       { path: 'emplois', lazy: lazy('jobs') },
       { path: 'emplois/:id', lazy: lazy('jobs') },
       { path: 'entreprises/:slug', lazy: lazy('company') },
+      ...['messages', 'messages/:id'].map((path) => ({
+        path,
+        lazy: async () => {
+          const m = await pages.messages();
+          return {
+            element: (
+              <RequireAuth>
+                <m.default />
+              </RequireAuth>
+            ),
+          };
+        },
+      })),
       { path: 'certifications', lazy: lazy('certs') },
       { path: 'certifications/:id', lazy: lazy('certExam') },
       { path: 'skills', lazy: lazy('skills') },

@@ -17,6 +17,8 @@ export interface Subscriber {
   /** Nouvelles notifications possibles pour cet utilisateur : relire depuis le dernier seq envoyé. */
   onUserEvent(): void;
   onPublicEvent(event: string, data: Record<string, string>): void;
+  /** Signal personnel sans notification (ex. « dm » : un message privé est arrivé). */
+  onUserSignal?(kind: string): void;
 }
 
 const RECONNECT_MS = 2_000;
@@ -56,14 +58,17 @@ export class RealtimeHub implements OnModuleInit, OnApplicationShutdown {
 
   /** Distribution d'un message reçu (exposée pour les tests). */
   dispatch(channel: string, payload: string | undefined): void {
-    let message: { u?: string; t?: string; e?: string; d?: Record<string, string> };
+    let message: { u?: string; s?: string; t?: string; e?: string; d?: Record<string, string> };
     try {
       message = JSON.parse(payload ?? '{}');
     } catch {
       return;
     }
     for (const s of this.subscribers) {
-      if (channel === USER_CHANNEL && message.u && s.userId === message.u) s.onUserEvent();
+      if (channel === USER_CHANNEL && message.u && s.userId === message.u) {
+        if (message.s) s.onUserSignal?.(message.s);
+        else s.onUserEvent();
+      }
       if (channel === PUBLIC_CHANNEL && message.t && message.e && s.topics.has(message.t)) {
         s.onPublicEvent(message.e, message.d ?? {});
       }

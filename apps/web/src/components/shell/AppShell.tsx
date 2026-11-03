@@ -1,6 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   Bell,
+  MessageCircle,
   ChevronDown,
   ChevronUp,
   Flame,
@@ -32,6 +33,7 @@ import { api, type AppNotification } from '@/services';
 import { useUserStream } from '@/services/realtime';
 import { useSession, useUI } from '@/stores/app';
 import { serverLogout } from '@/platform/auth';
+import { messages as messagesApi } from '@/platform/messages';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
 import { CREATE_NAV, EXPLORE_NAV, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
@@ -406,6 +408,7 @@ function TopBar() {
               ))}
             </DropMenu>
           )}
+          {me && <MessagesButton />}
           {me && <Notifications />}
           {me && <UserMenu />}
         </div>
@@ -429,7 +432,7 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
         >
           <Menu className="size-5" />
         </button>
-        <Logo />
+        <Logo dark={false} />
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
@@ -440,12 +443,31 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
             <Search className="size-5" />
           </button>
           <NetworkIndicator compact />
+          {me && <MessagesButton />}
           {me && <Notifications />}
           {me && <UserMenu />}
         </div>
       </div>
       <OfflineBanner />
     </header>
+  );
+}
+
+/** Accès à la messagerie, avec le nombre de messages non lus. */
+function MessagesButton() {
+  const { data } = useQuery('conversations', () => messagesApi.list());
+  const unread = data?.unreadTotal ?? 0;
+  return (
+    <Link
+      to="/messages"
+      aria-label={unread ? `Messages, ${unread} non lus` : 'Messages'}
+      className="relative grid size-10 place-items-center rounded-full text-fg transition-colors hover:bg-surface-1"
+    >
+      <MessageCircle className="size-5" />
+      {unread > 0 && (
+        <CountDot count={unread} className="absolute top-1 right-1 ring-2 ring-canvas" />
+      )}
+    </Link>
   );
 }
 
