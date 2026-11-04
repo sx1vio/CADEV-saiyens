@@ -54,12 +54,17 @@ Questions auxquelles la plateforme doit répondre :
 | Intégration à `main`                                                            | 🟡 PR ouverte depuis `feat/web-platform` (08/10/2026), en attente de relecture                                                                                                                                       |
 | Backend                                                                         | 🟡 Actualités, vidéos et proxy d’images portés dans l’API NestJS (module `news`, 08/10/2026) ; connexion par le module `identity` de Caleb ; les services de la plateforme (posts, emplois, certifs…) restent locaux |
 | Intégration Systalink (A, B, C)                                                 | ✅ Preuve « en production », bouton « Déployer sur Systalink » compté, aide Systalink (16/10/2026)                                                                                                                   |
+| Pré-vol (« du prompt à la prod vérifiée »)                                      | 🟡 Étape 1 sur 3 livrée sur `feat/prevol` (04/11/2026) : sécurité, 3G, failles, licences, rapport pour l’IA ; restent le serveur MCP / action GitHub et les tests réels entre devs                                   |
 | Démo / pitch                                                                    | ⏳ Pas commencé                                                                                                                                                                                                      |
 
 ---
 
 ## Reste à faire
 
+- [ ] Pré-vol, étape 2 : serveur MCP et action GitHub qui lancent le pré-vol et lisent le rapport (jeton d'API personnel nécessaire) (04/11/2026)
+- [ ] Pré-vol, étape 3 : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; puis tableau de bord Systalink dans `apps/admin` (04/11/2026)
+- [ ] Production : renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule), sinon 60 requêtes GitHub par heure pour tout le serveur (04/11/2026)
+- [ ] Demander à Systalink (cadev@systalink.com) : « Quel est votre plus gros frein pour attirer des développeurs ? » et s'ils permettent de créer des espaces par programme (04/11/2026)
 - [ ] **Avant le 25/10 17:00 GMT** : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
 - [ ] **Vote des pairs du 25/10 18:00 au 26/10 23:59 : chaque membre doit voter, sinon l'équipe est exclue** (23/10/2026)
 - [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
@@ -76,6 +81,7 @@ Questions auxquelles la plateforme doit répondre :
 
 ## Fait
 
+- [x] Pré-vol, étape 1 : module API `preflight`, page `/prevol`, rapport Markdown pour l'agent IA, 14 tests (04/11/2026)
 - [x] Récupération du travail de l'équipe (#172 à #179) et fusion sur `main` ; `sharp` (LGPL) remplacé ; dossier de soumission (23/10/2026)
 - [x] Audit de toutes les branches ; `main` vérifiée de bout en bout (16/10/2026)
 - [x] Correctifs BUG-027, BUG-039, test e-mail Y3 ; simulateur de réseau retiré (16/10/2026)
@@ -148,6 +154,19 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 04/11/2026 — Pré-vol : « du prompt à la prod vérifiée » (étape 1)
+
+- **Demande de Sylvio** : retenir les idées d'une conversation avec Claude (le dernier kilomètre entre le code écrit par l'IA et une application qui tient en vrai, au service des devs et de Systalink), puis « vasy » pour la première brique.
+- **Ce qui a été retenu** : compléter la CI au lieu de la refaire (« GitHub Actions teste votre code, nous testons votre produit dans le monde réel ») ; un rapport lisible par l'IA du dev ; des tests réels entre devs payés en XP ; le badge existant (preuve Systalink et surveillance) comme socle. **Écarté pour la démo** : « Cloner et lancer chez moi » et la création d'espaces Systalink par programme (API non vérifiée), et le déploiement par agent (le catalogue Systalink annonce déjà une connexion MCP). Correction : l'usage de Systalink est une condition de recevabilité, pas un critère noté à 40 %.
+- **API** (module `preflight`, branche `feat/prevol`) : `POST /api/v1/preflight` (compte requis, 10 par heure, un à la fois), `GET /api/v1/preflight` (mes 20 derniers), `GET /api/v1/preflight/:id` (public, non listé) et `GET /api/v1/preflight/:id/report.md` (Markdown avec une consigne pour l'agent, les corrections dans l'ordre et un identifiant stable par contrôle). Table `preflight_reports` (migration `20261104170000`).
+- **Contrôles du site** : `.env`, `.env.local`, `.env.production` et `.git/config` lisibles (sans confondre avec la page d'accueil d'une SPA) ; clés privées, AWS, GitHub, Stripe, OpenAI, Anthropic et Slack dans le JavaScript servi (motifs de `@devhub/core`, valeur jamais stockée) ; redirection HTTP → HTTPS ; en-têtes de sécurité ; cartes de source publiques ; version du serveur annoncée ; premier affichage estimé sur le profil « 3G rapide » de Chrome (1,6 Mbit/s, 562 ms) ; poids ; compression ; images lourdes ; cache ; viewport mobile ; temps de réponse ; hébergement chez Systalink (`SYSTALINK_IP_RANGES`). Les scripts tiers (mesure d'audience) ne sont pas reprochés au site pour le cache et la compression.
+- **Contrôles du dépôt** : fichiers de secrets publiés (hors dossiers de test, d'exemple et `playground/`) ; failles connues dans la base publique OSV avec la version corrigée (package-lock, pnpm-lock y compris en plusieurs documents, yarn.lock, package.json, requirements.txt) ; fichier de verrouillage absent ; licence du dépôt ; dépendances directes GPL ou AGPL (registre npm).
+- **Sécurité du pré-vol** : refus du réseau interne à chaque redirection (anti-SSRF, `127.0.0.1.nip.io` et `169.254.169.254` vérifiés refusés), plafonds de taille et de durée par requête, budget global de 45 s, aucun code du dépôt analysé n'est exécuté. Nouvelle variable facultative `PREFLIGHT_GITHUB_TOKEN`.
+- **Front** : page `/prevol` (formulaire, historique) et `/prevol/:id` (score, verdict, mesures, contrôles groupés, « Copier pour mon IA », téléchargement `.md`, lien, relance, consigne prête pour l'agent) ; entrée « Pré-vol » dans la section Créer. Vérifié en captures 1366 et 390 px (débordement horizontal corrigé sur téléphone).
+- **Essais réels** : `systalink.com` + `vitejs/vite` (score 70, hébergé chez Systalink détecté, 1 241 dépendances lues) ; `OWASP/NodeGoat` (clé privée publiée et 131 dépendances vulnérables détectées, versions corrigées indiquées).
+- **Tests** : `preflight.spec.ts` (14 tests) ; suite API complète verte (557 tests), types, lint et build du front OK.
+- **Environnement local** : Node 24 installé dans `~/.local/node24` ; `main` locale était en retard sur GitHub (récupération en HTTPS) ; `.env` local créé.
 
 ### 04/11/2026 — Activité GitHub sur le Passport, confidentialité, conformité au règlement
 

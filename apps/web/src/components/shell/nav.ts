@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Home,
   LayoutTemplate,
+  PlaneTakeoff,
   LifeBuoy,
   PlaySquare,
   Puzzle,
@@ -65,6 +66,7 @@ export const CREATE_NAV: NavEntry[] = [
     short: 'navEntry.templates',
     icon: LayoutTemplate,
   },
+  { to: '/prevol', label: 'navEntry.preflight', short: 'navEntry.preflight', icon: PlaneTakeoff },
 ];
 
 /** Hors barre latérale, accessibles par la recherche (Ctrl K) et depuis « Développeurs ». */

@@ -237,6 +237,7 @@ model User {
   xpEvents          XpEvent[]
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
+  preflightReports  PreflightReport[]
   reportsMade       Report[]             @relation("report_reporter")
   reportsHandled    Report[]             @relation("report_handler")
   adminActions      AdminAction[]
@@ -1141,4 +1142,24 @@ model UserBlock {
 
   @@id([blockerId, blockedId])
   @@map("user_blocks")
+}
+
+/// Pré-vol : vérification d'une application en ligne et de son dépôt (rapport lisible par l'IA).
+model PreflightReport {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  url        String?
+  repo       String?
+  score      Int
+  verdict    String
+  durationMs Int      @map("duration_ms")
+  /// Contrôles, mesures réseau et résumé du dépôt (forme : PreflightReport de @devhub/contracts).
+  result     Json
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("preflight_reports")
 }

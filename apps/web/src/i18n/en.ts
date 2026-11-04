@@ -108,6 +108,7 @@ const en: Dict = {
     guide: '“Build an app with AI” guide',
     guideShort: 'AI guide',
     templates: 'Templates',
+    preflight: 'Preflight',
     findDevs: 'Find devs',
     leaderboard: 'Leaderboard',
     systalink: 'Systalink',

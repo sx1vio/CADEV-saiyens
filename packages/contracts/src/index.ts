@@ -14,6 +14,7 @@ export * from './pair';
 export * from './passport';
 export * from './platform';
 export * from './posts';
+export * from './preflight';
 export * from './questions';
 export * from './rooms';
 export * from './skills';

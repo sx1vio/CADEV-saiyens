@@ -107,6 +107,7 @@ const fr = {
     guide: 'Guide « app avec l’IA »',
     guideShort: 'Guide IA',
     templates: 'Templates',
+    preflight: 'Pré-vol',
     findDevs: 'Trouver des devs',
     leaderboard: 'Classement',
     systalink: 'Systalink',
