@@ -34,7 +34,8 @@ const fr = {
     demo: 'Démo',
     founder: 'Membre fondateur',
     github: 'GitHub',
-    githubYears: 'GitHub · {{count}} ans',
+    githubYears_one: 'GitHub · {{count}} an',
+    githubYears_other: 'GitHub · {{count}} ans',
     emailVerified: 'E-mail vérifié',
     you: 'toi',
     xp: 'Proof XP',
@@ -1115,7 +1116,7 @@ const fr = {
       hideTimezone:
         'Masqué du Passport et du filtre par fuseau ; le matching l’utilise toujours, sans l’afficher.',
       hideAvailability: 'Tes créneaux et ton statut « disponible maintenant ».',
-      hideStats: 'Chiffres d’activité affichés sur ton Passport.',
+      hideStats: 'Chiffres d’activité et activité GitHub publique affichés sur ton Passport.',
     },
     privacyTimezoneFollows: 'Masqué avec le pays.',
     privacyVisible: 'Visible',

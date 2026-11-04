@@ -42,6 +42,7 @@ import {
 } from '@/services';
 import { useSession } from '@/stores/app';
 import { MESSAGE_ERRORS, messages as messagesApi } from '@/platform/messages';
+import { GithubActivity } from '@/components/passport/GithubActivity';
 import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
@@ -401,6 +402,8 @@ export default function Passport() {
                   </div>
                 </section>
               )}
+
+              <GithubActivity handle={u.handle} />
 
               <section>
                 <h2 className="mb-2 text-[14px] font-medium text-fg">{t('passport.heatmap')}</h2>

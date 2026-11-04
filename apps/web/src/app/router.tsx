@@ -75,6 +75,7 @@ const pages = {
   jobs: () => import('@/pages/Jobs'),
   company: () => import('@/pages/CompanyPage'),
   messages: () => import('@/pages/Messages'),
+  privacy: () => import('@/pages/Privacy'),
   certs: () => import('@/pages/Certifications'),
   certExam: () => import('@/pages/CertExam'),
   skills: () => import('@/pages/Skills'),
@@ -312,6 +313,7 @@ export const router = createBrowserRouter([
       { path: 'systalink/aide', lazy: lazy('systalinkHelp') },
       { path: 'impact', lazy: lazy('impact') },
       { path: 'regles', lazy: lazy('rules') },
+      { path: 'confidentialite', lazy: lazy('privacy') },
       {
         path: 'reglages',
         lazy: async () => {

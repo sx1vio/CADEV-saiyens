@@ -356,6 +356,7 @@ const FOOTER: { title: string; links: { to: string; label: string }[] }[] = [
     title: 'DevHub',
     links: [
       { to: '/regles', label: 'Règles et XP' },
+      { to: '/confidentialite', label: 'Confidentialité' },
       { to: '/impact', label: 'Impact' },
       { to: '/systalink', label: 'Systalink' },
       { to: '/inscription', label: 'Créer un compte' },

@@ -1,6 +1,6 @@
 import { BadgeCheck, Briefcase, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
-import { ApiError, api, errorMessage } from '../api';
+import { ApiError, api, errorMessage, SITE_URL } from '../api';
 
 const SECTORS = [
   'Fintech',
@@ -277,6 +277,18 @@ function Register({ onDone }: { onDone: () => void }) {
       <p className="text-[12.5px] text-muted">
         L’équipe DevHub vérifie votre entreprise (en général sous 48 h). Vous pouvez préparer vos
         offres en attendant.
+      </p>
+      <p className="text-[12.5px] text-muted">
+        Vos données et celles des candidats sont traitées selon la{' '}
+        <a
+          href={`${SITE_URL}/confidentialite`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-accent underline"
+        >
+          politique de confidentialité de DevHub
+        </a>
+        . Les candidatures ne servent qu’au recrutement pour l’offre concernée.
       </p>
     </form>
   );

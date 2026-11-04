@@ -35,7 +35,8 @@ const en: Dict = {
     demo: 'Demo',
     founder: 'Founding member',
     github: 'GitHub',
-    githubYears: 'GitHub · {{count}} yrs',
+    githubYears_one: 'GitHub · {{count}} yr',
+    githubYears_other: 'GitHub · {{count}} yrs',
     emailVerified: 'Email verified',
     you: 'you',
     xp: 'Proof XP',
@@ -1090,7 +1091,7 @@ const en: Dict = {
       hideTimezone:
         'Hidden from your Passport and the time zone filter; matching still uses it, without showing it.',
       hideAvailability: 'Your slots and your “available now” status.',
-      hideStats: 'Activity figures shown on your Passport.',
+      hideStats: 'Activity figures and public GitHub activity shown on your Passport.',
     },
     privacyTimezoneFollows: 'Hidden with the country.',
     privacyVisible: 'Visible',

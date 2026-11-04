@@ -149,6 +149,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 04/11/2026 — Activité GitHub sur le Passport, confidentialité, conformité au règlement
+
+- **Demande de Sylvio** : « la connexion GitHub d'un profil doit permettre de voir leurs projets, commits, activités » ; puis « assure-toi qu'on est dans les règles » (conditions générales CADEV).
+- **Activité GitHub** : `GET /api/v1/users/:handle/github` (module `passport`) : profil public, dépôts mis en avant (sources publiques, les plus étoilés), commits récents de l'auteur sur ses trois derniers dépôts, événements publics des 90 derniers jours, calendrier, langages. **Données publiques seulement**, jeton du membre utilisé pour le quota (lecture seule) et abandonné s'il est révoqué. Cache d'une heure en base, ancienne version servie jusqu'à 7 jours si GitHub est en panne. Masquée si le membre masque ses statistiques. Section « Sur GitHub » sur le Passport. Vérifié avec le vrai profil public `sx1vio` (compte local temporaire supprimé ensuite).
+- **Confidentialité** : nouvelle page `/confidentialite` (données collectées, messages privés, candidatures, activité GitHub, partage avec GitHub et Anthropic, durées, suppression, droits), lien dans le pied de page et dans l'inscription du portail entreprise. Adresse de contact configurable (`VITE_CONTACT_EMAIL`).
+- **Règlement relu** (page officielle, 04/11) : soumission le **15/11 à 17:00 GMT**, **vote des pairs obligatoire pour chaque membre du 15/11 18:00 au 16/11 23:59**, vote public 17–20/11, jury 21–22/11, résultats le 23/11. Vérifications : premier commit le 06/10 (après l'ouverture du 29/09) ; aucune licence GPL, AGPL ou LGPL ; seules licences non permissives : `elkjs` (EPL-2.0, dans le CLI Prisma de l'image API, jamais exécuté) et `lightningcss` (MPL-2.0, build seulement), justifiées. `docs/soumission.md` mis à jour : calendrier, exigences article par article, contenus de tiers et leurs sources, déclaration de titularité conforme à l'article 6.4 (hors mission d'employeur, client ou école), nouvelles étapes avant l'envoi (compte admin par la CLI, sous-domaine business, adresse de contact, aucune donnée de test en production).
+- Divers : libellé « GitHub · 1 an » au singulier.
+- Tests : `github-activity.spec.ts` (règles pures) et `github-activity.e2e.spec.ts` (faux GitHub, cache, panne, confidentialité).
+
 ### 04/11/2026 — Messagerie entre devs
 
 - **Demande de Sylvio** : « sur la plateforme DevHub elle-même, je veux un chat, pouvoir contacter et discuter avec les devs ».
