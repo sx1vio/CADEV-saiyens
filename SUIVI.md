@@ -157,6 +157,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 - **Règlement relu** (page officielle, 04/11) : soumission le **15/11 à 17:00 GMT**, **vote des pairs obligatoire pour chaque membre du 15/11 18:00 au 16/11 23:59**, vote public 17–20/11, jury 21–22/11, résultats le 23/11. Vérifications : premier commit le 06/10 (après l'ouverture du 29/09) ; aucune licence GPL, AGPL ou LGPL ; seules licences non permissives : `elkjs` (EPL-2.0, dans le CLI Prisma de l'image API, jamais exécuté) et `lightningcss` (MPL-2.0, build seulement), justifiées. `docs/soumission.md` mis à jour : calendrier, exigences article par article, contenus de tiers et leurs sources, déclaration de titularité conforme à l'article 6.4 (hors mission d'employeur, client ou école), nouvelles étapes avant l'envoi (compte admin par la CLI, sous-domaine business, adresse de contact, aucune donnée de test en production).
 - Divers : libellé « GitHub · 1 an » au singulier.
 - Tests : `github-activity.spec.ts` (règles pures) et `github-activity.e2e.spec.ts` (faux GitHub, cache, panne, confidentialité).
+- CI : le parcours Playwright « Contacter » cliquait sur l'ancien bouton ; il suit maintenant le nouveau parcours (message privé depuis le Passport, notification, lecture en direct). 18 parcours verts en local.
 
 ### 04/11/2026 — Messagerie entre devs
 
