@@ -209,6 +209,7 @@ model User {
   community         Community?           @relation(fields: [communityId], references: [id])
   oauthAccounts     OAuthAccount[]
   sessions          Session[]
+  apiTokens         ApiToken[]
   adminSessions     AdminSession[]
   posts             Post[]
   postComments      PostComment[]
@@ -283,6 +284,22 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
+}
+
+/// Jeton d'API personnel (pré-vol depuis un agent IA ou une CI). Seule l'empreinte SHA-256 est stockée.
+model ApiToken {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  name       String
+  tokenHash  String    @unique @map("token_hash")
+  hint       String
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_tokens")
 }
 
 model Community {

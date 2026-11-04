@@ -11,6 +11,8 @@ import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
+import { ALLOW_API_TOKEN, bearerToken } from './api-token.guard';
+import { SESSION_COOKIE, readCookie } from './cookies';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const ALLOW_CROSS_ORIGIN = 'devhub:allow-cross-origin';
@@ -45,6 +47,17 @@ export class OriginGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<Request>();
     if (SAFE_METHODS.has(req.method)) return true;
     if (this.reflector.get<boolean>(ALLOW_CROSS_ORIGIN, context.getHandler())) return true;
+    // Jeton d'API (agent IA, CI) : un navigateur ne l'envoie pas de lui-même, pas de CSRF possible.
+    // Sans jeton ni cookie, rien à détourner non plus : la route répondra 401 (auth.required).
+    // SessionOrTokenGuard authentifie ensuite, en ignorant le cookie s'il y a un jeton.
+    if (
+      (bearerToken(req) !== null || !readCookie(req, SESSION_COOKIE)) &&
+      this.reflector.getAllAndOverride<boolean>(ALLOW_API_TOKEN, [
+        context.getHandler(),
+        context.getClass(),
+      ])
+    )
+      return true;
     if (isAdminPath(req.path)) {
       if (
         this.adminOrigin &&

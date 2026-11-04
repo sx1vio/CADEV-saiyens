@@ -1,0 +1,81 @@
+name: DevHub Africa — Pré-vol
+description: >-
+  Contrôle de code gratuit avant la mise en production : lint, types, tests et build du projet,
+  puis pré-vol DevHub (sécurité, réseau 3G, dépendances vulnérables, licences) avec un rapport
+  prêt à donner à ton agent IA.
+author: DevHub Africa
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  token:
+    description: Jeton d'API personnel DevHub (dh_pat_…), à mettre dans un secret du dépôt.
+    required: false
+    default: ''
+  url:
+    description: Adresse HTTPS publique de l'application déployée (vide pour ne contrôler que le code).
+    required: false
+    default: ''
+  repo:
+    description: Dépôt GitHub public à analyser (owner/repo). Ignoré automatiquement si le dépôt est privé.
+    required: false
+    default: ${{ github.repository }}
+  api-url:
+    description: Adresse de DevHub Africa.
+    required: false
+    default: https://devhub.africa
+  code-checks:
+    description: Lancer les scripts du projet (lint, typecheck, test, build) s'ils existent (true/false).
+    required: false
+    default: 'true'
+  working-directory:
+    description: Dossier du projet (celui du package.json).
+    required: false
+    default: .
+  fail-on:
+    description: 'Faire échouer le job : fix (point bloquant), review (au moindre avertissement) ou never.'
+    required: false
+    default: fix
+  min-score:
+    description: Score minimal du pré-vol (0 à 100).
+    required: false
+    default: '0'
+
+outputs:
+  score:
+    description: Score du pré-vol sur 100.
+    value: ${{ steps.prevol.outputs.score }}
+  verdict:
+    description: 'ready, review ou fix.'
+    value: ${{ steps.prevol.outputs.verdict }}
+  report-url:
+    description: Page du rapport.
+    value: ${{ steps.prevol.outputs.report-url }}
+  code-checks:
+    description: 'passed, failed ou skipped.'
+    value: ${{ steps.code.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - name: Contrôle du code (lint, types, tests, build)
+      id: code
+      if: inputs.code-checks == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: bash "$GITHUB_ACTION_PATH/code-checks.sh"
+
+    - name: Pré-vol DevHub
+      id: prevol
+      shell: bash
+      env:
+        PREVOL_TOKEN: ${{ inputs.token }}
+        PREVOL_URL: ${{ inputs.url }}
+        PREVOL_REPO: ${{ inputs.repo }}
+        PREVOL_API: ${{ inputs.api-url }}
+        PREVOL_FAIL_ON: ${{ inputs.fail-on }}
+        PREVOL_MIN_SCORE: ${{ inputs.min-score }}
+        PREVOL_REPO_PRIVATE: ${{ github.event.repository.private }}
+        PREVOL_CODE_RESULT: ${{ steps.code.outputs.result }}
+      run: bash "$GITHUB_ACTION_PATH/prevol.sh"

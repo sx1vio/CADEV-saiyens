@@ -7,6 +7,7 @@ export {
   OptionalUser,
   SessionGuard,
 } from './http/session.guard';
+export { AllowApiToken, SessionOrTokenGuard } from './http/api-token.guard';
 export { AllowCrossOrigin, OriginGuard, isAdminPath, isBusinessPath } from './http/origin.guard';
 export { type TrustSignals, trustSignals } from './domain/trust';
 export { type ResolvedPrivacy, resolvePrivacy } from './domain/privacy';

@@ -3,6 +3,7 @@ import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
 import { IdentityModule } from '../identity';
 import { type PreflightProbes, RunPreflight } from './application/run-preflight';
+import { McpController } from './http/mcp.controller';
 import { PreflightController } from './http/preflight.controller';
 import { PreflightRepository } from './infrastructure/preflight.repository';
 import { GithubRateLimitedError, probeRepo, RepoNotFoundError } from './infrastructure/repo.probe';
@@ -13,7 +14,7 @@ import { probeSite, SiteUnreachableError } from './infrastructure/site.probe';
 // d'une application en ligne et de son dépôt, avec un rapport lisible par l'IA du développeur.
 @Module({
   imports: [IdentityModule],
-  controllers: [PreflightController],
+  controllers: [PreflightController, McpController],
   providers: [
     PreflightRepository,
     {

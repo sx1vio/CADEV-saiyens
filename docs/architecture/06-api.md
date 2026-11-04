@@ -229,6 +229,21 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | `GET /news/status`          | Pub   | Volume indexé et dernière collecte                                                            |
 | `GET /img?u=&w=`            | Pub   | Image d'article redimensionnée en WebP, mise en cache ; adresses privées refusées (anti-SSRF) |
 
+### Pré-vol (`preflight`) et jetons d'API
+
+Guide d'utilisation : [`guides/prevol.md`](../guides/prevol.md). **Co+J** = session ou jeton d'API personnel (`Authorization: Bearer dh_pat_…`).
+
+| Endpoint                       | Accès | Rôle                                                                                           |
+| ------------------------------ | ----- | ---------------------------------------------------------------------------------------------- |
+| `POST /preflight`              | Co+J  | Lance un pré-vol `{ url?, repo? }` (10 par heure, un à la fois, 45 s au plus)                  |
+| `GET /preflight`               | Co+J  | Mes 20 derniers pré-vols                                                                       |
+| `GET /preflight/:id`           | Pub   | Rapport JSON (non listé)                                                                       |
+| `GET /preflight/:id/report.md` | Pub   | Rapport Markdown pour l'agent IA                                                               |
+| `POST /mcp`                    | J     | Serveur MCP (JSON-RPC, sans état) : `run_preflight`, `get_preflight_report`, `list_preflights` |
+| `GET /me/tokens`               | Co    | Mes jetons (nom, 4 derniers caractères, dernière utilisation)                                  |
+| `POST /me/tokens`              | Co    | Crée un jeton `{ name }` ; renvoyé en clair une seule fois ; 5 au plus (`api_token.limit`)     |
+| `DELETE /me/tokens/:id`        | Co    | Révoque un jeton                                                                               |
+
 ### Santé (non versionnée)
 
 | Chemin                | Rôle                                                                                      |

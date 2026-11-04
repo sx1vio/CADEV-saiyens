@@ -17,9 +17,12 @@ import { EmailAuthController } from './http/email-auth.controller';
 import { MeController } from './http/me.controller';
 import { AccountDeletion } from './infrastructure/account-deletion';
 import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
+import { SessionOrTokenGuard } from './http/api-token.guard';
+import { ApiTokensController } from './http/api-tokens.controller';
+import { PrismaApiTokenStore } from './infrastructure/prisma-api-token.store';
 
 @Module({
-  controllers: [AuthController, EmailAuthController, MeController],
+  controllers: [AuthController, EmailAuthController, MeController, ApiTokensController],
   providers: [
     AccountDeletion,
     PrismaIdentityRepository,
@@ -27,6 +30,8 @@ import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
     PrismaSessionStore,
     SessionGuard,
     OptionalSessionGuard,
+    PrismaApiTokenStore,
+    SessionOrTokenGuard,
     GithubTokenReader,
     EnqueueProfileImport,
     {
@@ -66,6 +71,8 @@ import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
   exports: [
     SessionGuard,
     OptionalSessionGuard,
+    PrismaApiTokenStore,
+    SessionOrTokenGuard,
     PrismaSessionStore,
     GithubTokenReader,
     AccountDeletion,

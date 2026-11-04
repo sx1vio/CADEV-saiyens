@@ -11,14 +11,13 @@ import {
   ParseUUIDPipe,
   Post,
   UnprocessableEntityException,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { CreatePreflightRequest, ListPreflightResponse, PreflightReport } from '@devhub/contracts';
 import { createZodDto } from 'nestjs-zod';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
-import { type AuthenticatedUser, CurrentUser, SessionGuard } from '../../identity';
+import { AllowApiToken, type AuthenticatedUser, CurrentUser } from '../../identity';
 import {
   NothingToCheckError,
   PreflightBusyError,
@@ -26,6 +25,7 @@ import {
   RunPreflight,
 } from '../application/run-preflight';
 import { toMarkdown } from '../domain/report';
+import { reportLinks } from './report-links';
 import { PreflightRepository } from '../infrastructure/preflight.repository';
 
 class CreatePreflightRequestDto extends createZodDto(CreatePreflightRequest) {}
@@ -67,7 +67,7 @@ function toHttp(err: unknown): never {
 }
 
 /**
- * Pré-vol : lancer une vérification (compte requis, quota horaire) ; lire un rapport par son
+ * Pré-vol : lancer une vérification (session ou jeton d'API personnel, quota horaire) ; lire un rapport par son
  * identifiant (public, non listé), en JSON ou en Markdown pour l'agent IA du développeur.
  */
 @Controller('api/v1/preflight')
@@ -79,7 +79,7 @@ export class PreflightController {
   ) {}
 
   @Post()
-  @UseGuards(SessionGuard)
+  @AllowApiToken()
   @ApiOkResponse({ type: PreflightReportDto })
   async create(
     @CurrentUser() auth: AuthenticatedUser,
@@ -94,7 +94,7 @@ export class PreflightController {
   }
 
   @Get()
-  @UseGuards(SessionGuard)
+  @AllowApiToken()
   @ApiOkResponse({ type: ListPreflightResponseDto })
   async mine(@CurrentUser() auth: AuthenticatedUser): Promise<ListPreflightResponse> {
     return { items: await this.reports.listMine(auth.userId) };
@@ -114,11 +114,7 @@ export class PreflightController {
   async markdown(@Param('id', ParseUUIDPipe) id: string): Promise<string> {
     const report = await this.reports.get(id);
     if (!report) throw notFound();
-    const app = this.env.APP_URL.replace(/\/$/, '');
-    const api = this.env.API_URL.replace(/\/$/, '');
-    return toMarkdown(report, {
-      page: `${app}/prevol/${id}`,
-      json: `${api}/api/v1/preflight/${id}`,
-    });
+    const { page, json } = reportLinks(this.env, id);
+    return toMarkdown(report, { page, json });
   }
 }

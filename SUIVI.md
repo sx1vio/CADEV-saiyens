@@ -54,15 +54,16 @@ Questions auxquelles la plateforme doit répondre :
 | Intégration à `main`                                                            | 🟡 PR ouverte depuis `feat/web-platform` (08/10/2026), en attente de relecture                                                                                                                                       |
 | Backend                                                                         | 🟡 Actualités, vidéos et proxy d’images portés dans l’API NestJS (module `news`, 08/10/2026) ; connexion par le module `identity` de Caleb ; les services de la plateforme (posts, emplois, certifs…) restent locaux |
 | Intégration Systalink (A, B, C)                                                 | ✅ Preuve « en production », bouton « Déployer sur Systalink » compté, aide Systalink (16/10/2026)                                                                                                                   |
-| Pré-vol (« du prompt à la prod vérifiée »)                                      | 🟡 Étape 1 sur 3 livrée sur `feat/prevol` (04/11/2026) : sécurité, 3G, failles, licences, rapport pour l’IA ; restent le serveur MCP / action GitHub et les tests réels entre devs                                   |
+| Pré-vol (« du prompt à la prod vérifiée »)                                      | ✅ Livré (04/11/2026) : page `/prevol`, rapport pour l’IA, jetons d’API, serveur MCP, action GitHub (contrôle du code + pré-vol). Guide : `docs/guides/prevol.md`                                                    |
 | Démo / pitch                                                                    | ⏳ Pas commencé                                                                                                                                                                                                      |
 
 ---
 
 ## Reste à faire
 
-- [ ] Pré-vol, étape 2 : serveur MCP et action GitHub qui lancent le pré-vol et lisent le rapport (jeton d'API personnel nécessaire) (04/11/2026)
-- [ ] Pré-vol, étape 3 : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; puis tableau de bord Systalink dans `apps/admin` (04/11/2026)
+- [ ] Pré-vol, pour aller plus loin (demande de Sylvio : « une CI vraiment poussée, un vrai contrôle de code ») : analyse statique de sécurité (Semgrep ou CodeQL) et détection de secrets dans tout l’historique (gitleaks) dans l’action GitHub ; audit Lighthouse mobile réel ; couverture de tests dans le rapport ; commentaire automatique sur les pull requests (04/11/2026)
+- [ ] Pré-vol : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; tableau de bord Systalink dans `apps/admin` (04/11/2026)
+- [ ] Pré-vol : essayer l’action GitHub sur un vrai dépôt une fois `main` en ligne (testée seulement en local, sans `jq`) et remplacer `api-url` par le domaine définitif (04/11/2026)
 - [ ] Production : renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule), sinon 60 requêtes GitHub par heure pour tout le serveur (04/11/2026)
 - [ ] Demander à Systalink (cadev@systalink.com) : « Quel est votre plus gros frein pour attirer des développeurs ? » et s'ils permettent de créer des espaces par programme (04/11/2026)
 - [ ] **Avant le 25/10 17:00 GMT** : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
@@ -82,6 +83,7 @@ Questions auxquelles la plateforme doit répondre :
 ## Fait
 
 - [x] Pré-vol, étape 1 : module API `preflight`, page `/prevol`, rapport Markdown pour l'agent IA, 14 tests (04/11/2026)
+- [x] Pré-vol, étape 2 : jetons d'API personnels, serveur MCP `/api/v1/mcp`, action GitHub `actions/prevol` (contrôle du code + pré-vol), guide `docs/guides/prevol.md` (04/11/2026)
 - [x] Récupération du travail de l'équipe (#172 à #179) et fusion sur `main` ; `sharp` (LGPL) remplacé ; dossier de soumission (23/10/2026)
 - [x] Audit de toutes les branches ; `main` vérifiée de bout en bout (16/10/2026)
 - [x] Correctifs BUG-027, BUG-039, test e-mail Y3 ; simulateur de réseau retiré (16/10/2026)
@@ -154,6 +156,16 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 04/11/2026 — Pré-vol : agent IA et CI (étape 2), documentation
+
+- **Demande de Sylvio** : « oui » pour l'étape 2, puis « je veux plus que ça : des tests automatiques et gratuits, une CI vraiment poussée, un vrai contrôle de code », puis « finis les améliorations du pré-vol, mets à jour la doc et on s'arrête ». Fait : l'étape 2, avec un contrôle du code dans l'action GitHub ; le reste est noté dans « Reste à faire ».
+- **Jetons d'API personnels** (module `identity`) : table `api_tokens` (migration `20261104190000`), `dh_pat_` + 256 bits, seule l'empreinte SHA-256 est stockée, 5 au plus. Routes `GET/POST /api/v1/me/tokens` et `DELETE /api/v1/me/tokens/:id` (session uniquement). Décorateur `@AllowApiToken()` : session **ou** jeton, réservé aux routes du pré-vol ; `OriginGuard` laisse passer ces routes avec un jeton ou sans cookie (pas de CSRF possible), sinon le contrôle d'origine reste le même. Jetons supprimés avec le compte, refusés si le compte est suspendu.
+- **Serveur MCP** : `POST /api/v1/mcp` (Streamable HTTP sans état, JSON-RPC écrit à la main, versions 2024-11-05 à 2025-11-25) ; outils `run_preflight`, `get_preflight_report`, `list_preflights` ; consignes pour l'agent ; erreurs (quota, dépôt privé, site injoignable) renvoyées comme résultat d'outil lisible. `GET` → 405, sans jeton → 401. Essai réel : `systalink.com` + `expressjs/express` lancé par MCP, rapport Markdown complet en 11 s.
+- **Action GitHub** `actions/prevol` (composite) : installation avec le bon gestionnaire (pnpm, yarn, bun, npm), puis `lint`, `typecheck`, `test` et `build` s'ils existent, tableau dans le résumé du job ; puis pré-vol avec le jeton, rapport dans le résumé, annotations par problème, seuils `fail-on` et `min-score`, dépôt privé ignoré automatiquement. **Non exécutée sur GitHub** (vérifiée seulement par `bash -n` ; `jq` absent en local).
+- **Front** : section « Brancher ton agent IA et ta CI » sur `/prevol` (onglets Claude Code, Cursor et autres, GitHub Actions avec configuration prête à copier ; création, affichage unique et suppression des jetons). Vérifié en captures 1366 et 390 px, sans débordement.
+- **Documentation** : nouveau guide `docs/guides/prevol.md`, routes ajoutées à `docs/architecture/06-api.md`, exception CSRF des jetons décrite dans `docs/architecture/10-securite.md`, lien dans `docs/README.md`.
+- **Tests** : `mcp-server.spec.ts` (5 tests) et `test/api-tokens.e2e.spec.ts` (4 tests de bout en bout : jeton montré une fois, limité au pré-vol, 401 sans jeton, révocation).
 
 ### 04/11/2026 — Pré-vol : « du prompt à la prod vérifiée » (étape 1)
 
