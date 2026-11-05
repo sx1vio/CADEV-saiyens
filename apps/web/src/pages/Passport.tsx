@@ -1,7 +1,6 @@
 import {
   Award,
   BadgeCheck,
-  CheckCircle2,
   Clock3,
   CloudUpload,
   Download,
@@ -47,7 +46,7 @@ import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
 import { usePlatform } from '@/platform/store';
-import { CUBE, CertBadge, StatCard } from '@/platform/ui';
+import { CertBadge } from '@/platform/ui';
 
 /** Developer Passport (PR2, PR3, PR4, PR7, PR8, PR11, X1, Y6) — public, lisible sans compte. */
 export default function Passport() {
@@ -114,325 +113,280 @@ export default function Passport() {
   const badges = isMe ? PLATFORM_CERTS.filter((c) => certResults[c.id]?.passed) : [];
   const proofs = p.proofs.filter((e) => e.kind !== 'revert');
 
+  const status_ = u.availability.status;
+  const tabs = [
+    ['overview', 'Aperçu', null],
+    ['skills', t('passport.skills'), p.skills.length],
+    ['projects', t('passport.rooms'), p.rooms.length],
+    ['activity', t('mvp.passportActivity'), proofs.length],
+  ] as const;
+  const headline = u.bio.split('\n')[0] ?? '';
+  const about = u.bio.split('\n').slice(1).join('\n').trim();
+
   return (
-    <div className="dh-page mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-6">
-      <div className="flex flex-col gap-8 lg:flex-row">
-        {/* -------- Colonne d'identité (façon GitHub) -------- */}
-        <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[296px]">
-          <div className="flex items-center gap-4 lg:block">
-            <div className="relative w-fit">
-              <Avatar
-                name={u.displayName}
-                src={u.avatarUrl}
-                size={240}
-                className="hidden border border-line lg:block"
-              />
-              <Avatar
-                name={u.displayName}
-                src={u.avatarUrl}
-                size={88}
-                className="border border-line lg:hidden"
-              />
+    <div className="dh-page mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6">
+      {/* -------- Carte d'identité (façon réseau professionnel) -------- */}
+      <section className="dh-panel overflow-hidden">
+        <CoverGrid days={p.heatmap} />
+        <div className="relative px-5 pb-5 sm:px-7">
+          <div className="-mt-14 flex items-end justify-between gap-4 sm:-mt-[72px]">
+            <div className="relative w-fit rounded-full bg-surface-1 p-1">
+              <span className="hidden sm:block">
+                <Avatar name={u.displayName} src={u.avatarUrl} size={128} />
+              </span>
+              <span className="sm:hidden">
+                <Avatar name={u.displayName} src={u.avatarUrl} size={96} />
+              </span>
               <span
-                title={t(`passport.available.${u.availability.status}`)}
+                title={t(`passport.available.${status_}`)}
                 className={cn(
-                  'absolute right-[8%] bottom-[8%] size-5 rounded-full ring-4 ring-canvas lg:size-7',
-                  u.availability.status === 'now'
-                    ? 'bg-success'
-                    : u.availability.status === 'today'
-                      ? 'bg-warning'
-                      : 'bg-subtle',
+                  'absolute right-2 bottom-2 size-5 rounded-full ring-4 ring-surface-1 sm:size-6',
+                  status_ === 'now' ? 'bg-live' : status_ === 'today' ? 'bg-gold' : 'bg-subtle',
                 )}
               />
             </div>
-            <div className="min-w-0 lg:mt-4">
-              <h1 className="flex flex-wrap items-center gap-2 text-[28px] leading-tight font-bold tracking-[-0.02em] text-fg">
-                {u.displayName}
-                {u.isDemo && <DemoBadge />}
-              </h1>
-              <p className="text-[18px] font-light text-muted">@{u.handle}</p>
-            </div>
-          </div>
-          {u.bio && <p className="text-[14px] leading-relaxed text-fg">{u.bio}</p>}
-          <div className="flex gap-2">
-            {isMe ? (
-              <ButtonLink to="/reglages" variant="secondary" className="flex-1">
-                {t('passport.edit')}
-              </ButtonLink>
-            ) : (
-              <Button
-                variant="primary"
-                icon={<MessageCircle />}
-                loading={opening}
-                onClick={async () => {
-                  // Connecté : on ouvre la conversation ; sinon, invitation à se connecter.
-                  if (!me) return setContact(true);
-                  setOpening(true);
-                  try {
-                    nav(`/messages/${await messagesApi.start(u.handle)}`);
-                  } catch (e) {
-                    toast.error(
-                      MESSAGE_ERRORS[(e as { code?: string }).code ?? ''] ?? errorText(t, e),
-                    );
-                  } finally {
-                    setOpening(false);
-                  }
-                }}
-                className="flex-1"
-              >
-                {t('passport.message')}
-              </Button>
-            )}
-            <Button
-              variant="secondary"
-              icon={<Share2 />}
-              onClick={share}
-              aria-label={t('passport.share')}
-            />
-            {me && !isMe && (
-              <Button
-                variant="secondary"
-                icon={<Flag />}
-                onClick={() => setReporting(true)}
-                aria-label={t('common.report')}
-              />
-            )}
-          </div>
-          {/* PR5 : la Proof Card est générée par l'API ; le serveur local n'en produit pas. */}
-          {isMe && api.mode === 'http' && (
-            <Button variant="ghost" size="sm" icon={<ImageDown />} onClick={() => setCard(true)}>
-              {t('passport.share')}
-            </Button>
-          )}
-          <Sheet
-            open={card}
-            onOpenChange={setCard}
-            title={t('passport.cardTitle')}
-            description={t('passport.cardText')}
-            footer={
-              <>
+            <div className="flex gap-2 pb-1">
+              {isMe ? (
+                <ButtonLink to="/reglages" variant="secondary">
+                  {t('passport.edit')}
+                </ButtonLink>
+              ) : (
+                <Button
+                  variant="primary"
+                  icon={<MessageCircle />}
+                  loading={opening}
+                  onClick={async () => {
+                    // Connecté : on ouvre la conversation ; sinon, invitation à se connecter.
+                    if (!me) return setContact(true);
+                    setOpening(true);
+                    try {
+                      nav(`/messages/${await messagesApi.start(u.handle)}`);
+                    } catch (e) {
+                      toast.error(
+                        MESSAGE_ERRORS[(e as { code?: string }).code ?? ''] ?? errorText(t, e),
+                      );
+                    } finally {
+                      setOpening(false);
+                    }
+                  }}
+                >
+                  {t('passport.message')}
+                </Button>
+              )}
+              {isMe && api.mode === 'http' && (
                 <Button
                   variant="secondary"
-                  icon={<Download />}
-                  onClick={() => window.location.assign(proofCardUrl(u.handle, lang, true))}
-                >
-                  {t('passport.cardDownload')}
-                </Button>
-                <Button variant="primary" icon={<Share2 />} onClick={share}>
-                  {t('common.share')}
-                </Button>
-              </>
-            }
-          >
-            <img
-              src={proofCardUrl(u.handle, lang)}
-              alt={t('passport.cardAlt', { name: u.displayName })}
-              width={1200}
-              height={630}
-              className="aspect-[1200/630] h-auto w-full rounded-[10px] bg-surface-3"
-            />
-          </Sheet>
-          <ReportSheet
-            target={reporting ? { type: 'user', id: p.accountId, label: u.displayName } : null}
-            onClose={() => setReporting(false)}
-          />
-          <ul className="flex flex-col gap-1.5 text-[13.5px] text-muted">
-            {(u.city || u.country) && (
-              <li className="flex items-center gap-2">
-                <MapPin className="size-4 text-subtle" />
-                {[u.city, countryName(u.country, lang)].filter(Boolean).join(', ')}
-              </li>
-            )}
-            <li className="flex items-center gap-2">
-              <Clock3 className="size-4 text-subtle" />
-              {formatUtc(u.utcOffset)} ·{' '}
-              <span className="uppercase">{u.languages.join(' / ')}</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <BrandLogo name="GitHub" size={15} />
-              {t('common.githubYears', { count: ghYears })}
-            </li>
-            {u.emailVerified && (
-              <li className="flex items-center gap-2">
-                <BadgeCheck className="size-4 text-subtle" />
-                {t('common.emailVerified')}
-              </li>
-            )}
-            {u.availability.forMission && (
-              <li className="flex items-center gap-2 text-success">
-                <CheckCircle2 className="size-4" />
-                {t('passport.mission')}
-              </li>
-            )}
-            {p.countryRank && (
-              <li className="flex items-center gap-2">
-                <Award className="size-4 text-subtle" />
-                <Link to="/classement" className="hover:text-accent-text hover:underline">
-                  {t('passport.rank', {
-                    rank: p.countryRank,
-                    country: countryName(u.country, lang),
-                  })}
-                </Link>
-              </li>
-            )}
-          </ul>
+                  icon={<ImageDown />}
+                  onClick={() => setCard(true)}
+                  aria-label={t('passport.cardTitle')}
+                />
+              )}
+              <Button
+                variant="secondary"
+                icon={<Share2 />}
+                onClick={share}
+                aria-label={t('passport.share')}
+              />
+              {me && !isMe && (
+                <Button
+                  variant="secondary"
+                  icon={<Flag />}
+                  onClick={() => setReporting(true)}
+                  aria-label={t('common.report')}
+                />
+              )}
+            </div>
+          </div>
 
-          {(badges.length > 0 || u.isFounder) && (
-            <section className="border-t border-line pt-4">
-              <h2 className="text-[14px] font-semibold text-fg">Badges</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="min-w-0">
+              <h1 className="flex flex-wrap items-center gap-2 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-fg">
+                {u.displayName}
+                {u.isDemo && <DemoBadge />}
                 {u.isFounder && (
                   <span
                     title={t('common.founder')}
-                    className="grid size-14 place-items-center rounded-full bg-canvas text-[#f0b232]"
+                    className="inline-flex items-center gap-1 rounded-full border border-line-strong px-2 py-0.5 text-[12px] font-normal tracking-normal text-muted"
                   >
-                    <Star className="size-6" />
+                    <Star className="size-3.5 text-gold" />
+                    {t('common.founder')}
                   </span>
                 )}
-                {badges.map((c) => (
-                  <Link key={c.id} to={`/certifications/${c.id}`} title={c.title}>
-                    <CertBadge color={c.color} logo={c.logo} size={48} />
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-          {u.canHelpWith.length > 0 && (
-            <section className="border-t border-line pt-4">
-              <ChipList icon={<HandHelping />} label={t('passport.canHelp')} ids={u.canHelpWith} />
-            </section>
-          )}
-          {u.wantsToLearn.length > 0 && (
-            <section className="border-t border-line pt-4">
-              <ChipList
-                icon={<Sparkles />}
-                label={t('passport.wantsToLearn')}
-                ids={u.wantsToLearn}
-              />
-            </section>
-          )}
-        </aside>
+              </h1>
+              <p className="mt-1 text-[15px] text-fg">
+                {headline || <span className="text-muted">@{u.handle}</span>}
+              </p>
+              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted">
+                {(u.city || u.country) && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="size-3.5 text-subtle" />
+                    {[u.city, countryName(u.country, lang)].filter(Boolean).join(', ')}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock3 className="size-3.5 text-subtle" />
+                  {formatUtc(u.utcOffset)} ·{' '}
+                  <span className="uppercase">{u.languages.join(' / ')}</span>
+                </span>
+                <a
+                  href={`https://github.com/${u.handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 hover:text-fg hover:underline"
+                >
+                  <BrandLogo name="GitHub" size={14} />
+                  {u.handle} · {t('common.githubYears', { count: ghYears })}
+                </a>
+                {u.emailVerified && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <BadgeCheck className="size-3.5 text-subtle" />
+                    {t('common.emailVerified')}
+                  </span>
+                )}
+              </p>
+              {(u.availability.forMission || status_ === 'now') && (
+                <div className="mt-4 inline-flex items-center gap-2.5 rounded-[10px] border border-success/25 bg-success-soft px-3 py-2 text-[13px] text-fg">
+                  <span className="dh-live" aria-hidden />
+                  {u.availability.forMission ? t('passport.mission') : t('passport.available.now')}
+                </div>
+              )}
+            </div>
+            <dl className="grid grid-cols-4 gap-px self-end overflow-hidden rounded-[10px] border border-line bg-line text-center lg:w-[420px]">
+              {(
+                [
+                  ['Proof XP', formatNumber(p.totalXp, lang)],
+                  [t('passport.stats.unblocked'), p.stats.devsUnblocked],
+                  [t('passport.stats.contributions'), p.stats.contributions],
+                  ['Badges', badges.length],
+                ] as const
+              ).map(([label, v]) => (
+                <div key={label} className="bg-surface-1 px-2 py-3">
+                  <dd className="font-mono text-[18px] text-fg tabular">{v}</dd>
+                  <dt className="mt-0.5 truncate text-[11.5px] text-subtle">{label}</dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+        <nav
+          aria-label={t('mvp.passportSectionsAria')}
+          className="no-scrollbar flex gap-1 overflow-x-auto border-t border-line px-3 sm:px-5"
+        >
+          {tabs.map(([k, label, n]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setTab(k)}
+              aria-current={tab === k ? 'page' : undefined}
+              className={cn(
+                '-mb-px inline-flex h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-[14px] transition-colors',
+                tab === k
+                  ? 'border-fg font-medium text-fg'
+                  : 'border-transparent text-subtle hover:text-fg',
+              )}
+            >
+              {label}
+              {!!n && (
+                <span className="rounded-full bg-surface-2 px-1.5 font-mono text-[11px] text-muted tabular">
+                  {n}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </section>
 
+      <Sheet
+        open={card}
+        onOpenChange={setCard}
+        title={t('passport.cardTitle')}
+        description={t('passport.cardText')}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              icon={<Download />}
+              onClick={() => window.location.assign(proofCardUrl(u.handle, lang, true))}
+            >
+              {t('passport.cardDownload')}
+            </Button>
+            <Button variant="primary" icon={<Share2 />} onClick={share}>
+              {t('common.share')}
+            </Button>
+          </>
+        }
+      >
+        <img
+          src={proofCardUrl(u.handle, lang)}
+          alt={t('passport.cardAlt', { name: u.displayName })}
+          width={1200}
+          height={630}
+          className="aspect-[1200/630] h-auto w-full rounded-[10px] bg-surface-3"
+        />
+      </Sheet>
+      <ReportSheet
+        target={reporting ? { type: 'user', id: p.accountId, label: u.displayName } : null}
+        onClose={() => setReporting(false)}
+      />
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         {/* -------- Contenu -------- */}
-        <div className="min-w-0 flex-1">
-          <nav
-            aria-label={t('mvp.passportSectionsAria')}
-            className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0"
-          >
-            {(
-              [
-                ['overview', t('mvp.passportOverview'), null],
-                ['skills', t('passport.skills'), p.skills.length],
-                ['projects', t('passport.rooms'), p.rooms.length],
-                ['activity', t('mvp.passportActivity'), proofs.length],
-              ] as const
-            ).map(([k, label, n]) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setTab(k)}
-                aria-current={tab === k ? 'page' : undefined}
-                className={cn(
-                  'inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-4 text-[13px] font-medium transition-colors',
-                  tab === k ? 'lg-tint' : 'lg-clear text-fg',
-                )}
-              >
-                {label}
-                {!!n && (
-                  <span
-                    className={cn(
-                      'rounded-full px-1.5 text-[11.5px] tabular',
-                      tab === k ? 'bg-canvas/20 text-canvas' : 'bg-canvas text-muted',
-                    )}
-                  >
-                    {n}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-
+        <div className="flex min-w-0 flex-col gap-4">
           {tab === 'overview' && (
-            <div className="mt-5 flex flex-col gap-6">
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
-                <StatCard
-                  dark
-                  label="proof xp"
-                  value={formatNumber(p.totalXp, lang)}
-                  spark={sparkFrom(p.heatmap)}
-                  note={
-                    p.countryRank
-                      ? `#${p.countryRank} · ${countryName(u.country, lang)}`
-                      : undefined
-                  }
-                />
-                <StatCard
-                  label={t('passport.stats.unblocked')}
-                  value={p.stats.devsUnblocked}
-                  cube={CUBE.orange}
-                  note={t('mvp.passportAccepted', { count: p.stats.answersAccepted })}
-                />
-                <StatCard
-                  label={t('passport.stats.median')}
-                  value={
-                    p.stats.medianResponseMinutes !== null
-                      ? duration(p.stats.medianResponseMinutes, lang)
-                      : '—'
-                  }
-                  cube={CUBE.purple}
-                  note={t('mvp.passportBeforeFirst')}
-                />
-                <StatCard
-                  label={t('passport.stats.contributions')}
-                  value={p.stats.contributions}
-                  cube={CUBE.green}
-                  note={t('mvp.passportProjects', { count: p.rooms.length })}
-                />
-              </div>
-
+            <>
+              {about && (
+                <section className="dh-panel p-5">
+                  <h2 className="text-[15px] font-medium text-fg">À propos</h2>
+                  <p className="mt-2 text-[14px] leading-relaxed whitespace-pre-line text-muted">
+                    {about}
+                  </p>
+                </section>
+              )}
               {p.rooms.length > 0 && (
-                <section>
-                  <h2 className="mb-2 text-[14px] font-medium text-fg">
-                    {t('mvp.passportPinned')}
-                  </h2>
-                  <div className="grid gap-3 md:grid-cols-2">
+                <section className="dh-panel p-5">
+                  <h2 className="text-[15px] font-medium text-fg">{t('mvp.passportPinned')}</h2>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
                     {p.rooms.slice(0, 4).map((r) => (
                       <PinnedProject key={r.id} room={r} />
                     ))}
                   </div>
                 </section>
               )}
-
               <GithubActivity handle={u.handle} />
-
-              <section>
-                <h2 className="mb-2 text-[14px] font-medium text-fg">{t('passport.heatmap')}</h2>
-                <div className="rounded-[10px] bg-surface-1 p-4">
+              <section className="dh-panel p-5">
+                <div className="flex items-baseline justify-between">
+                  <h2 className="text-[15px] font-medium text-fg">{t('passport.heatmap')}</h2>
+                  <span className="text-[12.5px] text-subtle">
+                    {t('passport.stats.median')} :{' '}
+                    <span className="font-mono text-fg">
+                      {p.stats.medianResponseMinutes !== null
+                        ? duration(p.stats.medianResponseMinutes, lang)
+                        : '–'}
+                    </span>
+                  </span>
+                </div>
+                <div className="mt-3">
                   <Heatmap days={p.heatmap} />
                 </div>
               </section>
-
               <SkillsCard p={p} onProofs={setProofSkill} limit={5} />
-
-              <section>
-                <h2 className="mb-2 text-[14px] font-medium text-fg">{t('passport.timeline')}</h2>
-                <div className="rounded-[10px] bg-surface-1 p-4">
-                  {proofs.length === 0 ? (
-                    <p className="text-sm text-muted">{t('passport.noTimeline')}</p>
-                  ) : (
-                    <ProofTimeline proofs={proofs.slice(0, 6)} />
-                  )}
-                </div>
+              <section className="dh-panel p-5">
+                <h2 className="text-[15px] font-medium text-fg">{t('passport.timeline')}</h2>
+                {proofs.length === 0 ? (
+                  <p className="mt-2 text-sm text-muted">{t('passport.noTimeline')}</p>
+                ) : (
+                  <ProofTimeline proofs={proofs.slice(0, 6)} />
+                )}
               </section>
-            </div>
+            </>
           )}
 
           {tab === 'skills' && (
-            <div className="mt-5 flex flex-col gap-6">
+            <>
               <SkillsCard p={p} onProofs={setProofSkill} />
               {isMe && p.skills[0] && (
-                <section className="rounded-[10px] bg-surface-1 p-4">
-                  <h2 className="text-[14px] font-medium text-fg">{t('passport.badge')}</h2>
+                <section className="dh-panel p-5">
+                  <h2 className="text-[15px] font-medium text-fg">{t('passport.badge')}</h2>
                   <p className="text-[13px] text-muted">{t('passport.badgeHint')}</p>
                   <CodeBlock
                     className="mt-3"
@@ -441,30 +395,88 @@ export default function Passport() {
                   />
                 </section>
               )}
-            </div>
+            </>
           )}
 
           {tab === 'projects' && (
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <section className="dh-panel grid gap-3 p-5 md:grid-cols-2">
               {p.rooms.length === 0 ? (
                 <p className="text-sm text-muted">{t('passport.noRooms')}</p>
               ) : (
                 p.rooms.map((r) => <PinnedProject key={r.id} room={r} />)
               )}
-            </div>
+            </section>
           )}
 
           {tab === 'activity' && (
-            <div className="mt-5 rounded-[10px] bg-surface-1 p-4">
+            <section className="dh-panel p-5">
               {proofs.length === 0 ? (
                 <p className="text-sm text-muted">{t('passport.noTimeline')}</p>
               ) : (
                 <ProofTimeline proofs={proofs} />
               )}
-            </div>
+            </section>
           )}
+        </div>
 
-          <p className="mt-8 flex flex-wrap items-center gap-2 text-[12px] text-subtle">
+        {/* -------- Colonne latérale -------- */}
+        <aside className="flex flex-col gap-4">
+          <section className="dh-panel p-5">
+            <h2 className="text-[15px] font-medium text-fg">Certifications</h2>
+            {badges.length === 0 ? (
+              <p className="mt-2 text-[13px] text-muted">
+                {isMe ? (
+                  <>
+                    Aucune pour l’instant.{' '}
+                    <Link to="/certifications" className="text-accent-text hover:underline">
+                      Prépare ta première
+                    </Link>
+                  </>
+                ) : (
+                  'Aucune certification affichée.'
+                )}
+              </p>
+            ) : (
+              <ul className="mt-3 flex flex-col gap-3">
+                {badges.map((c) => (
+                  <li key={c.id}>
+                    <Link to={`/certifications/${c.id}`} className="group flex items-center gap-3">
+                      <CertBadge color={c.color} logo={c.logo} size={40} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13.5px] font-medium text-fg group-hover:underline">
+                          {c.title}
+                        </span>
+                        <span className="block font-mono text-[11.5px] text-subtle">
+                          {certResults[c.id]?.score} % · DevHub
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          {u.canHelpWith.length > 0 && (
+            <section className="dh-panel p-5">
+              <ChipList icon={<HandHelping />} label={t('passport.canHelp')} ids={u.canHelpWith} />
+            </section>
+          )}
+          {u.wantsToLearn.length > 0 && (
+            <section className="dh-panel p-5">
+              <ChipList
+                icon={<Sparkles />}
+                label={t('passport.wantsToLearn')}
+                ids={u.wantsToLearn}
+              />
+            </section>
+          )}
+          {p.countryRank && (
+            <p className="flex items-center gap-2 px-1 text-[13px] text-muted">
+              <Award className="size-4 text-subtle" />
+              {t('passport.rank', { rank: p.countryRank, country: countryName(u.country, lang) })}
+            </p>
+          )}
+          <p className="flex flex-wrap items-center gap-2 px-1 text-[12px] text-subtle">
             <CloudUpload className="size-3.5" />
             {status?.lastBackupAt &&
               t('passport.savedAt', { time: relativeTime(status.lastBackupAt, lang) })}
@@ -472,12 +484,8 @@ export default function Passport() {
             {t('passport.memberSince', {
               date: formatDate(u.createdAt, lang, { month: 'long', year: 'numeric' }),
             })}
-            <span>·</span>
-            <Link to="/systalink" className="hover:text-fg hover:underline">
-              Systalink
-            </Link>
           </p>
-        </div>
+        </aside>
       </div>
 
       {/* PR3 : décomposition d'un score et ses sources */}
@@ -608,14 +616,14 @@ function SkillsCard({
 }) {
   const { t } = useTranslation();
   return (
-    <section>
+    <section className="dh-panel p-5">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-[14px] font-medium text-fg">{t('passport.skills')}</h2>
+        <h2 className="text-[15px] font-medium text-fg">{t('passport.skills')}</h2>
         <Link to="/regles" className="text-[12.5px] text-accent-text hover:underline">
           {t('passport.howScore')}
         </Link>
       </div>
-      <div className="rounded-[10px] bg-surface-1 p-4">
+      <div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-subtle">
           <span className="inline-flex items-center gap-1.5">
             <span className="size-2.5 rounded-sm bg-score-g" /> {t('passport.legendG')}
@@ -662,11 +670,13 @@ function PinnedProject({ room }: { room: PassportT['rooms'][number] }) {
   return (
     <Link
       to={`/p/${room.inviteCode}`}
-      className="flex flex-col gap-2 rounded-[10px] bg-surface-1 p-4 transition-colors "
+      className="flex flex-col gap-2 rounded-[10px] border border-line p-4 transition-colors hover:border-line-strong"
     >
       <span className="flex items-center gap-2">
         <FolderGit2 className="size-4 text-subtle" />
-        <span className="truncate text-[14px] font-medium text-accent-text">{room.name}</span>
+        <span className="truncate text-[14px] font-medium text-accent-text hover:underline">
+          {room.name}
+        </span>
         <span className="ml-auto rounded-full border border-line-strong px-2 text-[11px] text-muted">
           {t(`projects.state.${room.state}`)}
         </span>
@@ -781,16 +791,34 @@ function PassportSkeleton() {
   );
 }
 
-/** Courbe d'entraide : cumul hebdomadaire sur 10 semaines, tiré du calendrier du profil. */
-function sparkFrom(days: { count: number }[]) {
-  let acc = 0;
-  return Array.from(
-    { length: 10 },
-    (_, i) =>
-      (acc +=
-        days
-          .slice(-70)
-          .slice(i * 7, i * 7 + 7)
-          .reduce((n, d) => n + d.count, 0) + 1),
+/**
+ * Bannière du profil : l'activité réelle du dev (26 semaines d'entraide) dessinée en cases,
+ * comme le graphe de contributions de GitHub. Les jours sans activité restent dans la nuit.
+ */
+function CoverGrid({ days }: { days: { date: string; count: number }[] }) {
+  const weeks = 52;
+  const cells = Array.from({ length: weeks * 7 }, (_, i) => {
+    const d = days[days.length - weeks * 7 + i];
+    const n = d?.count ?? 0;
+    return n === 0 ? 0 : n < 2 ? 1 : n < 4 ? 2 : n < 7 ? 3 : 4;
+  });
+  return (
+    <div aria-hidden className="relative h-32 overflow-hidden bg-[#0f1117] sm:h-40">
+      <div
+        className="absolute inset-y-3 right-4 grid grid-flow-col grid-rows-7 gap-[3px] opacity-90 sm:inset-y-4"
+        style={{ gridTemplateColumns: `repeat(${weeks}, minmax(0, 12px))` }}
+      >
+        {cells.map((l, i) => (
+          <span
+            key={i}
+            className="rounded-[2px]"
+            style={{
+              background: ['#1a1e29', '#173d29', '#1f6b42', '#2f9e5f', '#4cc38a'][l],
+            }}
+          />
+        ))}
+      </div>
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,#0f1117_8%,rgba(15,17,23,0.6)_40%,rgba(15,17,23,0)_70%)]" />
+    </div>
   );
 }

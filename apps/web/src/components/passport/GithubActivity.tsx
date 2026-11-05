@@ -46,13 +46,12 @@ const nf = new Intl.NumberFormat('fr-FR');
 export function GithubActivity({ handle }: { handle: string }) {
   const { data, error } = useQuery(`github:${handle}`, () => fetchActivity(handle));
   if (data === null || (error && !data)) return null;
-  if (!data)
-    return <div className="h-40 animate-pulse rounded-[10px] bg-surface-1" aria-hidden="true" />;
+  if (!data) return <div className="dh-panel h-40 animate-pulse" aria-hidden="true" />;
   const g = data;
   return (
-    <section aria-labelledby="gh-title">
+    <section aria-labelledby="gh-title" className="dh-panel p-5">
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h2 id="gh-title" className="flex items-center gap-1.5 text-[14px] font-medium text-fg">
+        <h2 id="gh-title" className="flex items-center gap-1.5 text-[15px] font-medium text-fg">
           <GitHubIcon className="size-4" />
           Sur GitHub
         </h2>
