@@ -1,7 +1,5 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
-  Bell,
-  MessageCircle,
   ChevronDown,
   ChevronUp,
   FolderPlus,
@@ -41,6 +39,14 @@ import { AnnouncementBar } from './announcements';
 import { BrandLogo } from '../brand';
 import { usePlatform } from '@/platform/store';
 import * as Popover from '@radix-ui/react-popover';
+import {
+  Bell as BellFill,
+  ChatCircleDots,
+  GearSix,
+  IconContext,
+  MagnifyingGlass,
+  Plus as PlusFill,
+} from '@phosphor-icons/react';
 
 /* ================================================================
    Shell connecté : barre latérale encre (v3, 05/11/2026). L'entrée active prend la couleur
@@ -158,10 +164,13 @@ function SideItem({
         merge ? 'side-merge rounded-l-[12px] pr-4' : 'mr-3 rounded-[10px] pr-3',
         active
           ? 'bg-canvas font-medium text-fg'
-          : 'text-white/72 hover:bg-white/[0.06] hover:text-white',
+          : 'font-medium text-white/80 hover:bg-white/[0.06] hover:text-white',
       )}
     >
-      <Icon className={cn('size-5 shrink-0', active ? 'text-accent-text' : 'text-white/55')} />
+      <Icon
+        weight="fill"
+        className={cn('size-[22px] shrink-0', active ? 'text-fg' : 'text-white/70')}
+      />
       <span className="flex-1 truncate">
         {entry.short && label.length > 22 ? t(entry.short) : label}
       </span>
@@ -219,7 +228,7 @@ function UserCard({ onNavigate }: { onNavigate?: () => void }) {
         aria-label={t('nav.settings')}
         className="grid size-8 shrink-0 place-items-center rounded-[8px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white"
       >
-        <Settings className="size-[17px]" />
+        <GearSix weight="fill" className="size-5" />
       </Link>
     </div>
   );
@@ -304,7 +313,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         >
           {groups.map((g, i) => (
             <div key={i} className="flex flex-col gap-0.5">
-              {g.label && <p className="px-3 pb-1.5 text-[12px] text-white/45">{g.label}</p>}
+              {g.label && (
+                <p className="px-3 pb-1.5 text-[12px] font-semibold text-white/60">{g.label}</p>
+              )}
               {g.items.map((e) => (
                 <SideItem
                   key={e.to}
@@ -376,7 +387,7 @@ function TopBar() {
           data-tour="palette"
           className="flex h-9 w-full max-w-[440px] items-center gap-2.5 rounded-[10px] border border-line bg-surface-1 pr-1.5 pl-3 text-left text-[13.5px] text-subtle transition-colors hover:border-line-strong"
         >
-          <Search className="size-4 shrink-0" />
+          <MagnifyingGlass weight="bold" className="size-4 shrink-0" />
           <span className="flex-1 truncate">{t('nav.searchPlaceholder')}</span>
           <Kbd>{isMac ? '⌘ K' : 'Ctrl K'}</Kbd>
         </button>
@@ -391,7 +402,7 @@ function TopBar() {
                   data-tour="ask"
                   className="lg-tint inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3.5 text-[13.5px] font-medium"
                 >
-                  <Plus className="size-[18px]" />
+                  <PlusFill weight="bold" className="size-4" />
                   {t('navEntry.create')}
                 </button>
               }
@@ -463,7 +474,7 @@ function MessagesButton() {
       aria-label={unread ? `Messages, ${unread} non lus` : 'Messages'}
       className="relative grid size-10 place-items-center rounded-full text-fg transition-colors hover:bg-surface-1"
     >
-      <MessageCircle className="size-5" />
+      <ChatCircleDots weight="fill" className="size-6" />
       {unread > 0 && (
         <CountDot count={unread} className="absolute top-1 right-1 ring-2 ring-canvas" />
       )}
@@ -505,7 +516,7 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
             aria-label={t('nav.notifications')}
             className="relative grid size-10 place-items-center rounded-full text-fg transition-colors hover:bg-surface-1"
           >
-            <Bell className="size-5" />
+            <BellFill weight="fill" className="size-6" />
             {unread > 0 && (
               <CountDot count={unread} className="absolute top-1 right-1 ring-2 ring-canvas" />
             )}
@@ -825,38 +836,40 @@ export function AppShell() {
   useEffect(() => setDrawer(false), [location.pathname, setDrawer]);
 
   return (
-    <div className="min-h-dvh bg-canvas">
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-canvas"
-      >
-        {t('nav.skipToContent')}
-      </a>
-      <div className="flex">
-        {isLg && (
-          <aside className="sticky top-0 h-dvh w-[248px] shrink-0 py-2 pl-2">
-            <Sidebar />
-          </aside>
-        )}
-        <div className="min-w-0 flex-1">
-          {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
-          {isLg && <TopBar />}
-          {isLg && <OfflineBanner />}
-          {api.mode === 'local' && <LocalDataBanner />}
-          <AnnouncementBar />
-          <main
-            id="main"
-            tabIndex={-1}
-            className="pb-[calc(64px+env(safe-area-inset-bottom)+28px)] focus:outline-none sm:pb-12"
-          >
-            <Outlet />
-          </main>
+    <IconContext.Provider value={{ weight: 'fill', mirrored: false }}>
+      <div className="min-h-dvh bg-canvas">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-canvas"
+        >
+          {t('nav.skipToContent')}
+        </a>
+        <div className="flex">
+          {isLg && (
+            <aside className="sticky top-0 h-dvh w-[248px] shrink-0 py-2 pl-2">
+              <Sidebar />
+            </aside>
+          )}
+          <div className="min-w-0 flex-1">
+            {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
+            {isLg && <TopBar />}
+            {isLg && <OfflineBanner />}
+            {api.mode === 'local' && <LocalDataBanner />}
+            <AnnouncementBar />
+            <main
+              id="main"
+              tabIndex={-1}
+              className="pb-[calc(64px+env(safe-area-inset-bottom)+28px)] focus:outline-none sm:pb-12"
+            >
+              <Outlet />
+            </main>
+          </div>
         </div>
+        <Drawer />
+        {!isSm && <TabBar onCreate={() => setCreateOpen(true)} />}
+        <CreateSheet open={createOpen} onOpenChange={setCreateOpen} />
       </div>
-      <Drawer />
-      {!isSm && <TabBar onCreate={() => setCreateOpen(true)} />}
-      <CreateSheet open={createOpen} onOpenChange={setCreateOpen} />
-    </div>
+    </IconContext.Provider>
   );
 }
 

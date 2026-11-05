@@ -1,24 +1,27 @@
+import type { ComponentType } from 'react';
 import {
-  Award,
+  AirplaneTakeoff,
   Briefcase,
+  Certificate,
+  ChartBar,
   Compass,
-  FolderGit2,
-  Home,
-  Map as MapIcon,
-  PlaneTakeoff,
-  Puzzle,
-  ServerCog,
-  Smartphone,
-  BarChart3,
-  BookOpenCheck,
-  type LucideIcon,
-} from 'lucide-react';
+  DeviceMobile,
+  FolderSimple,
+  House,
+  HardDrives,
+  MapTrifold,
+  PuzzlePiece,
+  Scroll,
+} from '@phosphor-icons/react';
+
+/** Icône pleine et unie (Phosphor, graisse « fill » fixée par le shell). */
+export type NavIcon = ComponentType<{ className?: string; weight?: 'fill' | 'regular' | 'bold' }>;
 
 export interface NavEntry {
   to: string;
   /** Clé i18n (navEntry.*) */
   label: string;
-  icon: LucideIcon;
+  icon: NavIcon;
   tour?: string;
   end?: boolean;
   /** Clé i18n du libellé court (barre d'onglets) */
@@ -31,43 +34,53 @@ export interface NavEntry {
  * L'entraide vit dans l'accueil ; les communautés sont devenues des centres d'intérêt.
  */
 export const MAIN_NAV: NavEntry[] = [
-  { to: '/', label: 'navEntry.home', short: 'navEntry.home', icon: Home, end: true, tour: 'home' },
+  { to: '/', label: 'navEntry.home', short: 'navEntry.home', icon: House, end: true, tour: 'home' },
   { to: '/emplois', label: 'navEntry.jobs', short: 'navEntry.jobs', icon: Briefcase },
   { to: '/decouvrir', label: 'navEntry.devs', short: 'navEntry.devsShort', icon: Compass },
   {
     to: '/projets',
     label: 'navEntry.projects',
     short: 'navEntry.projects',
-    icon: FolderGit2,
+    icon: FolderSimple,
     tour: 'projects',
   },
 ];
 
 /** Progresser : se préparer et prouver. */
 export const EXPLORE_NAV: NavEntry[] = [
-  { to: '/certifications', label: 'navEntry.certs', short: 'navEntry.certsShort', icon: Award },
-  { to: '/skills', label: 'navEntry.skills', short: 'navEntry.skills', icon: Puzzle },
+  {
+    to: '/certifications',
+    label: 'navEntry.certs',
+    short: 'navEntry.certsShort',
+    icon: Certificate,
+  },
+  { to: '/skills', label: 'navEntry.skills', short: 'navEntry.skills', icon: PuzzlePiece },
 ];
 
 /** Livrer : mettre en ligne une app qui tient. */
 export const CREATE_NAV: NavEntry[] = [
-  { to: '/prevol', label: 'navEntry.preflight', short: 'navEntry.preflight', icon: PlaneTakeoff },
-  { to: '/banc', label: 'navEntry.testbench', short: 'navEntry.testbench', icon: Smartphone },
+  {
+    to: '/prevol',
+    label: 'navEntry.preflight',
+    short: 'navEntry.preflight',
+    icon: AirplaneTakeoff,
+  },
+  { to: '/banc', label: 'navEntry.testbench', short: 'navEntry.testbench', icon: DeviceMobile },
 ];
 
 /** Hors barre latérale, accessibles par la recherche (Ctrl K). */
 export const NETWORK_NAV: NavEntry[] = [
   { to: '/decouvrir', label: 'navEntry.findDevs', icon: Compass },
-  { to: '/carte', label: 'navEntry.map', icon: MapIcon },
+  { to: '/carte', label: 'navEntry.map', icon: MapTrifold },
 ];
 
 /** Les services, dans l'ordre (palette, barre d'onglets). */
 export const SERVICES_NAV: NavEntry[] = [MAIN_NAV[1]!, ...EXPLORE_NAV, ...CREATE_NAV];
 
 export const PLATFORM_NAV: NavEntry[] = [
-  { to: '/systalink', label: 'navEntry.systalink', icon: ServerCog },
-  { to: '/impact', label: 'navEntry.impact', icon: BarChart3 },
-  { to: '/regles', label: 'navEntry.rules', icon: BookOpenCheck },
+  { to: '/systalink', label: 'navEntry.systalink', icon: HardDrives },
+  { to: '/impact', label: 'navEntry.impact', icon: ChartBar },
+  { to: '/regles', label: 'navEntry.rules', icon: Scroll },
 ];
 
 export const ALL_NAV = [

@@ -1,23 +1,4 @@
-import {
-  Bookmark,
-  Briefcase,
-  CheckCircle2,
-  ExternalLink,
-  FolderGit2,
-  Inbox,
-  Layers,
-  MessageSquare,
-  Play,
-  Plus,
-  Search,
-  Settings2,
-  Share2,
-  Smartphone,
-  Sparkles,
-  UserRound,
-  X,
-  Zap,
-} from 'lucide-react';
+import { CheckCircle2, Inbox, Layers, Plus, Search, Sparkles, UserRound, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -44,8 +25,20 @@ import {
 } from '@/platform/news';
 import { SourceMark } from '@/platform/newsui';
 import { usePlatform } from '@/platform/store';
-import { Ago, CommunityIcon } from '@/platform/ui';
+import { Ago } from '@/platform/ui';
 import { useSession, useUI } from '@/stores/app';
+import {
+  ArrowSquareOut,
+  BookmarkSimple,
+  Briefcase as BriefcaseFill,
+  ChatCircle,
+  DeviceMobile,
+  FolderSimple,
+  Lightning,
+  PencilSimple,
+  Play as PlayFill,
+  ShareNetwork,
+} from '@phosphor-icons/react';
 
 /**
  * Accueil (v3, 05/11/2026) : trois colonnes façon réseau professionnel.
@@ -76,7 +69,6 @@ export default function Feed() {
       <aside className="hidden xl:block">
         <div className="sticky top-20 flex flex-col gap-3">
           <MeCard />
-          <Interests />
         </div>
       </aside>
 
@@ -117,7 +109,6 @@ export default function Feed() {
 
       <aside className="hidden lg:block">
         <div className="sticky top-20 flex flex-col gap-3">
-          <Headlines />
           <DevsToMeet />
           <JobsPanel />
         </div>
@@ -136,95 +127,29 @@ function MeCard() {
   const badges = usePlatform((s) => Object.values(s.certResults).filter((r) => r.passed).length);
   if (!me) return null;
   return (
-    <section className="dh-panel overflow-hidden">
-      <div className="h-16 bg-[#1b2a4a]" aria-hidden />
-      <div className="px-4 pb-4">
-        <Link
-          to={`/u/${me.handle}`}
-          className="-mt-7 block w-fit rounded-full ring-4 ring-surface-1"
-        >
-          <Avatar name={me.displayName} src={me.avatarUrl} size={56} />
-        </Link>
-        <Link
-          to={`/u/${me.handle}`}
-          className="mt-2 block text-[17px] font-semibold text-fg hover:underline"
-        >
-          {me.displayName}
-        </Link>
-        <p className="mt-0.5 line-clamp-2 text-[13.5px] leading-snug text-muted">
-          {me.bio || `@${me.handle}${me.city ? ` · ${me.city}` : ''}`}
-        </p>
-      </div>
-      <dl className="grid grid-cols-3 border-t border-line text-center">
+    <section className="dh-panel p-4">
+      <Link to={`/u/${me.handle}`} className="group flex items-center gap-3">
+        <Avatar name={me.displayName} src={me.avatarUrl} size={52} />
+        <span className="min-w-0">
+          <span className="block truncate text-[16px] font-semibold text-fg group-hover:underline">
+            {me.displayName}
+          </span>
+          <span className="block truncate text-[13.5px] text-muted">@{me.handle}</span>
+        </span>
+      </Link>
+      {me.bio && <p className="mt-3 line-clamp-3 text-[14px] leading-snug text-fg">{me.bio}</p>}
+      <dl className="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-[14px]">
         {[
           ['Proof XP', passport?.totalXp],
-          ['Badges', badges],
+          ['Certifications', badges],
           ['Projets', passport?.rooms.length],
         ].map(([label, v]) => (
-          <div key={label as string} className="py-2.5 [&+&]:border-l [&+&]:border-line">
-            <dt className="text-[12px] text-subtle">{label}</dt>
-            <dd className="mt-0.5 text-[16px] font-semibold text-fg tabular">{v ?? '–'}</dd>
+          <div key={label as string} className="flex items-center justify-between">
+            <dt className="text-muted">{label}</dt>
+            <dd className="font-semibold text-fg tabular">{v ?? '–'}</dd>
           </div>
         ))}
       </dl>
-      <Link
-        to={`/u/${me.handle}`}
-        className="flex h-10 items-center justify-center gap-1.5 border-t border-line text-[13px] text-muted transition-colors hover:bg-surface-2 hover:text-fg"
-      >
-        <UserRound className="size-4" />
-        Voir mon profil
-      </Link>
-    </section>
-  );
-}
-
-/** Centres d'intérêt : remplacent les communautés. Ils filtrent le fil « Pour toi ». */
-function Interests() {
-  const joined = usePlatform((s) => s.joined);
-  const [open, setOpen] = useState(false);
-  const [params] = useSearchParams();
-  const topic = params.get('topic');
-  const picked = COMMUNITIES.filter((c) => joined.includes(c.slug));
-  return (
-    <section className="dh-panel p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold text-fg">Centres d’intérêt</h2>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Choisir mes centres d’intérêt"
-          className="grid size-7 place-items-center rounded-[8px] text-subtle hover:bg-surface-2 hover:text-fg"
-        >
-          <Settings2 className="size-4" />
-        </button>
-      </div>
-      {picked.length === 0 ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="mt-2 text-left text-[13px] leading-snug text-muted hover:text-fg"
-        >
-          Choisis tes sujets : ton fil ne montrera qu’eux.
-        </button>
-      ) : (
-        <ul className="mt-2 flex flex-col gap-0.5">
-          {picked.map((c) => (
-            <li key={c.slug}>
-              <Link
-                to={topic === c.slug ? '/' : `/?topic=${c.slug}`}
-                className={cn(
-                  'flex h-9 items-center gap-2.5 rounded-[8px] px-2 text-[14px] transition-colors',
-                  topic === c.slug ? 'bg-surface-2 text-fg' : 'text-muted hover:bg-surface-2',
-                )}
-              >
-                <CommunityIcon slug={c.slug} size={22} />
-                <span className="truncate">{c.name}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      <InterestsSheet open={open} onOpenChange={setOpen} />
     </section>
   );
 }
@@ -254,10 +179,9 @@ export function InterestsSheet({
               onClick={() => toggle('joined', c.slug)}
               className={cn(
                 'flex items-start gap-3 rounded-[10px] border p-3 text-left transition-colors',
-                on ? 'border-accent bg-accent-soft' : 'border-line hover:border-line-strong',
+                on ? 'border-fg bg-surface-2' : 'border-line hover:border-line-strong',
               )}
             >
-              <CommunityIcon slug={c.slug} size={28} />
               <span className="min-w-0">
                 <span className="block text-[13.5px] font-medium text-fg">{c.name}</span>
                 <span className="mt-0.5 line-clamp-2 block text-[12px] leading-snug text-muted">
@@ -280,7 +204,7 @@ function Composer() {
   const nav = useNavigate();
   if (!me) return null;
   const action =
-    'inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] px-2 text-[14px] font-medium whitespace-nowrap text-muted transition-colors hover:bg-surface-2 hover:text-fg';
+    'inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] px-2 text-[14px] font-medium whitespace-nowrap text-fg transition-colors hover:bg-surface-2';
   return (
     <section data-tour="hero" className="dh-panel px-4 pt-4 pb-2">
       <div className="flex items-center gap-3">
@@ -295,15 +219,15 @@ function Composer() {
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1">
         <button type="button" data-tour="hero-ask" onClick={() => setAsk(true)} className={action}>
-          <Zap className="size-5 text-warning" />
+          <Lightning className="size-[22px] text-fg" />
           Je suis bloqué
         </button>
         <button type="button" onClick={() => nav('/publier?type=launch')} className={action}>
-          <FolderGit2 className="size-5 text-accent-text" />
+          <FolderSimple className="size-[22px] text-fg" />
           Un projet
         </button>
         <button type="button" onClick={() => nav('/banc')} className={action}>
-          <Smartphone className="size-5 text-teal" />
+          <DeviceMobile className="size-[22px] text-fg" />
           Faire tester
         </button>
       </div>
@@ -332,8 +256,9 @@ type Entry =
   | { kind: 'post'; at: string; post: Parameters<typeof PostCard>[0]['post'] };
 
 function ForYou() {
-  const [params, setParams] = useSearchParams();
-  const topic = params.get('topic') ?? '';
+  const [params] = useSearchParams();
+  const rawTopic = params.get('topic') ?? '';
+  const topic = rawTopic === 'une' ? '' : rawTopic;
   const joined = usePlatform((s) => s.joined);
   const home = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
   const posts = useQuery(`posts:feed:recent:${topic}`, () =>
@@ -393,24 +318,11 @@ function ForYou() {
     return () => io.disconnect();
   }, [home.data, entries, loading, done]);
 
-  const chips = COMMUNITIES.filter((c) => joined.includes(c.slug) || c.slug === topic);
+  if (rawTopic === 'une') return <Headlines />;
 
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
-        <Chip active={!topic} onClick={() => setParams({}, { replace: true })}>
-          {joined.length ? 'Mes sujets' : 'Tout'}
-        </Chip>
-        {chips.map((c) => (
-          <Chip
-            key={c.slug}
-            active={topic === c.slug}
-            onClick={() => setParams({ topic: c.slug }, { replace: true })}
-          >
-            {c.name}
-          </Chip>
-        ))}
-      </div>
+      <TopicChips />
       {!home.data && !home.error && <PostSkeletons n={3} />}
       {!home.data && !!home.error && (
         <p className="dh-panel p-6 text-[15px] text-muted">
@@ -426,6 +338,42 @@ function ForYou() {
       <div ref={sentinel} />
       {loading && <PostSkeletons n={1} />}
       {done && <p className="py-6 text-center text-[14px] text-subtle">Tu es à jour</p>}
+    </div>
+  );
+}
+
+function TopicChips() {
+  const [params, setParams] = useSearchParams();
+  const topic = params.get('topic') ?? '';
+  const joined = usePlatform((s) => s.joined);
+  const [editing, setEditing] = useState(false);
+  const chips = COMMUNITIES.filter((c) => joined.includes(c.slug) || c.slug === topic);
+  return (
+    <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
+      <Chip active={!topic} onClick={() => setParams({}, { replace: true })}>
+        {joined.length ? 'Mes sujets' : 'Tout'}
+      </Chip>
+      <Chip active={topic === 'une'} onClick={() => setParams({ topic: 'une' }, { replace: true })}>
+        À la une
+      </Chip>
+      {chips.map((c) => (
+        <Chip
+          key={c.slug}
+          active={topic === c.slug}
+          onClick={() => setParams({ topic: c.slug }, { replace: true })}
+        >
+          {c.name}
+        </Chip>
+      ))}
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        aria-label="Choisir mes sujets"
+        className="grid size-9 shrink-0 place-items-center rounded-full border border-line-strong bg-surface-1 text-fg hover:border-fg"
+      >
+        <PencilSimple className="size-4" weight="fill" />
+      </button>
+      <InterestsSheet open={editing} onOpenChange={setEditing} />
     </div>
   );
 }
@@ -804,7 +752,7 @@ function FeedPost({ item }: { item: NewsItem }) {
             saved && 'text-accent-text',
           )}
         >
-          <Bookmark className={cn('size-5', saved && 'fill-current')} />
+          <BookmarkSimple weight={saved ? 'fill' : 'bold'} className="size-5" />
         </button>
       </header>
       <a href={href} target="_blank" rel="noopener noreferrer" className="group block px-4 pt-3">
@@ -834,7 +782,7 @@ function FeedPost({ item }: { item: NewsItem }) {
           {video && (
             <span className="absolute inset-0 grid place-items-center">
               <span className="grid size-16 place-items-center rounded-full bg-black/70 text-white">
-                <Play className="ml-1 size-7 fill-current" />
+                <PlayFill weight="fill" className="ml-1 size-7" />
               </span>
             </span>
           )}
@@ -846,20 +794,28 @@ function FeedPost({ item }: { item: NewsItem }) {
         rel="noopener noreferrer"
         className="flex items-center gap-2 border-b border-line bg-surface-inset px-4 py-2.5 text-[13px] text-subtle hover:text-fg"
       >
-        {video ? <Play className="size-4" /> : <ExternalLink className="size-4" />}
+        {video ? (
+          <PlayFill weight="fill" className="size-4" />
+        ) : (
+          <ArrowSquareOut weight="bold" className="size-4" />
+        )}
         <span className="truncate">{video ? 'youtube.com' : domainOf(item.url)}</span>
       </a>
       <footer className="flex items-center gap-1 px-2 py-1">
         <button type="button" onClick={discuss} className={action}>
-          <MessageSquare className="size-5" />
+          <ChatCircle weight="fill" className="size-5" />
           Discuter
         </button>
         <button type="button" onClick={share} className={action}>
-          <Share2 className="size-5" />
+          <ShareNetwork weight="fill" className="size-5" />
           Partager
         </button>
         <a href={href} target="_blank" rel="noopener noreferrer" className={action}>
-          {video ? <Play className="size-5" /> : <ExternalLink className="size-5" />}
+          {video ? (
+            <PlayFill weight="fill" className="size-5" />
+          ) : (
+            <ArrowSquareOut weight="bold" className="size-5" />
+          )}
           {video ? 'Regarder' : 'Lire'}
         </a>
       </footer>
@@ -869,83 +825,61 @@ function FeedPost({ item }: { item: NewsItem }) {
 
 /* ---------------- Colonne de droite ---------------- */
 
-/** « À la une », à la manière des actualités de LinkedIn : les titres du moment, sources réelles. */
+/** « À la une » : les titres du moment (une de l'actualité + le plus récent de chaque rubrique). */
 function Headlines() {
   const lang = useLang();
-  const { data } = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
-  const [all, setAll] = useState(false);
-  const items = data
-    ? [...data.hero, ...(data.sections.afrique ?? []), ...(data.sections.ia ?? [])]
-    : [];
+  const { data, error } = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
   const seen = new Set<string>();
-  const list = items.filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
-  const talks = data?.hn.filter((h) => h.comments > 0).slice(0, 3) ?? [];
+  const list = data
+    ? [
+        ...data.hero,
+        ...Object.values(data.sections)
+          .map((v) => v[0])
+          .filter(Boolean),
+      ]
+        .filter((i): i is NewsItem => !!i && (seen.has(i.id) ? false : (seen.add(i.id), true)))
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    : [];
+  const talks = data?.hn.filter((h) => h.comments > 0).slice(0, 5) ?? [];
   return (
-    <section className="dh-panel p-4">
-      <h2 className="text-[17px] font-semibold text-fg">À la une</h2>
-      <p className="text-[13px] text-subtle">Choisi parmi {data?.sources ?? '…'} sources tech</p>
-      {!data ? (
-        <div className="mt-3 flex flex-col gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 rounded-[8px]" />
-          ))}
-        </div>
-      ) : (
-        <ul className="mt-2 flex flex-col">
-          {list.slice(0, all ? 10 : 5).map((a) => (
-            <li key={a.id}>
-              <a
-                href={a.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group -mx-2 flex gap-2 rounded-[8px] px-2 py-2 hover:bg-surface-2"
-              >
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-fg/70" aria-hidden />
-                <span className="min-w-0">
-                  <span className="line-clamp-2 block text-[14px] leading-snug font-medium text-fg">
-                    {a.title}
-                  </span>
-                  <span className="mt-0.5 block truncate text-[12.5px] text-subtle">
-                    {relativeTime(a.publishedAt, lang)} · {a.sourceName}
-                  </span>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-      {list.length > 5 && (
-        <button
-          type="button"
-          onClick={() => setAll((v) => !v)}
-          className="mt-1 -ml-2 h-9 rounded-[8px] px-2 text-[14px] font-medium text-muted hover:bg-surface-2 hover:text-fg"
-        >
-          {all ? 'Afficher moins' : 'Afficher plus'}
-        </button>
-      )}
+    <div className="flex flex-col gap-3 pt-4">
+      <TopicChips />
+      {!data && !error && <PostSkeletons n={2} />}
       {talks.length > 0 && (
-        <div className="mt-3 border-t border-line pt-3">
-          <h3 className="text-[14px] font-semibold text-fg">Ça discute chez les devs</h3>
-          <ul className="mt-1 flex flex-col">
-            {talks.map((h) => (
+        <section className="dh-panel p-4">
+          <h2 className="font-sans text-[17px] font-semibold tracking-normal text-fg">
+            Ça discute chez les devs
+          </h2>
+          <ol className="mt-2 flex flex-col">
+            {talks.map((h, i) => (
               <li key={h.id}>
                 <a
                   href={h.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="-mx-2 block rounded-[8px] px-2 py-2 hover:bg-surface-2"
+                  className="-mx-2 flex gap-3 rounded-[8px] px-2 py-2.5 hover:bg-surface-2"
                 >
-                  <span className="line-clamp-2 text-[14px] leading-snug text-fg">{h.title}</span>
-                  <span className="mt-0.5 block text-[12.5px] text-subtle">
-                    {h.comments} commentaires · Hacker News
+                  <span className="w-5 shrink-0 text-[15px] font-semibold text-fg tabular">
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[15px] leading-snug font-medium text-fg">
+                      {h.title}
+                    </span>
+                    <span className="mt-0.5 block text-[13px] text-muted">
+                      {h.comments} commentaires · {relativeTime(h.publishedAt, lang)} · Hacker News
+                    </span>
                   </span>
                 </a>
               </li>
             ))}
-          </ul>
-        </div>
+          </ol>
+        </section>
       )}
-    </section>
+      {list.map((it) => (
+        <FeedPost key={it.id} item={it} />
+      ))}
+    </div>
   );
 }
 
@@ -1001,7 +935,7 @@ function JobsPanel() {
     <section className="dh-panel p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
-          <Briefcase className="size-5 text-subtle" />
+          <BriefcaseFill weight="fill" className="size-5 text-fg" />
           Emplois
         </h2>
         <Link to="/emplois" className="text-[12.5px] text-subtle hover:text-fg">

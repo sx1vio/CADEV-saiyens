@@ -19,20 +19,21 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --bg-rail: #0f1117;
-  --bg-nav: #0f1117;
-  --bg-base: #f3f4f7;
+  /* Tons inspirés de Discord : gris neutres, texte presque noir, aucun gris pâle pour lire. */
+  --bg-rail: #1e1f22;
+  --bg-nav: #1e1f22;
+  --bg-base: #f2f3f5;
   --surface-1: #ffffff;
-  --surface-2: #eef0f4;
-  --surface-3: #e3e6ec;
-  --surface-inset: #f6f7f9;
-  --border: #e2e5eb;
-  --border-strong: #cdd2dc;
+  --surface-2: #ebedef;
+  --surface-3: #e3e5e8;
+  --surface-inset: #f2f3f5;
+  --border: #e1e2e4;
+  --border-strong: #c4c9ce;
   --highlight: transparent;
 
-  --text: #111827;
-  --text-muted: #4b5565;
-  --text-subtle: #5f687a;
+  --text: #060607;
+  --text-muted: #313338;
+  --text-subtle: #4e5058;
   --text-on-accent: #ffffff;
 
   --accent: #1d4ed8;
@@ -110,20 +111,20 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg-rail: #07080d;
-  --bg-nav: #07080d;
-  --bg-base: #0b0d14;
-  --surface-1: #12151e;
-  --surface-2: #1a1e29;
-  --surface-3: #232836;
-  --surface-inset: #0f121a;
-  --border: #1f2431;
-  --border-strong: #2c3242;
+  --bg-rail: #1e1f22;
+  --bg-nav: #1e1f22;
+  --bg-base: #313338;
+  --surface-1: #2b2d31;
+  --surface-2: #383a40;
+  --surface-3: #404249;
+  --surface-inset: #232428;
+  --border: #3f4147;
+  --border-strong: #4e5058;
   --highlight: transparent;
 
-  --text: #eef0f5;
-  --text-muted: #a8aebd;
-  --text-subtle: #858c9c;
+  --text: #f2f3f5;
+  --text-muted: #dbdee1;
+  --text-subtle: #b5bac1;
   --text-on-accent: #ffffff;
 
   --accent: #2563eb;
@@ -217,7 +218,7 @@
   --on-hero: #ffffff;
   --on-hero-muted: rgba(255, 255, 255, 0.82);
 
-  --side-bg: #0f1117;
+  --side-bg: #1e1f22;
 
   --rail-w: 72px;
   --nav-w: 264px;
@@ -822,11 +823,11 @@
   /* Surface encre : à plat */
   /* Surface bleu nuit, à plat */
   .dh-ink {
-    color: #eef0f5;
-    background: #0f1117;
+    color: #f2f3f5;
+    background: #1e1f22;
   }
   :root[data-theme='dark'] .dh-ink {
-    background: #12151e;
+    background: #1e1f22;
   }
   /* Ancienne carte d'accent : ramenée à un aplat d'accent */
   .dh-glow {
@@ -918,8 +919,7 @@
   .dh-panel {
     background: var(--surface-1);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-card);
+    border-radius: 8px;
   }
   .dh-panel-link {
     transition:
@@ -929,7 +929,6 @@
   @media (hover: hover) {
     .dh-panel-link:hover {
       border-color: var(--border-strong);
-      box-shadow: var(--shadow-card-hover);
     }
   }
 
