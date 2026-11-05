@@ -167,7 +167,7 @@ function Player({
       <header className="mx-auto flex w-full max-w-[1000px] items-center gap-4 px-4 pt-5 sm:px-6">
         <button
           type="button"
-          onClick={() => (passed > 0 ? setQuit(true) : nav('/apprendre'))}
+          onClick={() => (passed > 0 ? setQuit(true) : nav('/certifications'))}
           className="grid size-10 place-items-center rounded-full text-subtle transition-colors hover:bg-surface-2 hover:text-fg"
           aria-label="Quitter la leçon"
         >
@@ -276,7 +276,7 @@ function Player({
               </BigButton>
               <button
                 type="button"
-                onClick={() => nav('/apprendre')}
+                onClick={() => nav('/certifications')}
                 className="py-2 text-[15px] font-bold tracking-wide text-danger uppercase"
               >
                 Quitter
@@ -859,7 +859,7 @@ function Finish({
       <footer className="border-t-2 border-line">
         <div className="mx-auto flex w-full max-w-[1000px] flex-col-reverse gap-3 px-5 py-5 pb-[max(env(safe-area-inset-bottom),20px)] sm:flex-row sm:justify-between sm:px-6">
           <Link
-            to="/apprendre"
+            to="/certifications"
             className="lx-3d grid h-[52px] place-items-center rounded-[16px] border-2 border-line-strong bg-canvas px-8 text-[16px] font-bold tracking-wide text-fg uppercase"
           >
             Retour au chemin

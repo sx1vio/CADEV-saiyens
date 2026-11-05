@@ -175,9 +175,10 @@ export function ArticleCard({ item }: { item: NewsItem }) {
 export function VideoTile({ item, className }: { item: NewsItem; className?: string }) {
   const vid = (item.extra.videoId as string) ?? '';
   return (
-    <Link
-      to={`/videos/yt/${vid}`}
-      state={{ item }}
+    <a
+      href={`https://www.youtube.com/watch?v=${vid}`}
+      target="_blank"
+      rel="noopener noreferrer"
       className={cn('group flex flex-col gap-2.5', className)}
     >
       <div className="relative overflow-hidden rounded-[10px] bg-black">
@@ -206,7 +207,7 @@ export function VideoTile({ item, className }: { item: NewsItem; className?: str
           {item.score > 0 && ` · ${compact(item.score)} vues`} · <Ago iso={item.publishedAt} />
         </p>
       </div>
-    </Link>
+    </a>
   );
 }
 

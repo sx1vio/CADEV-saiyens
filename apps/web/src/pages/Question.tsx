@@ -87,7 +87,7 @@ export default function QuestionPage() {
             pose="laptop"
             title={t('question.notFound')}
             action={
-              <ButtonLink to="/sos" variant="secondary">
+              <ButtonLink to="/?f=questions" variant="secondary">
                 {t('nav.sos')}
               </ButtonLink>
             }
@@ -187,7 +187,7 @@ export default function QuestionPage() {
       <article className="mx-auto flex max-w-[var(--reading-w)] flex-col gap-6 xl:max-w-none">
         <div>
           <Link
-            to="/sos"
+            to="/?f=questions"
             className="inline-flex items-center gap-1.5 text-sm text-subtle hover:text-fg"
           >
             <ArrowLeft className="size-4" />
@@ -219,7 +219,7 @@ export default function QuestionPage() {
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {q.tags.map((tag) => (
-              <Link key={tag.id} to={`/sos?tab=all&tag=${tag.slug}`}>
+              <Link key={tag.id} to={`/?f=questions&tag=${tag.slug}`}>
                 <TechTag label={tag.label} />
               </Link>
             ))}

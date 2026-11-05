@@ -1,21 +1,16 @@
 import {
   Award,
-  BarChart3,
-  BookOpenCheck,
   Briefcase,
   Compass,
   FolderGit2,
-  GraduationCap,
   Home,
-  LayoutTemplate,
+  Map as MapIcon,
   PlaneTakeoff,
-  LifeBuoy,
-  PlaySquare,
   Puzzle,
   ServerCog,
-  Trophy,
-  Users,
-  Wand2,
+  Smartphone,
+  BarChart3,
+  BookOpenCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -24,25 +19,21 @@ export interface NavEntry {
   /** Clé i18n (navEntry.*) */
   label: string;
   icon: LucideIcon;
-  /** Couleur du service (pastille, en-tête) */
-  color?: string;
   tour?: string;
   end?: boolean;
-  /** Libellé court pour le mini-guide et la barre d'onglets */
-  /** Clé i18n du libellé court */
+  /** Clé i18n du libellé court (barre d'onglets) */
   short?: string;
 }
 
-/** L'essentiel : le fil, l'entraide, les communautés, les emplois. */
+/**
+ * Navigation resserrée le 05/11/2026 : le réseau (accueil, emplois, devs, projets), ce qui fait
+ * progresser (certifications, outils IA) et ce qui fait livrer (pré-vol, banc d'essai).
+ * L'entraide vit dans l'accueil ; les communautés sont devenues des centres d'intérêt.
+ */
 export const MAIN_NAV: NavEntry[] = [
   { to: '/', label: 'navEntry.home', short: 'navEntry.home', icon: Home, end: true, tour: 'home' },
-  { to: '/sos', label: 'navEntry.help', short: 'navEntry.help', icon: LifeBuoy },
-  { to: '/communautes', label: 'navEntry.communities', short: 'navEntry.communities', icon: Users },
   { to: '/emplois', label: 'navEntry.jobs', short: 'navEntry.jobs', icon: Briefcase },
-];
-
-/** Explorer : ce qu'on consulte. */
-export const EXPLORE_NAV: NavEntry[] = [
+  { to: '/decouvrir', label: 'navEntry.devs', short: 'navEntry.devsShort', icon: Compass },
   {
     to: '/projets',
     label: 'navEntry.projects',
@@ -50,33 +41,28 @@ export const EXPLORE_NAV: NavEntry[] = [
     icon: FolderGit2,
     tour: 'projects',
   },
-  { to: '/videos', label: 'navEntry.videos', short: 'navEntry.videos', icon: PlaySquare },
-  { to: '/apprendre', label: 'navEntry.learn', short: 'navEntry.learn', icon: GraduationCap },
+];
+
+/** Progresser : se préparer et prouver. */
+export const EXPLORE_NAV: NavEntry[] = [
   { to: '/certifications', label: 'navEntry.certs', short: 'navEntry.certsShort', icon: Award },
   { to: '/skills', label: 'navEntry.skills', short: 'navEntry.skills', icon: Puzzle },
-  { to: '/decouvrir', label: 'navEntry.devs', short: 'navEntry.devsShort', icon: Compass },
 ];
 
-/** Créer : ce qu'on fabrique. */
+/** Livrer : mettre en ligne une app qui tient. */
 export const CREATE_NAV: NavEntry[] = [
-  { to: '/creer', label: 'navEntry.guide', short: 'navEntry.guideShort', icon: Wand2 },
-  {
-    to: '/templates',
-    label: 'navEntry.templates',
-    short: 'navEntry.templates',
-    icon: LayoutTemplate,
-  },
   { to: '/prevol', label: 'navEntry.preflight', short: 'navEntry.preflight', icon: PlaneTakeoff },
+  { to: '/banc', label: 'navEntry.testbench', short: 'navEntry.testbench', icon: Smartphone },
 ];
 
-/** Hors barre latérale, accessibles par la recherche (Ctrl K) et depuis « Développeurs ». */
+/** Hors barre latérale, accessibles par la recherche (Ctrl K). */
 export const NETWORK_NAV: NavEntry[] = [
   { to: '/decouvrir', label: 'navEntry.findDevs', icon: Compass },
-  { to: '/classement', label: 'navEntry.leaderboard', icon: Trophy },
+  { to: '/carte', label: 'navEntry.map', icon: MapIcon },
 ];
 
-/** Compatibilité : les services, dans l'ordre d'avant (palette, barre d'onglets). */
-export const SERVICES_NAV: NavEntry[] = [MAIN_NAV[3]!, ...EXPLORE_NAV.slice(0, 5), ...CREATE_NAV];
+/** Les services, dans l'ordre (palette, barre d'onglets). */
+export const SERVICES_NAV: NavEntry[] = [MAIN_NAV[1]!, ...EXPLORE_NAV, ...CREATE_NAV];
 
 export const PLATFORM_NAV: NavEntry[] = [
   { to: '/systalink', label: 'navEntry.systalink', icon: ServerCog },

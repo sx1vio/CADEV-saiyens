@@ -39,15 +39,7 @@ export default function AfricaMapPage() {
 
   return (
     <Page>
-      <PageHeader
-        title={t('map.title')}
-        subtitle={t('map.subtitle')}
-        actions={
-          <ButtonLink to="/classement" variant="secondary" icon={<Trophy />}>
-            {t('map.toLeaderboard')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('map.title')} subtitle={t('map.subtitle')} />
 
       {error ? (
         <ErrorState error={error} onRetry={refresh} className="mt-6" />

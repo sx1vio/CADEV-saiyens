@@ -70,8 +70,6 @@ const pages = {
   home: () => import('@/pages/Feed'),
   post: () => import('@/pages/PostPage'),
   publish: () => import('@/pages/Publish'),
-  community: () => import('@/pages/Communities'),
-  communities: () => import('@/pages/Communities').then((m) => ({ default: m.CommunityList })),
   jobs: () => import('@/pages/Jobs'),
   company: () => import('@/pages/CompanyPage'),
   messages: () => import('@/pages/Messages'),
@@ -80,22 +78,13 @@ const pages = {
   certExam: () => import('@/pages/CertExam'),
   skills: () => import('@/pages/Skills'),
   skill: () => import('@/pages/Skills').then((m) => ({ default: m.SkillDetail })),
-  videos: () => import('@/pages/Videos'),
-  ytWatch: () => import('@/pages/Videos').then((m) => ({ default: m.YtWatch })),
   sources: () => import('@/pages/Sources'),
-  learn: () => import('@/pages/Course'),
   lessonPlayer: () => import('@/pages/LessonPlayer'),
-  learnPath: () => import('@/pages/Learn').then((m) => ({ default: m.PathPage })),
-  lesson: () => import('@/pages/Learn').then((m) => ({ default: m.LessonPage })),
-  build: () => import('@/pages/BuildGuide'),
-  templates: () => import('@/pages/Templates'),
-  sos: () => import('@/pages/SosList'),
   question: () => import('@/pages/Question'),
   projects: () => import('@/pages/Projects'),
   newRoom: () => import('@/pages/NewRoom'),
   room: () => import('@/pages/Room'),
   discover: () => import('@/pages/Discover'),
-  leaderboard: () => import('@/pages/Leaderboard'),
   africaMap: () => import('@/pages/AfricaMapPage'),
   passport: () => import('@/pages/Passport'),
   systalink: () => import('@/pages/Systalink'),
@@ -119,9 +108,7 @@ export function preloadCorePages() {
   ).connection;
   if (c?.saveData || (c?.effectiveType && c.effectiveType !== '4g')) return;
   const run = () =>
-    [pages.sos, pages.jobs, pages.videos, pages.learn, pages.build, pages.post].forEach(
-      (p) => void p(),
-    );
+    [pages.jobs, pages.question, pages.certs, pages.preflight, pages.post].forEach((p) => void p());
   if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 6000 });
   else setTimeout(run, 4000);
 }
@@ -258,8 +245,6 @@ export const router = createBrowserRouter([
           };
         },
       },
-      { path: 'communautes', lazy: lazy('communities') },
-      { path: 'c/:slug', lazy: lazy('community') },
       { path: 'emplois', lazy: lazy('jobs') },
       { path: 'emplois/:id', lazy: lazy('jobs') },
       { path: 'entreprises/:slug', lazy: lazy('company') },
@@ -280,18 +265,10 @@ export const router = createBrowserRouter([
       { path: 'certifications/:id', lazy: lazy('certExam') },
       { path: 'skills', lazy: lazy('skills') },
       { path: 'skills/:id', lazy: lazy('skill') },
-      { path: 'videos', lazy: lazy('videos') },
-      { path: 'videos/yt/:vid', lazy: lazy('ytWatch') },
       { path: 'sources', lazy: lazy('sources') },
-      { path: 'apprendre', lazy: lazy('learn') },
       { path: 'lecon/:courseId/:lessonId', lazy: lazy('lessonPlayer') },
-      { path: 'apprendre/:pathId', lazy: lazy('learnPath') },
-      { path: 'apprendre/:pathId/:lessonId', lazy: lazy('lesson') },
-      { path: 'creer', lazy: lazy('build') },
-      { path: 'templates', lazy: lazy('templates') },
       { path: 'prevol', lazy: lazy('preflight') },
       { path: 'prevol/:id', lazy: lazy('preflight') },
-      { path: 'sos', lazy: lazy('sos') },
       { path: 'sos/:id', lazy: lazy('question') },
       { path: 'projets', lazy: lazy('projects') },
       {
@@ -309,7 +286,6 @@ export const router = createBrowserRouter([
       },
       { path: 'p/:code', lazy: lazy('room') },
       { path: 'decouvrir', lazy: lazy('discover') },
-      { path: 'classement', lazy: lazy('leaderboard') },
       { path: 'carte', lazy: lazy('africaMap') },
       { path: 'u/:handle', lazy: lazy('passport') },
       { path: 'systalink', lazy: lazy('systalink') },
@@ -330,6 +306,21 @@ export const router = createBrowserRouter([
           };
         },
       },
+      // Sections retirées le 05/11/2026 : les anciens liens mènent à leur nouvelle place.
+      ...(
+        [
+          ['sos', '/?f=questions'],
+          ['communautes', '/'],
+          ['c/:slug', '/'],
+          ['videos', '/'],
+          ['videos/*', '/'],
+          ['apprendre', '/certifications'],
+          ['apprendre/*', '/certifications'],
+          ['creer', '/prevol'],
+          ['templates', '/prevol'],
+          ['classement', '/decouvrir'],
+        ] as const
+      ).map(([path, to]) => ({ path, element: <Navigate to={to} replace /> })),
       { path: '*', lazy: lazy('notFound') },
     ],
   },

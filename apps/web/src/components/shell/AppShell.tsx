@@ -4,7 +4,6 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
-  Flame,
   FolderPlus,
   Keyboard,
   Languages,
@@ -19,7 +18,7 @@ import {
   Settings,
   Sun,
   UserRound,
-  Wand2,
+  PlaneTakeoff,
   X,
   Zap,
 } from 'lucide-react';
@@ -39,15 +38,13 @@ import { Avatar, CountDot, Kbd } from '../ui/primitives';
 import { CREATE_NAV, EXPLORE_NAV, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
 import { AnnouncementBar } from './announcements';
-import { Djeli } from '../djeli';
 import { BrandLogo } from '../brand';
-import { selectGoalReached, selectStreak, usePlatform } from '@/platform/store';
+import { usePlatform } from '@/platform/store';
 import * as Popover from '@radix-ui/react-popover';
 
 /* ================================================================
-   Shell connecté : barre latérale bleue (charte DevHub). L'entrée active prend la couleur
-   du contenu et s'y fond par deux coins inversés ; Djeli rappelle la série d'apprentissage
-   en pied. Sur ordinateur, recherche, création, notifications et compte sont dans la barre du haut.
+   Shell connecté : barre latérale encre (v3, 05/11/2026). L'entrée active prend la couleur
+   du contenu et s'y fond par deux coins inversés ; mon compte et ma disponibilité en pied. Sur ordinateur, recherche, création, notifications et compte sont dans la barre du haut.
    ================================================================ */
 
 /** Logo cliquable vers l’accueil. */
@@ -79,10 +76,10 @@ function useCreateActions() {
       run: () => nav('/projets/nouvelle'),
     },
     {
-      icon: Wand2,
+      icon: PlaneTakeoff,
       label: t('navEntry.createApp'),
       hint: t('navEntry.createAppHint'),
-      run: () => nav('/creer'),
+      run: () => nav('/prevol'),
     },
   ];
 }
@@ -157,22 +154,22 @@ function SideItem({
       data-active={active}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'side-item flex h-10 shrink-0 items-center gap-3 pl-4 text-[13.5px] font-medium',
-        merge ? 'side-merge rounded-l-[16px] pr-4' : 'mr-3 rounded-[14px] pr-3',
+        'side-item flex h-9 shrink-0 items-center gap-2.5 pl-3 text-[14px]',
+        merge ? 'side-merge rounded-l-[12px] pr-4' : 'mr-3 rounded-[10px] pr-3',
         active
-          ? 'bg-canvas font-semibold text-accent-text'
-          : 'text-white/80 hover:bg-white/10 hover:text-white',
+          ? 'bg-canvas font-medium text-fg'
+          : 'text-white/72 hover:bg-white/[0.06] hover:text-white',
       )}
     >
-      <Icon className="size-[18px] shrink-0" />
+      <Icon className={cn('size-[18px] shrink-0', active ? 'text-accent-text' : 'text-white/55')} />
       <span className="flex-1 truncate">
         {entry.short && label.length > 22 ? t(entry.short) : label}
       </span>
       {!!count && (
         <span
           className={cn(
-            'grid h-5 min-w-5 place-items-center rounded-[7px] px-1.5 text-[11px] font-semibold tabular',
-            active ? 'bg-accent-soft text-accent-text' : 'bg-white/18 text-white',
+            'grid h-5 min-w-5 place-items-center rounded-[6px] px-1.5 font-mono text-[11px] tabular',
+            active ? 'bg-surface-2 text-muted' : 'bg-white/10 text-white/80',
           )}
         >
           {count > 99 ? '99+' : count}
@@ -182,32 +179,56 @@ function SideItem({
   );
 }
 
-/** Carte de Djeli en pied de barre : la série d'apprentissage du jour (esprit Duolingo). */
-function LearnNudge({ onNavigate }: { onNavigate?: () => void }) {
-  const streak = usePlatform(selectStreak);
-  const today = usePlatform((s) => s.lessonsToday());
-  const reached = usePlatform(selectGoalReached);
+/**
+ * Pied de barre façon Discord : qui je suis, ma disponibilité (visible des recruteurs et des devs
+ * qui cherchent de l'aide), accès direct à mon profil et à mes réglages.
+ */
+function UserCard({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
+  const me = useSession((s) => s.user);
+  if (!me) return null;
+  const status = me.availability.status;
+  const dot = status === 'now' ? 'bg-live' : status === 'today' ? 'bg-gold' : 'bg-white/30';
+  const label =
+    status === 'now'
+      ? t('onboarding.availNow')
+      : status === 'today'
+        ? t('onboarding.availToday')
+        : t('onboarding.availBusy');
   return (
-    <Link
-      to="/apprendre"
-      onClick={onNavigate}
-      className="side-nudge relative mx-3 mt-3 flex items-end gap-2 rounded-[20px] bg-white/10 p-3 pt-2 text-white transition-colors hover:bg-white/15"
-    >
-      <div className="min-w-0 flex-1 pb-0.5">
-        <p className="flex items-center gap-1.5 text-[13px] font-semibold">
-          <Flame className="size-4 text-[#ffb547]" />
-          {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suite` : 'Lance ta série'}
-        </p>
-        <p className="mt-0.5 text-[11.5px] leading-snug text-white/70">
-          {reached
-            ? 'Objectif du jour atteint. Bravo !'
-            : today > 0
-              ? 'Encore une leçon pour ton objectif ?'
-              : 'Une leçon de quelques minutes aujourd’hui ?'}
-        </p>
-      </div>
-      <Djeli pose={reached ? 'celebrate' : 'point'} size={58} className="-mt-6 -mr-1" />
-    </Link>
+    <div className="mx-3 mt-3 flex items-center gap-1 rounded-[12px] bg-white/[0.04] p-1.5 ring-1 ring-white/[0.06]">
+      <Link
+        to={`/u/${me.handle}`}
+        onClick={onNavigate}
+        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] p-1 transition-colors hover:bg-white/[0.06]"
+      >
+        <span className="relative shrink-0">
+          <Avatar name={me.displayName} src={me.avatarUrl} size={32} />
+          <span
+            className={cn(
+              'absolute -right-0.5 -bottom-0.5 size-3 rounded-full ring-[2.5px] ring-[#15171f]',
+              dot,
+            )}
+          />
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-[13px] font-medium text-white">
+            {me.displayName}
+          </span>
+          <span className="block truncate text-[11.5px] text-white/55">
+            {me.availability.forMission ? 'Ouvert aux missions' : label}
+          </span>
+        </span>
+      </Link>
+      <Link
+        to="/reglages"
+        onClick={onNavigate}
+        aria-label={t('nav.settings')}
+        className="grid size-8 shrink-0 place-items-center rounded-[8px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white"
+      >
+        <Settings className="size-[17px]" />
+      </Link>
+    </div>
   );
 }
 
@@ -218,7 +239,6 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { pathname } = useLocation();
   const { data: home } = useQuery(me ? 'home' : null, () => api.getHome());
   const help = home?.openInMyStacks.length ?? 0;
-  const enrolled = usePlatform((s) => s.enrolled.length);
   const savedJobs = usePlatform((s) => s.savedJobs.length);
   const merge = !onNavigate;
   const navRef = useRef<HTMLElement>(null);
@@ -238,7 +258,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const groups: { label?: string; items: NavEntry[] }[] = [
     { items: MAIN_NAV },
     { label: t('navEntry.explore'), items: EXPLORE_NAV },
-    { label: t('navEntry.create'), items: CREATE_NAV },
+    { label: t('navEntry.ship'), items: CREATE_NAV },
     {
       label: t('navEntry.groupNetwork'),
       items: [
@@ -255,18 +275,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         NETWORK_NAV[1]!,
       ],
     },
-    ...(me
-      ? [
-          {
-            label: t('navEntry.groupAccount'),
-            items: [{ to: '/reglages', label: 'nav.settings', icon: Settings } as NavEntry],
-          },
-        ]
-      : []),
   ];
   const counts: Record<string, number | undefined> = {
-    '/sos': help,
-    '/apprendre': enrolled,
+    '/': help,
     '/emplois': savedJobs,
   };
   return (
@@ -274,10 +285,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       data-tour="nav"
       className={cn(
         'side-panel flex h-full flex-col text-white',
-        merge ? 'rounded-l-[28px] py-5 pl-3' : 'rounded-[28px] py-4 pl-3',
+        merge ? 'rounded-l-[20px] py-4 pl-3' : 'rounded-[20px] py-4 pl-3',
       )}
     >
-      <div className="flex items-center justify-between pr-4 pb-6 pl-2">
+      <div className="flex items-center justify-between pr-4 pb-4 pl-2">
         <Logo />
         {onNavigate && (
           <button
@@ -296,15 +307,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           ref={navRef}
           onScroll={updateMore}
           aria-label={t('navEntry.navAria')}
-          className="side-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain py-4"
+          className="side-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-4"
         >
           {groups.map((g, i) => (
-            <div key={i} className="flex flex-col gap-1">
-              {g.label && (
-                <p className="px-4 pb-1 text-[11px] font-semibold tracking-[0.06em] text-white/55 uppercase">
-                  {g.label}
-                </p>
-              )}
+            <div key={i} className="flex flex-col gap-0.5">
+              {g.label && <p className="px-3 pb-1.5 text-[12px] text-white/45">{g.label}</p>}
               {g.items.map((e) => (
                 <SideItem
                   key={e.to}
@@ -325,11 +332,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           aria-hidden
           onClick={() => navRef.current?.scrollBy({ top: -160, behavior: 'smooth' })}
           className={cn(
-            'absolute top-0 right-4 z-10 grid size-6 place-items-center rounded-full bg-white/12 text-white/80 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
+            'absolute top-0 right-4 z-10 grid size-6 place-items-center rounded-full bg-white/10 text-white/70 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
             less ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
-          <ChevronUp className="size-4 animate-[side-bob-up_1.8s_ease-in-out_infinite]" />
+          <ChevronUp className="size-4" />
         </button>
         <button
           type="button"
@@ -337,21 +344,21 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           aria-hidden
           onClick={() => navRef.current?.scrollBy({ top: 160, behavior: 'smooth' })}
           className={cn(
-            'absolute right-4 bottom-0 z-10 grid size-6 place-items-center rounded-full bg-white/12 text-white/80 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
+            'absolute right-4 bottom-0 z-10 grid size-6 place-items-center rounded-full bg-white/10 text-white/70 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
             more ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
-          <ChevronDown className="size-4 animate-[side-bob_1.8s_ease-in-out_infinite]" />
+          <ChevronDown className="size-4" />
         </button>
       </div>
 
       {me ? (
-        <LearnNudge onNavigate={onNavigate} />
+        <UserCard onNavigate={onNavigate} />
       ) : (
         <Link
           to="/connexion"
           onClick={onNavigate}
-          className="mx-3 mt-3 flex h-11 items-center justify-center rounded-[14px] bg-white text-[14px] font-semibold text-accent-text"
+          className="mx-3 mt-3 flex h-10 items-center justify-center rounded-[10px] bg-white text-[14px] font-medium text-[#111827]"
         >
           {t('nav.login')}
         </Link>
@@ -368,13 +375,13 @@ function TopBar() {
   const actions = useCreateActions();
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   return (
-    <header className="sticky top-0 z-30 bg-canvas/90 backdrop-blur-xl">
-      <div className="flex h-16 items-center gap-3 px-6">
+    <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md">
+      <div className="flex h-14 items-center gap-3 px-6">
         <button
           type="button"
           onClick={() => setPalette(true)}
           data-tour="palette"
-          className="flex h-10 w-full max-w-[420px] items-center gap-2.5 rounded-full bg-surface-1 pr-2 pl-4 text-left text-[13.5px] text-subtle transition-colors hover:bg-surface-2"
+          className="flex h-9 w-full max-w-[440px] items-center gap-2.5 rounded-[10px] border border-line bg-surface-1 pr-1.5 pl-3 text-left text-[13.5px] text-subtle transition-colors hover:border-line-strong"
         >
           <Search className="size-4 shrink-0" />
           <span className="flex-1 truncate">{t('nav.searchPlaceholder')}</span>
@@ -389,7 +396,7 @@ function TopBar() {
                 <button
                   type="button"
                   data-tour="ask"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-accent px-4 text-[13.5px] font-semibold text-white transition-colors hover:bg-accent-hover"
+                  className="lg-tint inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3.5 text-[13.5px] font-medium"
                 >
                   <Plus className="size-[18px]" />
                   {t('navEntry.create')}
@@ -679,7 +686,7 @@ function DemoSwitcher() {
 
 function TabBar({ onCreate }: { onCreate: () => void }) {
   const { t } = useTranslation();
-  const tabs = [MAIN_NAV[0], MAIN_NAV[3], null, EXPLORE_NAV[2], EXPLORE_NAV[1]];
+  const tabs = [MAIN_NAV[0], MAIN_NAV[1], null, EXPLORE_NAV[0], CREATE_NAV[0]];
   return (
     <nav
       aria-label={t('navEntry.navAria')}
@@ -834,7 +841,7 @@ export function AppShell() {
       </a>
       <div className="flex">
         {isLg && (
-          <aside className="sticky top-0 h-dvh w-[256px] shrink-0 py-3 pl-3">
+          <aside className="sticky top-0 h-dvh w-[248px] shrink-0 py-2 pl-2">
             <Sidebar />
           </aside>
         )}

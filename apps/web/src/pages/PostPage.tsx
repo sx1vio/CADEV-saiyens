@@ -60,7 +60,7 @@ export default function PostPage() {
       await communityApi.remove(post.id);
       invalidate('posts');
       toast.success('Publication supprimée');
-      nav(`/c/${post.community}`, { replace: true });
+      nav(`/?topic=${post.community}`, { replace: true });
     } catch (e) {
       toast.error(communityError(e));
     }
@@ -81,7 +81,7 @@ export default function PostPage() {
         <article className="rounded-[10px] bg-surface-1 p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] text-subtle">
             <Link
-              to={`/c/${post.community}`}
+              to={`/?topic=${post.community}`}
               className="inline-flex items-center gap-1.5 font-medium text-fg hover:underline"
             >
               <CommunityIcon slug={post.community} size={20} />
