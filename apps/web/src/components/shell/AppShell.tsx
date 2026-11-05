@@ -154,14 +154,14 @@ function SideItem({
       data-active={active}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'side-item flex h-9 shrink-0 items-center gap-2.5 pl-3 text-[14px]',
+        'side-item flex h-10 shrink-0 items-center gap-3 pl-3 text-[15px]',
         merge ? 'side-merge rounded-l-[12px] pr-4' : 'mr-3 rounded-[10px] pr-3',
         active
           ? 'bg-canvas font-medium text-fg'
           : 'text-white/72 hover:bg-white/[0.06] hover:text-white',
       )}
     >
-      <Icon className={cn('size-[18px] shrink-0', active ? 'text-accent-text' : 'text-white/55')} />
+      <Icon className={cn('size-5 shrink-0', active ? 'text-accent-text' : 'text-white/55')} />
       <span className="flex-1 truncate">
         {entry.short && label.length > 22 ? t(entry.short) : label}
       </span>
@@ -188,7 +188,6 @@ function UserCard({ onNavigate }: { onNavigate?: () => void }) {
   const me = useSession((s) => s.user);
   if (!me) return null;
   const status = me.availability.status;
-  const dot = status === 'now' ? 'bg-live' : status === 'today' ? 'bg-gold' : 'bg-white/30';
   const label =
     status === 'now'
       ? t('onboarding.availNow')
@@ -204,12 +203,6 @@ function UserCard({ onNavigate }: { onNavigate?: () => void }) {
       >
         <span className="relative shrink-0">
           <Avatar name={me.displayName} src={me.avatarUrl} size={32} />
-          <span
-            className={cn(
-              'absolute -right-0.5 -bottom-0.5 size-3 rounded-full ring-[2.5px] ring-[#15171f]',
-              dot,
-            )}
-          />
         </span>
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-medium text-white">

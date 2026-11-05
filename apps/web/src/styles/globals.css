@@ -6,10 +6,11 @@
    Contrastes vérifiés WCAG AA (docs/phase0-analyse.md §7).
    ------------------------------------------------------------------ */
 
-/* Typographie : Bricolage Grotesque (titres, axe optique), IBM Plex Sans (texte et interface),
-   JetBrains Mono (code). Toutes OFL, auto-hébergées. */
-@import '@fontsource-variable/bricolage-grotesque/opsz.css';
-@import '@fontsource-variable/ibm-plex-sans/index.css';
+/* Typographie (05/11/2026, choix de Sylvio) : Poppins pour toute l'interface, JetBrains Mono pour
+   le code. OFL, auto-hébergées. */
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
 
 /* Système de design v3 (05/11/2026) : neutres « encre », cartes posées sur un fond gris (réseau
    professionnel), un seul accent bleu de la marque, vert réservé à ce qui est vivant ou vérifié.
@@ -229,11 +230,10 @@
 
 /* Pont Tailwind v4 : les utilitaires lisent les tokens, donc suivent le thème. */
 @theme inline {
-  --font-display:
-    'Bricolage Grotesque Variable', 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   --font-sans:
-    'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable',
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono:
     'JetBrains Mono Variable', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
 
@@ -334,12 +334,9 @@
     background: var(--bg-base);
     color: var(--text);
     font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
     letter-spacing: 0;
-    font-optical-sizing: auto;
-    /* IBM Plex : variante « ss02 » (a à un étage plus lisible en petit corps) */
-    font-feature-settings: 'ss02' 1;
     min-height: 100dvh;
     overflow-x: hidden;
   }
@@ -348,13 +345,12 @@
   h4 {
     font-family: var(--font-sans);
     letter-spacing: 0;
-    line-height: 1.3;
+    line-height: 1.35;
   }
   h1,
   h2 {
     font-family: var(--font-display);
-    font-optical-sizing: auto;
-    letter-spacing: -0.012em;
+    letter-spacing: -0.01em;
     line-height: 1.2;
     text-wrap: balance;
   }

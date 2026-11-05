@@ -29,7 +29,7 @@ import { Avatar, Skeleton } from '@/components/ui/primitives';
 import { relativeTime, useLang } from '@/i18n';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
-import { api, type ActivityItem, type QuestionTab } from '@/services';
+import { api, type QuestionTab } from '@/services';
 import { PostCard, communityApi } from '@/platform/community';
 import { COMMUNITIES } from '@/platform/data/feed';
 import { fetchJobs } from '@/platform/jobs';
@@ -72,7 +72,7 @@ export default function Feed() {
   const setTab = (t: FeedTab) => setParams(t === 'pour-toi' ? {} : { f: t }, { replace: true });
 
   return (
-    <div className="dh-page mx-auto grid w-full max-w-[1240px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[232px_minmax(0,1fr)_300px]">
+    <div className="dh-page mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[240px_minmax(0,1fr)_320px]">
       <aside className="hidden xl:block">
         <div className="sticky top-20 flex flex-col gap-3">
           <MeCard />
@@ -93,7 +93,7 @@ export default function Feed() {
               aria-current={!q && tab === t.id ? 'page' : undefined}
               onClick={() => setTab(t.id)}
               className={cn(
-                '-mb-px h-10 border-b-2 px-3 text-[14px] transition-colors',
+                '-mb-px h-12 border-b-2 px-4 text-[15px] transition-colors',
                 !q && tab === t.id
                   ? 'border-fg font-medium text-fg'
                   : 'border-transparent text-subtle hover:text-fg',
@@ -117,7 +117,7 @@ export default function Feed() {
 
       <aside className="hidden lg:block">
         <div className="sticky top-20 flex flex-col gap-3">
-          <LivePanel />
+          <Headlines />
           <DevsToMeet />
           <JobsPanel />
         </div>
@@ -137,7 +137,7 @@ function MeCard() {
   if (!me) return null;
   return (
     <section className="dh-panel overflow-hidden">
-      <div className="h-14 bg-[linear-gradient(135deg,#0f1117,#1e2a4a)]" aria-hidden />
+      <div className="h-16 bg-[#1b2a4a]" aria-hidden />
       <div className="px-4 pb-4">
         <Link
           to={`/u/${me.handle}`}
@@ -147,11 +147,11 @@ function MeCard() {
         </Link>
         <Link
           to={`/u/${me.handle}`}
-          className="mt-2 block text-[15px] font-medium text-fg hover:underline"
+          className="mt-2 block text-[17px] font-semibold text-fg hover:underline"
         >
           {me.displayName}
         </Link>
-        <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-snug text-muted">
+        <p className="mt-0.5 line-clamp-2 text-[13.5px] leading-snug text-muted">
           {me.bio || `@${me.handle}${me.city ? ` · ${me.city}` : ''}`}
         </p>
       </div>
@@ -162,8 +162,8 @@ function MeCard() {
           ['Projets', passport?.rooms.length],
         ].map(([label, v]) => (
           <div key={label as string} className="py-2.5 [&+&]:border-l [&+&]:border-line">
-            <dt className="text-[11.5px] text-subtle">{label}</dt>
-            <dd className="mt-0.5 font-mono text-[14px] text-fg tabular">{v ?? '–'}</dd>
+            <dt className="text-[12px] text-subtle">{label}</dt>
+            <dd className="mt-0.5 text-[16px] font-semibold text-fg tabular">{v ?? '–'}</dd>
           </div>
         ))}
       </dl>
@@ -188,7 +188,7 @@ function Interests() {
   return (
     <section className="dh-panel p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-[13px] font-medium text-fg">Centres d’intérêt</h2>
+        <h2 className="text-[15px] font-semibold text-fg">Centres d’intérêt</h2>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -213,11 +213,11 @@ function Interests() {
               <Link
                 to={topic === c.slug ? '/' : `/?topic=${c.slug}`}
                 className={cn(
-                  'flex h-8 items-center gap-2 rounded-[8px] px-2 text-[13px] transition-colors',
+                  'flex h-9 items-center gap-2.5 rounded-[8px] px-2 text-[14px] transition-colors',
                   topic === c.slug ? 'bg-surface-2 text-fg' : 'text-muted hover:bg-surface-2',
                 )}
               >
-                <CommunityIcon slug={c.slug} size={18} />
+                <CommunityIcon slug={c.slug} size={22} />
                 <span className="truncate">{c.name}</span>
               </Link>
             </li>
@@ -280,56 +280,124 @@ function Composer() {
   const nav = useNavigate();
   if (!me) return null;
   const action =
-    'inline-flex h-9 items-center gap-2 rounded-[8px] px-2.5 text-[13px] text-muted transition-colors hover:bg-surface-2 hover:text-fg';
+    'inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] px-2 text-[14px] font-medium whitespace-nowrap text-muted transition-colors hover:bg-surface-2 hover:text-fg';
   return (
-    <section data-tour="hero" className="dh-panel p-3">
+    <section data-tour="hero" className="dh-panel px-4 pt-4 pb-2">
       <div className="flex items-center gap-3">
-        <Avatar name={me.displayName} src={me.avatarUrl} size={40} />
+        <Avatar name={me.displayName} src={me.avatarUrl} size={48} />
         <button
           type="button"
           onClick={() => nav('/publier')}
-          className="h-11 min-w-0 flex-1 truncate rounded-full border border-line-strong px-4 text-left text-[14px] text-subtle transition-colors hover:bg-surface-2"
+          className="h-12 min-w-0 flex-1 truncate rounded-full border border-line-strong px-5 text-left text-[15px] font-medium text-subtle transition-colors hover:bg-surface-2"
         >
           Partage une avancée, un projet, une question
         </button>
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-1 pl-[52px]">
+      <div className="mt-2 flex flex-wrap items-center gap-1">
         <button type="button" data-tour="hero-ask" onClick={() => setAsk(true)} className={action}>
-          <Zap className="size-4 text-warning" />
+          <Zap className="size-5 text-warning" />
           Je suis bloqué
         </button>
         <button type="button" onClick={() => nav('/publier?type=launch')} className={action}>
-          <FolderGit2 className="size-4 text-accent-text" />
-          Montrer un projet
+          <FolderGit2 className="size-5 text-accent-text" />
+          Un projet
         </button>
         <button type="button" onClick={() => nav('/banc')} className={action}>
-          <Smartphone className="size-4 text-success" />
-          Faire tester mon app
+          <Smartphone className="size-5 text-teal" />
+          Faire tester
         </button>
       </div>
     </section>
   );
 }
 
-/* ---------------- Pour toi : publications filtrées + questions qui m'attendent ---------------- */
+/* ---------------- Pour toi : un vrai fil (actualité + publications + questions) ---------------- */
+
+/** Centre d'intérêt → rubriques de l'actualité collectée. */
+const TOPIC_NEWS: Record<string, string[]> = {
+  ia: ['ia'],
+  web: ['dev', 'tech'],
+  mobile: ['mobile', 'apple', 'google', 'samsung'],
+  backend: ['dev', 'cloud'],
+  devops: ['cloud', 'dev'],
+  data: ['ia', 'cloud'],
+  opensource: ['dev'],
+  carriere: ['afrique', 'tech'],
+  fintech: ['afrique'],
+  showcase: [],
+};
+
+type Entry =
+  | { kind: 'news'; at: string; item: NewsItem }
+  | { kind: 'post'; at: string; post: Parameters<typeof PostCard>[0]['post'] };
 
 function ForYou() {
   const [params, setParams] = useSearchParams();
   const topic = params.get('topic') ?? '';
   const joined = usePlatform((s) => s.joined);
-  const [sort, setSort] = useState<'recent' | 'top'>('recent');
-  const { data, error } = useQuery(`posts:feed:${sort}:${topic}`, () =>
-    communityApi.list({ sort, community: topic || undefined }),
+  const home = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
+  const posts = useQuery(`posts:feed:recent:${topic}`, () =>
+    communityApi.list({ sort: 'recent', community: topic || undefined }),
   );
-  const posts = (data?.data ?? []).filter(
-    (p) => topic || joined.length === 0 || joined.includes(p.community),
-  );
+  const [more, setMore] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const topics = topic ? [topic] : joined;
+  const wanted = new Set(topics.flatMap((x) => TOPIC_NEWS[x] ?? []));
+
+  const entries = useMemo<Entry[]>(() => {
+    if (!home.data) return [];
+    const seen = new Set<string>();
+    const news = [
+      ...home.data.hero,
+      ...Object.entries(home.data.sections)
+        .filter(([k]) => wanted.size === 0 || wanted.has(k))
+        .flatMap(([, v]) => v),
+      ...home.data.videos,
+      ...more,
+    ].filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
+    const mine = (posts.data?.data ?? []).filter(
+      (p) => topics.length === 0 || topics.includes(p.community),
+    );
+    return [
+      ...news.map((item) => ({ kind: 'news' as const, at: item.publishedAt, item })),
+      ...mine.map((post) => ({ kind: 'post' as const, at: post.createdAt, post })),
+    ].sort((a, b) => b.at.localeCompare(a.at));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [home.data, posts.data, more, topic, joined]);
+
+  // Défilement infini : la suite de l'actualité se charge en approchant du bas
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !home.data || done) return;
+    const io = new IntersectionObserver(
+      async ([entry]) => {
+        if (!entry?.isIntersecting || loading) return;
+        const oldest = entries.filter((e) => e.kind === 'news').at(-1)?.at;
+        if (!oldest) return;
+        setLoading(true);
+        try {
+          const next = await fetchNews({ kind: 'article', before: oldest, limit: PAGE });
+          if (next.length === 0) setDone(true);
+          setMore((m) => [...m, ...next]);
+        } catch {
+          setDone(true);
+        } finally {
+          setLoading(false);
+        }
+      },
+      { rootMargin: '800px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [home.data, entries, loading, done]);
+
   const chips = COMMUNITIES.filter((c) => joined.includes(c.slug) || c.slug === topic);
 
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <NeedsYou />
-      <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto">
+      <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
         <Chip active={!topic} onClick={() => setParams({}, { replace: true })}>
           {joined.length ? 'Mes sujets' : 'Tout'}
         </Chip>
@@ -339,55 +407,25 @@ function ForYou() {
             active={topic === c.slug}
             onClick={() => setParams({ topic: c.slug }, { replace: true })}
           >
-            #{c.slug}
+            {c.name}
           </Chip>
         ))}
-        <span className="ml-auto flex shrink-0 items-center gap-1 text-[12.5px]">
-          {(
-            [
-              ['recent', 'Récentes'],
-              ['top', 'Populaires'],
-            ] as const
-          ).map(([k, l]) => (
-            <button
-              key={k}
-              type="button"
-              aria-pressed={sort === k}
-              onClick={() => setSort(k)}
-              className={cn(
-                'h-7 rounded-[6px] px-2',
-                sort === k ? 'bg-surface-3 text-fg' : 'text-subtle hover:text-fg',
-              )}
-            >
-              {l}
-            </button>
-          ))}
-        </span>
       </div>
-      {!data && !error && <PostSkeletons />}
-      {!!error && !data && (
-        <p className="dh-panel p-6 text-center text-muted">
-          Impossible de charger les publications. Réessaie dans un instant.
+      {!home.data && !home.error && <PostSkeletons n={3} />}
+      {!home.data && !!home.error && (
+        <p className="dh-panel p-6 text-[15px] text-muted">
+          L’actualité n’est pas disponible pour le moment. Réessaie dans un instant.
         </p>
       )}
-      {posts.map((p) => (
-        <PostCard key={p.id} post={p} />
-      ))}
-      {data && posts.length === 0 && (
-        <div className="dh-panel p-8 text-center">
-          <p className="font-medium text-fg">Rien de neuf sur tes sujets pour l’instant</p>
-          <p className="mx-auto mt-1 max-w-[420px] text-[14px] text-muted">
-            Montre ce que tu construis ou pose la question qui te bloque : la première publication
-            lance la conversation.
-          </p>
-          <Link
-            to="/publier"
-            className="lg-tint mt-4 inline-flex h-10 items-center rounded-[10px] px-4 text-[14px] font-medium"
-          >
-            Publier
-          </Link>
+      {entries.map((e, i) => (
+        <div key={e.kind === 'news' ? e.item.id : e.post.id} className="contents">
+          {e.kind === 'news' ? <FeedPost item={e.item} /> : <PostCard post={e.post} />}
+          {i === 1 && <NeedsYou />}
         </div>
-      )}
+      ))}
+      <div ref={sentinel} />
+      {loading && <PostSkeletons n={1} />}
+      {done && <p className="py-6 text-center text-[14px] text-subtle">Tu es à jour</p>}
     </div>
   );
 }
@@ -407,10 +445,10 @@ function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'h-8 shrink-0 rounded-full border px-3 text-[13px] transition-colors',
+        'h-9 shrink-0 rounded-full border px-4 text-[14px] transition-colors',
         active
           ? 'border-fg bg-fg text-canvas'
-          : 'border-line-strong text-muted hover:border-fg hover:text-fg',
+          : 'border-line-strong bg-surface-1 text-muted hover:border-fg hover:text-fg',
       )}
     >
       {children}
@@ -426,20 +464,16 @@ function NeedsYou() {
   ).slice(0, 2);
   if (!items.length) return null;
   return (
-    <section aria-labelledby="needs-you" className="dh-panel p-3">
+    <section aria-labelledby="needs-you" className="dh-panel p-4">
       <div className="flex items-center justify-between px-1">
-        <h2 id="needs-you" className="flex items-center gap-2 text-[13px] font-medium text-fg">
-          <span className="dh-live" aria-hidden />
+        <h2 id="needs-you" className="text-[16px] font-semibold text-fg">
           {home?.openInMyStacks.length ? 'Ils ont besoin de toi' : 'Personne n’a encore répondu'}
         </h2>
-        <Link
-          to="/?f=questions"
-          className="text-[12.5px] text-subtle transition-colors hover:text-fg"
-        >
+        <Link to="/?f=questions" className="text-[14px] text-accent-text hover:underline">
           Toutes les questions
         </Link>
       </div>
-      <div className="mt-2 flex flex-col gap-2">
+      <div className="mt-3 flex flex-col gap-2">
         {items.map((q) => (
           <QuestionCard key={q.id} q={q} showBlocked className="shadow-none" />
         ))}
@@ -746,28 +780,39 @@ function FeedPost({ item }: { item: NewsItem }) {
       `/publier?type=news&url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}`,
     );
   const action =
-    'inline-flex h-8 items-center gap-1.5 rounded-[8px] px-2.5 text-[13px] text-subtle transition-colors hover:bg-surface-2 hover:text-fg';
+    'inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] text-[14px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg';
 
   return (
     <article className="dh-panel overflow-hidden">
-      <header className="flex items-center gap-2.5 px-4 pt-3.5 text-[13px]">
-        <SourceMark item={item} size={22} />
-        <span className="font-medium text-fg">{item.sourceName}</span>
-        <span className="text-subtle">
-          · <Ago iso={item.publishedAt} />
-        </span>
-        {tag && tag !== 'Tout' && (
-          <span className="dh-mono ml-auto text-subtle">#{tag.toLowerCase()}</span>
-        )}
+      <header className="flex items-center gap-3 px-4 pt-4">
+        <SourceMark item={item} size={48} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold text-fg">{item.sourceName}</p>
+          <p className="truncate text-[13px] text-subtle">
+            {tag && tag !== 'Tout' ? `${tag} · ` : ''}
+            <Ago iso={item.publishedAt} />
+            {item.author ? ` · ${item.author}` : ''}
+          </p>
+        </div>
+        <button
+          type="button"
+          aria-pressed={saved}
+          aria-label={saved ? 'Retirer des enregistrés' : 'Enregistrer'}
+          onClick={() => toggle('saved', item.id)}
+          className={cn(
+            'grid size-10 shrink-0 place-items-center rounded-full text-subtle transition-colors hover:bg-surface-2',
+            saved && 'text-accent-text',
+          )}
+        >
+          <Bookmark className={cn('size-5', saved && 'fill-current')} />
+        </button>
       </header>
-      <a href={href} target="_blank" rel="noopener noreferrer" className="group block px-4 pt-2">
-        <h2 className="text-[17px] leading-[1.35] font-medium text-fg group-hover:text-accent-text">
+      <a href={href} target="_blank" rel="noopener noreferrer" className="group block px-4 pt-3">
+        <h2 className="font-sans text-[18px] leading-[1.4] font-semibold tracking-normal text-fg group-hover:text-accent-text">
           {item.title}
         </h2>
         {item.summary && (
-          <p className="mt-1.5 line-clamp-3 text-[14px] leading-[1.55] text-muted">
-            {item.summary}
-          </p>
+          <p className="mt-1.5 line-clamp-3 text-[15px] leading-[1.6] text-muted">{item.summary}</p>
         )}
       </a>
       {item.image && !broken && (
@@ -778,49 +823,44 @@ function FeedPost({ item }: { item: NewsItem }) {
           className="relative mt-3 block bg-surface-2"
         >
           <img
-            src={img(item.image, 960) ?? ''}
+            src={img(item.image, 1200) ?? ''}
             alt=""
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setBroken(true)}
-            className="aspect-[2/1] w-full object-cover"
+            className="aspect-[1.91/1] w-full object-cover"
           />
           {video && (
             <span className="absolute inset-0 grid place-items-center">
-              <span className="grid size-12 place-items-center rounded-full bg-black/70 text-white">
-                <Play className="ml-0.5 size-5 fill-current" />
+              <span className="grid size-16 place-items-center rounded-full bg-black/70 text-white">
+                <Play className="ml-1 size-7 fill-current" />
               </span>
             </span>
           )}
         </a>
       )}
-      <footer className="flex items-center gap-1 border-t border-line px-2 py-1">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 border-b border-line bg-surface-inset px-4 py-2.5 text-[13px] text-subtle hover:text-fg"
+      >
+        {video ? <Play className="size-4" /> : <ExternalLink className="size-4" />}
+        <span className="truncate">{video ? 'youtube.com' : domainOf(item.url)}</span>
+      </a>
+      <footer className="flex items-center gap-1 px-2 py-1">
         <button type="button" onClick={discuss} className={action}>
-          <MessageSquare className="size-4" />
+          <MessageSquare className="size-5" />
           Discuter
         </button>
-        <button
-          type="button"
-          aria-pressed={saved}
-          onClick={() => toggle('saved', item.id)}
-          className={cn(action, saved && 'text-accent-text')}
-        >
-          <Bookmark className={cn('size-4', saved && 'fill-current')} />
-          {saved ? 'Enregistré' : 'Enregistrer'}
-        </button>
         <button type="button" onClick={share} className={action}>
-          <Share2 className="size-4" />
+          <Share2 className="size-5" />
           Partager
         </button>
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(action, 'ml-auto hidden sm:inline-flex')}
-        >
-          {video ? <Play className="size-4" /> : <ExternalLink className="size-4" />}
-          <span className="dh-mono">{video ? 'Regarder' : domainOf(item.url)}</span>
+        <a href={href} target="_blank" rel="noopener noreferrer" className={action}>
+          {video ? <Play className="size-5" /> : <ExternalLink className="size-5" />}
+          {video ? 'Regarder' : 'Lire'}
         </a>
       </footer>
     </article>
@@ -829,60 +869,81 @@ function FeedPost({ item }: { item: NewsItem }) {
 
 /* ---------------- Colonne de droite ---------------- */
 
-const ACTIVITY_VERB: Record<ActivityItem['kind'], string> = {
-  resolved: 'a été débloqué sur',
-  answered: 'a répondu à',
-  joined: 'a rejoint',
-  'task-done': 'a livré',
-  'room-created': 'a ouvert le projet',
-  asked: 'demande de l’aide sur',
-};
-
-/** Ce qui se passe maintenant sur le réseau : relu toutes les 30 secondes. */
-function LivePanel() {
+/** « À la une », à la manière des actualités de LinkedIn : les titres du moment, sources réelles. */
+function Headlines() {
   const lang = useLang();
-  const { data, refresh } = useQuery('home', () => api.getHome());
-  useEffect(() => {
-    const id = setInterval(() => void refresh(), 30_000);
-    return () => clearInterval(id);
-  }, [refresh]);
-  const items = data?.activity.slice(0, 6) ?? [];
+  const { data } = useQuery<HomeNews>('news:home:all', () => fetchHome('all'));
+  const [all, setAll] = useState(false);
+  const items = data
+    ? [...data.hero, ...(data.sections.afrique ?? []), ...(data.sections.ia ?? [])]
+    : [];
+  const seen = new Set<string>();
+  const list = items.filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
+  const talks = data?.hn.filter((h) => h.comments > 0).slice(0, 3) ?? [];
   return (
     <section className="dh-panel p-4">
-      <h2 className="flex items-center gap-2 text-[13px] font-medium text-fg">
-        <span className="dh-live" aria-hidden />
-        En direct
-      </h2>
+      <h2 className="text-[17px] font-semibold text-fg">À la une</h2>
+      <p className="text-[13px] text-subtle">Choisi parmi {data?.sources ?? '…'} sources tech</p>
       {!data ? (
         <div className="mt-3 flex flex-col gap-3">
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-9 rounded-[8px]" />
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-10 rounded-[8px]" />
           ))}
         </div>
-      ) : items.length === 0 ? (
-        <p className="mt-2 text-[13px] text-muted">Le réseau est calme pour l’instant.</p>
       ) : (
-        <ol className="dh-stagger mt-3 flex flex-col gap-3">
-          {items.map((a) => (
-            <li key={a.id} className="flex gap-2.5">
-              <Link to={`/u/${a.actor.handle}`} className="shrink-0">
-                <Avatar name={a.actor.displayName} src={a.actor.avatarUrl} size={28} />
-              </Link>
-              <p className="min-w-0 text-[12.5px] leading-snug text-muted">
-                <Link to={`/u/${a.actor.handle}`} className="font-medium text-fg hover:underline">
-                  {a.actor.displayName.split(' ')[0]}
-                </Link>{' '}
-                {ACTIVITY_VERB[a.kind]}{' '}
-                <Link to={a.targetHref} className="text-fg hover:underline">
-                  {a.targetLabel}
-                </Link>
-                <span className="block font-mono text-[11px] text-subtle">
-                  {relativeTime(a.createdAt, lang)}
+        <ul className="mt-2 flex flex-col">
+          {list.slice(0, all ? 10 : 5).map((a) => (
+            <li key={a.id}>
+              <a
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group -mx-2 flex gap-2 rounded-[8px] px-2 py-2 hover:bg-surface-2"
+              >
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-fg/70" aria-hidden />
+                <span className="min-w-0">
+                  <span className="line-clamp-2 block text-[14px] leading-snug font-medium text-fg">
+                    {a.title}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[12.5px] text-subtle">
+                    {relativeTime(a.publishedAt, lang)} · {a.sourceName}
+                  </span>
                 </span>
-              </p>
+              </a>
             </li>
           ))}
-        </ol>
+        </ul>
+      )}
+      {list.length > 5 && (
+        <button
+          type="button"
+          onClick={() => setAll((v) => !v)}
+          className="mt-1 -ml-2 h-9 rounded-[8px] px-2 text-[14px] font-medium text-muted hover:bg-surface-2 hover:text-fg"
+        >
+          {all ? 'Afficher moins' : 'Afficher plus'}
+        </button>
+      )}
+      {talks.length > 0 && (
+        <div className="mt-3 border-t border-line pt-3">
+          <h3 className="text-[14px] font-semibold text-fg">Ça discute chez les devs</h3>
+          <ul className="mt-1 flex flex-col">
+            {talks.map((h) => (
+              <li key={h.id}>
+                <a
+                  href={h.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="-mx-2 block rounded-[8px] px-2 py-2 hover:bg-surface-2"
+                >
+                  <span className="line-clamp-2 text-[14px] leading-snug text-fg">{h.title}</span>
+                  <span className="mt-0.5 block text-[12.5px] text-subtle">
+                    {h.comments} commentaires · Hacker News
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </section>
   );
@@ -896,7 +957,7 @@ function DevsToMeet() {
   return (
     <section className="dh-panel p-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[13px] font-medium text-fg">Devs à rencontrer</h2>
+        <h2 className="text-[17px] font-semibold text-fg">Devs à rencontrer</h2>
         <Link to="/decouvrir" className="text-[12.5px] text-subtle hover:text-fg">
           Tout voir
         </Link>
@@ -904,11 +965,11 @@ function DevsToMeet() {
       <ul className="mt-3 flex flex-col gap-3">
         {devs.map(({ dev, reason }) => (
           <li key={dev.id} className="flex items-center gap-2.5">
-            <Avatar name={dev.displayName} src={dev.avatarUrl} size={36} />
+            <Avatar name={dev.displayName} src={dev.avatarUrl} size={44} />
             <div className="min-w-0 flex-1">
               <Link
                 to={`/u/${dev.handle}`}
-                className="block truncate text-[13px] font-medium text-fg hover:underline"
+                className="block truncate text-[14px] font-medium text-fg hover:underline"
               >
                 {dev.displayName}
               </Link>
@@ -939,8 +1000,8 @@ function JobsPanel() {
   return (
     <section className="dh-panel p-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="flex items-center gap-2 text-[13px] font-medium text-fg">
-          <Briefcase className="size-4 text-subtle" />
+        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
+          <Briefcase className="size-5 text-subtle" />
           Emplois
         </h2>
         <Link to="/emplois" className="text-[12.5px] text-subtle hover:text-fg">
@@ -951,7 +1012,7 @@ function JobsPanel() {
         {list.map((j) => (
           <li key={j.id}>
             <Link to={`/emplois/${j.id}`} className="group block">
-              <span className="block text-[13px] leading-snug font-medium text-fg group-hover:underline">
+              <span className="block text-[14px] leading-snug font-medium text-fg group-hover:underline">
                 {j.title}
               </span>
               <span className="mt-0.5 block text-[12px] text-subtle">
@@ -963,7 +1024,7 @@ function JobsPanel() {
         {live.map((j) => (
           <li key={j.id}>
             <a href={j.url} target="_blank" rel="noopener noreferrer" className="group block">
-              <span className="block text-[13px] leading-snug font-medium text-fg group-hover:underline">
+              <span className="block text-[14px] leading-snug font-medium text-fg group-hover:underline">
                 {j.title}
               </span>
               <span className="mt-0.5 block text-[12px] text-subtle">

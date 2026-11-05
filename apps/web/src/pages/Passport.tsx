@@ -1,5 +1,6 @@
 import {
   Award,
+  Briefcase,
   BadgeCheck,
   Clock3,
   CloudUpload,
@@ -137,13 +138,6 @@ export default function Passport() {
               <span className="sm:hidden">
                 <Avatar name={u.displayName} src={u.avatarUrl} size={96} />
               </span>
-              <span
-                title={t(`passport.available.${status_}`)}
-                className={cn(
-                  'absolute right-2 bottom-2 size-5 rounded-full ring-4 ring-surface-1 sm:size-6',
-                  status_ === 'now' ? 'bg-live' : status_ === 'today' ? 'bg-gold' : 'bg-subtle',
-                )}
-              />
             </div>
             <div className="flex gap-2 pb-1">
               {isMe ? (
@@ -245,8 +239,8 @@ export default function Passport() {
                 )}
               </p>
               {(u.availability.forMission || status_ === 'now') && (
-                <div className="mt-4 inline-flex items-center gap-2.5 rounded-[10px] border border-success/25 bg-success-soft px-3 py-2 text-[13px] text-fg">
-                  <span className="dh-live" aria-hidden />
+                <div className="mt-4 inline-flex items-center gap-2.5 rounded-[10px] bg-surface-2 px-3.5 py-2.5 text-[14px] text-fg">
+                  <Briefcase className="size-4 text-accent-text" />
                   {u.availability.forMission ? t('passport.mission') : t('passport.available.now')}
                 </div>
               )}
