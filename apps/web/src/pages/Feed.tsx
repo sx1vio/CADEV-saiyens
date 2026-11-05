@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { api, type QuestionTab } from '@/services';
 import { PostCard, communityApi } from '@/platform/community';
 import { COMMUNITIES } from '@/platform/data/feed';
-import { fetchJobs } from '@/platform/jobs';
 import {
   NEWS_CATEGORIES,
   domainOf,
@@ -30,11 +29,11 @@ import { useSession, useUI } from '@/stores/app';
 import {
   ArrowSquareOut,
   BookmarkSimple,
-  Briefcase as BriefcaseFill,
   ChatCircle,
   DeviceMobile,
   FolderSimple,
   Lightning,
+  Faders,
   PencilSimple,
   Play as PlayFill,
   ShareNetwork,
@@ -64,14 +63,32 @@ export default function Feed() {
   const tab: FeedTab = raw === 'questions' || raw === 'actu' ? raw : 'pour-toi';
   const setTab = (t: FeedTab) => setParams(t === 'pour-toi' ? {} : { f: t }, { replace: true });
 
-  return (
-    <div className="dh-page mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[240px_minmax(0,1fr)_320px]">
-      <aside className="hidden xl:block">
-        <div className="sticky top-20 flex flex-col gap-3">
-          <MeCard />
-        </div>
-      </aside>
+  const [filters, setFilters] = useState(() => {
+    try {
+      return localStorage.getItem('dh-feed-filters') !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const showFilters = (v: boolean) => {
+    setFilters(v);
+    try {
+      localStorage.setItem('dh-feed-filters', v ? '1' : '0');
+    } catch {
+      /* stockage indisponible : le choix vaut pour la session */
+    }
+  };
+  const withFilters = filters && !q && tab === 'pour-toi';
 
+  return (
+    <div
+      className={cn(
+        'dh-page mx-auto grid w-full gap-6 px-4 py-6 sm:px-6',
+        withFilters
+          ? 'max-w-[1340px] lg:grid-cols-[minmax(0,1fr)_320px] xl:gap-8'
+          : 'max-w-[1000px]',
+      )}
+    >
       <main className="min-w-0">
         <Composer />
         <nav
@@ -94,6 +111,20 @@ export default function Feed() {
               {t.label}
             </button>
           ))}
+          {!q && tab === 'pour-toi' && (
+            <button
+              type="button"
+              aria-pressed={filters}
+              onClick={() => showFilters(!filters)}
+              className={cn(
+                'ml-auto mb-1.5 hidden h-9 items-center gap-2 rounded-full px-3.5 text-[14px] font-medium lg:inline-flex',
+                filters ? 'lg-tint' : 'lg-clear',
+              )}
+            >
+              <Faders className="size-4" weight="fill" />
+              Filtres
+            </button>
+          )}
         </nav>
 
         {q ? (
@@ -107,50 +138,14 @@ export default function Feed() {
         )}
       </main>
 
-      <aside className="hidden lg:block">
-        <div className="sticky top-20 flex flex-col gap-3">
-          <DevsToMeet />
-          <JobsPanel />
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-/* ---------------- Colonne de gauche ---------------- */
-
-function MeCard() {
-  const me = useSession((s) => s.user);
-  const { data: passport } = useQuery(me ? `passport:${me.handle}` : null, () =>
-    api.getPassport(me!.handle),
-  );
-  const badges = usePlatform((s) => Object.values(s.certResults).filter((r) => r.passed).length);
-  if (!me) return null;
-  return (
-    <section className="dh-panel p-4">
-      <Link to={`/u/${me.handle}`} className="group flex items-center gap-3">
-        <Avatar name={me.displayName} src={me.avatarUrl} size={52} />
-        <span className="min-w-0">
-          <span className="block truncate text-[16px] font-semibold text-fg group-hover:underline">
-            {me.displayName}
-          </span>
-          <span className="block truncate text-[13.5px] text-muted">@{me.handle}</span>
-        </span>
-      </Link>
-      {me.bio && <p className="mt-3 line-clamp-3 text-[14px] leading-snug text-fg">{me.bio}</p>}
-      <dl className="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-[14px]">
-        {[
-          ['Proof XP', passport?.totalXp],
-          ['Certifications', badges],
-          ['Projets', passport?.rooms.length],
-        ].map(([label, v]) => (
-          <div key={label as string} className="flex items-center justify-between">
-            <dt className="text-muted">{label}</dt>
-            <dd className="font-semibold text-fg tabular">{v ?? '–'}</dd>
+      {withFilters && (
+        <aside className="hidden lg:block">
+          <div className="sticky top-20 flex flex-col gap-3">
+            <FeedFilters onHide={() => showFilters(false)} />
           </div>
-        ))}
-      </dl>
-    </section>
+        </aside>
+      )}
+    </div>
   );
 }
 
@@ -212,7 +207,7 @@ function Composer() {
         <button
           type="button"
           onClick={() => nav('/publier')}
-          className="h-12 min-w-0 flex-1 truncate rounded-full border border-line-strong px-5 text-left text-[15px] font-medium text-subtle transition-colors hover:bg-surface-2"
+          className="lg-clear h-12 min-w-0 flex-1 truncate rounded-full px-5 text-left text-[15px] font-medium text-subtle"
         >
           Partage une avancée, un projet, une question
         </button>
@@ -257,6 +252,8 @@ type Entry =
 
 function ForYou() {
   const [params] = useSearchParams();
+  const kind = params.get('type') ?? '';
+  const lang = params.get('lang') ?? '';
   const rawTopic = params.get('topic') ?? '';
   const topic = rawTopic === 'une' ? '' : rawTopic;
   const joined = usePlatform((s) => s.joined);
@@ -285,12 +282,26 @@ function ForYou() {
     const mine = (posts.data?.data ?? []).filter(
       (p) => topics.length === 0 || topics.includes(p.community),
     );
+    const keepNews = news.filter(
+      (i) =>
+        (!lang || i.lang === lang) &&
+        (kind === '' ||
+          (kind === 'video' ? i.kind === 'video' : kind === 'article' && i.kind !== 'video')),
+    );
     return [
-      ...news.map((item) => ({ kind: 'news' as const, at: item.publishedAt, item })),
-      ...mine.map((post) => ({ kind: 'post' as const, at: post.createdAt, post })),
+      ...(kind === 'post' ? [] : keepNews).map((item) => ({
+        kind: 'news' as const,
+        at: item.publishedAt,
+        item,
+      })),
+      ...(kind === '' || kind === 'post' ? mine : []).map((post) => ({
+        kind: 'post' as const,
+        at: post.createdAt,
+        post,
+      })),
     ].sort((a, b) => b.at.localeCompare(a.at));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [home.data, posts.data, more, topic, joined]);
+  }, [home.data, posts.data, more, topic, joined, kind, lang]);
 
   // Défilement infini : la suite de l'actualité se charge en approchant du bas
   useEffect(() => {
@@ -369,7 +380,7 @@ function TopicChips() {
         type="button"
         onClick={() => setEditing(true)}
         aria-label="Choisir mes sujets"
-        className="grid size-9 shrink-0 place-items-center rounded-full border border-line-strong bg-surface-1 text-fg hover:border-fg"
+        className="lg-clear grid size-9 shrink-0 place-items-center rounded-full text-fg"
       >
         <PencilSimple className="size-4" weight="fill" />
       </button>
@@ -393,10 +404,8 @@ function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'h-9 shrink-0 rounded-full border px-4 text-[14px] transition-colors',
-        active
-          ? 'border-fg bg-fg text-canvas'
-          : 'border-line-strong bg-surface-1 text-muted hover:border-fg hover:text-fg',
+        'h-9 shrink-0 rounded-full px-4 text-[14px] font-medium transition-colors',
+        active ? 'lg-tint' : 'lg-clear',
       )}
     >
       {children}
@@ -777,7 +786,7 @@ function FeedPost({ item }: { item: NewsItem }) {
             decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setBroken(true)}
-            className="aspect-[1.91/1] w-full object-cover"
+            className="aspect-[2.2/1] max-h-[440px] w-full object-cover"
           />
           {video && (
             <span className="absolute inset-0 grid place-items-center">
@@ -883,90 +892,112 @@ function Headlines() {
   );
 }
 
-function DevsToMeet() {
-  const { t } = useTranslation();
-  const { data } = useQuery('home', () => api.getHome());
-  const devs = data?.devsToMeet.slice(0, 3) ?? [];
-  if (!devs.length) return null;
+/** Filtres du fil : type de contenu, langue et centres d'intérêt, en un seul endroit. */
+function FeedFilters({ onHide }: { onHide: () => void }) {
+  const [params, setParams] = useSearchParams();
+  const joined = usePlatform((s) => s.joined);
+  const toggle = usePlatform((s) => s.toggle);
+  const set = (k: string, v: string) => {
+    const next = new URLSearchParams(params);
+    next.delete('f');
+    if (v) next.set(k, v);
+    else next.delete(k);
+    setParams(next, { replace: true });
+  };
+  const type = params.get('type') ?? '';
+  const lang = params.get('lang') ?? '';
+  const Option = ({
+    on,
+    onClick,
+    children,
+  }: {
+    on: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+  }) => (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        'h-9 rounded-full px-3.5 text-[14px] font-medium transition-colors',
+        on ? 'lg-tint' : 'lg-clear',
+      )}
+    >
+      {children}
+    </button>
+  );
   return (
     <section className="dh-panel p-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[17px] font-semibold text-fg">Devs à rencontrer</h2>
-        <Link to="/decouvrir" className="text-[12.5px] text-subtle hover:text-fg">
-          Tout voir
-        </Link>
-      </div>
-      <ul className="mt-3 flex flex-col gap-3">
-        {devs.map(({ dev, reason }) => (
-          <li key={dev.id} className="flex items-center gap-2.5">
-            <Avatar name={dev.displayName} src={dev.avatarUrl} size={44} />
-            <div className="min-w-0 flex-1">
-              <Link
-                to={`/u/${dev.handle}`}
-                className="block truncate text-[14px] font-medium text-fg hover:underline"
-              >
-                {dev.displayName}
-              </Link>
-              <p className="truncate text-[12px] text-subtle">{t(reason.key, reason.params)}</p>
-            </div>
-            <Link
-              to={`/u/${dev.handle}`}
-              className="lg-clear inline-flex h-8 shrink-0 items-center rounded-full px-3 text-[12.5px]"
+      <div className="flex items-center justify-between">
+        <h2 className="font-sans text-[17px] font-semibold tracking-normal text-fg">Filtres</h2>
+        <span className="flex items-center gap-1">
+          {(type || lang) && (
+            <button
+              type="button"
+              onClick={() => setParams({}, { replace: true })}
+              className="h-8 rounded-full px-2.5 text-[13.5px] font-medium text-accent-text hover:bg-surface-2"
             >
-              Voir
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function JobsPanel() {
-  const { data: jobs } = useQuery('jobs', fetchJobs);
-  const { data: liveJobs } = useQuery<NewsItem[]>(
-    jobs?.length === 0 ? 'rail:live-jobs' : null,
-    () => fetchNews({ kind: 'job', limit: 3 }),
-  );
-  const list = (jobs ?? []).slice(0, 3);
-  const live = jobs?.length === 0 ? (liveJobs ?? []).slice(0, 3) : [];
-  if (!list.length && !live.length) return null;
-  return (
-    <section className="dh-panel p-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
-          <BriefcaseFill weight="fill" className="size-5 text-fg" />
-          Emplois
-        </h2>
-        <Link to="/emplois" className="text-[12.5px] text-subtle hover:text-fg">
-          Tout voir
-        </Link>
+              Réinitialiser
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onHide}
+            aria-label="Masquer les filtres"
+            className="grid size-8 place-items-center rounded-full text-fg hover:bg-surface-2"
+          >
+            <X className="size-4" />
+          </button>
+        </span>
       </div>
-      <ul className="mt-3 flex flex-col gap-3">
-        {list.map((j) => (
-          <li key={j.id}>
-            <Link to={`/emplois/${j.id}`} className="group block">
-              <span className="block text-[14px] leading-snug font-medium text-fg group-hover:underline">
-                {j.title}
-              </span>
-              <span className="mt-0.5 block text-[12px] text-subtle">
-                {j.company} · {j.location}
-              </span>
-            </Link>
-          </li>
+      <p className="mt-3 text-[13.5px] font-semibold text-fg">Contenu</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {(
+          [
+            ['', 'Tout'],
+            ['article', 'Articles'],
+            ['video', 'Vidéos'],
+            ['post', 'Publications'],
+          ] as const
+        ).map(([k, l]) => (
+          <Option key={k} on={type === k} onClick={() => set('type', k)}>
+            {l}
+          </Option>
         ))}
-        {live.map((j) => (
-          <li key={j.id}>
-            <a href={j.url} target="_blank" rel="noopener noreferrer" className="group block">
-              <span className="block text-[14px] leading-snug font-medium text-fg group-hover:underline">
-                {j.title}
-              </span>
-              <span className="mt-0.5 block text-[12px] text-subtle">
-                {[j.author, j.sourceName].filter(Boolean).join(' · ')}
-              </span>
-            </a>
-          </li>
+      </div>
+      <p className="mt-4 text-[13.5px] font-semibold text-fg">Langue</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {(
+          [
+            ['', 'Toutes'],
+            ['fr', 'Français'],
+            ['en', 'Anglais'],
+          ] as const
+        ).map(([k, l]) => (
+          <Option key={k} on={lang === k} onClick={() => set('lang', k)}>
+            {l}
+          </Option>
         ))}
+      </div>
+      <p className="mt-4 text-[13.5px] font-semibold text-fg">Centres d’intérêt</p>
+      <ul className="mt-1.5 flex flex-col">
+        {COMMUNITIES.map((c) => {
+          const on = joined.includes(c.slug);
+          return (
+            <li key={c.slug}>
+              <label className="-mx-2 flex h-10 cursor-pointer items-center gap-3 rounded-[8px] px-2 text-[14.5px] text-fg hover:bg-surface-2/70">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => toggle('joined', c.slug)}
+                  className="size-[18px] accent-[var(--accent)]"
+                />
+                {c.name}
+              </label>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

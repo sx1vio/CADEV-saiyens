@@ -163,7 +163,9 @@ function SideItem({
         'side-item flex h-10 shrink-0 items-center gap-3 pl-3 text-[15px]',
         merge ? 'side-merge rounded-l-[12px] pr-4' : 'mr-3 rounded-[10px] pr-3',
         active
-          ? 'bg-canvas font-medium text-fg'
+          ? merge
+            ? 'bg-canvas font-semibold text-fg'
+            : 'bg-white/[0.12] font-semibold text-white'
           : 'font-medium text-white/80 hover:bg-white/[0.06] hover:text-white',
       )}
     >
@@ -178,7 +180,11 @@ function SideItem({
         <span
           className={cn(
             'grid h-5 min-w-5 place-items-center rounded-[6px] px-1.5 font-mono text-[11px] tabular',
-            active ? 'bg-surface-2 text-muted' : 'bg-white/10 text-white/80',
+            active
+              ? merge
+                ? 'bg-surface-3 text-fg'
+                : 'bg-white/15 text-white'
+              : 'bg-white/10 text-white/80',
           )}
         >
           {count > 99 ? '99+' : count}
@@ -379,13 +385,13 @@ function TopBar() {
   const actions = useCreateActions();
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md">
+    <header className="dh-glassbar sticky top-0 z-30">
       <div className="flex h-14 items-center gap-3 px-6">
         <button
           type="button"
           onClick={() => setPalette(true)}
           data-tour="palette"
-          className="flex h-9 w-full max-w-[440px] items-center gap-2.5 rounded-[10px] border border-line bg-surface-1 pr-1.5 pl-3 text-left text-[13.5px] text-subtle transition-colors hover:border-line-strong"
+          className="lg-clear flex h-10 w-full max-w-[460px] items-center gap-2.5 rounded-full pr-2 pl-4 text-left text-[14px] text-subtle"
         >
           <MagnifyingGlass weight="bold" className="size-4 shrink-0" />
           <span className="flex-1 truncate">{t('nav.searchPlaceholder')}</span>
@@ -400,7 +406,7 @@ function TopBar() {
                 <button
                   type="button"
                   data-tour="ask"
-                  className="lg-tint inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3.5 text-[13.5px] font-medium"
+                  className="lg-tint inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-medium"
                 >
                   <PlusFill weight="bold" className="size-4" />
                   {t('navEntry.create')}
@@ -433,7 +439,7 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
   const setPalette = useUI((s) => s.setPalette);
   const me = useSession((s) => s.user);
   return (
-    <header className="sticky top-0 z-40 bg-canvas/95 backdrop-blur-md">
+    <header className="dh-glassbar sticky top-0 z-40">
       <div className="flex h-14 items-center gap-2 px-3">
         <button
           type="button"

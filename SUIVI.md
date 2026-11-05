@@ -157,6 +157,13 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 05/11/2026 — Refonte v3 : navigation resserrée, accueil façon LinkedIn, tons Discord, verre Apple
+
+- **Demande de Sylvio** : retirer Vidéos, Communautés (garder des centres d'intérêt), Passport (doublon du profil), Apprendre, Guide IA, Templates, Classement ; fusionner l'Entraide dans l'accueil ; s'inspirer de GitHub, LinkedIn et Discord ; Poppins ; éléments plus grands ; un vrai fil d'actualité ; pas de points verts ni de panneau « En direct » ; icônes pleines et unies ; pas de texte gris ; un peu de glassmorphisme Apple ; carte de gauche retirée, filtres masquables, colonne centrale plus large ; menu latéral : garder les coins inversés.
+- **Fait** (branche `feat/plateforme-v2`, poussée) : pages et données retirées, anciens liens redirigés (`/sos` → `/?f=questions`, `/apprendre` → `/certifications`, `/creer` et `/templates` → `/prevol`, `/classement` → `/decouvrir`) ; navigation en trois groupes (réseau, Progresser, Livrer) avec une entrée « Banc d'essai » à venir ; accueil = fil unique (articles réels avec images, publications, questions d'entraide) filtré par centres d'intérêt, section « À la une » parmi les sujets, onglets Questions et Actualité, panneau de filtres (contenu, langue, centres d'intérêt) masquable et mémorisé ; profil refait (carte d'identité, bannière dessinée avec l'activité réelle, graphe de contributions vert, colonne certifications) ; mot « Passport » remplacé par « profil » ; Poppins (OFL) ; tons Discord (#f2f3f5 / #313338), texte foncé ; icônes Phosphor pleines (MIT) dans le shell et l'accueil ; verre Apple sur les cartes, la barre du haut, les boutons et les puces.
+- **Environnement** : Postgres 17 portable lancé depuis le scratchpad (pas de Docker dans WSL), front en mode HTTP (`VITE_API_MODE=http`), 847 articles collectés en local (`news:ingest`). Suite API : 566 tests verts (2 instables en suite complète, verts seuls).
+- **Pas encore fait** : pré-vol v2 (Lighthouse réel, test de charge avec preuve de propriété, gitleaks et osv-scanner dans l'action, commentaire de PR), Banc d'essai (tests entre devs), préparation des certifications, site vitrine, tests e2e à mettre à jour pour les pages retirées.
+
 ### 04/11/2026 — Pré-vol : agent IA et CI (étape 2), documentation
 
 - **Demande de Sylvio** : « oui » pour l'étape 2, puis « je veux plus que ça : des tests automatiques et gratuits, une CI vraiment poussée, un vrai contrôle de code », puis « finis les améliorations du pré-vol, mets à jour la doc et on s'arrête ». Fait : l'étape 2, avec un contrôle du code dans l'action GitHub ; le reste est noté dans « Reste à faire ».
