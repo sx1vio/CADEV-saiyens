@@ -61,7 +61,8 @@ Questions auxquelles la plateforme doit répondre :
 
 ## Reste à faire
 
-- [ ] Pré-vol, pour aller plus loin (demande de Sylvio : « une CI vraiment poussée, un vrai contrôle de code ») : analyse statique de sécurité (Semgrep ou CodeQL) et détection de secrets dans tout l’historique (gitleaks) dans l’action GitHub ; audit Lighthouse mobile réel ; couverture de tests dans le rapport ; commentaire automatique sur les pull requests (04/11/2026)
+- [ ] Pré-vol : créer une clé PageSpeed Insights gratuite et la mettre dans `PAGESPEED_API_KEY` en production (05/11/2026)
+- [ ] Pré-vol : faire tourner l'action sur une vraie PR (workflow `prevol.yml`) et vérifier gitleaks, osv-scanner et le commentaire (05/11/2026)
 - [ ] Pré-vol : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; tableau de bord Systalink dans `apps/admin` (04/11/2026)
 - [ ] Pré-vol : essayer l’action GitHub sur un vrai dépôt une fois `main` en ligne (testée seulement en local, sans `jq`) et remplacer `api-url` par le domaine définitif (04/11/2026)
 - [ ] Production : renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule), sinon 60 requêtes GitHub par heure pour tout le serveur (04/11/2026)
@@ -83,6 +84,7 @@ Questions auxquelles la plateforme doit répondre :
 ## Fait
 
 - [x] Pré-vol, étape 1 : module API `preflight`, page `/prevol`, rapport Markdown pour l'agent IA, 14 tests (04/11/2026)
+- [x] Pré-vol v2 : Lighthouse réel, test de charge avec preuve de propriété, gitleaks, osv-scanner, couverture et commentaire de PR dans l'action (05/11/2026)
 - [x] Pré-vol, étape 2 : jetons d'API personnels, serveur MCP `/api/v1/mcp`, action GitHub `actions/prevol` (contrôle du code + pré-vol), guide `docs/guides/prevol.md` (04/11/2026)
 - [x] Récupération du travail de l'équipe (#172 à #179) et fusion sur `main` ; `sharp` (LGPL) remplacé ; dossier de soumission (23/10/2026)
 - [x] Audit de toutes les branches ; `main` vérifiée de bout en bout (16/10/2026)
@@ -156,6 +158,17 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 05/11/2026 — Pré-vol v2 : Lighthouse réel, test de charge, CI de sécurité, commentaire de PR
+
+- **Demande de Sylvio** : « fini le pré-vol, il doit être solide et puissant, avec un test de charge, hébergé par Systalink mais qui ne leur coûtera rien ».
+- **Lighthouse mobile réel** via l'API PageSpeed Insights (l'audit tourne chez Google) : scores performance, accessibilité, bonnes pratiques, référencement ; LCP, TBT, CLS ; vrais visiteurs Chrome (CrUX) ; contrôles `lh.*` avec les seuils officiels et les pistes de gain. Nouvelle variable `PAGESPEED_API_KEY` : sans clé, le quota anonyme de Google est épuisé (constaté le 05/11, HTTP 429) et le rapport l'indique (`lh.unavailable`).
+- **Test de charge** (option `loadTest`) : paliers 2, 5, 10, 20, 35, 50 visiteurs simultanés de 4 s, arrêt au premier palier qui ne tient pas (p95 < 2 s, erreurs < 2 %), 4 000 requêtes et 64 Ko par réponse au plus, un seul test à la fois sur le serveur, 3 par personne et par heure, anti-SSRF à chaque requête. **Preuve de propriété obligatoire** (fichier `/.well-known/devhub-verify.txt` ou TXT `_devhub-verify.<domaine>`, jeton HMAC dérivé du compte et du domaine, rien de stocké) : `GET /api/v1/preflight/ownership?url=`. Contrôles `load.capacity`, `load.server_errors`, `load.rate_limited`, `load.slow_baseline`. Option ajoutée à l'outil MCP `run_preflight`.
+- **Front** : case « Ajouter un test de charge » avec les instructions de preuve et « Vérifier » ; rapport avec les 4 scores Lighthouse, les mesures, et la courbe débit / temps de réponse par palier (palier de rupture en rouge) et son tableau.
+- **Action GitHub** : gitleaks 8.30.1 (secrets dans tout l'historique, MIT) et osv-scanner 2.7.0 (failles de tous les écosystèmes, Apache-2.0), téléchargés depuis leurs publications et vérifiés par SHA-256 ; Lighthouse 13.5.0 sur la machine GitHub ; couverture des tests (`coverage-min`) ; test de charge (`load-test`) ; commentaire de synthèse unique sur la PR, mis à jour à chaque passage. Semgrep écarté (LGPL, interdite par le règlement). Workflow `.github/workflows/prevol.yml` : le pré-vol appliqué à DevHub sur chaque PR (dépôt privé : pas à chaque push). **Pas encore exécutée sur GitHub** (`jq` absent en local : syntaxe vérifiée seulement).
+- **Trouvé par le test de charge sur DevHub lui-même** : `/api/v1/news/home` (la une de l'accueil) cédait à 5 visiteurs simultanés (p95 3,6 s). Corrigé : requêtes en parallèle et cache mémoire de 60 s partagé. Après : 910 req/s à 10 visiteurs, p95 23 ms, aucune rupture jusqu'au plafond.
+- **Tests** : `preflight-v2.spec.ts` (paliers, rupture, plafond, preuve de propriété, lecture de PageSpeed, refus sans preuve, un seul test à la fois). Suite API 581/581, front 76/76, lint et types OK.
+- **Environnement** : l'API locale tourne sur le port 3011 (un serveur Next.js d'un autre projet a pris le 3000) ; front lancé avec `DEVHUB_API_PROXY=http://127.0.0.1:3011`.
 
 ### 05/11/2026 — Refonte v3 : navigation resserrée, accueil façon LinkedIn, tons Discord, verre Apple
 

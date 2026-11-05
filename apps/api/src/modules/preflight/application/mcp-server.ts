@@ -6,7 +6,15 @@ import {
 } from '@devhub/contracts';
 import { z } from 'zod';
 import { toMarkdown } from '../domain/report';
-import { NothingToCheckError, PreflightBusyError, PreflightQuotaError } from './run-preflight';
+import {
+  LoadTestBusyError,
+  LoadTestNeedsUrlError,
+  LoadTestQuotaError,
+  NothingToCheckError,
+  OwnershipRequiredError,
+  PreflightBusyError,
+  PreflightQuotaError,
+} from './run-preflight';
 
 // Serveur MCP du pré-vol (transport « Streamable HTTP », mode sans état, réponses JSON) :
 // l'agent IA du développeur (Claude Code, Cursor, Codex…) lance un pré-vol, lit le rapport et
@@ -15,7 +23,12 @@ import { NothingToCheckError, PreflightBusyError, PreflightQuotaError } from './
 export const MCP_PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
 
 export interface McpDeps {
-  run(input: { userId: string; url: string | null; repo: string | null }): Promise<string>;
+  run(input: {
+    userId: string;
+    url: string | null;
+    repo: string | null;
+    loadTest?: boolean;
+  }): Promise<string>;
   get(id: string): Promise<PreflightReport | null>;
   listMine(userId: string): Promise<PreflightListItem[]>;
   links(id: string): { page: string; json: string; markdown: string };
@@ -49,7 +62,7 @@ const TOOLS = [
     name: 'run_preflight',
     title: 'Lancer un pré-vol',
     description:
-      'Vérifie une application en ligne et/ou un dépôt GitHub public (10 à 45 s) et renvoie le ' +
+      'Vérifie une application en ligne et/ou un dépôt GitHub public (sécurité, dépendances, Lighthouse mobile réel, tenue à la charge en option ; 15 s à 2 min) et renvoie le ' +
       'rapport en Markdown : score sur 100, verdict, puis chaque point à corriger avec la ' +
       'correction à appliquer. Donne au moins url ou repo.',
     inputSchema: {
@@ -62,6 +75,11 @@ const TOOLS = [
         repo: {
           type: 'string',
           description: 'Dépôt GitHub public : « owner/repo » ou https://github.com/owner/repo.',
+        },
+        loadTest: {
+          type: 'boolean',
+          description:
+            'Ajoute un test de charge (montée de 2 à 50 visiteurs simultanés, 30 s au plus). Exige que l’auteur ait prouvé contrôler le domaine : fichier https://<domaine>/.well-known/devhub-verify.txt ou enregistrement DNS, à récupérer sur la page Pré-vol de DevHub.',
         },
       },
       additionalProperties: false,
@@ -97,6 +115,14 @@ export function preflightFailureText(err: unknown): string | null {
     return `Limite atteinte : ${PREFLIGHT_HOURLY_QUOTA} pré-vols par heure. Corrige d’abord les points du dernier rapport, puis réessaie plus tard.`;
   if (err instanceof PreflightBusyError)
     return 'Un pré-vol est déjà en cours sur ce compte. Attends qu’il se termine.';
+  if (err instanceof OwnershipRequiredError)
+    return 'Test de charge refusé : le domaine n’est pas prouvé. Demande à l’auteur de créer le fichier .well-known/devhub-verify.txt (ou l’enregistrement DNS) indiqué sur la page Pré-vol de DevHub, puis relance. Sans test de charge, relance avec loadTest: false.';
+  if (err instanceof LoadTestQuotaError)
+    return 'Limite atteinte : 3 tests de charge par heure. Relance sans loadTest, ou réessaie plus tard.';
+  if (err instanceof LoadTestBusyError)
+    return 'Un autre test de charge tourne sur le serveur. Réessaie dans une minute, ou relance sans loadTest.';
+  if (err instanceof LoadTestNeedsUrlError)
+    return 'Le test de charge a besoin de l’adresse publique de l’application (url).';
   if (err instanceof NothingToCheckError) {
     if (err.reason === 'repo_not_found')
       return 'Dépôt introuvable ou privé : le pré-vol ne lit que les dépôts GitHub publics.';
@@ -178,6 +204,7 @@ export class PreflightMcpServer {
             userId,
             url: parsed.data.url ?? null,
             repo: parsed.data.repo ?? null,
+            loadTest: parsed.data.loadTest ?? false,
           });
           return this.reportText(id);
         } catch (err) {

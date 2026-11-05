@@ -1,0 +1,27 @@
+# Le pré-vol appliqué à DevHub lui-même : secrets dans tout l'historique (gitleaks) et failles des
+# dépendances (osv-scanner) à chaque pull request, avec une synthèse en commentaire. Le contrôle du
+# code (lint, types, tests, build) reste dans ci.yml. Déclenché à la demande ou sur PR seulement :
+# le dépôt est privé, les minutes de CI sont comptées.
+name: Pré-vol
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  prevol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./actions/prevol
+        with:
+          code-checks: 'false'
+          lighthouse: 'false'
+          repo: ''

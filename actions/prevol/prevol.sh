@@ -5,6 +5,7 @@ set -euo pipefail
 
 out="${GITHUB_OUTPUT:-/dev/null}"
 summary="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+comment="${RUNNER_TEMP:-/tmp}/prevol-comment.md"
 api="${PREVOL_API%/}"
 url="${PREVOL_URL:-}"
 repo="${PREVOL_REPO:-}"
@@ -22,10 +23,12 @@ if [[ -z "$url" && -z "$repo" ]]; then
   exit 0
 fi
 
-body=$(jq -n --arg url "$url" --arg repo "$repo" \
-  '{url: (if $url == "" then null else $url end), repo: (if $repo == "" then null else $repo end)}')
+load=false
+[[ "${PREVOL_LOAD_TEST:-false}" == "true" && -n "$url" ]] && load=true
+body=$(jq -n --arg url "$url" --arg repo "$repo" --argjson load "$load" \
+  '{url: (if $url == "" then null else $url end), repo: (if $repo == "" then null else $repo end), loadTest: $load}')
 resp=$(mktemp)
-code=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 120 -X POST "$api/api/v1/preflight" \
+code=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 240 -X POST "$api/api/v1/preflight" \
   -H "Authorization: Bearer $PREVOL_TOKEN" -H 'Content-Type: application/json' \
   -H 'User-Agent: devhub-prevol-action/1' -d "$body") || code=000
 
@@ -47,6 +50,23 @@ page=$(sed -E 's#^(https?://[^/]+).*#\1#' <<<"$api")/prevol/$id
 
 curl -sS --max-time 30 "$api/api/v1/preflight/$id/report.md" >>"$summary" || true
 echo >>"$summary"
+
+{
+  echo "## Application en ligne : $score/100"
+  echo
+  case "$verdict" in
+    ready) echo "✅ Prêt pour la production" ;;
+    review) echo "🟠 À améliorer avant le lancement" ;;
+    *) echo "🔴 À corriger avant le lancement" ;;
+  esac
+  echo
+  jq -r '.checks[] | select(.status == "fail" or .status == "warn") | "- \(if .status == "fail" then "🔴" else "🟠" end) **\(.title)** (`\(.id)`)"' "$resp" | head -12
+  lt=$(jq -r 'if .loadTest then "Test de charge : \(if .loadTest.breakingConcurrency == null then "tient \(.loadTest.maxStableConcurrency) visiteurs simultanés" else "cède à \(.loadTest.breakingConcurrency) visiteurs simultanés" end)" else empty end' "$resp")
+  [[ -n "$lt" ]] && echo && echo "$lt"
+  echo
+  echo "[Rapport complet]($page) · à donner à ton agent IA : \`$api/api/v1/preflight/$id/report.md\`"
+  echo
+} >>"$comment"
 
 echo "Pré-vol : $score/100, verdict $verdict — $page"
 jq -r '.checks[] | select(.status == "fail") | "::error title=Pré-vol — \(.title)::\(.detail)"' "$resp"

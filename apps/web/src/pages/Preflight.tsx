@@ -4,10 +4,15 @@ import type {
   ListApiTokensResponse,
   ListPreflightResponse,
   PreflightCheck,
+  PreflightLighthouse,
+  PreflightLoadTest,
+  PreflightOwnership,
   PreflightReport,
   PreflightVerdict,
 } from '@devhub/contracts';
 import {
+  Accessibility,
+  Activity,
   AlertTriangle,
   Bot,
   CheckCircle2,
@@ -75,8 +80,10 @@ async function call<T>(
 }
 
 const preflightApi = {
-  run: (url: string | null, repo: string | null) =>
-    call<PreflightReport>('POST', '/preflight', { url, repo }),
+  run: (url: string | null, repo: string | null, loadTest = false) =>
+    call<PreflightReport>('POST', '/preflight', { url, repo, loadTest }),
+  ownership: (url: string) =>
+    call<PreflightOwnership>('GET', `/preflight/ownership?url=${encodeURIComponent(url)}`),
   get: (id: string) => call<PreflightReport>('GET', `/preflight/${id}`),
   mine: () => call<ListPreflightResponse>('GET', '/preflight'),
   markdownUrl: (id: string) => `/api/v1/preflight/${id}/report.md`,
@@ -98,6 +105,14 @@ function preflightError(e: unknown): string {
     return 'Dépôt introuvable. Il doit être public, au format owner/repo.';
   if (code === 'preflight.github_rate_limited')
     return 'GitHub limite les requêtes pour le moment. Réessaie dans quelques minutes.';
+  if (code === 'preflight.ownership_required')
+    return 'Test de charge refusé : le domaine n’est pas encore prouvé. Crée le fichier ou l’enregistrement DNS indiqué, puis clique sur « Vérifier ».';
+  if (code === 'preflight.load_quota')
+    return 'Tu as atteint la limite de 3 tests de charge par heure. Lance le pré-vol sans test de charge, ou réessaie plus tard.';
+  if (code === 'preflight.load_busy')
+    return 'Un autre test de charge tourne en ce moment. Réessaie dans une minute.';
+  if (code === 'preflight.load_needs_url')
+    return 'Le test de charge a besoin de l’adresse de l’application.';
   if (code === 'validation.failed' || code === 'http.400')
     return 'Indique une adresse en https:// ou un dépôt GitHub (owner/repo).';
   if (code === 'network.offline') return 'Pas de connexion. Réessaie quand le réseau revient.';
@@ -116,6 +131,9 @@ const VERDICT: Record<PreflightVerdict, { label: string; tone: 'success' | 'warn
 const CATEGORY: Record<PreflightCheck['category'], { label: string; icon: typeof ShieldCheck }> = {
   security: { label: 'Sécurité', icon: ShieldCheck },
   network: { label: 'Réseau lent', icon: Gauge },
+  performance: { label: 'Performance', icon: Gauge },
+  accessibility: { label: 'Accessibilité', icon: Accessibility },
+  load: { label: 'Tenue à la charge', icon: Activity },
   dependencies: { label: 'Dépendances', icon: Package },
   licences: { label: 'Licences', icon: Scale },
   hosting: { label: 'Hébergement', icon: Server },
@@ -180,6 +198,7 @@ function Launcher() {
   const navigate = useNavigate();
   const [url, setUrl] = useState('');
   const [repo, setRepo] = useState('');
+  const [loadTest, setLoadTest] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useQuery(user ? 'preflight:mine' : null, () => preflightApi.mine());
@@ -192,9 +211,11 @@ function Launcher() {
     if (!u && !r)
       return setError('Indique au moins l’adresse de l’application ou le dépôt GitHub.');
     const normalized = u && !/^https?:\/\//i.test(u) ? `https://${u}` : u;
+    if (loadTest && !normalized)
+      return setError('Le test de charge a besoin de l’adresse de l’application.');
     setRunning(true);
     try {
-      const report = await preflightApi.run(normalized || null, r || null);
+      const report = await preflightApi.run(normalized || null, r || null, loadTest);
       setQueryData<PreflightReport>(`preflight:${report.id}`, () => report);
       setQueryData<ListPreflightResponse>('preflight:mine', (old) => ({
         items: [report, ...(old?.items ?? [])].slice(0, 20),
@@ -246,6 +267,18 @@ function Launcher() {
                 disabled={running}
               />
             </Field>
+            {user && (
+              <LoadTestOption
+                url={
+                  url.trim() && !/^https?:\/\//i.test(url.trim())
+                    ? `https://${url.trim()}`
+                    : url.trim()
+                }
+                on={loadTest}
+                onChange={setLoadTest}
+                disabled={running}
+              />
+            )}
             {error && (
               <p
                 role="alert"
@@ -277,7 +310,9 @@ function Launcher() {
               )}
               {running && (
                 <span className="text-[13px] text-muted" aria-live="polite">
-                  Analyse du site, de ses fichiers et du dépôt : jusqu’à 45 secondes.
+                  {loadTest
+                    ? 'Audit Lighthouse, analyse du site et du dépôt, puis montée en charge : jusqu’à 2 minutes.'
+                    : 'Audit Lighthouse, analyse du site, de ses fichiers et du dépôt : jusqu’à une minute.'}
                 </span>
               )}
             </div>
@@ -285,7 +320,7 @@ function Launcher() {
         </Card>
 
         <Card className="flex flex-col gap-3 p-5">
-          <p className="label-caps">Ce qui est vérifié</p>
+          <p className="text-[15px] font-semibold text-fg">Ce qui est vérifié</p>
           {(
             [
               [
@@ -303,6 +338,16 @@ function Launcher() {
                 'Dépendances',
                 'failles connues (base OSV) et version corrigée, fichiers de secrets',
               ],
+              [
+                Gauge,
+                'Lighthouse mobile réel',
+                'performance, accessibilité, référencement, Core Web Vitals (Google)',
+              ],
+              [
+                Activity,
+                'Tenue à la charge',
+                'montée de 2 à 50 visiteurs simultanés, point de rupture',
+              ],
               [Scale, 'Licences', 'licence du dépôt, dépendances GPL ou AGPL'],
               [Server, 'Hébergement', 'en Afrique chez Systalink ou non'],
             ] as const
@@ -312,8 +357,8 @@ function Launcher() {
                 <Icon />
               </IconChip>
               <div className="min-w-0">
-                <p className="text-[13px] font-medium text-fg">{title}</p>
-                <p className="text-xs text-muted">{text}</p>
+                <p className="text-[14px] font-medium text-fg">{title}</p>
+                <p className="text-[13px] text-muted">{text}</p>
               </div>
             </div>
           ))}
@@ -644,7 +689,7 @@ function ReportView({ id }: { id: string }) {
   async function rerun() {
     setRerunning(true);
     try {
-      const report = await preflightApi.run(data!.url, data!.repo);
+      const report = await preflightApi.run(data!.url, data!.repo, !!data!.loadTest);
       setQueryData<PreflightReport>(`preflight:${report.id}`, () => report);
       navigate(`/prevol/${report.id}`);
     } catch (err) {
@@ -748,6 +793,9 @@ function ReportView({ id }: { id: string }) {
         </div>
       )}
 
+      {data.lighthouse && <LighthouseCard lh={data.lighthouse} />}
+      {data.loadTest && <LoadCard lt={data.loadTest} />}
+
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col gap-6">
           {groups.map((g) => (
@@ -793,12 +841,337 @@ function ReportView({ id }: { id: string }) {
             </Card>
           )}
           <p className="px-1 text-xs text-subtle">
-            L’estimation 3G est un calcul, pas une mesure sur un vrai téléphone. Les failles
-            viennent de la base publique OSV.
+            L’estimation 3G est un calcul ; l’audit Lighthouse est une vraie mesure faite par Google
+            PageSpeed Insights. Les failles viennent de la base publique OSV.
           </p>
         </aside>
       </div>
     </Page>
+  );
+}
+
+/* ---------------- Test de charge : option et preuve de propriété ---------------- */
+
+function LoadTestOption({
+  url,
+  on,
+  onChange,
+  disabled,
+}: {
+  url: string;
+  on: boolean;
+  onChange: (v: boolean) => void;
+  disabled: boolean;
+}) {
+  const valid = /^https:\/\/[^/\s]+\.[^/\s]+/i.test(url);
+  const proof = useQuery(on && valid ? `preflight:ownership:${url}` : null, () =>
+    preflightApi.ownership(url),
+  );
+  const [checking, setChecking] = useState(false);
+  return (
+    <div className="rounded-[12px] border border-line p-4">
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={on}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.checked)}
+          className="mt-1 size-[18px] accent-[var(--accent)]"
+        />
+        <span>
+          <span className="block text-[15px] font-medium text-fg">Ajouter un test de charge</span>
+          <span className="block text-[13.5px] text-muted">
+            Montée de 2 à 50 visiteurs simultanés, 30 secondes au plus, pour trouver le point où
+            l’application cède. Réservé aux domaines dont tu prouves être le propriétaire.
+          </span>
+        </span>
+      </label>
+      {on && !valid && (
+        <p className="mt-3 text-[13.5px] text-fg">
+          Indique d’abord l’adresse https:// de l’application.
+        </p>
+      )}
+      {on && valid && !proof.data && !proof.error && (
+        <Skeleton className="mt-3 h-24 rounded-[10px]" />
+      )}
+      {on && proof.data && (
+        <div className="mt-3 flex flex-col gap-3">
+          {proof.data.verified ? (
+            <p className="flex items-center gap-2 rounded-[10px] bg-success-soft px-3 py-2.5 text-[14px] font-medium text-fg">
+              <CheckCircle2 className="size-4 text-success" />
+              {proof.data.host} est prouvé : le test de charge est autorisé.
+            </p>
+          ) : (
+            <>
+              <p className="text-[14px] text-fg">
+                Prouve que tu contrôles <strong>{proof.data.host}</strong> d’une de ces deux façons
+                :
+              </p>
+              <div>
+                <p className="text-[13px] font-medium text-fg">
+                  1. Publier ce fichier à l’adresse{' '}
+                  <span className="font-mono text-[12.5px]">{proof.data.fileUrl}</span>
+                </p>
+                <CodeBlock code={proof.data.fileContent} />
+              </div>
+              <div>
+                <p className="text-[13px] font-medium text-fg">
+                  2. Ou ajouter un enregistrement DNS TXT sur{' '}
+                  <span className="font-mono text-[12.5px]">{proof.data.dnsName}</span>
+                </p>
+                <CodeBlock code={proof.data.dnsValue} />
+              </div>
+              <div>
+                <Button
+                  icon={checking ? <Spinner /> : <RefreshCw />}
+                  disabled={checking}
+                  onClick={async () => {
+                    setChecking(true);
+                    try {
+                      await proof.refresh();
+                    } finally {
+                      setChecking(false);
+                    }
+                  }}
+                >
+                  Vérifier
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      {on && !!proof.error && (
+        <p className="mt-3 text-[13.5px] text-danger">{preflightError(proof.error)}</p>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Lighthouse et test de charge dans le rapport ---------------- */
+
+const lhTone = (v: number | null) =>
+  v === null ? 'warning' : v >= 90 ? 'success' : v >= 50 ? 'warning' : 'danger';
+
+function SmallRing({ label, value }: { label: string; value: number | null }) {
+  const r = 26;
+  const c = 2 * Math.PI * r;
+  const color = {
+    success: 'var(--color-success)',
+    warning: 'var(--color-warning)',
+    danger: 'var(--color-danger)',
+  }[lhTone(value)];
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative grid size-[68px] place-items-center">
+        <svg viewBox="0 0 64 64" className="absolute inset-0 -rotate-90" aria-hidden>
+          <circle
+            cx="32"
+            cy="32"
+            r={r}
+            fill="none"
+            stroke="var(--color-surface-3)"
+            strokeWidth="6"
+          />
+          <circle
+            cx="32"
+            cy="32"
+            r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={`${(c * (value ?? 0)) / 100} ${c}`}
+          />
+        </svg>
+        <span className="text-[20px] font-semibold tabular text-fg">{value ?? '–'}</span>
+      </div>
+      <span className="text-center text-[13px] font-medium text-fg">{label}</span>
+    </div>
+  );
+}
+
+function LighthouseCard({ lh }: { lh: PreflightLighthouse }) {
+  const lab: [string, string][] = [
+    ['Premier contenu', lh.lab.fcpMs !== null ? fmtMs(lh.lab.fcpMs) : '–'],
+    ['Contenu principal (LCP)', lh.lab.lcpMs !== null ? fmtMs(lh.lab.lcpMs) : '–'],
+    ['Blocage (TBT)', lh.lab.tbtMs !== null ? fmtMs(lh.lab.tbtMs) : '–'],
+    ['Stabilité (CLS)', lh.lab.cls !== null ? lh.lab.cls.toFixed(2) : '–'],
+  ];
+  return (
+    <Card className="mt-3 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-[17px] font-semibold text-fg">Lighthouse mobile</h2>
+        <span className="text-[13px] text-muted">Mesuré par Google PageSpeed Insights</span>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <SmallRing label="Performance" value={lh.scores.performance} />
+        <SmallRing label="Accessibilité" value={lh.scores.accessibility} />
+        <SmallRing label="Bonnes pratiques" value={lh.scores.bestPractices} />
+        <SmallRing label="Référencement" value={lh.scores.seo} />
+      </div>
+      <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
+        {lab.map(([k, v]) => (
+          <div key={k} className="bg-surface-1 px-3 py-2.5">
+            <dt className="text-[12.5px] text-muted">{k}</dt>
+            <dd className="text-[16px] font-semibold tabular text-fg">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {lh.field && (
+        <p className="mt-3 text-[13.5px] text-fg">
+          Vrais visiteurs Chrome (28 jours) : contenu principal{' '}
+          <strong>{lh.field.lcpMs !== null ? fmtMs(lh.field.lcpMs) : '–'}</strong>, réactivité{' '}
+          <strong>{lh.field.inpMs !== null ? fmtMs(lh.field.inpMs) : '–'}</strong>, stabilité{' '}
+          <strong>{lh.field.cls !== null ? lh.field.cls.toFixed(2) : '–'}</strong>.
+        </p>
+      )}
+    </Card>
+  );
+}
+
+/** Courbe du test de charge : débit en barres, p95 en ligne, seuil de 2 s, palier de rupture. */
+function LoadCard({ lt }: { lt: PreflightLoadTest }) {
+  const W = 960;
+  const H = 260;
+  const pad = { l: 44, r: 44, t: 16, b: 34 };
+  const n = lt.stages.length;
+  const slot = (W - pad.l - pad.r) / Math.max(1, n);
+  const maxRps = Math.max(1, ...lt.stages.map((s) => s.rps));
+  const maxMs = Math.max(2_500, ...lt.stages.map((s) => s.p95Ms));
+  const y = (v: number, max: number) => pad.t + (H - pad.t - pad.b) * (1 - v / max);
+  const x = (i: number) => pad.l + slot * i + slot / 2;
+  const line = lt.stages.map((s, i) => `${i ? 'L' : 'M'}${x(i)},${y(s.p95Ms, maxMs)}`).join(' ');
+  const verdict =
+    lt.breakingConcurrency === null
+      ? `Tient ${lt.maxStableConcurrency} visiteurs simultanés`
+      : lt.maxStableConcurrency
+        ? `Tient ${lt.maxStableConcurrency} visiteurs simultanés, cède à ${lt.breakingConcurrency}`
+        : `Cède dès ${lt.breakingConcurrency} visiteurs simultanés`;
+  return (
+    <Card className="mt-3 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-[17px] font-semibold text-fg">Test de charge</h2>
+        <span className="text-[13px] text-muted">
+          {lt.totalRequests} requêtes en {fmtMs(lt.durationMs)} · domaine prouvé par{' '}
+          {lt.proof === 'dns' ? 'DNS' : 'fichier .well-known'}
+        </span>
+      </div>
+      <p
+        className={cn(
+          'mt-1 text-[16px] font-medium',
+          lt.breakingConcurrency === null
+            ? 'text-success'
+            : lt.breakingConcurrency <= 10
+              ? 'text-danger'
+              : 'text-warning',
+        )}
+      >
+        {verdict}
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 h-auto w-full" role="img" aria-label={verdict}>
+        {[0, 0.5, 1].map((f) => (
+          <line
+            key={f}
+            x1={pad.l}
+            x2={W - pad.r}
+            y1={pad.t + (H - pad.t - pad.b) * f}
+            y2={pad.t + (H - pad.t - pad.b) * f}
+            stroke="var(--color-line)"
+          />
+        ))}
+        <line
+          x1={pad.l}
+          x2={W - pad.r}
+          y1={y(2_000, maxMs)}
+          y2={y(2_000, maxMs)}
+          stroke="var(--color-danger)"
+          strokeDasharray="4 4"
+        />
+        <text x={W - pad.r + 4} y={y(2_000, maxMs) + 4} fontSize="11" fill="var(--color-danger)">
+          2 s
+        </text>
+        {lt.stages.map((s, i) => {
+          const broke = s.concurrency === lt.breakingConcurrency;
+          const top = y(s.rps, maxRps);
+          return (
+            <g key={s.concurrency}>
+              <rect
+                x={x(i) - slot * 0.28}
+                y={top}
+                width={slot * 0.56}
+                height={H - pad.b - top}
+                rx="4"
+                fill={broke ? 'var(--color-danger)' : 'var(--color-accent)'}
+                opacity={broke ? 0.35 : 0.22}
+              />
+              <text x={x(i)} y={H - 12} fontSize="12" textAnchor="middle" fill="var(--color-fg)">
+                {s.concurrency}
+              </text>
+            </g>
+          );
+        })}
+        <path d={line} fill="none" stroke="var(--color-fg)" strokeWidth="2" />
+        {lt.stages.map((s, i) => (
+          <circle
+            key={s.concurrency}
+            cx={x(i)}
+            cy={y(s.p95Ms, maxMs)}
+            r="4"
+            fill={
+              s.concurrency === lt.breakingConcurrency ? 'var(--color-danger)' : 'var(--color-fg)'
+            }
+          />
+        ))}
+        <text x={pad.l - 6} y={pad.t + 4} fontSize="11" textAnchor="end" fill="var(--color-muted)">
+          {fmtMs(maxMs)}
+        </text>
+        <text x={W - pad.r + 4} y={pad.t + 4} fontSize="11" fill="var(--color-muted)">
+          {Math.round(maxRps)}/s
+        </text>
+      </svg>
+      <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-fg">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-0.5 w-5 bg-fg" /> temps de réponse de 95 % des visiteurs
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="size-3 rounded-[3px] bg-accent/30" /> requêtes par seconde
+        </span>
+        <span>Axe du bas : visiteurs simultanés</span>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-left text-[13.5px]">
+          <thead>
+            <tr className="border-b border-line text-muted">
+              {['Simultanés', 'Requêtes', 'Req/s', 'Médiane', 'p95', 'p99', 'Erreurs'].map((h) => (
+                <th key={h} className="py-2 pr-3 font-medium">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {lt.stages.map((s) => (
+              <tr
+                key={s.concurrency}
+                className={cn(
+                  'border-b border-line/70 tabular text-fg',
+                  s.concurrency === lt.breakingConcurrency && 'bg-danger-soft',
+                )}
+              >
+                <td className="py-2 pr-3 font-medium">{s.concurrency}</td>
+                <td className="py-2 pr-3">{s.requests}</td>
+                <td className="py-2 pr-3">{s.rps}</td>
+                <td className="py-2 pr-3">{fmtMs(s.p50Ms)}</td>
+                <td className="py-2 pr-3">{fmtMs(s.p95Ms)}</td>
+                <td className="py-2 pr-3">{fmtMs(s.p99Ms)}</td>
+                <td className="py-2 pr-3">{s.errors}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
   );
 }
 

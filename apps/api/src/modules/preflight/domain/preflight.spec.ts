@@ -295,6 +295,8 @@ describe('pré-vol : rapport', () => {
         counts: { pass: 1, warn: 0, fail: 1, info: 0 },
         metrics: null,
         repoSummary: null,
+        lighthouse: null,
+        loadTest: null,
         checks,
         author: { handle: 'awa', displayName: 'Awa' },
       },

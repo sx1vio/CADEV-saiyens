@@ -67,6 +67,8 @@ export const EnvSchema = z
     // Pré-vol : jeton GitHub facultatif (lecture seule, dépôts publics) pour dépasser les
     // 60 requêtes par heure de l'API GitHub sans authentification.
     PREFLIGHT_GITHUB_TOKEN: optional(z.string()),
+    /** Clé de l'API PageSpeed Insights (Lighthouse réel) ; sans clé, Google accepte un petit volume. */
+    PAGESPEED_API_KEY: optional(z.string()),
     // R7 : index.html construit du front, enrichi des balises de partage (défaut : ./web/index.html).
     WEB_INDEX_HTML: optional(z.string()),
     // Espace d'administration (apps/admin), servi sur sa propre origine. Absent : désactivé,

@@ -9,6 +9,9 @@ export type PreflightStatus = z.infer<typeof PreflightStatus>;
 export const PreflightCategory = z.enum([
   'security',
   'network',
+  'performance',
+  'accessibility',
+  'load',
   'dependencies',
   'licences',
   'hosting',
@@ -41,6 +44,12 @@ export const CreatePreflightRequest = z
       )
       .pipe(z.string().regex(PREFLIGHT_REPO))
       .nullish(),
+    /**
+     * Test de charge du site (montée progressive jusqu'au point de rupture). Exige la preuve que
+     * l'auteur contrôle le domaine (fichier .well-known ou enregistrement DNS) : sans elle,
+     * l'outil pourrait servir à attaquer le site de quelqu'un d'autre.
+     */
+    loadTest: z.boolean().optional(),
   })
   .refine((v) => Boolean(v.url || v.repo), {
     message: 'url or repo is required',
@@ -85,6 +94,86 @@ export const PreflightRepoSummary = z.object({
 });
 export type PreflightRepoSummary = z.infer<typeof PreflightRepoSummary>;
 
+/** Audit Lighthouse réel (mobile), exécuté par l'API PageSpeed Insights de Google. */
+export const PreflightLighthouse = z.object({
+  strategy: z.literal('mobile'),
+  /** Scores sur 100 des quatre catégories Lighthouse. */
+  scores: z.object({
+    performance: z.number().int().nullable(),
+    accessibility: z.number().int().nullable(),
+    bestPractices: z.number().int().nullable(),
+    seo: z.number().int().nullable(),
+  }),
+  /** Mesures de laboratoire (téléphone milieu de gamme, réseau 4G lente simulée). */
+  lab: z.object({
+    fcpMs: z.number().int().nullable(),
+    lcpMs: z.number().int().nullable(),
+    tbtMs: z.number().int().nullable(),
+    cls: z.number().nullable(),
+    speedIndexMs: z.number().int().nullable(),
+  }),
+  /** Mesures de vrais visiteurs Chrome (CrUX), quand le site a assez de trafic. */
+  field: z
+    .object({
+      lcpMs: z.number().int().nullable(),
+      inpMs: z.number().int().nullable(),
+      cls: z.number().nullable(),
+      overall: z.string().nullable(),
+    })
+    .nullable(),
+  /** Pistes de gain classées (titre Lighthouse, gain estimé). */
+  opportunities: z.array(
+    z.object({ id: z.string(), title: z.string(), savingsMs: z.number().int() }),
+  ),
+  /** Audits d'accessibilité en échec (identifiant, titre, éléments touchés). */
+  accessibilityIssues: z.array(
+    z.object({ id: z.string(), title: z.string(), items: z.number().int() }),
+  ),
+});
+export type PreflightLighthouse = z.infer<typeof PreflightLighthouse>;
+
+/** Un palier du test de charge : N visiteurs simultanés pendant quelques secondes. */
+export const PreflightLoadStage = z.object({
+  concurrency: z.number().int(),
+  requests: z.number().int(),
+  rps: z.number(),
+  p50Ms: z.number().int(),
+  p95Ms: z.number().int(),
+  p99Ms: z.number().int(),
+  errors: z.number().int(),
+  /** Codes reçus : { "200": 812, "503": 4, "timeout": 2 } */
+  codes: z.record(z.string(), z.number().int()),
+});
+export type PreflightLoadStage = z.infer<typeof PreflightLoadStage>;
+
+export const PreflightLoadTest = z.object({
+  url: z.string(),
+  /** Comment la propriété a été prouvée. */
+  proof: z.enum(['well-known', 'dns']),
+  durationMs: z.number().int(),
+  totalRequests: z.number().int(),
+  stages: z.array(PreflightLoadStage),
+  /** Plus grand palier tenu (p95 < 2 s et moins de 2 % d'erreurs). */
+  maxStableConcurrency: z.number().int(),
+  /** Palier où le site a cédé, ou null s'il a tout tenu. */
+  breakingConcurrency: z.number().int().nullable(),
+  /** Le test s'est arrêté au plafond du pré-vol sans rupture. */
+  reachedCeiling: z.boolean(),
+});
+export type PreflightLoadTest = z.infer<typeof PreflightLoadTest>;
+
+/** GET /api/v1/preflight/ownership?url= : comment prouver que l'on contrôle un domaine. */
+export const PreflightOwnership = z.object({
+  host: z.string(),
+  token: z.string(),
+  fileUrl: z.string(),
+  fileContent: z.string(),
+  dnsName: z.string(),
+  dnsValue: z.string(),
+  verified: z.boolean(),
+});
+export type PreflightOwnership = z.infer<typeof PreflightOwnership>;
+
 export const PreflightReport = z.object({
   id: z.uuid(),
   url: z.string().nullable(),
@@ -101,6 +190,8 @@ export const PreflightReport = z.object({
   }),
   metrics: PreflightMetrics.nullable(),
   repoSummary: PreflightRepoSummary.nullable(),
+  lighthouse: PreflightLighthouse.nullable(),
+  loadTest: PreflightLoadTest.nullable(),
   checks: z.array(PreflightCheck),
   author: z.object({ handle: z.string(), displayName: z.string() }),
 });
@@ -122,3 +213,16 @@ export type ListPreflightResponse = z.infer<typeof ListPreflightResponse>;
 
 /** Nombre de pré-vols par personne et par heure (chaque pré-vol appelle des services tiers). */
 export const PREFLIGHT_HOURLY_QUOTA = 10;
+
+/** Tests de charge par personne et par heure (le serveur n'en fait tourner qu'un à la fois). */
+export const PREFLIGHT_LOAD_HOURLY_QUOTA = 3;
+
+/** Plafonds du test de charge : courts et bornés, pour que l'hébergement reste quasi gratuit. */
+export const PREFLIGHT_LOAD_LIMITS = {
+  stages: [2, 5, 10, 20, 35, 50],
+  stageMs: 4_000,
+  maxRequests: 4_000,
+  requestTimeoutMs: 10_000,
+  /** Octets lus par réponse : la latence compte, pas le téléchargement complet. */
+  maxBytesPerResponse: 64 * 1024,
+} as const;

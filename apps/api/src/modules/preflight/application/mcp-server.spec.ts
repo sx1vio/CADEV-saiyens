@@ -16,6 +16,8 @@ const report: PreflightReport = {
   counts: { pass: 3, warn: 2, fail: 0, info: 0 },
   metrics: null,
   repoSummary: null,
+  lighthouse: null,
+  loadTest: null,
   checks: [
     {
       id: 'site.security_headers',
@@ -113,6 +115,7 @@ describe('PreflightMcpServer', () => {
       userId: 'u1',
       url: 'https://app.exemple.sn',
       repo: 'awa/app',
+      loadTest: false,
     });
     expect(res.result.isError).toBe(false);
     expect(res.result.content[0]!.text).toContain('Consigne pour l’agent IA');

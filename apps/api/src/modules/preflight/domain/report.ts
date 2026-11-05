@@ -26,7 +26,16 @@ export function verdictOf(checks: PreflightCheck[]): PreflightVerdict {
 
 /** Ordre de lecture : ce qui bloque d'abord, la sécurité avant le reste. */
 const STATUS_ORDER: Record<PreflightStatus, number> = { fail: 0, warn: 1, info: 2, pass: 3 };
-const CATEGORY_ORDER = ['security', 'dependencies', 'network', 'licences', 'hosting'];
+const CATEGORY_ORDER = [
+  'security',
+  'load',
+  'dependencies',
+  'performance',
+  'network',
+  'accessibility',
+  'licences',
+  'hosting',
+];
 
 export function sortChecks(checks: PreflightCheck[]): PreflightCheck[] {
   return [...checks].sort(
@@ -46,6 +55,9 @@ const CATEGORY_LABEL: Record<string, string> = {
   security: 'Sécurité',
   dependencies: 'Dépendances',
   network: 'Réseau lent et téléphones',
+  performance: 'Performance (Lighthouse)',
+  accessibility: 'Accessibilité',
+  load: 'Tenue à la charge',
   licences: 'Licences',
   hosting: 'Hébergement',
 };
@@ -119,6 +131,36 @@ export function toMarkdown(report: PreflightReport, links: { page: string; json:
       `| Poids total / critique | ${formatBytes(m.totalBytes)} / ${formatBytes(m.criticalBytes)} |`,
       `| Requêtes | ${m.requests} |`,
       `| Hébergement | ${m.hostedOnSystalink ? 'Systalink' : 'hors Systalink'} (${m.hostIps.join(', ')}) |`,
+    );
+  }
+  if (report.lighthouse) {
+    const l = report.lighthouse;
+    const v = (n: number | null) => (n === null ? '–' : String(n));
+    out.push(
+      '',
+      '## Lighthouse mobile (mesuré par Google PageSpeed Insights)',
+      '',
+      '| Performance | Accessibilité | Bonnes pratiques | Référencement |',
+      '| --- | --- | --- | --- |',
+      `| ${v(l.scores.performance)} | ${v(l.scores.accessibility)} | ${v(l.scores.bestPractices)} | ${v(l.scores.seo)} |`,
+      '',
+      `Affichage du contenu principal ${l.lab.lcpMs !== null ? formatMs(l.lab.lcpMs) : '–'} · blocage ${l.lab.tbtMs !== null ? formatMs(l.lab.tbtMs) : '–'} · stabilité ${l.lab.cls !== null ? l.lab.cls.toFixed(2) : '–'}`,
+    );
+  }
+  if (report.loadTest) {
+    const t = report.loadTest;
+    out.push(
+      '',
+      '## Test de charge',
+      '',
+      `${t.totalRequests} requêtes sur ${t.url} en ${formatMs(t.durationMs)} · ${t.breakingConcurrency === null ? `tient ${t.maxStableConcurrency} visiteurs simultanés` : `tient ${t.maxStableConcurrency}, cède à ${t.breakingConcurrency} visiteurs simultanés`}`,
+      '',
+      '| Simultanés | Requêtes | Req/s | Médiane | p95 | p99 | Erreurs |',
+      '| --- | --- | --- | --- | --- | --- | --- |',
+      ...t.stages.map(
+        (s) =>
+          `| ${s.concurrency} | ${s.requests} | ${s.rps} | ${formatMs(s.p50Ms)} | ${formatMs(s.p95Ms)} | ${formatMs(s.p99Ms)} | ${s.errors} |`,
+      ),
     );
   }
   if (report.repoSummary) {

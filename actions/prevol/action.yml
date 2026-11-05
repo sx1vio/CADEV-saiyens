@@ -1,8 +1,9 @@
 name: DevHub Africa — Pré-vol
 description: >-
-  Contrôle de code gratuit avant la mise en production : lint, types, tests et build du projet,
-  puis pré-vol DevHub (sécurité, réseau 3G, dépendances vulnérables, licences) avec un rapport
-  prêt à donner à ton agent IA.
+  Contrôle complet et gratuit avant la mise en production : lint, types, tests, couverture et
+  build ; secrets dans tout l'historique (gitleaks) et failles des dépendances (osv-scanner) ;
+  Lighthouse mobile réel ; puis pré-vol DevHub de l'application en ligne (sécurité, réseau 3G,
+  test de charge) avec un rapport prêt à donner à ton agent IA et un commentaire sur la PR.
 author: DevHub Africa
 branding:
   icon: check-circle
@@ -41,6 +42,38 @@ inputs:
     description: Score minimal du pré-vol (0 à 100).
     required: false
     default: '0'
+  security-scan:
+    description: Chercher les secrets dans tout l'historique (gitleaks) et les failles des dépendances (osv-scanner).
+    required: false
+    default: 'true'
+  fail-on-security:
+    description: Faire échouer le job si un secret ou une dépendance vulnérable est trouvé (true/false).
+    required: false
+    default: 'true'
+  lighthouse:
+    description: Auditer l'application avec Lighthouse sur la machine GitHub (nécessite url).
+    required: false
+    default: 'true'
+  lighthouse-min-performance:
+    description: Score de performance Lighthouse minimal (0 à 100).
+    required: false
+    default: '0'
+  coverage-min:
+    description: Couverture des lignes minimale en % (lue dans coverage/coverage-summary.json).
+    required: false
+    default: '0'
+  load-test:
+    description: Ajouter un test de charge au pré-vol (le domaine doit être prouvé sur DevHub).
+    required: false
+    default: 'false'
+  comment-pr:
+    description: Publier une synthèse en commentaire de la pull request (permissions pull-requests write).
+    required: false
+    default: 'true'
+  github-token:
+    description: Jeton utilisé pour commenter la pull request.
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   score:
@@ -55,16 +88,51 @@ outputs:
   code-checks:
     description: 'passed, failed ou skipped.'
     value: ${{ steps.code.outputs.result }}
+  coverage:
+    description: Couverture des lignes en %, si mesurée.
+    value: ${{ steps.code.outputs.coverage }}
+  secrets:
+    description: Nombre de secrets trouvés dans l'historique git.
+    value: ${{ steps.security.outputs.secrets }}
+  vulnerable:
+    description: Nombre de dépendances avec une faille connue.
+    value: ${{ steps.security.outputs.vulnerable }}
+  lighthouse-performance:
+    description: Score de performance Lighthouse mobile.
+    value: ${{ steps.lighthouse.outputs.performance }}
 
 runs:
   using: composite
   steps:
-    - name: Contrôle du code (lint, types, tests, build)
+    - name: Préparer la synthèse
+      shell: bash
+      run: ': > "$RUNNER_TEMP/prevol-comment.md"'
+
+    - name: Contrôle du code (lint, types, tests, couverture, build)
       id: code
       if: inputs.code-checks == 'true'
+      continue-on-error: true
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        PREVOL_COVERAGE_MIN: ${{ inputs.coverage-min }}
       run: bash "$GITHUB_ACTION_PATH/code-checks.sh"
+
+    - name: Sécurité du code (gitleaks, osv-scanner)
+      id: security
+      if: inputs.security-scan == 'true'
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/security-scan.sh"
+
+    - name: Lighthouse mobile
+      id: lighthouse
+      if: inputs.lighthouse == 'true' && inputs.url != ''
+      continue-on-error: true
+      shell: bash
+      env:
+        PREVOL_URL: ${{ inputs.url }}
+        PREVOL_LH_MIN: ${{ inputs.lighthouse-min-performance }}
+      run: bash "$GITHUB_ACTION_PATH/lighthouse.sh"
 
     - name: Pré-vol DevHub
       id: prevol
@@ -78,4 +146,31 @@ runs:
         PREVOL_MIN_SCORE: ${{ inputs.min-score }}
         PREVOL_REPO_PRIVATE: ${{ github.event.repository.private }}
         PREVOL_CODE_RESULT: ${{ steps.code.outputs.result }}
+        PREVOL_LOAD_TEST: ${{ inputs.load-test }}
+      continue-on-error: true
       run: bash "$GITHUB_ACTION_PATH/prevol.sh"
+
+    - name: Commentaire sur la pull request
+      if: always() && inputs.comment-pr == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PREVOL_PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: bash "$GITHUB_ACTION_PATH/comment.sh"
+
+    - name: Verdict
+      if: always()
+      shell: bash
+      env:
+        CODE: ${{ steps.code.outcome }}
+        LIGHTHOUSE: ${{ steps.lighthouse.outcome }}
+        PREVOL: ${{ steps.prevol.outcome }}
+        SECURITY: ${{ steps.security.outputs.result }}
+        FAIL_ON_SECURITY: ${{ inputs.fail-on-security }}
+      run: |
+        fail=0
+        [[ "$CODE" == "failure" ]] && echo "::error title=Pré-vol::Le contrôle du code a échoué." && fail=1
+        [[ "$LIGHTHOUSE" == "failure" ]] && echo "::error title=Pré-vol::Lighthouse sous le minimum." && fail=1
+        [[ "$PREVOL" == "failure" ]] && echo "::error title=Pré-vol::Le pré-vol de l'application a échoué." && fail=1
+        [[ "$SECURITY" == "failed" && "$FAIL_ON_SECURITY" == "true" ]] && echo "::error title=Pré-vol::Secret ou dépendance vulnérable trouvé." && fail=1
+        exit $fail

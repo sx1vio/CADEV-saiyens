@@ -1,17 +1,28 @@
 import type {
   PreflightCheck,
+  PreflightLighthouse,
+  PreflightLoadStage,
+  PreflightLoadTest,
   PreflightMetrics,
   PreflightRepoSummary,
   PreflightReport,
 } from '@devhub/contracts';
-import { PREFLIGHT_HOURLY_QUOTA } from '@devhub/contracts';
+import { PREFLIGHT_HOURLY_QUOTA, PREFLIGHT_LOAD_HOURLY_QUOTA } from '@devhub/contracts';
 import { repoChecks, siteChecks, siteUnreachableCheck } from '../domain/checks';
+import { lighthouseChecks } from '../domain/lighthouse';
+import { concludeLoad, loadChecks } from '../domain/load';
 import type { RepoFacts, SiteFacts } from '../domain/facts';
 import { estimateLoad } from '../domain/network';
 import { countChecks, scoreOf, sortChecks, verdictOf } from '../domain/report';
 
 export class PreflightQuotaError extends Error {}
 export class PreflightBusyError extends Error {}
+/** Test de charge demandé sans preuve de propriété du domaine. */
+export class OwnershipRequiredError extends Error {}
+/** Test de charge : quota horaire atteint, ou un autre test tourne déjà sur le serveur. */
+export class LoadTestQuotaError extends Error {}
+export class LoadTestBusyError extends Error {}
+export class LoadTestNeedsUrlError extends Error {}
 /** Ni le site ni le dépôt n'ont pu être analysés. */
 export class NothingToCheckError extends Error {
   constructor(readonly reason: 'site_unreachable' | 'repo_not_found' | 'github_rate_limited') {
@@ -22,6 +33,12 @@ export class NothingToCheckError extends Error {
 export interface PreflightProbes {
   site(url: string, signal: AbortSignal): Promise<SiteFacts>;
   repo(fullName: string, signal: AbortSignal): Promise<RepoFacts>;
+  /** Lighthouse réel (PageSpeed Insights). Facultatif : absent, le rapport s'en passe. */
+  lighthouse?(url: string): Promise<PreflightLighthouse>;
+  /** Preuve de propriété du domaine de `url` pour ce compte. */
+  ownership?(userId: string, url: string): Promise<'well-known' | 'dns' | null>;
+  /** Montée en charge par paliers sur `url`. */
+  loadTest?(url: string): Promise<PreflightLoadStage[]>;
   /** Classe une erreur de sonde (site injoignable, dépôt introuvable…). */
   classify(err: unknown): 'site_unreachable' | 'repo_not_found' | 'github_rate_limited' | 'other';
 }
@@ -35,14 +52,22 @@ export interface PreflightStore {
     score: number;
     verdict: string;
     durationMs: number;
-    result: Pick<PreflightReport, 'checks' | 'metrics' | 'repoSummary' | 'counts'>;
+    result: Pick<
+      PreflightReport,
+      'checks' | 'metrics' | 'repoSummary' | 'counts' | 'lighthouse' | 'loadTest'
+    >;
   }): Promise<string>;
 }
 
 const BUDGET_MS = 45_000;
 
+type RunInput = { userId: string; url: string | null; repo: string | null; loadTest?: boolean };
+
 export class RunPreflight {
   private readonly running = new Set<string>();
+  /** Un seul test de charge à la fois sur tout le serveur : la machine reste disponible pour tous. */
+  private loadBusy = false;
+  private readonly loadRuns = new Map<string, number[]>();
 
   constructor(
     private readonly probes: PreflightProbes,
@@ -50,26 +75,55 @@ export class RunPreflight {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  async run(input: { userId: string; url: string | null; repo: string | null }): Promise<string> {
+  async run(input: RunInput): Promise<string> {
     if (this.running.has(input.userId)) throw new PreflightBusyError();
     const hourAgo = new Date(this.now().getTime() - 3_600_000);
     if ((await this.store.countSince(input.userId, hourAgo)) >= PREFLIGHT_HOURLY_QUOTA) {
       throw new PreflightQuotaError();
     }
+    let proof: 'well-known' | 'dns' | null = null;
+    if (input.loadTest) {
+      if (!input.url || !this.probes.loadTest || !this.probes.ownership) {
+        throw new LoadTestNeedsUrlError();
+      }
+      const recent = (this.loadRuns.get(input.userId) ?? []).filter((t) => t > hourAgo.getTime());
+      if (recent.length >= PREFLIGHT_LOAD_HOURLY_QUOTA) throw new LoadTestQuotaError();
+      if (this.loadBusy) throw new LoadTestBusyError();
+      proof = await this.probes.ownership(input.userId, input.url);
+      if (!proof) throw new OwnershipRequiredError();
+    }
     this.running.add(input.userId);
     try {
-      return await this.execute(input);
+      return await this.execute(input, proof);
     } finally {
       this.running.delete(input.userId);
     }
   }
 
-  private async execute(input: { userId: string; url: string | null; repo: string | null }) {
+  private async runLoad(userId: string, url: string): Promise<PreflightLoadStage[] | null> {
+    if (this.loadBusy || !this.probes.loadTest) return null;
+    this.loadBusy = true;
+    const runs = this.loadRuns.get(userId) ?? [];
+    runs.push(this.now().getTime());
+    this.loadRuns.set(userId, runs.slice(-10));
+    try {
+      return await this.probes.loadTest(url);
+    } catch {
+      return null;
+    } finally {
+      this.loadBusy = false;
+    }
+  }
+
+  private async execute(input: RunInput, proof: 'well-known' | 'dns' | null) {
     const started = Date.now();
     const signal = AbortSignal.timeout(BUDGET_MS);
-    const [site, repo] = await Promise.all([
+    const [site, repo, lighthouse] = await Promise.all([
       input.url ? this.probes.site(input.url, signal).catch((e: unknown) => e) : null,
       input.repo ? this.probes.repo(input.repo, signal).catch((e: unknown) => e) : null,
+      input.url && this.probes.lighthouse
+        ? this.probes.lighthouse(input.url).catch(() => null)
+        : null,
     ]);
 
     const checks: PreflightCheck[] = [];
@@ -141,6 +195,39 @@ export class RunPreflight {
       };
     }
 
+    if (lighthouse) {
+      checks.push(...lighthouseChecks(lighthouse));
+    } else if (siteOk && this.probes.lighthouse) {
+      checks.push({
+        id: 'lh.unavailable',
+        category: 'performance',
+        status: 'info',
+        title: 'Audit Lighthouse indisponible',
+        detail:
+          'Google PageSpeed Insights n’a pas répondu à temps ou a refusé l’audit (quota, page protégée). Les autres contrôles sont complets ; relancer le pré-vol plus tard pour l’ajouter.',
+        fix: null,
+        evidence: [],
+      });
+    }
+
+    let loadTest: PreflightLoadTest | null = null;
+    if (input.loadTest && siteOk && proof) {
+      const target = (site as SiteFacts).finalUrl;
+      const loadStarted = Date.now();
+      const stages = await this.runLoad(input.userId, target);
+      if (stages?.length) {
+        loadTest = {
+          url: target,
+          proof,
+          durationMs: Date.now() - loadStarted,
+          totalRequests: stages.reduce((n, s) => n + s.requests, 0),
+          stages,
+          ...concludeLoad(stages),
+        };
+        checks.push(...loadChecks(loadTest));
+      }
+    }
+
     const sorted = sortChecks(checks);
     return this.store.save({
       userId: input.userId,
@@ -149,7 +236,14 @@ export class RunPreflight {
       score: scoreOf(sorted),
       verdict: verdictOf(sorted),
       durationMs: Date.now() - started,
-      result: { checks: sorted, metrics, repoSummary, counts: countChecks(sorted) },
+      result: {
+        checks: sorted,
+        metrics,
+        repoSummary,
+        lighthouse: lighthouse ?? null,
+        loadTest,
+        counts: countChecks(sorted),
+      },
     });
   }
 }

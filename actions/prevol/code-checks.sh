@@ -6,6 +6,7 @@ set -uo pipefail
 
 out="${GITHUB_OUTPUT:-/dev/null}"
 summary="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+comment="${RUNNER_TEMP:-/tmp}/prevol-comment.md"
 
 if [[ ! -f package.json ]]; then
   echo "::notice title=Pré-vol::Pas de package.json dans $(pwd) : contrôle du code ignoré."
@@ -63,6 +64,21 @@ if [[ $failed -eq 0 ]]; then
   [[ $ran -eq 0 ]] && echo "::warning title=Pré-vol::Aucun script lint, typecheck, test ni build dans package.json : ajoute-en pour que la CI contrôle vraiment le code."
 fi
 
+# Couverture : lue si les tests produisent coverage/coverage-summary.json (Istanbul, Vitest, Jest :
+# reporter « json-summary ») ou coverage/coverage-final.json n'existe pas sans résumé.
+coverage=""
+for f in coverage/coverage-summary.json */coverage/coverage-summary.json; do
+  [[ -f "$f" ]] && coverage=$(jq -r '.total.lines.pct // empty' "$f") && break
+done
+min_cov="${PREVOL_COVERAGE_MIN:-0}"
+if [[ -n "$coverage" ]]; then
+  echo "coverage=$coverage" >>"$out"
+  if awk -v c="$coverage" -v m="$min_cov" 'BEGIN { exit !(c < m) }'; then
+    echo "::error title=Pré-vol — couverture::Couverture des lignes $coverage %, sous le minimum $min_cov %."
+    failed=1
+  fi
+fi
+
 {
   echo "## Contrôle du code"
   echo
@@ -70,7 +86,13 @@ fi
   echo "|---|---|---|"
   printf '%s\n' "${rows[@]}"
   echo
-} >>"$summary"
+  if [[ -n "$coverage" ]]; then
+    echo "Couverture des lignes par les tests : **$coverage %**"
+  else
+    echo "Couverture : non mesurée (ajoute le reporter « json-summary » à tes tests pour l'afficher)."
+  fi
+  echo
+} | tee -a "$summary" >>"$comment"
 
 if [[ $failed -eq 1 ]]; then
   echo "result=failed" >>"$out"
