@@ -98,27 +98,28 @@ Restent hors périmètre du gel, sauf temps libre : A2 (GitLab, Google), D3 et Y
 
 Les décisions structurantes sont des ADR : [index des ADR](docs/adr/README.md). Les ADR 0001 à 0013 sont **acceptés** depuis le 9 octobre (rôle 1, issue #1) ; les ADR 0014 à 0019 ont tranché les décisions restées ouvertes.
 
-| Décision                                                                                  | ADR  | Justification courte                                                 |
-| ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------- |
-| Monorepo pnpm + Turborepo                                                                 | 0001 | Contrat partagé front/API, une seule CI                              |
-| Back-end NestJS (et non FastAPI)                                                          | 0002 | TypeScript de bout en bout, modules, OpenAPI généré                  |
-| Front React + Vite en PWA                                                                 | 0003 | Léger, installable, hors ligne                                       |
-| Monolithe modulaire, architecture hexagonale allégée                                      | 0004 | Une seule unité à déployer, frontières claires entre modules         |
-| PostgreSQL + Prisma                                                                       | 0005 | Produit Systalink, migrations relues                                 |
-| File de tâches pg-boss dans PostgreSQL                                                    | 0006 | Aucun service supplémentaire à héberger                              |
-| Temps réel par SSE + LISTEN/NOTIFY                                                        | 0007 | Plus simple que WebSocket, compatible proxy                          |
-| File d'actions hors ligne + clés d'idempotence                                            | 0008 | Rejouer sans doublon au retour du réseau                             |
-| Sessions par cookie serveur                                                               | 0009 | Révocables, pas de jeton côté client                                 |
-| Contrat REST validé par zod, OpenAPI généré                                               | 0010 | Une seule source pour les types du front et de l'API                 |
-| Docker Compose + Caddy sur le VPS Systalink                                               | 0011 | Déploiement reproductible, TLS automatique                           |
-| Aperçus de partage par route serveur                                                      | 0012 | Open Graph lisible par WhatsApp et LinkedIn                          |
-| Trunk-based, squash merge                                                                 | 0013 | Historique lisible, `main` toujours déployable                       |
-| Proof XP répartis entre les étiquettes (4, 3, 3)                                          | 0014 | Le total ne dépend pas du nombre d'étiquettes                        |
-| Base Systalink managée si elle passe la vérification, sinon PostgreSQL sur le VPS         | 0015 | Produit Systalink en priorité, sans bloquer sur #2                   |
-| MVP = CDC v3 ; services « écosystème » en roadmap ; pas de données simulées en production | 0016 | Produit lisible, dates tenables, honnêteté (§6.6)                    |
-| Tri des 43 propositions v3.1 : 32 retenues, 9 en P2, 2 écartées                           | 0017 | Preuve, démo, coût                                                   |
-| Pile front réelle (`idb`, Zustand, Radix) acceptée, avec ses invariants                   | 0018 | Équivalente ; contrat hors ligne et `@devhub/contracts` obligatoires |
-| Gouvernance sans protection de branche : squash seul, relecture obligatoire               | 0019 | Dépôt privé gratuit : protection indisponible                        |
+| Décision                                                                                                     | ADR  | Justification courte                                                       |
+| ------------------------------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------------------- |
+| Monorepo pnpm + Turborepo                                                                                    | 0001 | Contrat partagé front/API, une seule CI                                    |
+| Back-end NestJS (et non FastAPI)                                                                             | 0002 | TypeScript de bout en bout, modules, OpenAPI généré                        |
+| Front React + Vite en PWA                                                                                    | 0003 | Léger, installable, hors ligne                                             |
+| Monolithe modulaire, architecture hexagonale allégée                                                         | 0004 | Une seule unité à déployer, frontières claires entre modules               |
+| PostgreSQL + Prisma                                                                                          | 0005 | Produit Systalink, migrations relues                                       |
+| File de tâches pg-boss dans PostgreSQL                                                                       | 0006 | Aucun service supplémentaire à héberger                                    |
+| Temps réel par SSE + LISTEN/NOTIFY                                                                           | 0007 | Plus simple que WebSocket, compatible proxy                                |
+| File d'actions hors ligne + clés d'idempotence                                                               | 0008 | Rejouer sans doublon au retour du réseau                                   |
+| Sessions par cookie serveur                                                                                  | 0009 | Révocables, pas de jeton côté client                                       |
+| Contrat REST validé par zod, OpenAPI généré                                                                  | 0010 | Une seule source pour les types du front et de l'API                       |
+| Docker Compose + Caddy sur le VPS Systalink                                                                  | 0011 | Déploiement reproductible, TLS automatique                                 |
+| Aperçus de partage par route serveur                                                                         | 0012 | Open Graph lisible par WhatsApp et LinkedIn                                |
+| Trunk-based, squash merge                                                                                    | 0013 | Historique lisible, `main` toujours déployable                             |
+| Proof XP répartis entre les étiquettes (4, 3, 3)                                                             | 0014 | Le total ne dépend pas du nombre d'étiquettes                              |
+| Base Systalink managée si elle passe la vérification, sinon PostgreSQL sur le VPS                            | 0015 | Produit Systalink en priorité, sans bloquer sur #2                         |
+| MVP = CDC v3 ; services « écosystème » en roadmap ; pas de données simulées en production                    | 0016 | Produit lisible, dates tenables, honnêteté (§6.6)                          |
+| Tri des 43 propositions v3.1 : 32 retenues, 9 en P2, 2 écartées                                              | 0017 | Preuve, démo, coût                                                         |
+| Pile front réelle (`idb`, Zustand, Radix) acceptée, avec ses invariants                                      | 0018 | Équivalente ; contrat hors ligne et `@devhub/contracts` obligatoires       |
+| Gouvernance sans protection de branche : squash seul, relecture obligatoire                                  | 0019 | Dépôt privé gratuit : protection indisponible                              |
+| Applications Android et iOS en Kotlin Multiplatform ; session mobile en Bearer, connexion par PKCE (proposé) | 0021 | Une base de code pour deux plateformes ; même session révocable que le web |
 
 Décisions prises hors ADR, constatées dans le code :
 
@@ -207,3 +208,4 @@ Non créés volontairement : une fiche par écran front et par module back-end. 
 | 2026-10-19 | Vérification complète de `main` (tout vert) ; suivi remis à l'état réel (P0 100 %) ; quatre sessions Claude supervisées ; fusion de #155 à #157 et #160 ; R5 (#158), S10 (#159) ; BUG-040 corrigé                                      |
 | 2026-10-20 | R6 en PR (#162) ; quota IA réservé de façon atomique dans #158 et #159 ; PR4 (#163), S6 (#165), BUG-041 (#164) et BUG-042 (#166) en PR ; fin de la session superviseure, coordination par 3b ; risques soldés (#96, #97, #103) retirés |
 | 2026-10-20 | Soir : fusion par la session 3b de #158, #159 et #162 à #171 (R5, R6, S6, S9, S10, S16, PR4, PR14, BUG-041, BUG-042) et des docs #161, #167 (BUG-043), #169 ; P1 à 12/14 ; S14 (session 63) et S5 (session 90) annoncés                |
+| 2026-11-06 | Après le challenge : ADR-0021 (proposé). Étape 1 des applications mobiles : connexion mobile côté API (Bearer, PKCE, `devhub://`) et socle KMP `apps/mobile` (Android testé, iOS à construire sur macOS)                               |

@@ -1,0 +1,60 @@
+# Projet Xcode décrit en YAML (XcodeGen) : relisible en PR, régénéré avec `xcodegen` (voir ../README.md).
+name: DevHub
+options:
+  bundleIdPrefix: africa.devhub
+  deploymentTarget:
+    iOS: '16.0'
+  developmentLanguage: en
+settings:
+  base:
+    MARKETING_VERSION: '0.1.0'
+    CURRENT_PROJECT_VERSION: '1'
+targets:
+  DevHub:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosApp
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: DevHub Africa
+        CFBundleLocalizations: [en, fr]
+        UILaunchScreen: {}
+        # Exigé par Compose Multiplatform (écrans 120 Hz) : sans lui, l'application s'arrête au lancement.
+        CADisableMinimumFrameDurationOnPhone: true
+        UISupportedInterfaceOrientations:
+          [
+            UIInterfaceOrientationPortrait,
+            UIInterfaceOrientationLandscapeLeft,
+            UIInterfaceOrientationLandscapeRight,
+          ]
+        # Lus par ContentView.swift ; valeurs fixées par les réglages de build ci-dessous.
+        DevHubApiUrl: $(DEVHUB_API_URL)
+        DevHubDevSignIn: $(DEVHUB_DEV_SIGN_IN)
+        # HTTP permis vers les adresses locales seulement (API de développement).
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: africa.devhub.app
+        # Origine de l'API ; pour une version publiée : xcodebuild … DEVHUB_API_URL=https://…
+        DEVHUB_API_URL: http://localhost:3000
+        DEVHUB_DEV_SIGN_IN: 'NO'
+        # Framework Kotlin « Shared », produit par la phase de script ci-dessous.
+        FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+        OTHER_LDFLAGS: [-framework, Shared]
+        ENABLE_USER_SCRIPT_SANDBOXING: 'NO'
+      configs:
+        Debug:
+          DEVHUB_DEV_SIGN_IN: 'YES'
+    preBuildScripts:
+      - name: Compile Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "YES" = "$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED" ]; then
+            echo "Compilation Kotlin ignorée (OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED)"
+            exit 0
+          fi
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
