@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">DevHub Africa</string>
+    <string name="loading">Chargement…</string>
+
+    <string name="signin_tagline">Le fil des développeurs.</string>
+    <string name="signin_text">Actu, entraide et un profil qui prouve ce que tu sais faire.</string>
+    <string name="signin_github">Continuer avec GitHub</string>
+    <string name="signin_dev_login">Login GitHub (serveur de développement)</string>
+    <string name="signin_failed">La connexion a échoué ou a été annulée. Réessaie.</string>
+    <string name="signin_suspended">Ce compte est suspendu par la modération. Écris à l’équipe DevHub pour en savoir plus.</string>
+    <string name="signin_network">Impossible de joindre DevHub. Vérifie ta connexion.</string>
+
+    <string name="conduct_title">Code de conduite</string>
+    <string name="conduct_text">Quatre règles simples, qui protègent tout le monde.</string>
+    <string name="conduct_1">Respect : on critique le code, jamais la personne.</string>
+    <string name="conduct_2">Pas de spam ni d’autopromotion déguisée.</string>
+    <string name="conduct_3">Un contenu généré par l’IA est présenté comme tel, jamais comme vérifié.</string>
+    <string name="conduct_4">Jamais de secret (clé, mot de passe, jeton) dans un message : on les masque automatiquement, mais vérifie.</string>
+    <string name="conduct_accept">J’accepte le code de conduite</string>
+    <string name="conduct_failed">Ta réponse n’a pas pu être enregistrée. Réessaie.</string>
+
+    <string name="home_greeting">Bonjour, %1$s</string>
+    <string name="trust_github">GitHub relié</string>
+    <plurals name="trust_github_years">
+        <item quantity="one">Compte GitHub depuis %1$d an</item>
+        <item quantity="other">Compte GitHub depuis %1$d ans</item>
+    </plurals>
+    <string name="trust_email">E-mail vérifié</string>
+    <string name="trust_founder">Membre fondateur</string>
+    <string name="trust_demo">Compte démo</string>
+    <string name="home_next_title">Bientôt dans l’application</string>
+    <string name="home_next_text">SOS Dev, les salles de projet et ton Passport complet arrivent dans les prochaines mises à jour. Tout est déjà disponible sur le web.</string>
+    <string name="sign_out">Se déconnecter</string>
+
+    <string name="unreachable_title">DevHub est injoignable</string>
+    <string name="unreachable_text">Vérifie ta connexion, puis réessaie. Tu restes connecté.</string>
+    <string name="retry">Réessayer</string>
+</resources>

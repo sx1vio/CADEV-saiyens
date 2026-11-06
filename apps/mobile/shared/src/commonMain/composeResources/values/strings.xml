@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">DevHub Africa</string>
+    <string name="loading">Loading…</string>
+
+    <string name="signin_tagline">The developer feed.</string>
+    <string name="signin_text">News, peer help and a profile that proves what you can do.</string>
+    <string name="signin_github">Continue with GitHub</string>
+    <string name="signin_dev_login">GitHub login (development server)</string>
+    <string name="signin_failed">Sign-in failed or was cancelled. Try again.</string>
+    <string name="signin_suspended">This account is suspended by moderation. Write to the DevHub team to learn more.</string>
+    <string name="signin_network">Can’t reach DevHub. Check your connection.</string>
+
+    <string name="conduct_title">Code of conduct</string>
+    <string name="conduct_text">Four simple rules that protect everyone.</string>
+    <string name="conduct_1">Respect: we critique code, never people.</string>
+    <string name="conduct_2">No spam or disguised self-promotion.</string>
+    <string name="conduct_3">AI-generated content is labelled as such, never presented as verified.</string>
+    <string name="conduct_4">Never post a secret (key, password, token): we mask them automatically, but double-check.</string>
+    <string name="conduct_accept">I accept the code of conduct</string>
+    <string name="conduct_failed">Couldn’t save your answer. Try again.</string>
+
+    <string name="home_greeting">Hello, %1$s</string>
+    <string name="trust_github">GitHub linked</string>
+    <plurals name="trust_github_years">
+        <item quantity="one">GitHub account, %1$d year</item>
+        <item quantity="other">GitHub account, %1$d years</item>
+    </plurals>
+    <string name="trust_email">Email verified</string>
+    <string name="trust_founder">Founding member</string>
+    <string name="trust_demo">Demo account</string>
+    <string name="home_next_title">Coming to the app</string>
+    <string name="home_next_text">SOS Dev, project rooms and your full Passport arrive in the next updates. Everything is already available on the web.</string>
+    <string name="sign_out">Sign out</string>
+
+    <string name="unreachable_title">DevHub can’t be reached</string>
+    <string name="unreachable_text">Check your connection, then try again. You stay signed in.</string>
+    <string name="retry">Try again</string>
+</resources>

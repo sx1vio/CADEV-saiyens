@@ -1,0 +1,13 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.cxx/
+# iOS : projet régénéré par XcodeGen, dépendances et produits Xcode
+iosApp/iosApp.xcodeproj/
+iosApp/build/
+xcuserdata/
+DerivedData/
