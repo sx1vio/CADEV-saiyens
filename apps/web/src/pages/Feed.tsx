@@ -777,6 +777,9 @@ function FeedPost({ item }: { item: NewsItem }) {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
+          // Doublon visuel du lien du titre : hors de l'ordre de tabulation et des lecteurs d'écran.
+          tabIndex={-1}
+          aria-hidden="true"
           className="relative mt-3 block bg-surface-2"
         >
           <img

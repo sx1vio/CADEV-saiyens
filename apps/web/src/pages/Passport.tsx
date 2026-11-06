@@ -427,7 +427,10 @@ export default function Passport() {
                 {isMe ? (
                   <>
                     Aucune pour l’instant.{' '}
-                    <Link to="/certifications" className="text-accent-text hover:underline">
+                    <Link
+                      to="/certifications"
+                      className="text-accent-text underline underline-offset-2"
+                    >
                       Prépare ta première
                     </Link>
                   </>

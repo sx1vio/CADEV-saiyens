@@ -62,7 +62,8 @@
   --teal-text: #0f766e;
   --live: #16a34a;
 
-  --success: #15803d;
+  /* Vert assez foncé pour 4,5:1 sur son fond pâle (pastilles « Gratuit », niveaux). */
+  --success: #166534;
   --success-soft: rgba(21, 128, 61, 0.08);
   --warning: #b45309;
   --warning-soft: rgba(180, 83, 9, 0.08);
