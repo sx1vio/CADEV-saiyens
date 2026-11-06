@@ -45,6 +45,8 @@ targets:
         FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
         OTHER_LDFLAGS: [-framework, Shared]
         ENABLE_USER_SCRIPT_SANDBOXING: 'NO'
+        # Le framework Kotlin cible les simulateurs Apple Silicon (iosSimulatorArm64) seulement.
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
       configs:
         Debug:
           DEVHUB_DEV_SIGN_IN: 'YES'
