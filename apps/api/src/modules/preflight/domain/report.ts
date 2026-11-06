@@ -4,6 +4,7 @@ import type {
   PreflightStatus,
   PreflightVerdict,
 } from '@devhub/contracts';
+import { SYSTALINK_LABEL } from './hosting';
 import { formatBytes, formatMs } from './network';
 
 export function countChecks(checks: PreflightCheck[]): Record<PreflightStatus, number> {
@@ -162,6 +163,13 @@ export function toMarkdown(report: PreflightReport, links: { page: string; json:
           `| ${s.concurrency} | ${s.requests} | ${s.rps} | ${formatMs(s.p50Ms)} | ${formatMs(s.p95Ms)} | ${formatMs(s.p99Ms)} | ${s.errors} |`,
       ),
     );
+  }
+  if (report.systalink) {
+    const a = report.systalink;
+    out.push('', '## Hébergement Systalink', '');
+    if (a.declared) out.push(`Offre déclarée : ${SYSTALINK_LABEL[a.declared]}.`, '');
+    if (a.recommended) out.push(`**Offre conseillée : ${SYSTALINK_LABEL[a.recommended]}.**`, '');
+    out.push(a.reason);
   }
   if (report.repoSummary) {
     const r = report.repoSummary;

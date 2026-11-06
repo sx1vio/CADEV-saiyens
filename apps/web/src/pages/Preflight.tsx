@@ -8,7 +8,9 @@ import type {
   PreflightLoadTest,
   PreflightOwnership,
   PreflightReport,
+  PreflightSystalinkAdvice,
   PreflightVerdict,
+  SystalinkHosting,
 } from '@devhub/contracts';
 import {
   Accessibility,
@@ -43,8 +45,10 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain';
 import { Button, ButtonLink, Spinner } from '@/components/ui/button';
-import { Badge, Card, Field, IconChip, Input, Skeleton } from '@/components/ui/primitives';
+import { Badge, Card, Field, IconChip, Input, Select, Skeleton } from '@/components/ui/primitives';
+import { DeployToSystalink } from '@/components/systalink';
 import { setQueryData, useQuery } from '@/lib/query';
+import { SYSTALINK_HOSTING_GROUPS, SYSTALINK_HOSTING_LABEL } from '@/lib/systalink-offers';
 import { cn } from '@/lib/utils';
 import { DomainError } from '@/services/types';
 import { useSession } from '@/stores/app';
@@ -80,8 +84,12 @@ async function call<T>(
 }
 
 const preflightApi = {
-  run: (url: string | null, repo: string | null, loadTest = false) =>
-    call<PreflightReport>('POST', '/preflight', { url, repo, loadTest }),
+  run: (
+    url: string | null,
+    repo: string | null,
+    loadTest = false,
+    systalink: SystalinkHosting | null = null,
+  ) => call<PreflightReport>('POST', '/preflight', { url, repo, loadTest, systalink }),
   ownership: (url: string) =>
     call<PreflightOwnership>('GET', `/preflight/ownership?url=${encodeURIComponent(url)}`),
   get: (id: string) => call<PreflightReport>('GET', `/preflight/${id}`),
@@ -201,6 +209,7 @@ function Launcher() {
   const [url, setUrl] = useState(() => params.get('url') ?? '');
   const [repo, setRepo] = useState('');
   const [loadTest, setLoadTest] = useState(false);
+  const [systalink, setSystalink] = useState<SystalinkHosting | ''>('');
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useQuery(user ? 'preflight:mine' : null, () => preflightApi.mine());
@@ -217,7 +226,12 @@ function Launcher() {
       return setError('Le test de charge a besoin de l’adresse de l’application.');
     setRunning(true);
     try {
-      const report = await preflightApi.run(normalized || null, r || null, loadTest);
+      const report = await preflightApi.run(
+        normalized || null,
+        r || null,
+        loadTest,
+        systalink || null,
+      );
       setQueryData<PreflightReport>(`preflight:${report.id}`, () => report);
       setQueryData<ListPreflightResponse>('preflight:mine', (old) => ({
         items: [report, ...(old?.items ?? [])].slice(0, 20),
@@ -268,6 +282,30 @@ function Launcher() {
                 onChange={(e) => setRepo(e.target.value)}
                 disabled={running}
               />
+            </Field>
+            <Field
+              label="Ton hébergement Systalink"
+              htmlFor="pf-systalink"
+              optional="facultatif"
+              hint="Avec le test de charge, le rapport te dit si ton offre suffit, ou laquelle prendre."
+            >
+              <Select
+                id="pf-systalink"
+                value={systalink}
+                onChange={(e) => setSystalink(e.target.value as SystalinkHosting | '')}
+                disabled={running}
+              >
+                <option value="">Pas chez Systalink, ou je ne sais pas</option>
+                {SYSTALINK_HOSTING_GROUPS.map((g) => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.options.map((o) => (
+                      <option key={o} value={o}>
+                        {SYSTALINK_HOSTING_LABEL[o]}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </Select>
             </Field>
             {user && (
               <LoadTestOption
@@ -691,7 +729,12 @@ function ReportView({ id }: { id: string }) {
   async function rerun() {
     setRerunning(true);
     try {
-      const report = await preflightApi.run(data!.url, data!.repo, !!data!.loadTest);
+      const report = await preflightApi.run(
+        data!.url,
+        data!.repo,
+        !!data!.loadTest,
+        data!.systalink?.declared ?? null,
+      );
       setQueryData<PreflightReport>(`preflight:${report.id}`, () => report);
       navigate(`/prevol/${report.id}`);
     } catch (err) {
@@ -797,6 +840,9 @@ function ReportView({ id }: { id: string }) {
 
       {data.lighthouse && <LighthouseCard lh={data.lighthouse} />}
       {data.loadTest && <LoadCard lt={data.loadTest} />}
+      {data.systalink && data.metrics && (
+        <SystalinkCard advice={data.systalink} hosted={data.metrics.hostedOnSystalink} />
+      )}
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col gap-6">
@@ -1173,6 +1219,38 @@ function LoadCard({ lt }: { lt: PreflightLoadTest }) {
           </tbody>
         </table>
       </div>
+    </Card>
+  );
+}
+
+/* ---------------- Hébergement Systalink : conseil d'offre ---------------- */
+
+function SystalinkCard({ advice, hosted }: { advice: PreflightSystalinkAdvice; hosted: boolean }) {
+  const title = advice.recommended
+    ? `Offre conseillée : ${SYSTALINK_HOSTING_LABEL[advice.recommended]}`
+    : hosted
+      ? 'Hébergé chez Systalink'
+      : 'Hébergé hors de Systalink';
+  return (
+    <Card className="mt-3 flex min-w-0 flex-col gap-4 p-5 sm:flex-row sm:items-center">
+      <IconChip tone={advice.recommended ? 'warning' : hosted ? 'success' : 'blue'}>
+        <Server />
+      </IconChip>
+      <div className="min-w-0 flex-1">
+        <p className="label-caps">Hébergement Systalink</p>
+        <p className="mt-1 text-[16px] font-semibold text-fg">{title}</p>
+        {advice.declared && (
+          <p className="mt-0.5 text-xs text-subtle">
+            Offre déclarée : {SYSTALINK_HOSTING_LABEL[advice.declared]}
+          </p>
+        )}
+        <p className="mt-1.5 text-[13px] text-muted">{advice.reason}</p>
+      </div>
+      {advice.recommended ? (
+        <DeployToSystalink from="preflight" to="console" variant="primary" className="shrink-0" />
+      ) : !hosted ? (
+        <DeployToSystalink from="preflight" to="server" className="shrink-0" />
+      ) : null}
     </Card>
   );
 }

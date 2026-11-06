@@ -22,11 +22,13 @@ import {
   Smartphone,
   Trash2,
   XCircle,
+  Server,
 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain';
+import { DeployToSystalink } from '@/components/systalink';
 import { Button, ButtonLink, Spinner } from '@/components/ui/button';
 import { Avatar, Badge, Card, Field, Input, Skeleton, Textarea } from '@/components/ui/primitives';
 import { invalidate, useQuery } from '@/lib/query';
@@ -99,10 +101,12 @@ function List() {
   const scope = (params.get('vue') as Scope) || 'open';
   const device = params.get('appareil') as BenchDevice | null;
   const network = params.get('reseau') as BenchNetwork | null;
+  const systalink = params.get('systalink') === '1';
   const q = new URLSearchParams();
   if (scope !== 'open') q.set('scope', scope);
   if (device) q.set('device', device);
   if (network) q.set('network', network);
+  if (systalink) q.set('systalink', 'true');
   const { data, error } = useQuery(`bench:list:${q.toString()}`, () => benchApi.list(q));
   const set = (key: string, value: string | null) => {
     const next = new URLSearchParams(params);
@@ -168,6 +172,17 @@ function List() {
             options={BENCH_NETWORKS.map((n) => [n, NETWORK_LABEL[n]])}
             onChange={(v) => set('reseau', v)}
           />
+          <button
+            type="button"
+            aria-pressed={systalink}
+            onClick={() => set('systalink', systalink ? null : '1')}
+            className={cn(
+              'inline-flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-medium [&_svg]:size-4',
+              systalink ? 'lg-tint' : 'lg-clear text-fg',
+            )}
+          >
+            <Server /> Hébergées chez Systalink
+          </button>
         </div>
       </div>
 
@@ -183,7 +198,7 @@ function List() {
             ))}
           </div>
         ) : data.data.length === 0 ? (
-          <Empty scope={scope} filtered={Boolean(device || network)} />
+          <Empty scope={scope} filtered={Boolean(device || network || systalink)} />
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {data.data.map((b) => (
@@ -287,6 +302,11 @@ function RequestCard({ item }: { item: BenchItem }) {
         ) : null}
       </div>
       <div className="flex flex-wrap gap-1.5">
+        {item.hostedOnSystalink && (
+          <Badge tone="mint">
+            <Server /> Systalink
+          </Badge>
+        )}
         {item.devices.map((d) => (
           <Badge key={d} tone="blue">
             {DEVICE_SHORT[d]}
@@ -621,6 +641,11 @@ function Detail({ id }: { id: string }) {
             </Link>
             · <Ago iso={data.createdAt} /> ·{' '}
             {data.status === 'closed' ? 'fermée' : `${data.testers}/${data.maxTesters} testeurs`}
+            {data.hostedOnSystalink && (
+              <Badge tone="mint">
+                <Server /> Hébergée chez Systalink
+              </Badge>
+            )}
           </span>
         }
         actions={
@@ -702,6 +727,16 @@ function Detail({ id }: { id: string }) {
                 Lancer un pré-vol sur l’app
               </ButtonLink>
               <OpenToggle detail={data} onChange={reload} />
+            </Card>
+          )}
+          {data.mine && !data.hostedOnSystalink && (
+            <Card className="flex flex-col gap-2 p-5">
+              <p className="text-[15px] font-semibold text-fg">Héberger à Dakar</p>
+              <p className="text-[13px] text-muted">
+                Un serveur Systalink à Dakar rapproche ton app de ses utilisateurs en Afrique de
+                l’Ouest. Le pré-vol te dit ensuite quelle taille prendre.
+              </p>
+              <DeployToSystalink from="bench" to="server" className="justify-start" />
             </Card>
           )}
         </aside>

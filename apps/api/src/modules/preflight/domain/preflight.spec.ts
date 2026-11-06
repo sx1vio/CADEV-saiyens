@@ -297,6 +297,7 @@ describe('pré-vol : rapport', () => {
         repoSummary: null,
         lighthouse: null,
         loadTest: null,
+        systalink: null,
         checks,
         author: { handle: 'awa', displayName: 'Awa' },
       },

@@ -10,7 +10,7 @@ Le pré-vol vérifie une application déployée et son dépôt GitHub public ava
 | Réseau lent | premier affichage estimé en « 3G rapide » (1,6 Mbit/s, 562 ms), poids, compression, images, cache, viewport mobile, temps de réponse du serveur                                                |
 | Dépendances | failles connues (base OSV) avec la version corrigée, fichier de verrouillage                                                                                                                   |
 | Licences    | licence du dépôt, dépendances directes GPL, AGPL, LGPL…                                                                                                                                        |
-| Hébergement | application servie depuis les adresses Systalink (`SYSTALINK_IP_RANGES`)                                                                                                                       |
+| Hébergement | application servie depuis les adresses Systalink (`SYSTALINK_IP_RANGES`) ; avec l’offre Systalink déclarée et le test de charge, offre conseillée (`host.plan`)                                |
 | Performance | **Lighthouse mobile réel** (Google PageSpeed Insights) : scores performance, accessibilité, bonnes pratiques, référencement ; LCP, TBT, CLS ; mesures de vrais visiteurs Chrome si disponibles |
 | Charge      | **test de charge** (option) : montée de 2 à 50 visiteurs simultanés, point de rupture, latences p50/p95/p99, erreurs ; domaine prouvé obligatoire                                              |
 | Code (CI)   | avec l'action GitHub : `lint`, `typecheck`, `test`, couverture, `build` ; secrets dans tout l'historique (gitleaks) ; failles des dépendances (osv-scanner) ; Lighthouse sur la machine GitHub |
@@ -29,6 +29,21 @@ Option « Ajouter un test de charge » sur `/prevol`, `loadTest: true` dans l'AP
 - Contrôles produits : `load.capacity` (tenue, avec les pistes de correction dans l'ordre), `load.server_errors`, `load.rate_limited`, `load.slow_baseline`. Le rapport en ligne trace la courbe débit / temps de réponse par palier.
 
 Score = (OK + avertissements / 2) / nombre de contrôles. Verdict : `ready` (rien à corriger), `review` (avertissements), `fix` (au moins un point bloquant). Chaque contrôle a un identifiant stable (`site.exposed_files`, `deps.vulnerabilities`…) que l'agent peut citer.
+
+## Conseil d'offre Systalink
+
+Champ facultatif « Ton hébergement Systalink » sur `/prevol`, `systalink` dans l'API et l'outil MCP (`cloud_starter`, `cloud_business`, `cloud_performance`, `cloud_enterprise`, `cloud_other`, `web_service`, `static_site`, `web_hosting`, `site_builder`). Le rapport contient un objet `systalink` (`declared`, `recommended`, `reason`) et, quand une offre est conseillée, le contrôle `host.plan` (information, sans effet sur le score).
+
+| Situation (avec test de charge)                         | Conseil                                               |
+| ------------------------------------------------------- | ----------------------------------------------------- |
+| Tient jusqu'au plafond                                  | garder l'offre actuelle                               |
+| Lent même sans charge (médiane > 800 ms au 1er palier)  | corriger l'application d'abord (`load.slow_baseline`) |
+| Serveur cloud Starter, Business ou Performance saturé   | la taille au-dessus, puis relancer le pré-vol         |
+| Serveur cloud Entreprise saturé                         | répartir la charge (plusieurs serveurs, Kubernetes)   |
+| Hébergement web, web service ou créateur de site saturé | serveur cloud Starter                                 |
+| Hors Systalink et saturé                                | serveur cloud Business à Dakar                        |
+
+Sans test de charge, aucune offre n'est conseillée. La déclaration ne remplace pas la vérification par l'adresse IP : si l'IP n'est pas reconnue, `host.systalink` l'explique (attendu pour un site statique servi par un CDN).
 
 ## Jetons d'API personnels
 

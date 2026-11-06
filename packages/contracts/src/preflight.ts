@@ -24,6 +24,53 @@ export type PreflightVerdict = z.infer<typeof PreflightVerdict>;
 
 export const PREFLIGHT_REPO = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\/[A-Za-z0-9._-]{1,100}$/;
 
+/**
+ * Offre Systalink déclarée par le développeur (facultatif). L'adresse IP ne suffit pas toujours :
+ * un site statique passe par un CDN mondial. La déclaration sert au conseil de taille, jamais à
+ * la vérification « hébergé chez Systalink », qui reste fondée sur l'adresse IP.
+ */
+export const SYSTALINK_HOSTINGS = [
+  'cloud_starter',
+  'cloud_business',
+  'cloud_performance',
+  'cloud_enterprise',
+  'cloud_other',
+  'web_service',
+  'static_site',
+  'web_hosting',
+  'site_builder',
+] as const;
+export const SystalinkHosting = z.enum(SYSTALINK_HOSTINGS);
+export type SystalinkHosting = z.infer<typeof SystalinkHosting>;
+
+/**
+ * Serveurs cloud Systalink (Dakar) dans l'ordre de taille, relevés sur
+ * https://systalink.com/fr/server-cloud le 06/11/2026. D'autres configurations existent.
+ */
+export const SYSTALINK_CLOUD_PLANS = [
+  { id: 'cloud_starter', name: 'Starter', vcpu: 1, ramGb: 2, diskGb: 50 },
+  { id: 'cloud_business', name: 'Business', vcpu: 2, ramGb: 8, diskGb: 100 },
+  { id: 'cloud_performance', name: 'Performance', vcpu: 6, ramGb: 16, diskGb: 320 },
+  { id: 'cloud_enterprise', name: 'Entreprise', vcpu: 8, ramGb: 32, diskGb: 640 },
+] as const satisfies readonly {
+  id: SystalinkHosting;
+  name: string;
+  vcpu: number;
+  ramGb: number;
+  diskGb: number;
+}[];
+
+/** Conseil d'hébergement Systalink tiré du pré-vol (offre déclarée, test de charge, adresse IP). */
+export const PreflightSystalinkAdvice = z.object({
+  /** Offre déclarée par le développeur, ou null. */
+  declared: SystalinkHosting.nullable(),
+  /** Offre conseillée, ou null si l'actuelle suffit ou si le test de charge n'a pas tourné. */
+  recommended: SystalinkHosting.nullable(),
+  /** Pourquoi, en une phrase. */
+  reason: z.string(),
+});
+export type PreflightSystalinkAdvice = z.infer<typeof PreflightSystalinkAdvice>;
+
 /** POST /api/v1/preflight : une URL publique en HTTPS, un dépôt GitHub public, ou les deux. */
 export const CreatePreflightRequest = z
   .object({
@@ -50,6 +97,8 @@ export const CreatePreflightRequest = z
      * l'outil pourrait servir à attaquer le site de quelqu'un d'autre.
      */
     loadTest: z.boolean().optional(),
+    /** Offre Systalink actuelle, pour un conseil de taille précis. */
+    systalink: SystalinkHosting.nullish(),
   })
   .refine((v) => Boolean(v.url || v.repo), {
     message: 'url or repo is required',
@@ -192,6 +241,8 @@ export const PreflightReport = z.object({
   repoSummary: PreflightRepoSummary.nullable(),
   lighthouse: PreflightLighthouse.nullable(),
   loadTest: PreflightLoadTest.nullable(),
+  /** Conseil d'hébergement Systalink ; null pour un pré-vol du dépôt seul. */
+  systalink: PreflightSystalinkAdvice.nullable(),
   checks: z.array(PreflightCheck),
   author: z.object({ handle: z.string(), displayName: z.string() }),
 });

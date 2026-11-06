@@ -11,6 +11,8 @@ const TARGETS: Record<SystalinkTarget, string> = {
   orion: 'https://systalink.com/fr/orion',
   /** Serveur cloud à Dakar, pour les projets qui grandissent. */
   server: 'https://systalink.com/fr/server-cloud',
+  /** Console Systalink : création d'un service (serveur, base, domaine…), offre CADEV −40 %. */
+  console: 'https://platform.systalink.com/services/create-service',
 };
 
 export function systalinkUrl(

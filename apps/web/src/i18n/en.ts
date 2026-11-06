@@ -986,6 +986,7 @@ const en: Dict = {
       deploy: 'Deploy on Systalink',
       orion: 'Build my site with Orion',
       server: 'Cloud server in Dakar',
+      console: 'Open the Systalink console',
     },
     ecosystemTitle: 'What the community brings to Systalink',
     ecosystemText:

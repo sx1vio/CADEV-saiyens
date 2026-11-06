@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PreflightLoadStage } from '@devhub/contracts';
+import type { PreflightLoadStage, PreflightReport } from '@devhub/contracts';
 import { runLoadStages } from '../infrastructure/load-runner';
 import {
   LoadTestBusyError,
@@ -242,6 +242,54 @@ describe('pré-vol avec test de charge', () => {
         loadTest: true,
       }),
     ).rejects.toBeInstanceOf(OwnershipRequiredError);
+  });
+
+  it('offre Systalink déclarée + rupture : conseil de taille dans le rapport', async () => {
+    const saved = store();
+    const probes = {
+      site: async () =>
+        ({
+          ...site,
+          status: 200,
+          headers: {},
+          html: { bytes: 1, encoded: true, hasViewport: true, lang: 'fr', title: 'x' },
+          assets: [],
+          assetsSkipped: 0,
+          redirects: [],
+          exposedFiles: [],
+          clientSecrets: [],
+          sourceMaps: [],
+          hostIps: ['102.203.221.10'],
+          hostedOnSystalink: true,
+          httpRedirectsToHttps: true,
+          ttfbMs: 10,
+          requestedUrl: site.finalUrl,
+        }) as SiteFacts,
+      repo: async () => {
+        throw new Error('x');
+      },
+      classify: () => 'other' as const,
+      ownership: async () => 'well-known' as const,
+      loadTest: async () => [
+        stage({ concurrency: 2 }),
+        stage({ concurrency: 5 }),
+        stage({ concurrency: 10, p95Ms: 2_600 }),
+      ],
+    } satisfies PreflightProbes;
+    await new RunPreflight(probes, saved).run({
+      userId: 'u1',
+      url: site.finalUrl,
+      repo: null,
+      loadTest: true,
+      systalink: 'cloud_starter',
+    });
+    const result = (saved.saved[0] as { result: PreflightReport }).result;
+    expect(result.systalink).toMatchObject({
+      declared: 'cloud_starter',
+      recommended: 'cloud_business',
+    });
+    expect(result.checks.find((c) => c.id === 'host.plan')?.status).toBe('info');
+    expect(result.checks.find((c) => c.id === 'host.systalink')?.status).toBe('pass');
   });
 
   it('un seul test de charge à la fois sur le serveur', async () => {

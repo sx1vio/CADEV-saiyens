@@ -18,6 +18,7 @@ const report: PreflightReport = {
   repoSummary: null,
   lighthouse: null,
   loadTest: null,
+  systalink: null,
   checks: [
     {
       id: 'site.security_headers',
@@ -116,10 +117,31 @@ describe('PreflightMcpServer', () => {
       url: 'https://app.exemple.sn',
       repo: 'awa/app',
       loadTest: false,
+      systalink: null,
     });
     expect(res.result.isError).toBe(false);
     expect(res.result.content[0]!.text).toContain('Consigne pour l’agent IA');
     expect(res.result.content[0]!.text).toContain('Content-Security-Policy');
+  });
+
+  it('transmet l’offre Systalink déclarée et refuse une offre inconnue', async () => {
+    const { mcp, run } = server();
+    await mcp.handle(
+      rpc('tools/call', {
+        name: 'run_preflight',
+        arguments: { url: 'https://app.exemple.sn', systalink: 'cloud_starter' },
+      }),
+      'u1',
+    );
+    expect(run).toHaveBeenCalledWith(expect.objectContaining({ systalink: 'cloud_starter' }));
+    const bad = (await mcp.handle(
+      rpc('tools/call', {
+        name: 'run_preflight',
+        arguments: { url: 'https://app.exemple.sn', systalink: 'mainframe' },
+      }),
+      'u1',
+    )) as { result: { isError: boolean } };
+    expect(bad.result.isError).toBe(true);
   });
 
   it('signale les erreurs du pré-vol comme résultat d’outil, lisible par l’agent', async () => {

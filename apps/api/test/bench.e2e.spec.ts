@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
+import { BENCH_HOST_RESOLVER } from '../src/modules/bench/infrastructure/host-resolver';
 import { applyTestEnv } from './env.fixture';
 import { WRITE_HEADERS, signInAs } from './sign-in.helper';
 
@@ -47,7 +48,13 @@ describe('Banc d’essai', () => {
   });
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    // DNS simulé : une seule application est servie depuis le réseau Systalink (102.203.220.0/22).
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(BENCH_HOST_RESOLVER)
+      .useValue(async (host: string) =>
+        host === 'dakar-shop.example' ? ['102.203.221.40'] : ['203.0.113.9'],
+      )
+      .compile();
     app = moduleRef.createNestApplication();
     app.useGlobalFilters(new ProblemDetailsFilter());
     await app.init();
@@ -90,6 +97,25 @@ describe('Banc d’essai', () => {
     expect(list.body.data.some((b: { id: string }) => b.id === benchId)).toBe(true);
     const other = await send('get', null, '/api/v1/bench?device=desktop').expect(200);
     expect(other.body.data.some((b: { id: string }) => b.id === benchId)).toBe(false);
+  });
+
+  it('repère les applications hébergées chez Systalink et permet de les filtrer', async () => {
+    const res = await send('post', 'kofi', '/api/v1/bench', {
+      title: `Boutique Dakar ${suffix}`,
+      appUrl: 'https://dakar-shop.example/catalogue',
+      instructions: 'Parcourir le catalogue en 3G et ajouter un article au panier.',
+      devices: ['android_low'],
+      networks: ['3g'],
+    }).expect(201);
+    const all = await send('get', null, '/api/v1/bench').expect(200);
+    const find = (data: { id: string; hostedOnSystalink: boolean }[], id: string) =>
+      data.find((b) => b.id === id);
+    expect(find(all.body.data, res.body.id)?.hostedOnSystalink).toBe(true);
+    expect(find(all.body.data, benchId)?.hostedOnSystalink).toBe(false);
+    const only = await send('get', null, '/api/v1/bench?systalink=true').expect(200);
+    expect(find(only.body.data, res.body.id)).toBeDefined();
+    expect(find(only.body.data, benchId)).toBeUndefined();
+    await send('post', 'kofi', `/api/v1/bench/${res.body.id}/close`).expect(204);
   });
 
   it('refuse le rapport de l’auteur et un appareil non demandé', async () => {

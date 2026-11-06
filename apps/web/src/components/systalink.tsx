@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
-type Target = 'deploy' | 'orion' | 'server';
-type Source = 'room' | 'templates' | 'build' | 'systalink' | 'help';
+type Target = 'deploy' | 'orion' | 'server' | 'console';
+type Source = 'room' | 'templates' | 'build' | 'systalink' | 'help' | 'preflight' | 'bench';
 
 const API = `${(import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''}/api/v1`;
 

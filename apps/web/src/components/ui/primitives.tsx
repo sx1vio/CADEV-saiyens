@@ -5,6 +5,7 @@ import {
   type HTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
+  type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -254,6 +255,18 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
       <input
         ref={ref}
         className={cn(fieldBase, 'h-11 px-4 text-[15px] sm:h-10 sm:text-sm', className)}
+        {...props}
+      />
+    );
+  },
+);
+
+export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
+  function Select({ className, ...props }, ref) {
+    return (
+      <select
+        ref={ref}
+        className={cn(fieldBase, 'h-11 px-3.5 text-[15px] sm:h-10 sm:text-sm', className)}
         {...props}
       />
     );

@@ -1207,19 +1207,21 @@ enum BenchReportStatus {
 
 /// Demande de test sur de vrais appareils et réseaux, publiée par un dev.
 model BenchRequest {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authorId     String      @map("author_id") @db.Uuid
-  title        String
-  appUrl       String      @map("app_url")
-  repoUrl      String?     @map("repo_url")
-  instructions String
-  devices      String[]
-  networks     String[]
-  maxTesters   Int         @default(5) @map("max_testers")
-  status       BenchStatus @default(open)
-  hiddenAt     DateTime?   @map("hidden_at") @db.Timestamptz // masquée par la modération
-  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  closedAt     DateTime?   @map("closed_at") @db.Timestamptz
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId          String      @map("author_id") @db.Uuid
+  title             String
+  appUrl            String      @map("app_url")
+  repoUrl           String?     @map("repo_url")
+  instructions      String
+  devices           String[]
+  networks          String[]
+  maxTesters        Int         @default(5) @map("max_testers")
+  /// Adresse de l'application dans les plages Systalink, vérifiée à la création.
+  hostedOnSystalink Boolean     @default(false) @map("hosted_on_systalink")
+  status            BenchStatus @default(open)
+  hiddenAt          DateTime?   @map("hidden_at") @db.Timestamptz // masquée par la modération
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  closedAt          DateTime?   @map("closed_at") @db.Timestamptz
 
   author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   reports BenchReport[]
