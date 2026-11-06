@@ -129,6 +129,7 @@ export class PreflightController {
         url: body.url ?? null,
         repo: body.repo ?? null,
         loadTest: body.loadTest ?? false,
+        systalink: body.systalink ?? null,
       })
       .catch(toHttp);
     const report = await this.reports.get(id);

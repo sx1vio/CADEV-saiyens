@@ -73,10 +73,18 @@ export type StatusHistoryResponse = z.infer<typeof StatusHistoryResponse>;
 // ─────────────── Écosystème Systalink (idées A et B) ───────────────
 
 /** Destinations du bouton « Déployer sur Systalink » (liste fermée côté serveur). */
-export const SystalinkTarget = z.enum(['deploy', 'orion', 'server']);
+export const SystalinkTarget = z.enum(['deploy', 'orion', 'server', 'console']);
 export type SystalinkTarget = z.infer<typeof SystalinkTarget>;
 /** Écran d'où part le renvoi : mesure de ce que DevHub apporte à Systalink. */
-export const SystalinkSource = z.enum(['room', 'templates', 'build', 'systalink', 'help']);
+export const SystalinkSource = z.enum([
+  'room',
+  'templates',
+  'build',
+  'systalink',
+  'help',
+  'preflight',
+  'bench',
+]);
 export type SystalinkSource = z.infer<typeof SystalinkSource>;
 
 /** GET /api/v1/go/systalink : compte le renvoi, puis redirige (302) vers Systalink. */

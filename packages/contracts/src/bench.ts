@@ -96,6 +96,8 @@ export const BenchItem = z.object({
   devices: z.array(BenchDevice),
   networks: z.array(BenchNetwork),
   maxTesters: z.number().int(),
+  /** Application servie depuis le réseau Systalink (adresse IP vérifiée à la publication). */
+  hostedOnSystalink: z.boolean(),
   /** Rapports reçus, hors rapports refusés (ils libèrent la place). */
   testers: z.number().int(),
   status: z.enum(['open', 'closed']),
@@ -113,6 +115,8 @@ export const ListBenchQuery = z.object({
   network: BenchNetwork.optional(),
   /** « mine » : mes demandes ; « tested » : celles où j'ai rendu un rapport. */
   scope: z.enum(['open', 'mine', 'tested']).default('open'),
+  /** « true » : seulement les applications hébergées chez Systalink. */
+  systalink: z.stringbool().optional(),
 });
 export type ListBenchQuery = z.infer<typeof ListBenchQuery>;
 

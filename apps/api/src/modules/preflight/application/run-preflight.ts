@@ -6,12 +6,15 @@ import type {
   PreflightMetrics,
   PreflightRepoSummary,
   PreflightReport,
+  PreflightSystalinkAdvice,
+  SystalinkHosting,
 } from '@devhub/contracts';
 import { PREFLIGHT_HOURLY_QUOTA, PREFLIGHT_LOAD_HOURLY_QUOTA } from '@devhub/contracts';
 import { repoChecks, siteChecks, siteUnreachableCheck } from '../domain/checks';
 import { lighthouseChecks } from '../domain/lighthouse';
 import { concludeLoad, loadChecks } from '../domain/load';
 import type { RepoFacts, SiteFacts } from '../domain/facts';
+import { declaredButUnseen, planCheck, systalinkAdvice } from '../domain/hosting';
 import { estimateLoad } from '../domain/network';
 import { countChecks, scoreOf, sortChecks, verdictOf } from '../domain/report';
 
@@ -54,14 +57,21 @@ export interface PreflightStore {
     durationMs: number;
     result: Pick<
       PreflightReport,
-      'checks' | 'metrics' | 'repoSummary' | 'counts' | 'lighthouse' | 'loadTest'
+      'checks' | 'metrics' | 'repoSummary' | 'counts' | 'lighthouse' | 'loadTest' | 'systalink'
     >;
   }): Promise<string>;
 }
 
 const BUDGET_MS = 45_000;
 
-type RunInput = { userId: string; url: string | null; repo: string | null; loadTest?: boolean };
+type RunInput = {
+  userId: string;
+  url: string | null;
+  repo: string | null;
+  loadTest?: boolean;
+  /** Offre Systalink déclarée par le développeur. */
+  systalink?: SystalinkHosting | null;
+};
 
 export class RunPreflight {
   private readonly running = new Set<string>();
@@ -228,6 +238,20 @@ export class RunPreflight {
       }
     }
 
+    let systalink: PreflightSystalinkAdvice | null = null;
+    if (siteOk) {
+      const declared = input.systalink ?? null;
+      systalink = systalinkAdvice({
+        hosted: (site as SiteFacts).hostedOnSystalink,
+        declared,
+        loadTest,
+      });
+      const plan = planCheck(systalink);
+      if (plan) checks.push(plan);
+      const i = checks.findIndex((c) => c.id === 'host.systalink');
+      if (i >= 0) checks[i] = declaredButUnseen(checks[i]!, declared);
+    }
+
     const sorted = sortChecks(checks);
     return this.store.save({
       userId: input.userId,
@@ -242,6 +266,7 @@ export class RunPreflight {
         repoSummary,
         lighthouse: lighthouse ?? null,
         loadTest,
+        systalink,
         counts: countChecks(sorted),
       },
     });

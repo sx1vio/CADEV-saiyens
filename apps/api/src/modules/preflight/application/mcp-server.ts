@@ -3,6 +3,8 @@ import {
   type PreflightListItem,
   type PreflightReport,
   PREFLIGHT_HOURLY_QUOTA,
+  SYSTALINK_HOSTINGS,
+  type SystalinkHosting,
 } from '@devhub/contracts';
 import { z } from 'zod';
 import { toMarkdown } from '../domain/report';
@@ -28,6 +30,7 @@ export interface McpDeps {
     url: string | null;
     repo: string | null;
     loadTest?: boolean;
+    systalink?: SystalinkHosting | null;
   }): Promise<string>;
   get(id: string): Promise<PreflightReport | null>;
   listMine(userId: string): Promise<PreflightListItem[]>;
@@ -80,6 +83,12 @@ const TOOLS = [
           type: 'boolean',
           description:
             'Ajoute un test de charge (montée de 2 à 50 visiteurs simultanés, 30 s au plus). Exige que l’auteur ait prouvé contrôler le domaine : fichier https://<domaine>/.well-known/devhub-verify.txt ou enregistrement DNS, à récupérer sur la page Pré-vol de DevHub.',
+        },
+        systalink: {
+          type: 'string',
+          enum: [...SYSTALINK_HOSTINGS],
+          description:
+            'Offre Systalink qui héberge l’application, si l’auteur la connaît : avec le test de charge, le rapport conseille la taille de serveur adaptée.',
         },
       },
       additionalProperties: false,
@@ -205,6 +214,7 @@ export class PreflightMcpServer {
             url: parsed.data.url ?? null,
             repo: parsed.data.repo ?? null,
             loadTest: parsed.data.loadTest ?? false,
+            systalink: parsed.data.systalink ?? null,
           });
           return this.reportText(id);
         } catch (err) {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type {
   BenchDetail,
   BenchDevice,
@@ -13,10 +13,14 @@ import type {
   ReviewBenchReportResponse,
 } from '@devhub/contracts';
 import type { Prisma } from '../../../generated/prisma/client';
+import { ENV } from '../../../infrastructure/config/config.module';
+import type { Env } from '../../../infrastructure/config/env';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { Notifier } from '../../notifications';
 import { AwardXp } from '../../reputation';
 import { assertCanReport, assertCanReview, coverage } from '../domain/rules';
+import { onSystalinkNetwork } from '../domain/systalink';
+import { BENCH_HOST_RESOLVER, type HostResolver } from './host-resolver';
 
 const author = { select: { handle: true, displayName: true, avatarUrl: true, isDemo: true } };
 
@@ -29,6 +33,7 @@ const itemSelect = {
   devices: true,
   networks: true,
   maxTesters: true,
+  hostedOnSystalink: true,
   status: true,
   createdAt: true,
   author,
@@ -45,11 +50,26 @@ const visible = {
 // Banc d'essai : demandes de test sur de vrais appareils, rapports des testeurs, Proof XP.
 @Injectable()
 export class BenchService {
+  private readonly log = new Logger(BenchService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly xp: AwardXp,
     private readonly notifier: Notifier,
+    @Inject(ENV) private readonly env: Env,
+    @Inject(BENCH_HOST_RESOLVER) private readonly resolve: HostResolver,
   ) {}
+
+  /** Adresse IP de l'application dans les plages Systalink ; faux si le DNS ne répond pas. */
+  private async onSystalink(appUrl: string): Promise<boolean> {
+    try {
+      const ips = await this.resolve(new URL(appUrl).hostname);
+      return onSystalinkNetwork(ips, this.env.SYSTALINK_IP_RANGES);
+    } catch (err) {
+      this.log.debug(`DNS ${appUrl} : ${err instanceof Error ? err.message : String(err)}`);
+      return false;
+    }
+  }
 
   async list(q: ListBenchQuery, viewer: string | null): Promise<ListBenchResponse> {
     const where: Prisma.BenchRequestWhereInput = { ...visible };
@@ -64,6 +84,7 @@ export class BenchService {
     }
     if (q.device) where.devices = { has: q.device };
     if (q.network) where.networks = { has: q.network };
+    if (q.systalink) where.hostedOnSystalink = true;
     const rows = await this.prisma.benchRequest.findMany({
       where,
       select: itemSelect,
@@ -108,6 +129,7 @@ export class BenchService {
         devices: [...new Set(input.devices)],
         networks: [...new Set(input.networks)],
         maxTesters: input.maxTesters,
+        hostedOnSystalink: await this.onSystalink(input.appUrl),
       },
       select: { id: true },
     });
@@ -304,6 +326,7 @@ export class BenchService {
       devices: r.devices as BenchDevice[],
       networks: r.networks as BenchNetwork[],
       maxTesters: r.maxTesters,
+      hostedOnSystalink: r.hostedOnSystalink,
       testers: testers.get(r.id) ?? 0,
       status: r.status,
       author: r.author,

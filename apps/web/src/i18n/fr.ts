@@ -1007,6 +1007,7 @@ const fr = {
       deploy: 'Déployer sur Systalink',
       orion: 'Créer mon site avec Orion',
       server: 'Serveur cloud à Dakar',
+      console: 'Ouvrir la console Systalink',
     },
     ecosystemTitle: 'Ce que la communauté apporte à Systalink',
     ecosystemText:
