@@ -71,5 +71,5 @@ suspend fun HttpResponse.ensureSuccess(): HttpResponse {
     if (status.isSuccess()) return this
     val problem = runCatching { DevHubJson.decodeFromString(Problem.serializer(), bodyAsText()) }
         .getOrNull()
-    throw ApiException(status.value, problem)
+    throw ApiException(status.value, problem, headers[HttpHeaders.RetryAfter]?.trim()?.toIntOrNull())
 }

@@ -15,6 +15,8 @@ data class Problem(
 class ApiException(
     val status: Int,
     val problem: Problem?,
+    /** En-tête Retry-After (429, 503), en secondes. */
+    val retryAfterSeconds: Int? = null,
 ) : Exception("HTTP $status ${problem?.code ?: ""} ${problem?.title ?: ""}".trim()) {
     val code: String? get() = problem?.code
 }

@@ -58,17 +58,28 @@ class AuthRepository(
         }
         url.parameters["error"]?.let { return SignInResult.Failed(it) }
         val code = url.parameters["code"] ?: return SignInResult.Failed("invalid_state")
-        return try {
-            sessions.save(api.exchange(code, verifier).sessionToken)
+        return openSession { api.exchange(code, verifier) }
+    }
+
+    /** Connexion par e-mail et mot de passe ; la raison d'un échec est le code de l'API. */
+    suspend fun signInWithEmail(email: String, password: String): SignInResult =
+        openSession { api.emailLogin(email.trim(), password) }
+
+    /** Inscription par e-mail ; le compte est ouvert et connecté d'un coup. */
+    suspend fun registerWithEmail(displayName: String, email: String, password: String): SignInResult =
+        openSession { api.emailRegister(displayName.trim(), email.trim(), password) }
+
+    private suspend fun openSession(request: suspend () -> MobileTokenResponse): SignInResult =
+        try {
+            sessions.save(request().sessionToken)
             SignInResult.SignedIn
         } catch (e: CancellationException) {
             throw e
         } catch (e: ApiException) {
-            SignInResult.Failed(e.code ?: "github_error")
+            SignInResult.Failed(e.code ?: "http_${e.status}")
         } catch (e: NetworkException) {
             SignInResult.Failed("network")
         }
-    }
 
     /** Révoque la session côté serveur si possible, puis l'efface du téléphone dans tous les cas. */
     suspend fun signOut() {

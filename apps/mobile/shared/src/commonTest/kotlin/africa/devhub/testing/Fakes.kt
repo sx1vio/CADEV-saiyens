@@ -86,3 +86,27 @@ fun meJson(codeOfConductAcceptedAt: String? = "2026-11-01T00:00:00.000Z"): Strin
          "futureField":{"x":1}}
     """.trimIndent()
 }
+
+fun passportJson(handle: String = "awa-dev", totalXp: Int = 42): String = """
+    {"user":{"id":"7f1e0c1a-0000-4000-8000-000000000001","handle":"$handle","displayName":"Awa Diop",
+      "avatarUrl":null,"bio":"Backend","country":"SN","timezone":null,"languages":["fr"],"lookingFor":null,
+      "availability":{"mission":true},"isDemo":false,"memberSince":"2026-10-01T00:00:00.000Z"},
+     "trust":{"githubLinked":true,"githubAccountYears":4,"emailVerified":true,"demo":false,"founder":true},
+     "skills":[{"tag":{"slug":"kotlin","label":"Kotlin"},"score":55,"level":"confirmed","githubSignal":35,
+       "githubRepos":7,"platformPoints":20}],
+     "canHelp":[{"slug":"kotlin","label":"Kotlin"}],"wantLearn":[],
+     "stats":{"totalXp":$totalXp,"answersAccepted":3,"helpfulVotes":5,"questionsResolved":1,
+       "medianMinutesToHelp":12.5,"contributions":2,"contributionsVerified":1,"reviews":0},
+     "projects":[]}
+""".trimIndent()
+
+fun proofsJson(ids: List<Int>, nextCursor: String?): String {
+    val events = ids.joinToString(",") { i ->
+        """{"id":"00000000-0000-4000-8000-${i.toString().padStart(12, '0')}","kind":"answer_accepted","points":10,
+           "tag":{"slug":"kotlin","label":"Kotlin"},"source":{"type":"answer","id":"00000000-0000-4000-8000-000000000999"},
+           "createdAt":"2026-11-0${i}T10:00:00.000Z","revertedAt":null,"revertsId":null}"""
+    }
+    val cursor = nextCursor?.let { "\"$it\"" } ?: "null"
+    return """{"user":{"handle":"awa-dev","displayName":"Awa"},"totalXp":30,"events":[$events],
+              "page":{"nextCursor":$cursor,"hasMore":${nextCursor != null}}}"""
+}

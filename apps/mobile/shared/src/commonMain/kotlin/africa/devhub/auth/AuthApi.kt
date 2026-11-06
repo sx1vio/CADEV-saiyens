@@ -13,6 +13,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MobileTokenRequest(val code: String, val codeVerifier: String)
 
+/** POST /api/v1/auth/email/login/mobile (`EmailLoginRequest`). */
+@Serializable
+data class EmailLoginRequest(val email: String, val password: String)
+
+/** POST /api/v1/auth/email/register/mobile (`EmailRegisterRequest`). */
+@Serializable
+data class EmailRegisterRequest(val displayName: String, val email: String, val password: String)
+
 /** `MobileTokenResponse` de @devhub/contracts. */
 @Serializable
 data class MobileTokenResponse(val sessionToken: String, val expiresAt: String)
@@ -23,6 +31,22 @@ class AuthApi(private val http: HttpClient) {
             http.post("api/v1/auth/mobile/token") {
                 contentType(ContentType.Application.Json)
                 setBody(MobileTokenRequest(code, codeVerifier))
+            }
+        }
+
+    suspend fun emailLogin(email: String, password: String): MobileTokenResponse =
+        apiCall {
+            http.post("api/v1/auth/email/login/mobile") {
+                contentType(ContentType.Application.Json)
+                setBody(EmailLoginRequest(email, password))
+            }
+        }
+
+    suspend fun emailRegister(displayName: String, email: String, password: String): MobileTokenResponse =
+        apiCall {
+            http.post("api/v1/auth/email/register/mobile") {
+                contentType(ContentType.Application.Json)
+                setBody(EmailRegisterRequest(displayName, email, password))
             }
         }
 

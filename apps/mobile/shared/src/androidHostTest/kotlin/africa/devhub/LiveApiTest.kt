@@ -67,4 +67,30 @@ class LiveApiTest {
         val error = assertFailsWith<ApiException> { graph.meApi.me() }
         assertEquals(401, error.status)
     }
+
+    @Test
+    fun emailAccountThenPassportAndProofsAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        val graph = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val email = "kmp-e2e-$tag@example.test"
+
+        assertEquals(SignInResult.SignedIn, graph.auth.registerWithEmail("Kmp E2e", email, "une phrase assez longue"))
+        graph.auth.signOut()
+        assertEquals(SignInResult.SignedIn, graph.auth.signInWithEmail(email, "une phrase assez longue"))
+        assertEquals(
+            SignInResult.Failed("auth.bad_credentials"),
+            AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+                .auth.signInWithEmail(email, "mauvais mot de passe"),
+        )
+
+        val me = graph.meApi.me()
+        val passport = graph.passportApi.passport(me.handle)
+        assertEquals(me.handle, passport.user.handle)
+        assertEquals(false, passport.trust.githubLinked)
+        val proofs = graph.passportApi.proofs(me.handle)
+        assertEquals(0, proofs.totalXp)
+        assertEquals(false, proofs.page.hasMore)
+        graph.auth.signOut()
+    }
 }
