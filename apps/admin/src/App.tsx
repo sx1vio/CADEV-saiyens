@@ -9,6 +9,7 @@ import {
   LogOut,
   Megaphone,
   Rss,
+  Server,
   ShieldAlert,
   ShieldCheck,
   Users as UsersIcon,
@@ -25,10 +26,12 @@ import { Jobs } from './pages/Jobs';
 import { Login } from './pages/Login';
 import { Moderation } from './pages/Moderation';
 import { Overview } from './pages/Overview';
+import { Systalink } from './pages/Systalink';
 import { Users } from './pages/Users';
 
 type Tab =
   | 'overview'
+  | 'systalink'
   | 'activity'
   | 'users'
   | 'content'
@@ -40,6 +43,7 @@ type Tab =
   | 'admins';
 const TABS: { id: Tab; label: string; icon: typeof Gauge }[] = [
   { id: 'overview', label: 'Vue d’ensemble', icon: Gauge },
+  { id: 'systalink', label: 'Systalink', icon: Server },
   { id: 'activity', label: 'Activité', icon: ActivityIcon },
   { id: 'users', label: 'Utilisateurs', icon: UsersIcon },
   { id: 'content', label: 'Contenus', icon: FileText },
@@ -123,6 +127,7 @@ export function App() {
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8">
         {tab === 'overview' && <Overview onError={onError} />}
+        {tab === 'systalink' && <Systalink onError={onError} />}
         {tab === 'companies' && <Companies onError={onError} />}
         {tab === 'jobs' && <Jobs onError={onError} />}
         {tab === 'moderation' && <Moderation onError={onError} />}

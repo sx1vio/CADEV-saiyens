@@ -7,6 +7,7 @@ import { Badge, Chips, Empty, PageHeader, SearchBox, ago } from '../ui/kit';
 const TYPES = [
   { id: 'post', label: 'Publications' },
   { id: 'post_comment', label: 'Commentaires' },
+  { id: 'bench_request', label: 'Banc d’essai' },
   { id: 'question', label: 'Questions' },
   { id: 'answer', label: 'Réponses' },
   { id: 'room', label: 'Projets' },

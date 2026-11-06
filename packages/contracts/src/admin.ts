@@ -95,6 +95,7 @@ export const AdminContentType = z.enum([
   'room_message',
   'post',
   'post_comment',
+  'bench_request',
 ]);
 export type AdminContentType = z.infer<typeof AdminContentType>;
 
@@ -258,3 +259,45 @@ export type AdminFeedsView = z.infer<typeof AdminFeedsView>;
 /** POST /api/v1/admin/feeds/run */
 export const AdminFeedRunRequest = z.object({ job: AdminFeedJob });
 export type AdminFeedRunRequest = z.infer<typeof AdminFeedRunRequest>;
+
+/** GET /api/v1/admin/systalink : ce que DevHub apporte à Systalink, chiffres réels. */
+export const AdminSystalinkView = z.object({
+  referrals: z.object({
+    total: z.number().int(),
+    last30d: z.number().int(),
+    byTarget: z.array(z.object({ key: z.string(), n: z.number().int() })),
+    bySource: z.array(z.object({ key: z.string(), n: z.number().int() })),
+    days: z.array(z.object({ date: z.string(), n: z.number().int() })),
+  }),
+  deployments: z.object({
+    verified: z.number().int(),
+    onSystalink: z.number().int(),
+    /** Disponibilité moyenne mesurée des applications sur Systalink, en %. */
+    uptime: z.number().nullable(),
+    items: z.array(
+      z.object({
+        room: z.string(),
+        code: z.string(),
+        url: z.string(),
+        hostedOnSystalink: z.boolean(),
+        verifiedAt: z.iso.datetime().nullable(),
+        lastUp: z.boolean().nullable(),
+        lastLatencyMs: z.number().int().nullable(),
+        uptime: z.number().nullable(),
+      }),
+    ),
+  }),
+  preflight: z.object({
+    reports: z.number().int(),
+    /** Rapports dont le site est hébergé chez Systalink (contrôle host.systalink réussi). */
+    onSystalink: z.number().int(),
+    last30d: z.number().int(),
+  }),
+  bench: z.object({
+    requests: z.number().int(),
+    reports: z.number().int(),
+    confirmed: z.number().int(),
+  }),
+  certificates: z.number().int(),
+});
+export type AdminSystalinkView = z.infer<typeof AdminSystalinkView>;

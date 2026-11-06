@@ -31,6 +31,7 @@ import {
   type AdminInviteResponse,
   AdminRoleRequest,
   type AdminStats,
+  type AdminSystalinkView,
   AdminUserAction,
   AdminUsersQuery,
   type AdminUsersResponse,
@@ -358,6 +359,25 @@ export class AdminPlatformController {
           ),
         };
       }
+      case 'bench_request': {
+        const rows = await this.prisma.benchRequest.findMany({
+          ...base,
+          where: { ...hidden, ...text('title', 'instructions', 'appUrl') },
+          include: { author: AUTHOR },
+        });
+        return {
+          data: rows.map((r) =>
+            view(
+              'bench_request',
+              r,
+              r.title,
+              `${r.appUrl}\n${r.instructions}`,
+              r.author,
+              `/banc/${r.id}`,
+            ),
+          ),
+        };
+      }
     }
   }
 
@@ -386,6 +406,8 @@ export class AdminPlatformController {
           return this.prisma.post.updateMany({ where, data });
         case 'post_comment':
           return this.prisma.postComment.updateMany({ where, data });
+        case 'bench_request':
+          return this.prisma.benchRequest.updateMany({ where, data });
         default:
           return { count: 0 };
       }
@@ -555,6 +577,102 @@ export class AdminPlatformController {
   }
 
   /** Activité jour par jour sur 30 jours, et membres actifs. */
+  /** Tableau de bord Systalink : clics de déploiement, applications vérifiées, pré-vols. */
+  @Get('systalink')
+  async systalink(): Promise<AdminSystalinkView> {
+    const since = new Date(Date.now() - 29 * DAY);
+    since.setUTCHours(0, 0, 0, 0);
+    const onSystalink = Prisma.sql`result->'checks' @> '[{"id":"host.systalink","status":"pass"}]'::jsonb`;
+    const [
+      total,
+      last30d,
+      byTarget,
+      bySource,
+      perDay,
+      deployments,
+      reports,
+      reports30d,
+      reportsOnSystalink,
+      requests,
+      benchReports,
+      confirmed,
+      certificates,
+    ] = await Promise.all([
+      this.prisma.systalinkReferral.count(),
+      this.prisma.systalinkReferral.count({ where: { createdAt: { gte: since } } }),
+      this.prisma.systalinkReferral.groupBy({ by: ['target'], _count: { _all: true } }),
+      this.prisma.systalinkReferral.groupBy({ by: ['source'], _count: { _all: true } }),
+      this.prisma.$queryRaw<{ d: string; n: number }[]>(
+        Prisma.sql`SELECT to_char(date_trunc('day', created_at AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS d,
+                          count(*)::int AS n
+                     FROM systalink_referrals WHERE created_at >= ${since} GROUP BY 1`,
+      ),
+      this.prisma.roomDeployment.findMany({
+        where: { verifiedAt: { not: null } },
+        include: { room: { select: { name: true, inviteCode: true } } },
+        orderBy: { verifiedAt: 'desc' },
+        take: 100,
+      }),
+      this.prisma.preflightReport.count(),
+      this.prisma.preflightReport.count({ where: { createdAt: { gte: since } } }),
+      this.prisma.$queryRaw<{ n: number }[]>(
+        Prisma.sql`SELECT count(*)::int AS n FROM preflight_reports WHERE ${onSystalink}`,
+      ),
+      this.prisma.benchRequest.count(),
+      this.prisma.benchReport.count({ where: { status: { not: 'rejected' } } }),
+      this.prisma.benchReport.count({ where: { status: 'confirmed' } }),
+      this.prisma.certificate.count(),
+    ]);
+    const uptimeOf = (d: { checksTotal: number; checksUp: number }) =>
+      d.checksTotal ? Math.round((d.checksUp / d.checksTotal) * 1000) / 10 : null;
+    const hosted = deployments.filter((d) => d.hostedOnSystalink && d.checksTotal > 0);
+    const days = new Map(perDay.map((r) => [r.d, r.n]));
+    return {
+      referrals: {
+        total,
+        last30d,
+        byTarget: byTarget
+          .map((r) => ({ key: r.target, n: r._count._all }))
+          .sort((a, b) => b.n - a.n),
+        bySource: bySource
+          .map((r) => ({ key: r.source, n: r._count._all }))
+          .sort((a, b) => b.n - a.n),
+        days: Array.from({ length: 30 }, (_, i) => {
+          const date = new Date(since.getTime() + i * DAY).toISOString().slice(0, 10);
+          return { date, n: days.get(date) ?? 0 };
+        }),
+      },
+      deployments: {
+        verified: deployments.length,
+        onSystalink: deployments.filter((d) => d.hostedOnSystalink).length,
+        uptime: hosted.length
+          ? Math.round(
+              (hosted.reduce((s, d) => s + d.checksUp, 0) /
+                hosted.reduce((s, d) => s + d.checksTotal, 0)) *
+                1000,
+            ) / 10
+          : null,
+        items: deployments.map((d) => ({
+          room: d.room.name,
+          code: d.room.inviteCode,
+          url: d.url,
+          hostedOnSystalink: d.hostedOnSystalink,
+          verifiedAt: d.verifiedAt?.toISOString() ?? null,
+          lastUp: d.lastUp,
+          lastLatencyMs: d.lastLatencyMs,
+          uptime: uptimeOf(d),
+        })),
+      },
+      preflight: {
+        reports,
+        last30d: reports30d,
+        onSystalink: reportsOnSystalink[0]?.n ?? 0,
+      },
+      bench: { requests, reports: benchReports, confirmed },
+      certificates,
+    };
+  }
+
   @Get('stats')
   async stats(): Promise<AdminStats> {
     const since = new Date(Date.now() - 29 * DAY);
