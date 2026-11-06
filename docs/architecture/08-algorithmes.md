@@ -87,15 +87,17 @@ Le job `matching.escalate` s'exécute 15 minutes après la première vague. Il n
 
 ### Barème
 
-| Action                                                | `kind`                | Points | Bénéficiaire | Étiquettes créditées  | Remarque                                               |
-| ----------------------------------------------------- | --------------------- | ------ | ------------ | --------------------- | ------------------------------------------------------ |
-| Réponse validée par l'auteur                          | `answer_accepted`     | +10    | Répondant    | Celles de la question |                                                        |
-| Bonus de vitesse : validée < 15 min après la question | `answer_fast_bonus`   | +3     | Répondant    | Celles de la question | **Hors plafond quotidien**                             |
-| Réponse jugée utile par un pair                       | `answer_helpful_vote` | +2     | Répondant    | Celles de la question | 5 votes comptés au maximum par réponse                 |
-| Contribution acceptée dans une salle                  | `task_completed`      | +15    | Contributeur | Stack de la salle     | Source affichée : vérifiée par GitHub ou déclarée (R9) |
-| Revue de code donnée                                  | `code_review_given`   | +8     | Relecteur    | Stack de la salle     | Confirmée par le demandeur                             |
-| Projet partagé avec démo en ligne                     | `project_demo_shared` | +5     | Créateur     | Stack de la salle     | Une fois par projet                                    |
-| Question résolue (auteur)                             | `question_resolved`   | +1     | Auteur       | Aucune                | Encourage la clôture                                   |
+| Action                                                | `kind`                 | Points | Bénéficiaire | Étiquettes créditées  | Remarque                                               |
+| ----------------------------------------------------- | ---------------------- | ------ | ------------ | --------------------- | ------------------------------------------------------ |
+| Réponse validée par l'auteur                          | `answer_accepted`      | +10    | Répondant    | Celles de la question |                                                        |
+| Bonus de vitesse : validée < 15 min après la question | `answer_fast_bonus`    | +3     | Répondant    | Celles de la question | **Hors plafond quotidien**                             |
+| Réponse jugée utile par un pair                       | `answer_helpful_vote`  | +2     | Répondant    | Celles de la question | 5 votes comptés au maximum par réponse                 |
+| Contribution acceptée dans une salle                  | `task_completed`       | +15    | Contributeur | Stack de la salle     | Source affichée : vérifiée par GitHub ou déclarée (R9) |
+| Revue de code donnée                                  | `code_review_given`    | +8     | Relecteur    | Stack de la salle     | Confirmée par le demandeur                             |
+| Projet partagé avec démo en ligne                     | `project_demo_shared`  | +5     | Créateur     | Stack de la salle     | Une fois par projet                                    |
+| Question résolue (auteur)                             | `question_resolved`    | +1     | Auteur       | Aucune                | Encourage la clôture                                   |
+| Application vérifiée en production sur Systalink      | `deployment_verified`  | +10    | Créateur     | Stack de la salle     | Une fois par salle (idée A)                            |
+| Test sur un vrai appareil (Banc d'essai)              | `field_test_confirmed` | +8     | Testeur      | Aucune                | Rapport confirmé par l'auteur de la demande (06/11)    |
 
 Quand une action crédite plusieurs étiquettes, **un événement est écrit par étiquette**, avec les points divisés en entiers (reste attribué à la première étiquette) : 10 points sur 3 étiquettes donnent 4 + 3 + 3. Le total de l'utilisateur ne dépend donc pas du nombre d'étiquettes. **Implémenté le 8 octobre** (`splitPoints` dans `@devhub/core`, `planGain` dans `reputation`). Les parts nulles (2 points sur 3 étiquettes) ne créent pas d'événement. Le cahier des charges dit seulement « attribués aux étiquettes de la question » : si l'équipe préfère créditer les points sur **chaque** étiquette pour le score de compétence tout en ne les comptant qu'une fois dans le total, il faudra distinguer « XP total » et « XP par étiquette » dans le journal. Décision prise : répartition, voir l'[ADR-0014](../adr/0014-repartition-des-xp-entre-etiquettes.md).
 

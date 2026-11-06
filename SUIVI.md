@@ -55,34 +55,35 @@ Questions auxquelles la plateforme doit répondre :
 | Backend                                                                         | 🟡 Actualités, vidéos et proxy d’images portés dans l’API NestJS (module `news`, 08/10/2026) ; connexion par le module `identity` de Caleb ; les services de la plateforme (posts, emplois, certifs…) restent locaux                                                                                                  |
 | Intégration Systalink (A, B, C)                                                 | ✅ Preuve « en production », bouton « Déployer sur Systalink » compté, aide Systalink (16/10/2026)                                                                                                                                                                                                                    |
 | Pré-vol (« du prompt à la prod vérifiée »)                                      | ✅ v2 livrée (05/11/2026, `feat/plateforme-v2`) : Lighthouse réel (PageSpeed Insights), test de charge avec preuve de propriété, gitleaks, osv-scanner, couverture et commentaire de PR dans l’action. Reste : clé `PAGESPEED_API_KEY`, premier passage de l’action sur une vraie PR. Guide : `docs/guides/prevol.md` |
-| Refonte v3 (navigation, accueil, profil, design)                                | ✅ 05/11/2026 sur `feat/plateforme-v2`, pas encore fusionnée dans `main`                                                                                                                                                                                                                                              |
+| Refonte v3 (navigation, accueil, profil, design)                                | ✅ 05/11/2026, fusionnée dans `main` le 06/11/2026                                                                                                                                                                                                                                                                    |
+| Banc d’essai, certifications serveur, site vitrine, admin Systalink             | ✅ 06/11/2026 (voir le journal)                                                                                                                                                                                                                                                                                       |
 | Démo / pitch                                                                    | ⏳ Pas commencé                                                                                                                                                                                                                                                                                                       |
 
 ---
 
 ## Reste à faire
 
-- [ ] Banc d’essai : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; l’entrée `/banc` du menu mène encore à une 404 (05/11/2026)
-- [ ] Préparation des certifications : programme par thème, entraînement par thème, examen blanc, révision des erreurs, plan jusqu’à la date d’examen ; réutiliser les leçons de `platform/data/courses` (05/11/2026)
-- [ ] Site vitrine (`Landing.tsx`, `PublicShell.tsx`) au nouveau design, sans liens vers les sections retirées (05/11/2026)
-- [ ] Mettre à jour les tests Playwright qui visent les pages retirées (`/sos`, communautés, apprendre, vidéos, templates, classement) (05/11/2026)
-- [ ] Fusionner `feat/plateforme-v2` dans `main` (05/11/2026)
 - [ ] Pré-vol : créer une clé PageSpeed Insights gratuite et la mettre dans `PAGESPEED_API_KEY` en production (05/11/2026)
 - [ ] Pré-vol : faire tourner l'action sur une vraie PR (workflow `prevol.yml`) et vérifier gitleaks, osv-scanner et le commentaire (05/11/2026)
-- [ ] Pré-vol : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; tableau de bord Systalink dans `apps/admin` (04/11/2026)
 - [ ] Pré-vol : essayer l’action GitHub sur un vrai dépôt une fois `main` en ligne (testée seulement en local, sans `jq`) et remplacer `api-url` par le domaine définitif (04/11/2026)
 - [ ] Production : renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule), sinon 60 requêtes GitHub par heure pour tout le serveur (04/11/2026)
 - [ ] Demander à Systalink (cadev@systalink.com) : « Quel est votre plus gros frein pour attirer des développeurs ? » et s'ils permettent de créer des espaces par programme (04/11/2026)
-- [ ] **Avant le 25/10 17:00 GMT** : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
-- [ ] **Vote des pairs du 25/10 18:00 au 26/10 23:59 : chaque membre doit voter, sinon l'équipe est exclue** (23/10/2026)
+- [ ] **Avant le 15/11 17:00 GMT** (date repoussée) : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
+- [ ] **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue** (dates mises à jour le 04/11/2026)
 - [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
 - [ ] Créer l'application OAuth GitHub de production (avec Joachim / Emmanuel) ; GitLab et Google (A2) restent à faire côté API
 - [ ] Confirmer avec Systalink (cadev@systalink.com) leurs plages IP (`SYSTALINK_IP_RANGES`), un lien de déploiement préparé et un éventuel programme de crédits ou de commission
 - [ ] Décider d'une licence pour le dépôt (aucun fichier `LICENSE`) et identifier le contributeur `Sacem270` (23/10/2026)
 - [ ] Tester sur un vrai téléphone d'entrée de gamme, réseau coupé (CDC O1-O3)
-- [ ] Dette technique : 39 avertissements oxlint (règles React : pureté, setState dans effet, exports mixtes)
-- [ ] Phase 4 : audit du mouvement, audit d'accessibilité, revue de code
-- [ ] Passer les services « écosystème » (posts, emplois, certifications, progression) du stockage local à l'API (roadmap, ADR-0016)
+- [ ] Dette technique : 30 avertissements oxlint, tous « fast refresh » (exports non-composants, sans effet en production) ; les autres corrigés le 06/11/2026
+- [ ] Phase 4 : audit du mouvement et revue de code (audit d’accessibilité axe fait le 06/11/2026 : 3 défauts corrigés, alertes restantes = faux positifs de la barre latérale)
+- [ ] Passer la progression des leçons et les favoris du stockage local à l'API (posts, emplois et certifications sont sur l'API depuis le 06/11/2026)
+- [x] Banc d’essai : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; l’entrée `/banc` du menu mène encore à une 404 (05/11/2026) — fait le 06/11/2026
+- [x] Préparation des certifications : programme par thème, entraînement par thème, examen blanc, révision des erreurs, plan jusqu’à la date d’examen ; réutiliser les leçons de `platform/data/courses` (05/11/2026) — fait le 06/11/2026
+- [x] Site vitrine (`Landing.tsx`, `PublicShell.tsx`) au nouveau design, sans liens vers les sections retirées (05/11/2026) — fait le 06/11/2026
+- [x] Mettre à jour les tests Playwright qui visent les pages retirées (`/sos`, communautés, apprendre, vidéos, templates, classement) (05/11/2026) — fait le 06/11/2026
+- [x] Fusionner `feat/plateforme-v2` dans `main` (05/11/2026) — fait le 06/11/2026
+- [x] Pré-vol : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; tableau de bord Systalink dans `apps/admin` (04/11/2026) — fait le 06/11/2026
 - [x] Tests Playwright dans le dépôt et en CI (15 parcours, verts le 23/10/2026)
 - [x] PR #97 fusionnée vers `main` (14/10/2026)
 - [x] Branche `sylvio-frontend` supprimée, BUG-004 et BUG-005 clos (16/10/2026)
@@ -164,6 +165,19 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 06/11/2026 — Tout fini sauf l’application GitHub et le déploiement
+
+- **Demande de Sylvio** : « Fini, il ne restera que l’app GitHub et le déploiement ».
+- **Banc d’essai** (`/banc`, module API `bench`, migration `20261106110431_bench`) : un dev publie une demande (adresse HTTPS, consignes, appareils visés : Android d’entrée de gamme, Android, iPhone, tablette, ordinateur ; réseaux : 2G, 3G, 4G, Wi-Fi, hors ligne ; nombre de testeurs) ; un autre dev rend un rapport (modèle exact, système, navigateur, réseau, pays, verdict, problèmes avec gravité et étapes) ; l’auteur le confirme (**+8 Proof XP**, nouveau genre `field_test_confirmed`, plafond quotidien et garde-fous du barème) ou le refuse (la place se libère). Rapports visibles seulement par l’auteur et le testeur (ils peuvent décrire une faille) ; couverture appareil × réseau publique ; export Markdown « Copier pour mon agent IA » ; lien vers le pré-vol pré-rempli ; notifications `bench.report` et `bench.reviewed`. Limites : 3 demandes ouvertes, 10 rapports par jour, compte d’au moins une heure.
+- **Certifications corrigées par le serveur** (module API `certifications`, migration `20261106111634_certifications`) : constat, les réponses étaient dans le JavaScript du site et le code de vérification était inventé par le navigateur. La banque de questions est passée dans l’API ; le catalogue public (sans réponses) est dans `@devhub/core` et un test vérifie qu’il correspond à la banque. Le serveur tire (au moins une question par thème), mélange, chronomètre, corrige, impose une heure après un échec (une tentative abandonnée compte comme un échec), reprend une tentative après rechargement, et délivre un code public `DH-XXXX-XXXX-XXXX` vérifiable sur `/certificat/:code`. Les badges apparaissent maintenant sur tous les profils publics.
+- **Préparation des certifications** (fiche `/certifications/:id`) : programme par thème avec la maîtrise de chaque thème, leçons du cours lié, entraînement par thème corrigé question par question, **examen blanc** (même chrono, corrigé, sans certificat, 5 par jour), **révision des erreurs**, **plan jusqu’à la date d’examen** (thèmes les plus faibles d’abord, examen blanc et erreurs la veille).
+- **Site vitrine** : accueil public et cadre public refaits au design v3 (verre clair, tons Discord, vraies captures du fil, d’un pré-vol sur expressjs.com et d’une fiche de certification) ; plus aucun lien vers les sections retirées ; section « En direct » renommée « DevHub aujourd’hui », sans point vert.
+- **Admin** : onglet **Systalink** (clics « Déployer sur Systalink » par jour, offre et origine ; applications vérifiées en production et disponibilité ; pré-vols de sites déjà chez Systalink ; banc et certificats) ; les demandes du Banc d’essai se masquent depuis « Contenus ».
+- **Corrections** : l’onboarding envoyait encore vers `/apprendre` (retiré) → fiche de la certification du cours choisi ; préparation DevHub des certifications d’éditeurs ; avertissements React 55 → 30 ; accessibilité (axe) : liens d’image sans nom dans le fil, vert des pastilles à 4,5:1, lien souligné.
+- **Tests** : API 615, front 66, `@devhub/core` 97, Playwright 20 parcours (dont 2 nouveaux : banc d’essai et certifications), lint et types OK.
+- **Environnement** : Node 24 et pnpm dans le dossier temporaire de Claude, PostgreSQL 17 embarqué (`@embedded-postgres`) sur le port 55433, API sur 3011, front sur 5199, admin sur 5299.
+- **Reste** : application OAuth GitHub de production et déploiement sur Systalink (avec la clé `PAGESPEED_API_KEY`, `PREFLIGHT_GITHUB_TOKEN` et le premier passage de l’action `prevol.yml`), choix de la licence du dépôt, test sur un vrai téléphone.
 
 ### 05/11/2026 — Fin de session
 
