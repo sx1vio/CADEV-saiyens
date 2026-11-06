@@ -46,7 +46,7 @@ import { GithubActivity } from '@/components/passport/GithubActivity';
 import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
-import { usePlatform } from '@/platform/store';
+import { certsApi } from '@/platform/certs-api';
 import { CertBadge } from '@/platform/ui';
 
 /** Developer Passport (PR2, PR3, PR4, PR7, PR8, PR11, X1, Y6) — public, lisible sans compte. */
@@ -70,7 +70,7 @@ export default function Passport() {
   const [sending, setSending] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [tab, setTab] = useState<'overview' | 'skills' | 'projects' | 'activity'>('overview');
-  const certResults = usePlatform((st) => st.certResults);
+  const { data: certificates } = useQuery(`certs:user:${handle}`, () => certsApi.ofUser(handle));
 
   if (error)
     return (
@@ -111,7 +111,11 @@ export default function Passport() {
     }
   };
 
-  const badges = isMe ? PLATFORM_CERTS.filter((c) => certResults[c.id]?.passed) : [];
+  // Certifications vérifiées par le serveur : visibles par tous les visiteurs du profil.
+  const badges = (certificates?.items ?? []).flatMap((x) => {
+    const c = PLATFORM_CERTS.find((p) => p.id === x.certId);
+    return c ? [{ ...c, certificate: x }] : [];
+  });
   const proofs = p.proofs.filter((e) => e.kind !== 'revert');
 
   const status_ = u.availability.status;
@@ -434,14 +438,17 @@ export default function Passport() {
               <ul className="mt-3 flex flex-col gap-3">
                 {badges.map((c) => (
                   <li key={c.id}>
-                    <Link to={`/certifications/${c.id}`} className="group flex items-center gap-3">
+                    <Link
+                      to={`/certificat/${c.certificate.code}`}
+                      className="group flex items-center gap-3"
+                    >
                       <CertBadge color={c.color} logo={c.logo} size={40} />
                       <span className="min-w-0">
                         <span className="block truncate text-[13.5px] font-medium text-fg group-hover:underline">
                           {c.title}
                         </span>
                         <span className="block font-mono text-[11.5px] text-subtle">
-                          {certResults[c.id]?.score} % · DevHub
+                          {c.certificate.bestScore} % · {c.certificate.code}
                         </span>
                       </span>
                     </Link>

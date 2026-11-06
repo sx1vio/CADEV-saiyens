@@ -1,26 +1,29 @@
 import { create } from 'zustand';
-import { storageGet, storageSet, uuid } from '@/lib/utils';
+import { storageGet, storageSet } from '@/lib/utils';
 import type { BuildTrack } from './types';
 
 /**
  * État personnel sur les services de l'écosystème, gardé sur l'appareil (fonctionne hors ligne).
  * Il sera synchronisé avec l'API quand le serveur exposera ces services.
  */
-export interface CertResult {
-  score: number;
-  passed: boolean;
-  at: string;
-  /** Code de vérification du certificat, posé à la réussite */
-  code?: string;
-  /** Dernière tentative (réussie ou non) : délai avant la suivante */
-  lastAttemptAt?: string;
+/** Entraînement d'une certification, par thème : questions vues et réussies. */
+export type TopicStats = Record<number, { seen: number; ok: number }>;
+
+/** Plan de révision jusqu'à la date d'examen choisie ; `done` = jours cochés (AAAA-MM-JJ). */
+export interface CertPlan {
+  examDate: string;
+  done: string[];
 }
 
 interface Persisted {
   saved: string[];
   joined: string[];
   savedJobs: string[];
-  certResults: Record<string, CertResult>;
+  /** Résultats d'entraînement par certification (les examens sont corrigés et gardés par l'API). */
+  certPractice: Record<string, TopicStats>;
+  /** Questions ratées à revoir, par certification (identifiants de la banque). */
+  certMistakes: Record<string, string[]>;
+  certPlans: Record<string, CertPlan>;
   savedCerts: string[];
   installedSkills: string[];
   starredSkills: string[];
@@ -52,7 +55,13 @@ interface Actions {
       | 'enrolled',
     id: string,
   ) => void;
-  recordCert: (certId: string, score: number, passScore: number) => void;
+  /** Une réponse d'entraînement ou d'examen : statistiques du thème et liste des erreurs à revoir. */
+  recordAnswers: (
+    certId: string,
+    answers: Array<{ id: string; topic: number; correct: boolean }>,
+  ) => void;
+  setCertPlan: (certId: string, examDate: string | null) => void;
+  togglePlanDay: (certId: string, day: string) => void;
   completeLesson: (key: string, xp?: number) => void;
   lessonsToday: () => number;
   setGuideTrack: (t: BuildTrack) => void;
@@ -101,7 +110,9 @@ const DEFAULTS: Persisted = {
   saved: [],
   joined: ['ia', 'web', 'showcase', 'carriere'],
   savedJobs: [],
-  certResults: {},
+  certPractice: {},
+  certMistakes: {},
+  certPlans: {},
   savedCerts: [],
   installedSkills: [],
   starredSkills: [],
@@ -134,24 +145,39 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
         [key]: list.includes(id) ? list.filter((x) => x !== id) : [...list, id],
       } as Partial<Persisted>;
     }),
-  recordCert: (certId, score, passScore) =>
+  recordAnswers: (certId, answers) =>
     set((s) => {
-      const prev = s.certResults[certId];
-      const now = new Date().toISOString();
-      const passed = score >= passScore;
-      const code =
-        prev?.code ??
-        (passed
-          ? `DH-${certId.split('-')[0]!.toUpperCase().slice(0, 4)}-${uuid().slice(0, 4).toUpperCase()}-${uuid().slice(0, 4).toUpperCase()}`
-          : undefined);
-      // On garde le meilleur résultat obtenu, et la date de la dernière tentative.
-      const best = prev && prev.score > score ? prev : { score, passed, at: now };
+      const stats: TopicStats = { ...s.certPractice[certId] };
+      let mistakes = s.certMistakes[certId] ?? [];
+      for (const a of answers) {
+        const t = stats[a.topic] ?? { seen: 0, ok: 0 };
+        stats[a.topic] = { seen: t.seen + 1, ok: t.ok + (a.correct ? 1 : 0) };
+        mistakes = a.correct
+          ? mistakes.filter((id) => id !== a.id)
+          : mistakes.includes(a.id)
+            ? mistakes
+            : [...mistakes, a.id];
+      }
       return {
-        certResults: {
-          ...s.certResults,
-          [certId]: { ...best, passed: best.passed || !!prev?.passed, code, lastAttemptAt: now },
-        },
+        certPractice: { ...s.certPractice, [certId]: stats },
+        certMistakes: { ...s.certMistakes, [certId]: mistakes.slice(-60) },
       };
+    }),
+  setCertPlan: (certId, examDate) =>
+    set((s) => {
+      const plans = { ...s.certPlans };
+      if (examDate) plans[certId] = { examDate, done: plans[certId]?.done ?? [] };
+      else delete plans[certId];
+      return { certPlans: plans };
+    }),
+  togglePlanDay: (certId, day) =>
+    set((s) => {
+      const plan = s.certPlans[certId];
+      if (!plan) return s;
+      const done = plan.done.includes(day)
+        ? plan.done.filter((d) => d !== day)
+        : [...plan.done, day];
+      return { certPlans: { ...s.certPlans, [certId]: { ...plan, done } } };
     }),
   completeLesson: (key, xp = 10) =>
     set((s) => {
@@ -197,7 +223,9 @@ usePlatform.subscribe((s) => {
     saved: s.saved,
     joined: s.joined,
     savedJobs: s.savedJobs,
-    certResults: s.certResults,
+    certPractice: s.certPractice,
+    certMistakes: s.certMistakes,
+    certPlans: s.certPlans,
     savedCerts: s.savedCerts,
     installedSkills: s.installedSkills,
     starredSkills: s.starredSkills,

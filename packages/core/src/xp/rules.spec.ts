@@ -12,6 +12,7 @@ describe('barème (§6.3)', () => {
       project_demo_shared: 5,
       question_resolved: 1,
       deployment_verified: 10,
+      field_test_confirmed: 8,
     });
   });
 

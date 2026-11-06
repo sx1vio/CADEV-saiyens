@@ -135,6 +135,7 @@ enum XpKind {
   project_demo_shared // +5, une fois par projet
   question_resolved // +1, auteur
   deployment_verified // +10, application en production sur Systalink, une fois par salle
+  field_test_confirmed // +8, rapport du Banc d'essai confirmé par le demandeur
   difficulty_bonus // +5 (X6, P2)
   mentoring // +3 (R13, P2)
   still_resolved // +2 (S15, P2)
@@ -239,6 +240,10 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   preflightReports  PreflightReport[]
+  benchRequests     BenchRequest[]
+  certAttempts      CertAttempt[]
+  certificates      Certificate[]
+  benchReports      BenchReport[]
   reportsMade       Report[]             @relation("report_reporter")
   reportsHandled    Report[]             @relation("report_handler")
   adminActions      AdminAction[]
@@ -1179,4 +1184,118 @@ model PreflightReport {
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("preflight_reports")
+}
+
+// ─────────────────────────────── Banc d'essai ───────────────────────────────
+
+enum BenchStatus {
+  open
+  closed
+}
+
+enum BenchVerdict {
+  works
+  issues
+  broken
+}
+
+enum BenchReportStatus {
+  submitted
+  confirmed // +8 XP au testeur
+  rejected // rapport jugé inutilisable : libère la place, aucun XP
+}
+
+/// Demande de test sur de vrais appareils et réseaux, publiée par un dev.
+model BenchRequest {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId     String      @map("author_id") @db.Uuid
+  title        String
+  appUrl       String      @map("app_url")
+  repoUrl      String?     @map("repo_url")
+  instructions String
+  devices      String[]
+  networks     String[]
+  maxTesters   Int         @default(5) @map("max_testers")
+  status       BenchStatus @default(open)
+  hiddenAt     DateTime?   @map("hidden_at") @db.Timestamptz // masquée par la modération
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  closedAt     DateTime?   @map("closed_at") @db.Timestamptz
+
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reports BenchReport[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@map("bench_requests")
+}
+
+/// Rapport d'un testeur : appareil réel, réseau, verdict et problèmes trouvés.
+model BenchReport {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId  String            @map("request_id") @db.Uuid
+  testerId   String            @map("tester_id") @db.Uuid
+  device     String
+  model      String
+  os         String
+  browser    String
+  network    String
+  country    String?
+  verdict    BenchVerdict
+  findings   Json              @default("[]")
+  notes      String            @default("")
+  status     BenchReportStatus @default(submitted)
+  reviewedAt DateTime?         @map("reviewed_at") @db.Timestamptz
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  request BenchRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  tester  User         @relation(fields: [testerId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, testerId])
+  @@index([testerId, createdAt(sort: Desc)])
+  @@map("bench_reports")
+}
+
+// ─────────────────────────────── Certifications DevHub ───────────────────────────────
+
+enum CertAttemptMode {
+  exam // compte pour la certification, délai d'une heure après un échec
+  mock // examen blanc : corrigé, jamais enregistré comme certification
+}
+
+/// Une tentative : questions tirées par le serveur, corrigée par le serveur.
+model CertAttempt {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  certId      String          @map("cert_id")
+  mode        CertAttemptMode
+  /// Questions dans l'ordre affiché : [{ id, order }] où order donne l'ordre des choix.
+  questions   Json
+  startedAt   DateTime        @default(now()) @map("started_at") @db.Timestamptz
+  deadline    DateTime        @db.Timestamptz
+  submittedAt DateTime?       @map("submitted_at") @db.Timestamptz
+  /// Réponses en index d'origine des choix (null = sans réponse).
+  answers     Json?
+  score       Int?
+  passed      Boolean?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, certId, startedAt(sort: Desc)])
+  @@map("cert_attempts")
+}
+
+/// Certification obtenue : meilleur score et code de vérification public.
+model Certificate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  certId    String   @map("cert_id")
+  bestScore Int      @map("best_score")
+  code      String   @unique
+  passedAt  DateTime @default(now()) @map("passed_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, certId])
+  @@map("certificates")
 }

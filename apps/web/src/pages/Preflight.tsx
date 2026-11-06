@@ -39,7 +39,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain';
 import { Button, ButtonLink, Spinner } from '@/components/ui/button';
@@ -196,7 +196,9 @@ export default function Preflight() {
 function Launcher() {
   const user = useSession((s) => s.user);
   const navigate = useNavigate();
-  const [url, setUrl] = useState('');
+  const [params] = useSearchParams();
+  // Lien « Lancer un pré-vol » depuis le Banc d'essai : l'adresse arrive pré-remplie.
+  const [url, setUrl] = useState(() => params.get('url') ?? '');
   const [repo, setRepo] = useState('');
   const [loadTest, setLoadTest] = useState(false);
   const [running, setRunning] = useState(false);

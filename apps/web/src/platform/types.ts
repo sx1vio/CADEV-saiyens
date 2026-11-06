@@ -1,3 +1,5 @@
+import type { CertLevel, CertMeta } from '@devhub/core';
+
 /**
  * Modèle des contenus rédigés de l'écosystème (communautés, certifications, skills IA,
  * apprentissage, guide de création, templates). Les publications, les offres d'emploi et les
@@ -19,8 +21,9 @@ export interface Community {
 
 /* ---------------- Emplois ---------------- */
 
-export type CertLevel = 'debutant' | 'intermediaire' | 'avance' | 'expert';
+export type { CertLevel };
 
+/** Question de quiz (leçons et démonstration de l'accueil). */
 export interface QuizQuestion {
   q: string;
   choices: string[];
@@ -28,35 +31,12 @@ export interface QuizQuestion {
   explain: string;
   /** Code à lire avant de répondre */
   code?: string;
-  /** Index du thème dans le programme (syllabus) : score détaillé par thème */
+  /** Index du thème dans le programme */
   topic?: number;
 }
 
-/** Certification de la plateforme : gratuite, examen en ligne, badge vérifiable. */
-export interface PlatformCert {
-  id: string;
-  title: string;
-  track: string;
-  level: CertLevel;
-  /** Durée de l'examen (chronomètre) */
-  minutes: number;
-  /** Score minimal pour obtenir la certification, en % */
-  passScore: number;
-  skills: string[];
-  description: string;
-  /** Thèmes évalués ; les questions y renvoient par `topic` */
-  syllabus: string[];
-  /** Banque de questions ; chaque examen en tire `draw` au hasard */
-  quiz: QuizQuestion[];
-  draw: number;
-  color: string;
-  /** Logo de la techno affiché dans le badge */
-  logo?: string;
-  /** Cours DevHub qui prépare à l'examen (id de cours façon Duolingo) */
-  course?: string;
-  /** Langage des extraits de code des questions (coloration) */
-  codeLang?: string;
-}
+/** Certification DevHub : fiche publique (la banque de questions reste sur le serveur). */
+export type PlatformCert = CertMeta;
 
 /** Certification officielle d'un éditeur : fiche vérifiée, lien vers la page officielle. */
 export interface MarketCert {

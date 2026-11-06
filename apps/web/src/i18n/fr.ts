@@ -160,6 +160,9 @@ const fr = {
     'pair-declined': '{{guest}} a décliné ta session de pair programming sur « {{title}} »',
     application: 'Ta candidature « {{title}} » chez {{company}} : {{label}}',
     message: '{{author}} t’a envoyé un message',
+    'bench-report': '{{author}} a testé « {{title}} » sur son appareil',
+    'bench-reviewed': '{{author}} a confirmé ton test de « {{title}} » : +{{points}} Proof XP',
+    'bench-reviewed_rejected': '{{author}} n’a pas retenu ton test de « {{title}} »',
   },
   network: {
     online: 'En ligne',
@@ -917,6 +920,7 @@ const fr = {
       'code-review': 'Revue de code',
       'project-demo': 'Projet partagé avec démo',
       'deployment-verified': 'Application en production sur Systalink',
+      'field-test': 'Test sur un vrai appareil (Banc d’essai)',
       'question-resolved': 'Question résolue',
       revert: 'Annulation (abus confirmé)',
     },
@@ -1063,6 +1067,10 @@ const fr = {
       deployment: [
         'Application vérifiée en production sur Systalink',
         'Une fois par salle : l’application sert le jeton de la salle',
+      ],
+      fieldTest: [
+        'Test sur un vrai appareil (Banc d’essai)',
+        'Rapport confirmé par l’auteur de la demande',
       ],
     },
     scoreTitle: 'Score de compétence',

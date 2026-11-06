@@ -17,6 +17,7 @@ const ROWS: XpRuleRow[] = [
   'demo',
   'resolved',
   'deployment',
+  'fieldTest',
 ];
 const GUARDS = ['cap', 'self', 'pairs', 'age', 'log'] as const;
 

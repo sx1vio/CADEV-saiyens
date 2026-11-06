@@ -1,4 +1,4 @@
-import type { PlatformCert, QuizQuestion } from '../../types';
+import type { BankCert as PlatformCert, QuizQuestion } from './types';
 
 /** Question d'examen : thème (index dans le programme), énoncé, choix, bonne réponse, explication. */
 export const q = (

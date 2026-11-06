@@ -502,11 +502,13 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
         ? `/messages/${n.payload.conversationId}`
         : n.type === 'contact'
           ? `/u/${n.payload.by}`
-          : n.payload.questionId
-            ? `/sos/${n.payload.questionId}`
-            : n.payload.code
-              ? `/p/${n.payload.code}`
-              : '/';
+          : n.payload.benchId
+            ? `/banc/${n.payload.benchId}`
+            : n.payload.questionId
+              ? `/sos/${n.payload.questionId}`
+              : n.payload.code
+                ? `/p/${n.payload.code}`
+                : '/';
   return (
     <Popover.Root
       onOpenChange={(o) => {

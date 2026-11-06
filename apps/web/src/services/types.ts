@@ -311,6 +311,7 @@ export type XPKind =
   | 'project-demo'
   | 'question-resolved'
   | 'deployment-verified'
+  | 'field-test'
   | 'revert';
 
 /** Journal append-only (CDC §6.3) */
@@ -349,7 +350,9 @@ export type NotificationType =
   | 'pair-accepted'
   | 'pair-declined'
   | 'application'
-  | 'message';
+  | 'message'
+  | 'bench-report'
+  | 'bench-reviewed';
 
 export interface AppNotification {
   id: ID;
@@ -710,7 +713,15 @@ export class DomainError extends Error {
 
 /** X5 : lignes du barème des Proof XP affichées sur /regles. */
 export type XpRuleRow =
-  'accepted' | 'fast' | 'helpful' | 'contribution' | 'review' | 'demo' | 'resolved' | 'deployment';
+  | 'accepted'
+  | 'fast'
+  | 'helpful'
+  | 'contribution'
+  | 'review'
+  | 'demo'
+  | 'resolved'
+  | 'deployment'
+  | 'fieldTest';
 
 /** X5 : barème des Proof XP et garde-fous, lus depuis GET /rules/xp (repli statique hors ligne). */
 export interface XpRules {

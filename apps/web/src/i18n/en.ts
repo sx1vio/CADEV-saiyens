@@ -161,6 +161,9 @@ const en: Dict = {
     'pair-declined': '{{guest}} declined your pair programming session on “{{title}}”',
     application: 'Your application “{{title}}” at {{company}}: {{label}}',
     message: '{{author}} sent you a message',
+    'bench-report': '{{author}} tested “{{title}}” on their device',
+    'bench-reviewed': '{{author}} confirmed your test of “{{title}}”: +{{points}} Proof XP',
+    'bench-reviewed_rejected': '{{author}} did not keep your test of “{{title}}”',
   },
   network: {
     online: 'Online',
@@ -903,6 +906,7 @@ const en: Dict = {
       'code-review': 'Code review',
       'project-demo': 'Project shared with a demo',
       'deployment-verified': 'App in production on Systalink',
+      'field-test': 'Test on a real device (Test bench)',
       'question-resolved': 'Question solved',
       revert: 'Reverted (confirmed abuse)',
     },
@@ -1039,6 +1043,7 @@ const en: Dict = {
         'App verified in production on Systalink',
         'Once per room: the app serves the room token',
       ],
+      fieldTest: ['Test on a real device (Test bench)', 'Report confirmed by the requester'],
     },
     scoreTitle: 'Skill score',
     scoreText:

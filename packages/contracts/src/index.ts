@@ -3,6 +3,8 @@ export * from './admin';
 export * from './answers';
 export * from './api-tokens';
 export * from './auth';
+export * from './bench';
+export * from './certifications';
 export * from './business';
 export * from './discovery';
 export * from './errors';

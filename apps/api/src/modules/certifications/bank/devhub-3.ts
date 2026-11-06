@@ -1,4 +1,4 @@
-import type { PlatformCert } from '../../types';
+import type { BankCert as PlatformCert } from './types';
 import { q } from './devhub-1';
 
 export const SECURITE: PlatformCert = {
