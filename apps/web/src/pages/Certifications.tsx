@@ -13,7 +13,6 @@ import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { ButtonLink } from '@/components/ui/button';
 import { CHECKED_AT, LEVEL_LABEL, MARKET_CERTS, PLATFORM_CERTS } from '@/platform/data/certs';
-import { COURSE_META } from '@/platform/data/courses/meta';
 import { useQuery } from '@/lib/query';
 import { usePlatform } from '@/platform/store';
 import { certsApi, type MyCert } from '@/platform/certs-api';
@@ -221,12 +220,15 @@ function PlatformCertCard({
   );
 }
 
-const COURSE_IDS = new Set(COURSE_META.map((c) => c.id));
+/** Préparation DevHub d'une certification d'éditeur : la certification DevHub du même cours. */
+const PREP_CERT: Record<string, string> = { 'cloud-devops': 'docker-deploiement' };
+const prepCertOf = (path?: string) =>
+  path ? PLATFORM_CERTS.find((c) => c.course === path || c.id === PREP_CERT[path]) : undefined;
 
 function MarketCertCard({ cert }: { cert: MarketCert }) {
   const saved = usePlatform((s) => s.savedCerts.includes(cert.id));
   const toggle = usePlatform((s) => s.toggle);
-  const setCourse = usePlatform((s) => s.setCourse);
+  const prepCert = prepCertOf(cert.prepPath);
   return (
     <article className="flex flex-col gap-2 rounded-[10px] bg-surface-1 p-4">
       <div className="flex items-center gap-2.5">
@@ -285,10 +287,9 @@ function MarketCertCard({ cert }: { cert: MarketCert }) {
         </p>
       )}
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
-        {cert.prepPath && (
+        {prepCert && (
           <ButtonLink
-            to={COURSE_IDS.has(cert.prepPath) ? '/apprendre' : `/apprendre/${cert.prepPath}`}
-            onClick={() => COURSE_IDS.has(cert.prepPath!) && setCourse(cert.prepPath!)}
+            to={`/certifications/${prepCert.id}`}
             variant="secondary"
             size="sm"
             icon={<GraduationCap />}

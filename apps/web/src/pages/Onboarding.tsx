@@ -247,14 +247,18 @@ export default function Onboarding() {
         ...(goals.includes('project') ? ['showcase', 'opensource'] : []),
       ]),
     ];
+    // « Apprendre » a été fondu dans les certifications (05/11) : la fiche de la certification
+    // liée au cours montre son programme et ses leçons.
     const first = learner
-      ? '/apprendre'
+      ? chosenCourse?.certId
+        ? `/certifications/${chosenCourse.certId}`
+        : '/certifications'
       : paths.length && goals.includes('learn')
-        ? `/apprendre/${paths[0]}`
+        ? '/certifications'
         : goals.includes('job')
           ? '/emplois'
           : goals.includes('help')
-            ? '/sos'
+            ? '/?f=questions'
             : '/';
     return { paths, communities, first };
   }, [domains, goals, level, learner, chosenCourse]);
