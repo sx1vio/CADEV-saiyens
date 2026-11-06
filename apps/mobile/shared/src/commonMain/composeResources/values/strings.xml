@@ -29,10 +29,89 @@
     <string name="trust_founder">Founding member</string>
     <string name="trust_demo">Demo account</string>
     <string name="home_next_title">Coming to the app</string>
-    <string name="home_next_text">SOS Dev, project rooms and your full Passport arrive in the next updates. Everything is already available on the web.</string>
+    <string name="home_next_text">SOS Dev and project rooms arrive in the next updates. Everything is already available on the web.</string>
     <string name="sign_out">Sign out</string>
 
     <string name="unreachable_title">DevHub can’t be reached</string>
     <string name="unreachable_text">Check your connection, then try again. You stay signed in.</string>
     <string name="retry">Try again</string>
+
+    <string name="signin_or">or</string>
+    <string name="signin_email">Continue with email</string>
+    <string name="email_title_login">Sign in with email</string>
+    <string name="email_title_register">Create your account</string>
+    <string name="email_name">Name</string>
+    <string name="email_address">Email</string>
+    <string name="email_password">Password</string>
+    <string name="email_password_hint">8 characters minimum</string>
+    <string name="email_submit_login">Sign in</string>
+    <string name="email_submit_register">Create my account</string>
+    <string name="email_switch_register">No account yet? Create one</string>
+    <string name="email_switch_login">Already have an account? Sign in</string>
+    <string name="email_back">Back</string>
+    <string name="error_bad_credentials">Wrong email or password.</string>
+    <string name="error_email_taken">This email is already registered. Sign in instead.</string>
+    <string name="error_rate_limited">Too many attempts. Try again in a few minutes.</string>
+    <string name="error_invalid">Check the fields: valid email, name of 2 characters or more, password of 8 characters or more.</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_passport">Passport</string>
+
+    <string name="passport_member_since">Member since %1$s</string>
+    <string name="passport_demo">Demo account: data is not real activity.</string>
+    <string name="passport_mission">Available for a mission</string>
+    <string name="passport_stats">Proof of help</string>
+    <string name="stat_xp">Proof XP</string>
+    <string name="stat_accepted">accepted answers</string>
+    <string name="stat_helpful">helpful votes</string>
+    <string name="stat_resolved">questions solved</string>
+    <string name="stat_contributions">contributions</string>
+    <string name="stat_reviews">reviews</string>
+    <string name="stat_median">median time to help</string>
+    <string name="stats_hidden">Statistics hidden by this developer.</string>
+    <string name="passport_skills">Skills</string>
+    <string name="passport_no_skills">No skill yet: they come from GitHub and from help given here.</string>
+    <string name="legend_g">G · GitHub (40 max)</string>
+    <string name="legend_p">P · Proofs on the platform (60 max)</string>
+    <string name="skill_detail">%1$d / 100 · G %2$d + P %3$d</string>
+    <string name="level_beginner">Beginner</string>
+    <string name="level_confirmed">Confirmed</string>
+    <string name="level_advanced">Advanced</string>
+    <string name="level_expert">Expert</string>
+    <string name="passport_can_help">Can help with</string>
+    <string name="passport_want_learn">Wants to learn</string>
+    <string name="passport_projects">Projects</string>
+    <string name="passport_see_proofs">See the proofs</string>
+    <string name="passport_not_found">This profile doesn’t exist.</string>
+    <string name="passport_failed">The Passport couldn’t be loaded.</string>
+    <string name="refresh_github">Update from GitHub</string>
+    <string name="refresh_done">GitHub profile updated.</string>
+    <string name="refresh_too_soon">Already updated recently. Try again in %1$d min.</string>
+    <string name="refresh_not_linked">No GitHub account is linked to this profile.</string>
+    <string name="refresh_revoked">GitHub access was revoked. Sign out, then sign in again with GitHub.</string>
+    <string name="refresh_unavailable">GitHub can’t be reached right now. Try again later.</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="hours_short">%1$d h</string>
+
+    <string name="proofs_title">Proofs</string>
+    <string name="proofs_total">%1$d Proof XP in total</string>
+    <string name="proofs_empty">Proofs will appear here after the first accepted help.</string>
+    <string name="proofs_more">Load more</string>
+    <string name="proofs_failed">Couldn’t load the proofs.</string>
+    <string name="proofs_reverted">Reverted by moderation</string>
+    <string name="proof_answer_accepted">Accepted answer</string>
+    <string name="proof_fast_bonus">Bonus: accepted within 15 min</string>
+    <string name="proof_helpful">Answer marked helpful</string>
+    <string name="proof_task">Contribution accepted</string>
+    <string name="proof_review">Code review</string>
+    <string name="proof_demo">Project shared with a demo</string>
+    <string name="proof_resolved">Question solved</string>
+    <string name="proof_deployment">App in production on Systalink</string>
+    <string name="proof_field_test">Test on a real device</string>
+    <string name="proof_revert">Reverted (confirmed abuse)</string>
+    <string name="proof_other">Proof XP</string>
+    <string-array name="months">
+        <item>Jan</item><item>Feb</item><item>Mar</item><item>Apr</item><item>May</item><item>Jun</item>
+        <item>Jul</item><item>Aug</item><item>Sep</item><item>Oct</item><item>Nov</item><item>Dec</item>
+    </string-array>
 </resources>

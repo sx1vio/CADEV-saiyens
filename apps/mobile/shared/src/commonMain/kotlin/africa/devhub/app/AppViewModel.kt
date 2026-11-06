@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Raison d'un échec de connexion, telle qu'affichée. */
-enum class SignInError { Failed, Suspended, Network }
+enum class SignInError { Failed, Suspended, Network, BadCredentials, EmailTaken, RateLimited, Invalid }
 
 /** État global : qui est connecté, et ce qu'il reste à faire avant d'entrer. */
 sealed interface AppState {
@@ -61,11 +61,19 @@ class AppViewModel(
         viewModelScope.launch { loadMe() }
     }
 
-    fun signInWithGithub(loginHint: String? = null) {
+    fun signInWithGithub(loginHint: String? = null) = runSignIn { auth.signInWithGithub(loginHint) }
+
+    fun signInWithEmail(email: String, password: String) =
+        runSignIn { auth.signInWithEmail(email, password) }
+
+    fun registerWithEmail(displayName: String, email: String, password: String) =
+        runSignIn { auth.registerWithEmail(displayName, email, password) }
+
+    private fun runSignIn(attempt: suspend () -> SignInResult) {
         if ((_state.value as? AppState.SignedOut)?.busy == true) return
         _state.value = AppState.SignedOut(busy = true)
         viewModelScope.launch {
-            when (val result = auth.signInWithGithub(loginHint)) {
+            when (val result = attempt()) {
                 // La nouvelle session déclenche loadMe() via le collecteur.
                 SignInResult.SignedIn -> Unit
                 SignInResult.Cancelled -> _state.value = AppState.SignedOut()
@@ -112,8 +120,12 @@ class AppViewModel(
     }
 
     private fun SignInResult.Failed.toError(): SignInError = when (reason) {
-        "suspended" -> SignInError.Suspended
+        "suspended", "auth.suspended" -> SignInError.Suspended
         "network" -> SignInError.Network
+        "auth.bad_credentials" -> SignInError.BadCredentials
+        "auth.email_taken" -> SignInError.EmailTaken
+        "rate_limited" -> SignInError.RateLimited
+        "validation.failed" -> SignInError.Invalid
         else -> SignInError.Failed
     }
 }

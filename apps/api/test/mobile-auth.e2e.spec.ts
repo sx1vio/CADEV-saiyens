@@ -13,6 +13,7 @@ import { applyTestEnv } from './env.fixture';
 applyTestEnv({ AUTH_FAKE_PROVIDER: 'true', NODE_ENV: 'test', LOG_LEVEL: 'warn' });
 
 const login = `e2e-mob-${randomBytes(4).toString('hex')}`;
+const email = `${login}-mail@example.test`;
 const MOBILE = { 'X-DevHub-Client': 'mobile' };
 
 function cookieValue(res: request.Response, name: string): string | undefined {
@@ -40,6 +41,7 @@ describe('connexion mobile (ADR-0021)', () => {
 
   afterAll(async () => {
     await prisma.user.deleteMany({ where: { handle: { startsWith: login } } });
+    await prisma.user.deleteMany({ where: { email } });
     await app.close();
   });
 
@@ -141,5 +143,39 @@ describe('connexion mobile (ADR-0021)', () => {
       .set('Authorization', 'Bearer inconnu')
       .expect(401);
     expect(res.body.code).toBe('auth.required');
+  });
+
+  it('e-mail : inscription puis connexion renvoient une session Bearer, sans cookie', async () => {
+    const password = 'une phrase assez longue';
+    const registered = await request(app.getHttpServer())
+      .post('/api/v1/auth/email/register/mobile')
+      .send({ displayName: 'Awa Mobile', email, password })
+      .expect(201);
+    expect(cookieValue(registered, '__Host-sid')).toBeUndefined();
+    expect(registered.body.sessionToken).toEqual(expect.any(String));
+
+    const signedIn = await request(app.getHttpServer())
+      .post('/api/v1/auth/email/login/mobile')
+      .send({ email, password })
+      .expect(200);
+    expect(cookieValue(signedIn, '__Host-sid')).toBeUndefined();
+    const me = await request(app.getHttpServer())
+      .get('/api/v1/me')
+      .set('Authorization', `Bearer ${signedIn.body.sessionToken}`)
+      .expect(200);
+    expect(me.body).toMatchObject({ email, githubLinked: false });
+  });
+
+  it('e-mail : mauvais mot de passe et adresse déjà prise gardent leurs codes', async () => {
+    const wrong = await request(app.getHttpServer())
+      .post('/api/v1/auth/email/login/mobile')
+      .send({ email, password: 'pas le bon mot de passe' })
+      .expect(401);
+    expect(wrong.body.code).toBe('auth.bad_credentials');
+    const taken = await request(app.getHttpServer())
+      .post('/api/v1/auth/email/register/mobile')
+      .send({ displayName: 'Autre', email, password: 'une autre phrase longue' })
+      .expect(409);
+    expect(taken.body.code).toBe('auth.email_taken');
   });
 });

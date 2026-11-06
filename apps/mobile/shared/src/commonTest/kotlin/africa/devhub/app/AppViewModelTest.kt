@@ -128,4 +128,12 @@ class AppViewModelTest {
         vm.signOut()
         assertEquals(AppState.SignedOut(), vm.state.first { it is AppState.SignedOut })
     }
+
+    @Test
+    fun aWrongPasswordIsExplained() = runTest {
+        val graph = testGraph(dispatcher = main) { problem(HttpStatusCode.Unauthorized, "auth.bad_credentials") }
+        val vm = viewModel(graph)
+        vm.signInWithEmail("awa@example.test", "faux")
+        assertEquals(AppState.SignedOut(error = SignInError.BadCredentials), vm.settled())
+    }
 }

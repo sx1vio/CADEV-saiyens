@@ -107,4 +107,4 @@ Chaque étape est une PR relue, utilisable seule :
 
 - **iOS ne se compile que sur macOS** (Xcode). Sur la machine de développement Linux, seule la partie Android est construite et testée ; la CI doit ajouter une tâche macOS pour iOS.
 - Les DTO sont écrits à la main : un écart avec `@devhub/contracts` n'est détecté que par les tests. À remplacer par une génération depuis l'OpenAPI si les écarts se multiplient.
-- La connexion par e-mail n'est pas encore ouverte au mobile : elle répond par un cookie. Elle viendra à l'étape 2.
+- Connexion par e-mail : `POST /api/v1/auth/email/login/mobile` et `/register/mobile` renvoient la session dans la réponse, jamais en cookie (étape 2).
