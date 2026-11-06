@@ -183,7 +183,7 @@ export default function PostPage() {
               <CommentNode
                 key={cm.id}
                 comment={cm}
-                children={children}
+                tree={children}
                 postId={post.id}
                 onChange={reload}
                 onReport={setReport}
@@ -286,14 +286,14 @@ function CommentForm({
 
 function CommentNode({
   comment,
-  children,
+  tree,
   postId,
   onChange,
   onReport,
   depth,
 }: {
   comment: PostCommentView;
-  children: Map<string | null, PostCommentView[]>;
+  tree: Map<string | null, PostCommentView[]>;
   postId: string;
   onChange: () => void;
   onReport: (t: ReportTarget) => void;
@@ -301,7 +301,7 @@ function CommentNode({
 }) {
   const me = useSession((s) => s.user);
   const [replying, setReplying] = useState(false);
-  const replies = children.get(comment.id) ?? [];
+  const replies = tree.get(comment.id) ?? [];
   const remove = async () => {
     if (!confirm('Supprimer ce commentaire ?')) return;
     try {
@@ -385,7 +385,7 @@ function CommentNode({
               <CommentNode
                 key={r.id}
                 comment={r}
-                children={children}
+                tree={tree}
                 postId={postId}
                 onChange={onChange}
                 onReport={onReport}

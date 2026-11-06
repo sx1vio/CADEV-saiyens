@@ -341,6 +341,8 @@ const FOOTER: { title: string; links: { to: string; label: string }[] }[] = [
   },
 ];
 
+const YEAR = new Date().getFullYear();
+
 /** Shell des visiteurs sans compte (T1) : en-tête en verre clair comme l'application, pied de page aux tons Discord. */
 export function PublicShell() {
   const { t } = useTranslation();
@@ -349,7 +351,12 @@ export function PublicShell() {
   const [sheet, setSheet] = useState(false);
   const [menu, setMenu] = useState<number | null>(null);
   const { pathname } = useLocation();
-  useEffect(() => setMenu(null), [pathname]);
+  // Changement de page : le menu ouvert se referme (mise à jour pendant le rendu, sans effet).
+  const [shownPath, setShownPath] = useState(pathname);
+  if (pathname !== shownPath) {
+    setShownPath(pathname);
+    setMenu(null);
+  }
   const close = () => setMenu(null);
 
   return (
@@ -450,7 +457,7 @@ export function PublicShell() {
           </div>
           <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-6 text-[13px] sm:flex-row sm:items-center sm:justify-between">
             <p>
-              © {new Date().getFullYear()} DevHub · {t('app.madeIn')}
+              © {YEAR} DevHub · {t('app.madeIn')}
             </p>
             <div className="flex items-center gap-4">
               <button

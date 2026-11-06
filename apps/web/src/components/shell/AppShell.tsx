@@ -760,6 +760,7 @@ function Drawer() {
   const setOpen = useUI((s) => s.setDrawer);
   const startX = useRef<number | null>(null);
   const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const close = () => setOpen(false);
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
@@ -770,15 +771,19 @@ function Drawer() {
           className="dh-drawer fixed inset-y-0 left-0 z-50 w-[272px] max-w-[88vw] p-2 focus:outline-none"
           style={{
             transform: dx < 0 ? `translateX(${dx}px)` : undefined,
-            transition: startX.current === null ? 'transform 220ms var(--ease-out)' : 'none',
+            transition: dragging ? 'none' : 'transform 220ms var(--ease-out)',
           }}
-          onTouchStart={(e) => (startX.current = e.touches[0].clientX)}
+          onTouchStart={(e) => {
+            startX.current = e.touches[0].clientX;
+            setDragging(true);
+          }}
           onTouchMove={(e) =>
             startX.current !== null && setDx(Math.min(0, e.touches[0].clientX - startX.current))
           }
           onTouchEnd={() => {
             if (dx < -80) close();
             startX.current = null;
+            setDragging(false);
             setDx(0);
           }}
         >

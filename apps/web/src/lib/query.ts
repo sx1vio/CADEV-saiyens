@@ -4,7 +4,7 @@
  * - `prefetch` permet de charger une page au survol d'un lien.
  * - `invalidate(prefix)` rafraîchit tout ce qui commence par une clé.
  */
-import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
 
 type Entry = {
   data?: unknown;
@@ -71,7 +71,10 @@ export interface QueryResult<T> {
 
 export function useQuery<T>(key: string | null, fetcher: () => Promise<T>): QueryResult<T> {
   const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
+  // Toujours le dernier fetcher, sans toucher au ref pendant le rendu.
+  useLayoutEffect(() => {
+    fetcherRef.current = fetcher;
+  });
 
   const subscribe = useCallback(
     (cb: () => void) => {

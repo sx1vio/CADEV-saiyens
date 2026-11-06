@@ -19,7 +19,7 @@ import {
   Wand2,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -211,9 +211,12 @@ export default function Onboarding() {
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
+  // Compétences pré-cochées depuis le profil dès qu'il arrive (mise à jour pendant le rendu).
+  const [seenPassport, setSeenPassport] = useState(passport);
+  if (passport !== seenPassport) {
+    setSeenPassport(passport);
     if (passport && !skillIds.length) setSkillIds(passport.skills.map((s) => s.tagId));
-  }, [passport]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   const experienced = level === 'junior' || level === 'senior';
   const learner = level === 'curious' || level === 'beginner';

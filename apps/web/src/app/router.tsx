@@ -33,9 +33,7 @@ const Tour = reactLazy(() => import('@/components/Tour').then((m) => ({ default:
 /** Monte un composant paresseux dès sa première ouverture, puis le garde (animations de sortie). */
 function useOnceTrue(v: boolean) {
   const [seen, setSeen] = useState(v);
-  useEffect(() => {
-    if (v) setSeen(true);
-  }, [v]);
+  if (v && !seen) setSeen(true);
   return seen || v;
 }
 

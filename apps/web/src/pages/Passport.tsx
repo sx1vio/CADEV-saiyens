@@ -70,6 +70,7 @@ export default function Passport() {
   const [sending, setSending] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [tab, setTab] = useState<'overview' | 'skills' | 'projects' | 'activity'>('overview');
+  const [now] = useState(() => Date.now());
   const { data: certificates } = useQuery(`certs:user:${handle}`, () => certsApi.ofUser(handle));
 
   if (error)
@@ -96,7 +97,7 @@ export default function Passport() {
   const isMe = me?.id === u.id;
   const ghYears = Math.max(
     1,
-    Math.floor((Date.now() - new Date(u.githubCreatedAt).getTime()) / (365 * 864e5)),
+    Math.floor((now - new Date(u.githubCreatedAt).getTime()) / (365 * 864e5)),
   );
   const proofsBySkill = (tagId: string) =>
     p.proofs.filter((e) => e.kind !== 'revert' && (e.tagIds ?? [e.tagId]).includes(tagId));

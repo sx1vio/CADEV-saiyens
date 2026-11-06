@@ -68,9 +68,12 @@ export function CommandPalette() {
     fetchNews({ q: newsQ, limit: 8 }),
   );
 
-  useEffect(() => {
+  // Fermeture : la recherche repart de zéro (mise à jour pendant le rendu, sans effet).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) setQ('');
-  }, [open]);
+  }
 
   const go = (to: string) => {
     setOpen(false);

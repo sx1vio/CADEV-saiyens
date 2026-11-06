@@ -8,7 +8,7 @@ import {
   Sparkles,
   UserPlus,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { duration, errorKey, relativeTime, useLang } from '@/i18n';
@@ -118,7 +118,8 @@ export function QuestionCard({
   const lang = useLang();
   const me = useSession((s) => s.user);
   const resolved = q.status === 'resolved';
-  const blockedMin = (Date.now() - new Date(q.createdAt).getTime()) / 60000;
+  const [now] = useState(() => Date.now());
+  const blockedMin = (now - new Date(q.createdAt).getTime()) / 60000;
   const snippet = q.codeSnippet ? snippetPreview(q.codeSnippet) : '';
   const urgent = q.urgency === 'high' && !resolved;
   return (

@@ -100,10 +100,14 @@ export function Tour() {
   }, [current]);
 
   useLayoutEffect(() => {
+    // Mesure du DOM après rendu : c'est l'usage prévu d'un effet de mise en page.
+    // oxlint-disable-next-line react/set-state-in-effect
     measure();
   }, [measure]);
 
-  // Hauteur réelle de la bulle (le texte varie selon l'étape et la langue)
+  // Hauteur réelle de la bulle (le texte varie selon l'étape et la langue) : mesurée à chaque
+  // rendu, l'état ne change que si la hauteur change, donc pas de boucle.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     const h = cardRef.current?.offsetHeight;
     if (h && h !== cardH) setCardH(h);
@@ -131,7 +135,10 @@ export function Tour() {
     if (step === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') finish();
-      if (e.key === 'ArrowRight') step < total - 1 ? setStep(step + 1) : finish();
+      if (e.key === 'ArrowRight') {
+        if (step < total - 1) setStep(step + 1);
+        else finish();
+      }
       if (e.key === 'ArrowLeft' && step > 0) setStep(step - 1);
     };
     window.addEventListener('keydown', onKey);

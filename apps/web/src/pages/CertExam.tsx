@@ -32,7 +32,8 @@ import { certsApi, type MyCert } from '@/platform/certs-api';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
 import { loadCourse, lessonKey } from '@/platform/data/courses';
 import { courseMeta } from '@/platform/data/courses/meta';
-import { dayKey, usePlatform, type TopicStats } from '@/platform/store';
+import { buildPlan, mastery } from '@/platform/cert-plan';
+import { dayKey, usePlatform } from '@/platform/store';
 import type { PlatformCert } from '@/platform/types';
 import { Chips, CertBadge } from '@/platform/ui';
 import { useSession } from '@/stores/app';
@@ -57,12 +58,6 @@ const ERRORS: Record<string, string> = {
 };
 const errorText = (e: unknown) =>
   ERRORS[(e as { code?: string })?.code ?? ''] ?? 'Une erreur est survenue, réessaie.';
-
-/** Maîtrise d'un thème à l'entraînement : part de bonnes réponses, null si jamais travaillé. */
-function mastery(stats: TopicStats | undefined, topic: number): number | null {
-  const t = stats?.[topic];
-  return t && t.seen > 0 ? Math.round((t.ok / t.seen) * 100) : null;
-}
 
 /** Fiche d'une certification DevHub : préparation, examen blanc et examen corrigés par le serveur. */
 export default function CertExam() {
@@ -570,54 +565,6 @@ function MistakesView({
 
 /* ---------------- Plan de révision ---------------- */
 
-interface PlanTask {
-  kind: 'topic' | 'mock' | 'mistakes' | 'exam';
-  topic?: number;
-}
-
-/**
- * Plan jusqu'à la date d'examen : les thèmes les moins maîtrisés d'abord, un examen blanc et la
- * révision des erreurs la veille, l'examen le jour J. Au-delà de 60 jours, le plan s'arrête.
- */
-export function buildPlan(
-  cert: Pick<PlatformCert, 'syllabus'>,
-  examDate: string,
-  stats: TopicStats | undefined,
-  today: Date,
-): Array<{ day: string; tasks: PlanTask[] }> {
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const [y, m, d] = examDate.split('-').map(Number);
-  const exam = new Date(y!, m! - 1, d!);
-  const days: string[] = [];
-  for (const cur = new Date(start); cur < exam && days.length < 60; cur.setDate(cur.getDate() + 1))
-    days.push(dayKey(cur));
-  const order = cert.syllabus
-    .map((_, k) => ({ k, m: mastery(stats, k) }))
-    .sort((a, b) => (a.m ?? -1) - (b.m ?? -1))
-    .map((x) => x.k);
-  const plan: Array<{ day: string; tasks: PlanTask[] }> = [];
-  const studyDays = days.length >= 2 ? days.slice(0, -1) : days;
-  if (studyDays.length > 0) {
-    if (studyDays.length >= order.length) {
-      studyDays.forEach((day, i) =>
-        plan.push({ day, tasks: [{ kind: 'topic', topic: order[i % order.length]! }] }),
-      );
-    } else {
-      // Moins de jours que de thèmes : plusieurs thèmes par jour.
-      studyDays.forEach((day, i) => {
-        const per = Math.ceil(order.length / studyDays.length);
-        const topics = order.slice(i * per, (i + 1) * per);
-        if (topics.length)
-          plan.push({ day, tasks: topics.map((topic) => ({ kind: 'topic', topic })) });
-      });
-    }
-  }
-  if (days.length >= 2)
-    plan.push({ day: days[days.length - 1]!, tasks: [{ kind: 'mock' }, { kind: 'mistakes' }] });
-  plan.push({ day: dayKey(exam), tasks: [{ kind: 'exam' }] });
-  return plan;
-}
-
 function PlanView({
   cert,
   status,
@@ -1092,13 +1039,21 @@ function Exam({
     }
   }, [answers, attempt.id, cert.id, onDone, record, storageKey]);
 
+  // Le chrono envoie l'examen à zéro avec les dernières réponses (ref à jour après chaque rendu).
+  const finishRef = useRef(finish);
   useEffect(() => {
-    const t = setInterval(() => setLeft(deadline - Date.now()), 500);
+    finishRef.current = finish;
+  });
+  useEffect(() => {
+    const tick = () => {
+      const l = deadline - Date.now();
+      setLeft(l);
+      if (l <= 0) void finishRef.current();
+    };
+    tick();
+    const t = setInterval(tick, 500);
     return () => clearInterval(t);
   }, [deadline]);
-  useEffect(() => {
-    if (left <= 0) void finish();
-  }, [left, finish]);
 
   // Quitter la page pendant l'examen : le navigateur demande confirmation.
   useEffect(() => {
