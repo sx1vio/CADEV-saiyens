@@ -1,0 +1,110 @@
+# ADR-0021 : Applications mobiles Android et iOS en Kotlin Multiplatform
+
+- **Statut** : Proposé le 2026-11-06 (Caleb, rôle 1) ; à relire par Sylvio (front et hors ligne) et Emmanuel (sécurité)
+- **Date** : 2026-11-06
+- **Décideurs** : Caleb (rôle 1)
+- **Exigences concernées** : après le challenge ; « application mobile native » était en roadmap (CDC v3 §3). Complète l'[ADR-0009](0009-sessions-cookie-serveur.md) (sessions) et l'[ADR-0008](0008-synchronisation-file-actions-idempotence.md) (hors ligne)
+
+## Contexte
+
+Le challenge est terminé. La PWA (ADR-0003) reste le client de référence, mais une application installée depuis les stores est demandée, pour Android et pour iOS, en Kotlin Multiplatform (KMP). L'API est déjà complète (environ 140 routes) ; le web compte une trentaine d'écrans.
+
+Deux contraintes viennent de l'existant :
+
+1. **Sessions** : l'API n'accepte une session que par le cookie `__Host-sid`, et une écriture que depuis l'origine du web avec `X-DevHub-Client: web` (protection CSRF, [10 · Sécurité](../architecture/10-securite.md)). Une application native n'a ni origine ni cookie fiable.
+2. **Connexion GitHub** : le retour d'OAuth redirige vers le web. Une application doit récupérer la session sans que le jeton transite en clair par une URL.
+
+## Options envisagées
+
+### Interface
+
+| Option                                          | Pour                                                                             | Contre                                                                        |
+| ----------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Compose Multiplatform** (UI partagée)         | Une seule UI en Kotlin ; Android testable sur la machine de dev ; stable sur iOS | Rendu non natif sur iOS (proche, pas identique)                               |
+| Logique partagée, UI native (Compose + SwiftUI) | Rendu iOS natif                                                                  | Deux UI à écrire et maintenir pour 30 écrans ; iOS testable seulement sur Mac |
+
+### Session côté API
+
+| Option                                                       | Pour                                                                       | Contre                                                        |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Même session serveur, portée par `Authorization: Bearer`** | Révocable, même table, même durée (ADR-0009) ; aucun nouveau type de jeton | Le garde de session lit deux sources                          |
+| Jeton d'API personnel (`dh_pat_`)                            | Existe déjà                                                                | Réservé au pré-vol, sans expiration glissante ; mauvais usage |
+| JWT d'accès + jeton de rafraîchissement                      | Standard                                                                   | Non révocable sans liste noire ; contredit l'ADR-0009         |
+
+## Décision
+
+### 1. Compose Multiplatform, dans le monorepo
+
+`apps/mobile` : un projet Gradle (hors pnpm et Turborepo), avec trois parties.
+
+| Module       | Rôle                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| `shared`     | Tout le code commun : réseau, données, hors ligne, écrans Compose, navigation, traductions |
+| `androidApp` | Point d'entrée Android (`MainActivity`), manifeste, retour `devhub://`                     |
+| `iosApp`     | Projet Xcode minimal qui héberge le framework `Shared`                                     |
+
+Pile : Kotlin 2.4, Compose Multiplatform 1.12, Ktor client (OkHttp sur Android, Darwin sur iOS), kotlinx.serialization, coroutines, `lifecycle-viewmodel` et `navigation-compose` multiplateformes. Pas de framework d'injection : un graphe d'objets écrit à la main (`AppGraph`), suffisant à cette taille.
+
+### 2. Session mobile : même session, en Bearer
+
+- `SessionGuard` lit `Authorization: Bearer <jeton>` ; si l'en-tête est présent, lui seul compte. Un jeton préfixé `dh_pat_` reste un jeton d'API.
+- `OriginGuard` accepte une écriture qui porte une session en Bearer **et** `X-DevHub-Client: mobile`. Un navigateur n'ajoute jamais `Authorization` de lui-même, et CORS refuse cet en-tête aux autres origines : pas de CSRF possible.
+- La session expire comme celle du web (30 jours glissants) ; `POST /auth/logout` la révoque.
+- Sur le téléphone, le jeton est chiffré : Keystore Android, Keychain iOS.
+
+### 3. Connexion GitHub : navigateur système et PKCE (RFC 8252)
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Nav as Navigateur système
+    participant API
+    participant GH as GitHub
+    App->>App: secret PKCE v, défi c = SHA-256(v)
+    App->>Nav: /api/v1/auth/github/mobile?challenge=c
+    Nav->>API: GET
+    API->>Nav: 302 GitHub (state, PKCE serveur)
+    Nav->>GH: autorisation
+    GH->>Nav: 302 callback
+    Nav->>API: GET /auth/github/callback
+    API->>API: ouvre la session, la scelle avec c (AES-GCM, 2 min)
+    API->>Nav: 302 devhub://auth/callback?code=…
+    Nav->>App: retour dans l'application
+    App->>API: POST /auth/mobile/token {code, codeVerifier: v}
+    API->>App: {sessionToken, expiresAt}
+```
+
+- Le code de retour est **chiffré** : le jeton n'apparaît jamais en clair dans l'URL.
+- Il ne s'échange qu'avec le secret PKCE de l'application, qui ne quitte pas le téléphone : une autre application qui intercepterait `devhub://` ne peut rien en faire.
+- `MOBILE_REDIRECT_URI` (défaut `devhub://auth/callback`) refuse `http(s)`, pour ne pas ouvrir de redirection.
+
+### 4. Contrat et hors ligne
+
+- Les DTO Kotlin reflètent `@devhub/contracts` ; le JSON est lu en ignorant les champs inconnus, pour qu'un ajout côté API ne casse pas une version publiée.
+- Le hors ligne suit le contrat de [04 · Hors ligne](../architecture/04-hors-ligne-sync.md) : file d'actions locale, `Idempotency-Key` par action, `POST /sync`. Le masquage des secrets (O9) est porté en Kotlin, vérifié par les mêmes cas de test que `maskSecrets`.
+
+### 5. Livraison pas à pas
+
+Chaque étape est une PR relue, utilisable seule :
+
+1. **Socle** : API (Bearer et connexion mobile), projet KMP, thème, FR/EN, connexion GitHub, écran d'accueil connecté.
+2. Passport et profil.
+3. SOS Dev : lecture, question, réponses.
+4. Hors ligne : cache de lecture, file d'actions, synchronisation, masquage.
+5. Salles de projet.
+6. Notifications (SSE en premier plan, puis push).
+7. Découvrir, classement, règles, réglages.
+8. Services écosystème.
+
+## Conséquences
+
+### Positives
+
+- Une seule base de code pour les deux plateformes ; la logique et les écrans sont testés une fois.
+- Aucune nouvelle table ni nouveau type de jeton côté API ; la révocation et le journal des sessions restent communs.
+
+### Négatives
+
+- **iOS ne se compile que sur macOS** (Xcode). Sur la machine de développement Linux, seule la partie Android est construite et testée ; la CI doit ajouter une tâche macOS pour iOS.
+- Les DTO sont écrits à la main : un écart avec `@devhub/contracts` n'est détecté que par les tests. À remplacer par une génération depuis l'OpenAPI si les écarts se multiplient.
+- La connexion par e-mail n'est pas encore ouverte au mobile : elle répond par un cookie. Elle viendra à l'étape 2.
