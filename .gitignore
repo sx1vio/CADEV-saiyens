@@ -28,3 +28,7 @@ Thumbs.db
 
 # Captures de QA locales (apps/web/scripts/qa)
 apps/web/qa-shots/
+
+# Restes de l’ancienne branche sylvio-frontend (obsolètes, données locales)
+/backend/
+/frontend/
