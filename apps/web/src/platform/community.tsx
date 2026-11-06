@@ -233,10 +233,10 @@ export function PostCard({ post }: { post: PostView }) {
   const saved = usePlatform((s) => s.saved.includes(post.id));
   const toggle = usePlatform((s) => s.toggle);
   return (
-    <article className="group relative flex gap-1.5 rounded-[10px] bg-surface-1 py-2 pr-4 pl-1.5 transition-colors hover:bg-surface-2">
+    <article className="dh-panel dh-panel-link group relative flex gap-1.5 py-2 pr-4 pl-1.5">
       <Link
         to={`/post/${post.id}`}
-        className="absolute inset-0 rounded-[10px]"
+        className="absolute inset-0 rounded-[12px]"
         aria-label={post.title}
       />
       <div className="relative z-10 pt-0.5">
@@ -245,15 +245,14 @@ export function PostCard({ post }: { post: PostView }) {
       <div className="min-w-0 flex-1 py-1">
         <div className="relative z-10 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-subtle">
           <Link
-            to={`/c/${post.community}`}
+            to={`/?topic=${post.community}`}
             className="inline-flex items-center gap-1.5 font-medium text-fg hover:underline"
           >
-            <CommunityIcon slug={post.community} size={18} />
-            c/{post.community}
+            <CommunityIcon slug={post.community} size={18} />#{post.community}
           </Link>
           <span aria-hidden>·</span>
           <Link to={`/u/${post.author.handle}`} className="hover:underline">
-            u/{post.author.handle}
+            {post.author.displayName}
           </Link>
           <span aria-hidden>·</span>
           <Ago iso={post.createdAt} />

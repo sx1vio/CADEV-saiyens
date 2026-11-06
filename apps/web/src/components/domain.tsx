@@ -8,7 +8,7 @@ import {
   Sparkles,
   UserPlus,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { duration, errorKey, relativeTime, useLang } from '@/i18n';
@@ -118,7 +118,8 @@ export function QuestionCard({
   const lang = useLang();
   const me = useSession((s) => s.user);
   const resolved = q.status === 'resolved';
-  const blockedMin = (Date.now() - new Date(q.createdAt).getTime()) / 60000;
+  const [now] = useState(() => Date.now());
+  const blockedMin = (now - new Date(q.createdAt).getTime()) / 60000;
   const snippet = q.codeSnippet ? snippetPreview(q.codeSnippet) : '';
   const urgent = q.urgency === 'high' && !resolved;
   return (
@@ -126,10 +127,7 @@ export function QuestionCard({
       to={`/sos/${q.id}`}
       onMouseEnter={() => preload.question(q.id)}
       onFocus={() => preload.question(q.id)}
-      className={cn(
-        'group block rounded-[10px] bg-surface-1 px-4 pt-3 pb-3.5 transition-colors duration-100  hover:bg-surface-2',
-        className,
-      )}
+      className={cn('dh-panel dh-panel-link group block px-4 pt-3 pb-3.5', className)}
     >
       <div className="flex min-w-0 items-center gap-2 text-[13px]">
         <Avatar name={q.author.displayName} src={q.author.avatarUrl} size={22} />

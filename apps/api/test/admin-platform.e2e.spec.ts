@@ -187,6 +187,37 @@ describe('administration complète', () => {
     expect(Array.isArray(feeds.body.runs)).toBe(true);
   });
 
+  it('tableau de bord Systalink et modération du Banc d’essai', async () => {
+    const before = await as(modAdm).get('/api/v1/admin/systalink').expect(200);
+    expect(before.body.referrals.days).toHaveLength(30);
+    expect(before.body).toMatchObject({
+      deployments: { items: expect.any(Array) },
+      preflight: { reports: expect.any(Number) },
+      bench: { requests: expect.any(Number) },
+    });
+
+    const owner = await prisma.user.findFirstOrThrow({ select: { id: true } });
+    const bench = await prisma.benchRequest.create({
+      data: {
+        authorId: owner.id,
+        title: `Banc à modérer ${suffix}`,
+        appUrl: 'https://example.test',
+        instructions: 'Ouvrir la page et suivre le parcours de paiement.',
+        devices: ['android_low'],
+        networks: ['3g'],
+      },
+    });
+    const list = await as(modAdm)
+      .get(`/api/v1/admin/content?type=bench_request&q=${suffix}`)
+      .expect(200);
+    expect(list.body.data[0]).toMatchObject({ id: bench.id, path: `/banc/${bench.id}` });
+    await as(modAdm)
+      .post(`/api/v1/admin/content/bench_request/${bench.id}`)
+      .send({ action: 'hide', reason: 'lien trompeur' })
+      .expect(204);
+    await http().get(`/api/v1/bench/${bench.id}`).expect(404);
+  });
+
   it('annonces : publiées par l’admin, visibles sur le site pendant leur période', async () => {
     const created = await as(modAdm)
       .post('/api/v1/admin/announcements')

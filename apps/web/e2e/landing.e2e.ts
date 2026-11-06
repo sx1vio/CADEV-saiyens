@@ -5,7 +5,7 @@ import { signIn, uniqueLogin, writeHeaders } from './support/session';
  * T1 : un visiteur sans compte arrive sur « / » et voit l'activité réelle : compteurs de
  * l'écran d'impact et dernières questions publiques, sans nom d'auteur.
  */
-test('page publique « en direct » : compteurs réels et question récente', async ({ browser }) => {
+test('page publique : compteurs réels et question récente', async ({ browser }) => {
   const login = uniqueLogin('live');
   const author = await (await browser.newContext()).newPage();
   await signIn(author, login);
@@ -24,7 +24,7 @@ test('page publique « en direct » : compteurs réels et question récente', as
 
   const visitor = await (await browser.newContext()).newPage();
   await visitor.goto('/');
-  const live = visitor.getByRole('region', { name: 'En direct sur DevHub' });
+  const live = visitor.getByRole('region', { name: 'DevHub aujourd’hui' });
   await expect(live).toBeVisible();
   await expect(live.getByText('Devs inscrits')).toBeVisible();
   await expect(live.getByRole('link', { name: title })).toBeVisible();

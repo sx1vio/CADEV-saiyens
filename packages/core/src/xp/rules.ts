@@ -9,7 +9,8 @@ export type XpKind =
   | 'code_review_given'
   | 'project_demo_shared'
   | 'question_resolved'
-  | 'deployment_verified';
+  | 'deployment_verified'
+  | 'field_test_confirmed';
 
 export const XP_POINTS: Record<XpKind, number> = {
   answer_accepted: 10,
@@ -21,6 +22,8 @@ export const XP_POINTS: Record<XpKind, number> = {
   question_resolved: 1,
   /** Application d'une salle vérifiée en production sur l'infrastructure Systalink, une fois par salle. */
   deployment_verified: 10,
+  /** Banc d'essai : rapport de test sur un vrai appareil confirmé par le demandeur. */
+  field_test_confirmed: 8,
 };
 
 export const XP_LIMITS = {

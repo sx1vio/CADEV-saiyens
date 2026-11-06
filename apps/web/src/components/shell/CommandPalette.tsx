@@ -5,7 +5,6 @@ import {
   Briefcase,
   FileCode2,
   FolderPlus,
-  GraduationCap,
   Languages,
   LifeBuoy,
   Map,
@@ -33,7 +32,6 @@ import { ALL_NAV } from './nav';
 import { fetchJobs } from '@/platform/jobs';
 import { communityApi } from '@/platform/community';
 import { SKILLS } from '@/platform/data/skills';
-import { PATHS } from '@/platform/data/learn';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
 import { fetchNews, type NewsItem } from '@/platform/news';
 
@@ -70,9 +68,12 @@ export function CommandPalette() {
     fetchNews({ q: newsQ, limit: 8 }),
   );
 
-  useEffect(() => {
+  // Fermeture : la recherche repart de zéro (mise à jour pendant le rendu, sans effet).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) setQ('');
-  }, [open]);
+  }
 
   const go = (to: string) => {
     setOpen(false);
@@ -189,7 +190,13 @@ export function CommandPalette() {
                           value={`actu ${q} ${x.title}`}
                           onSelect={() =>
                             x.kind === 'video'
-                              ? go(`/videos/yt/${x.extra.videoId as string}`)
+                              ? run(() =>
+                                  window.open(
+                                    `https://www.youtube.com/watch?v=${x.extra.videoId as string}`,
+                                    '_blank',
+                                    'noopener',
+                                  ),
+                                )
                               : run(() => window.open(x.url, '_blank', 'noopener'))
                           }
                         >
@@ -240,16 +247,6 @@ export function CommandPalette() {
                     ))}
                   </Command.Group>
                   <Command.Group heading={t('navEntry.groupLearn')}>
-                    {PATHS.map((x) => (
-                      <Command.Item
-                        key={x.id}
-                        value={`l ${x.title} ${x.tagline}`}
-                        onSelect={() => go(`/apprendre/${x.id}`)}
-                      >
-                        <GraduationCap />
-                        <span className="truncate">{x.title}</span>
-                      </Command.Item>
-                    ))}
                     {PLATFORM_CERTS.map((x) => (
                       <Command.Item
                         key={x.id}

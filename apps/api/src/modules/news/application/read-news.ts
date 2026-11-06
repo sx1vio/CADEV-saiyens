@@ -52,17 +52,37 @@ export interface SourceInfo {
 export class ReadNews {
   constructor(private readonly repo: NewsRepository) {}
 
-  async home(lang?: LangFilter): Promise<HomeNews> {
+  /**
+   * Une du fil, gardée 60 s en mémoire par langue : l'actualité ne change qu'à chaque collecte,
+   * et plusieurs visiteurs simultanés partagent la même construction (le test de charge du
+   * pré-vol montrait la route céder à 5 visiteurs simultanés sans ce cache).
+   */
+  private readonly homeCache = new Map<string, { at: number; value: Promise<HomeNews> }>();
+
+  home(lang?: LangFilter): Promise<HomeNews> {
+    const key = lang ?? 'all';
+    const hit = this.homeCache.get(key);
+    if (hit && Date.now() - hit.at < 60_000) return hit.value;
+    const value = this.buildHome(lang);
+    this.homeCache.set(key, { at: Date.now(), value });
+    value.catch(() => this.homeCache.delete(key));
+    return value;
+  }
+
+  private async buildHome(lang?: LangFilter): Promise<HomeNews> {
     const sections: Record<string, NewsItem[]> = {};
-    for (const category of HOME_CATEGORIES) {
-      const items = await this.repo.latest({ kind: 'article', category }, 60, lang);
+    const perCategory = await Promise.all(
+      HOME_CATEGORIES.map((category) => this.repo.latest({ kind: 'article', category }, 60, lang)),
+    );
+    HOME_CATEGORIES.forEach((category, i) => {
+      const items = perCategory[i]!;
       // Les articles illustrés d'abord, puis les autres, en gardant l'ordre chronologique
       sections[category] = diverse(
-        [...items.filter((i) => i.image), ...items.filter((i) => !i.image)],
+        [...items.filter((x) => x.image), ...items.filter((x) => !x.image)],
         8,
         3,
       );
-    }
+    });
     const fresh = await this.repo.latest(
       { kind: 'article', withImage: true, freshHours: 36, categories: HERO_CATEGORIES },
       80,

@@ -228,6 +228,24 @@ export class AwardXp {
     );
   }
 
+  /** Banc d'essai : rapport de test sur un vrai appareil confirmé par le demandeur. +8 au testeur. */
+  fieldTestConfirmed(
+    input: { reportId: string; testerId: string; requesterId: string },
+    tx?: unknown,
+  ): Promise<AwardResult> {
+    return this.single(
+      {
+        userId: input.testerId,
+        kind: 'field_test_confirmed',
+        sourceType: 'bench_report',
+        sourceId: input.reportId,
+        tagIds: [],
+        counterpartId: input.requesterId,
+      },
+      tx,
+    );
+  }
+
   /** X2 : un abus confirmé produit un événement d'annulation, jamais une suppression. */
   revert(eventId: string, reason: string, tx?: unknown): Promise<StoredXpEvent> {
     return this.uow.run(async (ledger) => {

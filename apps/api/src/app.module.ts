@@ -12,6 +12,8 @@ import { IdempotencyModule } from './infrastructure/idempotency/idempotency.modu
 import { JobsModule } from './infrastructure/jobs/jobs.module';
 import { RealtimeModule } from './infrastructure/realtime/realtime.module';
 import { BackofficeModule } from './modules/backoffice';
+import { BenchModule } from './modules/bench';
+import { CertificationsModule } from './modules/certifications';
 import { BusinessModule } from './modules/business';
 import { MessagingModule } from './modules/messaging';
 import { CommunityModule } from './modules/community';
@@ -21,6 +23,7 @@ import { AiModule } from './modules/ai';
 import { DiscoveryModule } from './modules/discovery';
 import { ModerationModule } from './modules/moderation';
 import { PlatformModule } from './modules/platform';
+import { PreflightModule } from './modules/preflight';
 import { ShareModule } from './modules/share';
 import { MatchingModule } from './modules/matching';
 import { NewsModule } from './modules/news';
@@ -58,6 +61,8 @@ import { ReputationModule } from './modules/reputation';
     IdentityModule,
     PassportModule,
     ReputationModule,
+    BenchModule,
+    CertificationsModule,
     AiModule,
     SosModule,
     NotificationsModule,
@@ -73,6 +78,7 @@ import { ReputationModule } from './modules/reputation';
     CommunityModule,
     ModerationModule,
     ShareModule,
+    PreflightModule,
   ],
   controllers: [HealthController],
   providers: [

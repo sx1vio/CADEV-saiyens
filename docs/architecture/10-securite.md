@@ -29,6 +29,8 @@ Responsable : **rôle 4 (DevOps et sécurité)**, qui a le dernier mot sur ce qu
 1. avoir un en-tête `Origin` égal à `APP_URL` ;
 2. porter l'en-tête `X-DevHub-Client: web`, qu'un formulaire d'un autre site ne peut pas ajouter sans déclencher un pré-vol CORS refusé.
 
+**Exception : jetons d'API personnels du pré-vol.** Les routes marquées `@AllowApiToken()` (`POST /preflight`, `GET /preflight`, `POST /mcp`) acceptent sans contrôle d'origine une requête qui porte `Authorization: Bearer dh_pat_…`, ou qui ne porte aucun cookie de session. Un navigateur n'ajoute jamais cet en-tête de lui-même, et une requête sans cookie n'a rien à détourner : il n'y a donc pas de CSRF possible. Avec un jeton, le cookie est ignoré. Le jeton (256 bits, seule l'empreinte SHA-256 est stockée) n'ouvre que ces routes ; il ne crée pas d'autres jetons et ne lit pas le profil. Voir [`guides/prevol.md`](../guides/prevol.md).
+
 ## CORS
 
 Une seule origine autorisée : `APP_URL`. Le front et l'API sont servis sur **le même domaine** par Caddy, donc CORS n'est même pas sollicité en temps normal. `credentials: true` seulement pour cette origine.

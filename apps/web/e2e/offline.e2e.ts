@@ -42,9 +42,10 @@ test('rédiger hors ligne, puis synchroniser au retour du réseau', async ({ pag
   const mine = await myQuestions(page.request);
   expect(mine.map((q) => q.title)).toEqual([title]);
 
-  // Un rechargement ne rejoue rien : toujours une seule question, visible dans « Mes questions ».
-  await page.goto('/sos');
-  await page.getByRole('tab', { name: 'Mes questions' }).click();
+  // Un rechargement ne rejoue rien : toujours une seule question, visible dans « Mes questions »
+  // (l'entraide vit dans l'onglet Questions de l'accueil depuis le 05/11).
+  await page.goto('/?f=questions');
+  await page.getByRole('button', { name: 'Mes questions' }).click();
   await expect(page.getByText(title)).toBeVisible();
   expect(await myQuestions(page.request)).toHaveLength(1);
 });

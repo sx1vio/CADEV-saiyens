@@ -76,14 +76,21 @@ export function AskDialog() {
   const [busy, setBusy] = useState(false);
   const [ignoreSimilar, setIgnoreSimilar] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setStep(0);
-    setSubmitted(false);
-    setIgnoreSimilar(false);
-    if (prefill?.tagIds) setTagIds(prefill.tagIds);
-    if (prefill?.title) setTitle(prefill.title);
-  }, [open, prefill]);
+  // Chaque ouverture repart de la première étape (mise à jour pendant le rendu, sans effet).
+  const [opened, setOpened] = useState<{ open: boolean; prefill: typeof prefill }>({
+    open: false,
+    prefill: null,
+  });
+  if (open !== opened.open || prefill !== opened.prefill) {
+    setOpened({ open, prefill });
+    if (open) {
+      setStep(0);
+      setSubmitted(false);
+      setIgnoreSimilar(false);
+      if (prefill?.tagIds) setTagIds(prefill.tagIds);
+      if (prefill?.title) setTitle(prefill.title);
+    }
+  }
 
   const detected = useMemo(() => detectTags(`${title}\n${code}\n${body}`), [title, code, body]);
   const secrets = useMemo(

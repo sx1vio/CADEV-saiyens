@@ -76,11 +76,11 @@ export function Heatmap({
   for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
   const level = (c: number) => (c === 0 ? 0 : c === 1 ? 1 : c <= 2 ? 2 : c <= 4 ? 3 : 4);
   const shades = [
-    'bg-surface-3',
-    'bg-[color-mix(in_oklab,var(--accent),transparent_70%)]',
-    'bg-[color-mix(in_oklab,var(--accent),transparent_45%)]',
-    'bg-[color-mix(in_oklab,var(--accent),transparent_20%)]',
-    'bg-accent-hover',
+    'bg-[var(--cell-0)]',
+    'bg-[var(--cell-1)]',
+    'bg-[var(--cell-2)]',
+    'bg-[var(--cell-3)]',
+    'bg-[var(--cell-4)]',
   ];
   return (
     <div className={cn('flex flex-col gap-2', className)}>

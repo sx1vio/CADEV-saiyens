@@ -6,3 +6,4 @@ export * from './xp/rules';
 export * from './secrets/mask';
 export * from './reference/tags';
 export * from './net/cidr';
+export * from './certs';

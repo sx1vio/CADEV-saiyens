@@ -229,6 +229,57 @@ Agrégateur éditorial : titre, court extrait et lien vers l'éditeur, source to
 | `GET /news/status`          | Pub   | Volume indexé et dernière collecte                                                            |
 | `GET /img?u=&w=`            | Pub   | Image d'article redimensionnée en WebP, mise en cache ; adresses privées refusées (anti-SSRF) |
 
+### Pré-vol (`preflight`) et jetons d'API
+
+Guide d'utilisation : [`guides/prevol.md`](../guides/prevol.md). **Co+J** = session ou jeton d'API personnel (`Authorization: Bearer dh_pat_…`).
+
+| Endpoint                       | Accès | Rôle                                                                                           |
+| ------------------------------ | ----- | ---------------------------------------------------------------------------------------------- |
+| `POST /preflight`              | Co+J  | Lance un pré-vol `{ url?, repo? }` (10 par heure, un à la fois, 45 s au plus)                  |
+| `GET /preflight`               | Co+J  | Mes 20 derniers pré-vols                                                                       |
+| `GET /preflight/:id`           | Pub   | Rapport JSON (non listé)                                                                       |
+| `GET /preflight/:id/report.md` | Pub   | Rapport Markdown pour l'agent IA                                                               |
+| `POST /mcp`                    | J     | Serveur MCP (JSON-RPC, sans état) : `run_preflight`, `get_preflight_report`, `list_preflights` |
+| `GET /me/tokens`               | Co    | Mes jetons (nom, 4 derniers caractères, dernière utilisation)                                  |
+| `POST /me/tokens`              | Co    | Crée un jeton `{ name }` ; renvoyé en clair une seule fois ; 5 au plus (`api_token.limit`)     |
+| `DELETE /me/tokens/:id`        | Co    | Révoque un jeton                                                                               |
+
+### Banc d'essai (`bench`)
+
+Tests entre devs sur de vrais appareils et réseaux. Les rapports ne sont lisibles que par l'auteur de la demande et leur testeur (ils peuvent décrire une faille) ; la couverture appareil × réseau est publique. Un rapport confirmé rapporte **8 Proof XP** au testeur (`field_test_confirmed`, plafond quotidien et garde-fous du barème).
+
+| Endpoint                               | Accès | Rôle                                                                                                       |
+| -------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| `GET /bench?scope=&device=&network=`   | Pub   | Demandes ouvertes (`open`), mes demandes (`mine`) ou celles que j'ai testées (`tested`), avec les chiffres |
+| `GET /bench/:id`                       | Pub   | Détail, consignes, couverture ; rapports visibles selon le visiteur                                        |
+| `POST /bench`                          | Co    | Publie une demande (HTTPS, 3 ouvertes au plus, compte d'au moins une heure : `bench.account_too_new`)      |
+| `POST /bench/:id/close`, `…/reopen`    | Co    | Ferme ou rouvre sa demande                                                                                 |
+| `POST /bench/:id/reports`              | Co    | Rend un rapport (appareil et réseau demandés, un par testeur, 10 par jour, demande non complète)           |
+| `POST /bench/reports/:reportId/review` | Co    | `{ decision: confirm \| reject }` par l'auteur de la demande ; confirmer attribue les Proof XP             |
+
+Codes d'erreur : `bench.own_request`, `bench.closed`, `bench.full`, `bench.already_reported`, `bench.device_not_requested`, `bench.network_not_requested`, `bench.not_requester`, `bench.already_reviewed`, `bench.open_limit`, `bench.daily_limit`. Notifications : `bench.report`, `bench.reviewed`.
+
+### Certifications DevHub (`certifications`)
+
+La banque de questions (réponses et explications) reste sur le serveur ; le catalogue public (programme, durée, seuil, nombre de questions par thème) est dans `@devhub/core` (`CERT_CATALOG`), vérifié contre la banque par un test. Le serveur tire les questions (au moins une par thème), mélange les choix, chronomètre, corrige et délivre le certificat.
+
+| Endpoint                                                  | Accès | Rôle                                                                                                                                         |
+| --------------------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /certifications/:certId/practice?topic=&ids=&count=` | Pub   | Questions d'entraînement sans réponse (par thème, ou liste d'identifiants pour la révision des erreurs)                                      |
+| `POST /certifications/:certId/check`                      | Pub   | `{ id, choice }` → bonne réponse et explication                                                                                              |
+| `POST /certifications/:certId/attempts`                   | Co    | `{ mode: exam \| mock }` ; reprend la tentative en cours ; examen : une heure après un échec (`cert.retry_later`), examen blanc : 5 par jour |
+| `POST /certifications/attempts/:id/submit`                | Co    | `{ answers }` (index affichés) → score, thèmes, correction, certificat ; après le chrono + 30 s, réponses ignorées                           |
+| `GET /certifications/me`                                  | Co    | Certificat, dernière tentative, prochaine tentative possible et tentative en cours, par certification                                        |
+| `GET /certifications/verify/:code`                        | Pub   | Vérification publique d'un code `DH-XXXX-XXXX-XXXX` (titulaire, score, date)                                                                 |
+| `GET /u/:handle/certificates`                             | Pub   | Badges vérifiés du profil                                                                                                                    |
+
+### Administration : Systalink
+
+| Endpoint                                | Accès | Rôle                                                                                                                                |
+| --------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /admin/systalink`                  | Adm   | Clics vers Systalink (30 jours, offre, origine), applications vérifiées en production et disponibilité, pré-vols, banc, certificats |
+| `GET /admin/content?type=bench_request` | Adm   | Demandes du Banc d'essai, à masquer ou rétablir par `POST /admin/content/bench_request/:id`                                         |
+
 ### Santé (non versionnée)
 
 | Chemin                | Rôle                                                                                      |

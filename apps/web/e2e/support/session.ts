@@ -68,3 +68,15 @@ export function promoteAdmin(login: string) {
     stdio: ['pipe', 'ignore', 'inherit'],
   });
 }
+
+/**
+ * Vieillit un compte de trois jours, directement en base : certaines actions (publier un lien,
+ * une demande de test) sont fermées aux comptes de moins d'une heure.
+ */
+export function ageAccount(login: string) {
+  if (!/^[a-zA-Z0-9-]+$/.test(login)) throw new Error(`login invalide : ${login}`);
+  execFileSync('pnpm', ['--filter', '@devhub/api', 'exec', 'prisma', 'db', 'execute', '--stdin'], {
+    input: `UPDATE users SET created_at = now() - interval '3 days' WHERE handle = '${login}';`,
+    stdio: ['pipe', 'ignore', 'inherit'],
+  });
+}

@@ -1,10 +1,10 @@
-import { RotateCcw, Search, SlidersHorizontal, Trophy } from 'lucide-react';
+import { RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { DevCard, PageHeader } from '@/components/domain';
 import { useTags } from '@/components/TagPicker';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Input, Skeleton } from '@/components/ui/primitives';
 import { Segmented } from '@/components/ui/segmented';
 import { useLang } from '@/i18n';
@@ -45,15 +45,7 @@ export default function Discover() {
 
   return (
     <Page wide>
-      <PageHeader
-        title={t('discover.title')}
-        subtitle={t('discover.subtitle')}
-        actions={
-          <ButtonLink to="/classement" variant="secondary" icon={<Trophy />}>
-            {t('discover.leaderboardCta')}
-          </ButtonLink>
-        }
-      />
+      <PageHeader title={t('discover.title')} subtitle={t('discover.subtitle')} />
 
       <section
         className="mt-6 flex flex-col gap-3 rounded-[10px] bg-surface-1 p-3 sm:p-4"

@@ -1,7 +1,10 @@
 // @devhub/contracts : une seule source pour les formes échangées entre le front et l'API (ADR-0010).
 export * from './admin';
 export * from './answers';
+export * from './api-tokens';
 export * from './auth';
+export * from './bench';
+export * from './certifications';
 export * from './business';
 export * from './discovery';
 export * from './errors';
@@ -14,6 +17,7 @@ export * from './pair';
 export * from './passport';
 export * from './platform';
 export * from './posts';
+export * from './preflight';
 export * from './questions';
 export * from './rooms';
 export * from './skills';

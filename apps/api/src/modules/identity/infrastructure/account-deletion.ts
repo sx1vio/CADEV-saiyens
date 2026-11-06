@@ -54,6 +54,7 @@ export class AccountDeletion {
       // Données de connexion et données personnelles dérivées : supprimées.
       await tx.oAuthAccount.deleteMany({ where: { userId } });
       await tx.session.deleteMany({ where: { userId } });
+      await tx.apiToken.deleteMany({ where: { userId } });
       await tx.pushSubscription.deleteMany({ where: { userId } });
       await tx.notification.deleteMany({ where: { userId } });
       await tx.idempotencyKey.deleteMany({ where: { userId } });

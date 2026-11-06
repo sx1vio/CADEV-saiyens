@@ -472,6 +472,8 @@ const NOTIF: Record<NotificationView['type'], NotificationType> = {
   'pair.answered': 'pair-accepted',
   'application.status': 'application',
   'message.received': 'message',
+  'bench.report': 'bench-report',
+  'bench.reviewed': 'bench-reviewed',
 };
 
 /** Les libellés du front attendent `author`, `title`, `room`, `task`, `user`, `points`. */
@@ -489,6 +491,7 @@ export function notification(n: NotificationView, userId: string): AppNotificati
   if (p.kind === 'code_review') payload.kind = 'code-review';
   // « feedback-confirmed_zero » : un simple retour ne rapporte pas de Proof XP.
   if (n.type === 'feedback.confirmed') payload.count = Number(p.points ?? 0);
+  if (n.type === 'bench.reviewed' && p.decision === 'reject') payload.context = 'rejected';
   return {
     id: n.id,
     userId,
@@ -524,6 +527,7 @@ const XP_KIND: Record<ProofsResponse['events'][number]['kind'], XPKind> = {
   code_review_given: 'code-review',
   project_demo_shared: 'project-demo',
   deployment_verified: 'deployment-verified',
+  field_test_confirmed: 'field-test',
   question_resolved: 'question-resolved',
   difficulty_bonus: 'answer-accepted',
   mentoring: 'answer-helpful',
@@ -899,6 +903,7 @@ const XP_RULE_ROW: Record<string, XpRuleRow> = {
   project_demo_shared: 'demo',
   question_resolved: 'resolved',
   deployment_verified: 'deployment',
+  field_test_confirmed: 'fieldTest',
 };
 
 /** X5 : barème lu depuis l'API ; une ligne absente garde la valeur de repli. */

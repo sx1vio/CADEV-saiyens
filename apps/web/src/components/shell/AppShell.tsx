@@ -1,10 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
-  Bell,
-  MessageCircle,
   ChevronDown,
   ChevronUp,
-  Flame,
   FolderPlus,
   Keyboard,
   Languages,
@@ -19,7 +16,7 @@ import {
   Settings,
   Sun,
   UserRound,
-  Wand2,
+  PlaneTakeoff,
   X,
   Zap,
 } from 'lucide-react';
@@ -39,15 +36,21 @@ import { Avatar, CountDot, Kbd } from '../ui/primitives';
 import { CREATE_NAV, EXPLORE_NAV, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
 import { AnnouncementBar } from './announcements';
-import { Djeli } from '../djeli';
 import { BrandLogo } from '../brand';
-import { selectGoalReached, selectStreak, usePlatform } from '@/platform/store';
+import { usePlatform } from '@/platform/store';
 import * as Popover from '@radix-ui/react-popover';
+import {
+  Bell as BellFill,
+  ChatCircleDots,
+  GearSix,
+  IconContext,
+  MagnifyingGlass,
+  Plus as PlusFill,
+} from '@phosphor-icons/react';
 
 /* ================================================================
-   Shell connecté : barre latérale bleue (charte DevHub). L'entrée active prend la couleur
-   du contenu et s'y fond par deux coins inversés ; Djeli rappelle la série d'apprentissage
-   en pied. Sur ordinateur, recherche, création, notifications et compte sont dans la barre du haut.
+   Shell connecté : barre latérale encre (v3, 05/11/2026). L'entrée active prend la couleur
+   du contenu et s'y fond par deux coins inversés ; mon compte et ma disponibilité en pied. Sur ordinateur, recherche, création, notifications et compte sont dans la barre du haut.
    ================================================================ */
 
 /** Logo cliquable vers l’accueil. */
@@ -79,10 +82,10 @@ function useCreateActions() {
       run: () => nav('/projets/nouvelle'),
     },
     {
-      icon: Wand2,
+      icon: PlaneTakeoff,
       label: t('navEntry.createApp'),
       hint: t('navEntry.createAppHint'),
-      run: () => nav('/creer'),
+      run: () => nav('/prevol'),
     },
   ];
 }
@@ -157,22 +160,31 @@ function SideItem({
       data-active={active}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'side-item flex h-10 shrink-0 items-center gap-3 pl-4 text-[13.5px] font-medium',
-        merge ? 'side-merge rounded-l-[16px] pr-4' : 'mr-3 rounded-[14px] pr-3',
+        'side-item flex h-10 shrink-0 items-center gap-3 pl-3 text-[15px]',
+        merge ? 'side-merge rounded-l-[12px] pr-4' : 'mr-3 rounded-[10px] pr-3',
         active
-          ? 'bg-canvas font-semibold text-accent-text'
-          : 'text-white/80 hover:bg-white/10 hover:text-white',
+          ? merge
+            ? 'bg-canvas font-semibold text-fg'
+            : 'bg-white/[0.12] font-semibold text-white'
+          : 'font-medium text-white/80 hover:bg-white/[0.06] hover:text-white',
       )}
     >
-      <Icon className="size-[18px] shrink-0" />
+      <Icon
+        weight="fill"
+        className={cn('size-[22px] shrink-0', active ? 'text-fg' : 'text-white/70')}
+      />
       <span className="flex-1 truncate">
         {entry.short && label.length > 22 ? t(entry.short) : label}
       </span>
       {!!count && (
         <span
           className={cn(
-            'grid h-5 min-w-5 place-items-center rounded-[7px] px-1.5 text-[11px] font-semibold tabular',
-            active ? 'bg-accent-soft text-accent-text' : 'bg-white/18 text-white',
+            'grid h-5 min-w-5 place-items-center rounded-[6px] px-1.5 font-mono text-[11px] tabular',
+            active
+              ? merge
+                ? 'bg-surface-3 text-fg'
+                : 'bg-white/15 text-white'
+              : 'bg-white/10 text-white/80',
           )}
         >
           {count > 99 ? '99+' : count}
@@ -182,32 +194,49 @@ function SideItem({
   );
 }
 
-/** Carte de Djeli en pied de barre : la série d'apprentissage du jour (esprit Duolingo). */
-function LearnNudge({ onNavigate }: { onNavigate?: () => void }) {
-  const streak = usePlatform(selectStreak);
-  const today = usePlatform((s) => s.lessonsToday());
-  const reached = usePlatform(selectGoalReached);
+/**
+ * Pied de barre façon Discord : qui je suis, ma disponibilité (visible des recruteurs et des devs
+ * qui cherchent de l'aide), accès direct à mon profil et à mes réglages.
+ */
+function UserCard({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
+  const me = useSession((s) => s.user);
+  if (!me) return null;
+  const status = me.availability.status;
+  const label =
+    status === 'now'
+      ? t('onboarding.availNow')
+      : status === 'today'
+        ? t('onboarding.availToday')
+        : t('onboarding.availBusy');
   return (
-    <Link
-      to="/apprendre"
-      onClick={onNavigate}
-      className="side-nudge relative mx-3 mt-3 flex items-end gap-2 rounded-[20px] bg-white/10 p-3 pt-2 text-white transition-colors hover:bg-white/15"
-    >
-      <div className="min-w-0 flex-1 pb-0.5">
-        <p className="flex items-center gap-1.5 text-[13px] font-semibold">
-          <Flame className="size-4 text-[#ffb547]" />
-          {streak > 0 ? `${streak} jour${streak > 1 ? 's' : ''} de suite` : 'Lance ta série'}
-        </p>
-        <p className="mt-0.5 text-[11.5px] leading-snug text-white/70">
-          {reached
-            ? 'Objectif du jour atteint. Bravo !'
-            : today > 0
-              ? 'Encore une leçon pour ton objectif ?'
-              : 'Une leçon de quelques minutes aujourd’hui ?'}
-        </p>
-      </div>
-      <Djeli pose={reached ? 'celebrate' : 'point'} size={58} className="-mt-6 -mr-1" />
-    </Link>
+    <div className="mx-3 mt-3 flex items-center gap-1 rounded-[12px] bg-white/[0.04] p-1.5 ring-1 ring-white/[0.06]">
+      <Link
+        to={`/u/${me.handle}`}
+        onClick={onNavigate}
+        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[8px] p-1 transition-colors hover:bg-white/[0.06]"
+      >
+        <span className="relative shrink-0">
+          <Avatar name={me.displayName} src={me.avatarUrl} size={32} />
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-[13px] font-medium text-white">
+            {me.displayName}
+          </span>
+          <span className="block truncate text-[11.5px] text-white/55">
+            {me.availability.forMission ? 'Ouvert aux missions' : label}
+          </span>
+        </span>
+      </Link>
+      <Link
+        to="/reglages"
+        onClick={onNavigate}
+        aria-label={t('nav.settings')}
+        className="grid size-8 shrink-0 place-items-center rounded-[8px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white"
+      >
+        <GearSix weight="fill" className="size-5" />
+      </Link>
+    </div>
   );
 }
 
@@ -218,7 +247,6 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { pathname } = useLocation();
   const { data: home } = useQuery(me ? 'home' : null, () => api.getHome());
   const help = home?.openInMyStacks.length ?? 0;
-  const enrolled = usePlatform((s) => s.enrolled.length);
   const savedJobs = usePlatform((s) => s.savedJobs.length);
   const merge = !onNavigate;
   const navRef = useRef<HTMLElement>(null);
@@ -238,7 +266,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const groups: { label?: string; items: NavEntry[] }[] = [
     { items: MAIN_NAV },
     { label: t('navEntry.explore'), items: EXPLORE_NAV },
-    { label: t('navEntry.create'), items: CREATE_NAV },
+    { label: t('navEntry.ship'), items: CREATE_NAV },
     {
       label: t('navEntry.groupNetwork'),
       items: [
@@ -255,18 +283,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         NETWORK_NAV[1]!,
       ],
     },
-    ...(me
-      ? [
-          {
-            label: t('navEntry.groupAccount'),
-            items: [{ to: '/reglages', label: 'nav.settings', icon: Settings } as NavEntry],
-          },
-        ]
-      : []),
   ];
   const counts: Record<string, number | undefined> = {
-    '/sos': help,
-    '/apprendre': enrolled,
+    '/': help,
     '/emplois': savedJobs,
   };
   return (
@@ -274,10 +293,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       data-tour="nav"
       className={cn(
         'side-panel flex h-full flex-col text-white',
-        merge ? 'rounded-l-[28px] py-5 pl-3' : 'rounded-[28px] py-4 pl-3',
+        merge ? 'rounded-l-[20px] py-4 pl-3' : 'rounded-[20px] py-4 pl-3',
       )}
     >
-      <div className="flex items-center justify-between pr-4 pb-6 pl-2">
+      <div className="flex items-center justify-between pr-4 pb-4 pl-2">
         <Logo />
         {onNavigate && (
           <button
@@ -296,14 +315,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           ref={navRef}
           onScroll={updateMore}
           aria-label={t('navEntry.navAria')}
-          className="side-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain py-4"
+          className="side-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-4"
         >
           {groups.map((g, i) => (
-            <div key={i} className="flex flex-col gap-1">
+            <div key={i} className="flex flex-col gap-0.5">
               {g.label && (
-                <p className="px-4 pb-1 text-[11px] font-semibold tracking-[0.06em] text-white/55 uppercase">
-                  {g.label}
-                </p>
+                <p className="px-3 pb-1.5 text-[12px] font-semibold text-white/60">{g.label}</p>
               )}
               {g.items.map((e) => (
                 <SideItem
@@ -325,11 +342,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           aria-hidden
           onClick={() => navRef.current?.scrollBy({ top: -160, behavior: 'smooth' })}
           className={cn(
-            'absolute top-0 right-4 z-10 grid size-6 place-items-center rounded-full bg-white/12 text-white/80 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
+            'absolute top-0 right-4 z-10 grid size-6 place-items-center rounded-full bg-white/10 text-white/70 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
             less ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
-          <ChevronUp className="size-4 animate-[side-bob-up_1.8s_ease-in-out_infinite]" />
+          <ChevronUp className="size-4" />
         </button>
         <button
           type="button"
@@ -337,21 +354,21 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           aria-hidden
           onClick={() => navRef.current?.scrollBy({ top: 160, behavior: 'smooth' })}
           className={cn(
-            'absolute right-4 bottom-0 z-10 grid size-6 place-items-center rounded-full bg-white/12 text-white/80 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
+            'absolute right-4 bottom-0 z-10 grid size-6 place-items-center rounded-full bg-white/10 text-white/70 transition-opacity duration-200 hover:bg-white/20 hover:text-white',
             more ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
-          <ChevronDown className="size-4 animate-[side-bob_1.8s_ease-in-out_infinite]" />
+          <ChevronDown className="size-4" />
         </button>
       </div>
 
       {me ? (
-        <LearnNudge onNavigate={onNavigate} />
+        <UserCard onNavigate={onNavigate} />
       ) : (
         <Link
           to="/connexion"
           onClick={onNavigate}
-          className="mx-3 mt-3 flex h-11 items-center justify-center rounded-[14px] bg-white text-[14px] font-semibold text-accent-text"
+          className="mx-3 mt-3 flex h-10 items-center justify-center rounded-[10px] bg-white text-[14px] font-medium text-[#111827]"
         >
           {t('nav.login')}
         </Link>
@@ -368,15 +385,15 @@ function TopBar() {
   const actions = useCreateActions();
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   return (
-    <header className="sticky top-0 z-30 bg-canvas/90 backdrop-blur-xl">
-      <div className="flex h-16 items-center gap-3 px-6">
+    <header className="dh-glassbar sticky top-0 z-30">
+      <div className="flex h-14 items-center gap-3 px-6">
         <button
           type="button"
           onClick={() => setPalette(true)}
           data-tour="palette"
-          className="flex h-10 w-full max-w-[420px] items-center gap-2.5 rounded-full bg-surface-1 pr-2 pl-4 text-left text-[13.5px] text-subtle transition-colors hover:bg-surface-2"
+          className="lg-clear flex h-10 w-full max-w-[460px] items-center gap-2.5 rounded-full pr-2 pl-4 text-left text-[14px] text-subtle"
         >
-          <Search className="size-4 shrink-0" />
+          <MagnifyingGlass weight="bold" className="size-4 shrink-0" />
           <span className="flex-1 truncate">{t('nav.searchPlaceholder')}</span>
           <Kbd>{isMac ? '⌘ K' : 'Ctrl K'}</Kbd>
         </button>
@@ -389,9 +406,9 @@ function TopBar() {
                 <button
                   type="button"
                   data-tour="ask"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-accent px-4 text-[13.5px] font-semibold text-white transition-colors hover:bg-accent-hover"
+                  className="lg-tint inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-medium"
                 >
-                  <Plus className="size-[18px]" />
+                  <PlusFill weight="bold" className="size-4" />
                   {t('navEntry.create')}
                 </button>
               }
@@ -422,7 +439,7 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
   const setPalette = useUI((s) => s.setPalette);
   const me = useSession((s) => s.user);
   return (
-    <header className="sticky top-0 z-40 bg-canvas/95 backdrop-blur-md">
+    <header className="dh-glassbar sticky top-0 z-40">
       <div className="flex h-14 items-center gap-2 px-3">
         <button
           type="button"
@@ -463,7 +480,7 @@ function MessagesButton() {
       aria-label={unread ? `Messages, ${unread} non lus` : 'Messages'}
       className="relative grid size-10 place-items-center rounded-full text-fg transition-colors hover:bg-surface-1"
     >
-      <MessageCircle className="size-5" />
+      <ChatCircleDots weight="fill" className="size-6" />
       {unread > 0 && (
         <CountDot count={unread} className="absolute top-1 right-1 ring-2 ring-canvas" />
       )}
@@ -485,11 +502,13 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
         ? `/messages/${n.payload.conversationId}`
         : n.type === 'contact'
           ? `/u/${n.payload.by}`
-          : n.payload.questionId
-            ? `/sos/${n.payload.questionId}`
-            : n.payload.code
-              ? `/p/${n.payload.code}`
-              : '/';
+          : n.payload.benchId
+            ? `/banc/${n.payload.benchId}`
+            : n.payload.questionId
+              ? `/sos/${n.payload.questionId}`
+              : n.payload.code
+                ? `/p/${n.payload.code}`
+                : '/';
   return (
     <Popover.Root
       onOpenChange={(o) => {
@@ -505,7 +524,7 @@ function Notifications({ trigger }: { trigger?: (unread: number) => ReactNode })
             aria-label={t('nav.notifications')}
             className="relative grid size-10 place-items-center rounded-full text-fg transition-colors hover:bg-surface-1"
           >
-            <Bell className="size-5" />
+            <BellFill weight="fill" className="size-6" />
             {unread > 0 && (
               <CountDot count={unread} className="absolute top-1 right-1 ring-2 ring-canvas" />
             )}
@@ -679,7 +698,7 @@ function DemoSwitcher() {
 
 function TabBar({ onCreate }: { onCreate: () => void }) {
   const { t } = useTranslation();
-  const tabs = [MAIN_NAV[0], MAIN_NAV[3], null, EXPLORE_NAV[2], EXPLORE_NAV[1]];
+  const tabs = [MAIN_NAV[0], MAIN_NAV[1], null, EXPLORE_NAV[0], CREATE_NAV[0]];
   return (
     <nav
       aria-label={t('navEntry.navAria')}
@@ -741,6 +760,7 @@ function Drawer() {
   const setOpen = useUI((s) => s.setDrawer);
   const startX = useRef<number | null>(null);
   const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const close = () => setOpen(false);
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
@@ -751,15 +771,19 @@ function Drawer() {
           className="dh-drawer fixed inset-y-0 left-0 z-50 w-[272px] max-w-[88vw] p-2 focus:outline-none"
           style={{
             transform: dx < 0 ? `translateX(${dx}px)` : undefined,
-            transition: startX.current === null ? 'transform 220ms var(--ease-out)' : 'none',
+            transition: dragging ? 'none' : 'transform 220ms var(--ease-out)',
           }}
-          onTouchStart={(e) => (startX.current = e.touches[0].clientX)}
+          onTouchStart={(e) => {
+            startX.current = e.touches[0].clientX;
+            setDragging(true);
+          }}
           onTouchMove={(e) =>
             startX.current !== null && setDx(Math.min(0, e.touches[0].clientX - startX.current))
           }
           onTouchEnd={() => {
             if (dx < -80) close();
             startX.current = null;
+            setDragging(false);
             setDx(0);
           }}
         >
@@ -825,38 +849,40 @@ export function AppShell() {
   useEffect(() => setDrawer(false), [location.pathname, setDrawer]);
 
   return (
-    <div className="min-h-dvh bg-canvas">
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-canvas"
-      >
-        {t('nav.skipToContent')}
-      </a>
-      <div className="flex">
-        {isLg && (
-          <aside className="sticky top-0 h-dvh w-[256px] shrink-0 py-3 pl-3">
-            <Sidebar />
-          </aside>
-        )}
-        <div className="min-w-0 flex-1">
-          {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
-          {isLg && <TopBar />}
-          {isLg && <OfflineBanner />}
-          {api.mode === 'local' && <LocalDataBanner />}
-          <AnnouncementBar />
-          <main
-            id="main"
-            tabIndex={-1}
-            className="pb-[calc(64px+env(safe-area-inset-bottom)+28px)] focus:outline-none sm:pb-12"
-          >
-            <Outlet />
-          </main>
+    <IconContext.Provider value={{ weight: 'fill', mirrored: false }}>
+      <div className="min-h-dvh bg-canvas">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-canvas"
+        >
+          {t('nav.skipToContent')}
+        </a>
+        <div className="flex">
+          {isLg && (
+            <aside className="sticky top-0 h-dvh w-[248px] shrink-0 py-2 pl-2">
+              <Sidebar />
+            </aside>
+          )}
+          <div className="min-w-0 flex-1">
+            {!isLg && <MobileTop onMenu={() => setDrawer(true)} />}
+            {isLg && <TopBar />}
+            {isLg && <OfflineBanner />}
+            {api.mode === 'local' && <LocalDataBanner />}
+            <AnnouncementBar />
+            <main
+              id="main"
+              tabIndex={-1}
+              className="pb-[calc(64px+env(safe-area-inset-bottom)+28px)] focus:outline-none sm:pb-12"
+            >
+              <Outlet />
+            </main>
+          </div>
         </div>
+        <Drawer />
+        {!isSm && <TabBar onCreate={() => setCreateOpen(true)} />}
+        <CreateSheet open={createOpen} onOpenChange={setCreateOpen} />
       </div>
-      <Drawer />
-      {!isSm && <TabBar onCreate={() => setCreateOpen(true)} />}
-      <CreateSheet open={createOpen} onOpenChange={setCreateOpen} />
-    </div>
+    </IconContext.Provider>
   );
 }
 

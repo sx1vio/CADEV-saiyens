@@ -20,6 +20,8 @@ export const NotificationType = z.enum([
   'pair.answered', // S5 : l'auteur a accepté ou refusé ton créneau
   'application.status', // une entreprise a fait avancer ta candidature
   'message.received', // nouveau message privé
+  'bench.report', // Banc d'essai : un dev a testé ton application
+  'bench.reviewed', // Banc d'essai : ton rapport de test est confirmé ou refusé
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 

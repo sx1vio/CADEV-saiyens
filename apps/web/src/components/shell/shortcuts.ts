@@ -30,10 +30,10 @@ export function useGlobalShortcuts() {
         g = false;
         const map: Record<string, string> = {
           h: '/',
-          s: '/sos',
+          s: '/?f=questions',
           p: '/projets',
           d: '/decouvrir',
-          c: '/classement',
+          c: '/certifications',
         };
         if (map[e.key]) {
           e.preventDefault();

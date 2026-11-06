@@ -13,14 +13,16 @@ import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { ButtonLink } from '@/components/ui/button';
 import { CHECKED_AT, LEVEL_LABEL, MARKET_CERTS, PLATFORM_CERTS } from '@/platform/data/certs';
-import { COURSE_META } from '@/platform/data/courses/meta';
+import { useQuery } from '@/lib/query';
 import { usePlatform } from '@/platform/store';
+import { certsApi, type MyCert } from '@/platform/certs-api';
 import type { CertLevel, MarketCert, PlatformCert } from '@/platform/types';
 import { CertBadge, Chips, SERVICE_COLORS, ServiceHeader } from '@/platform/ui';
 import { LiveBoard } from '@/platform/LiveBoard';
 import { ProviderMark } from '@/platform/logos';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/stores/app';
+import { VerifyForm } from './CertVerify';
 
 type View = 'gratuites' | 'payantes' | 'base' | 'direct' | 'mes-badges';
 
@@ -47,8 +49,9 @@ export function LevelPill({ level }: { level: CertLevel }) {
 export default function Certifications() {
   const [params, setParams] = useSearchParams();
   const view = (params.get('vue') as View) || 'gratuites';
-  const results = usePlatform((s) => s.certResults);
-  const passed = PLATFORM_CERTS.filter((c) => results[c.id]?.passed);
+  const me = useSession((s) => s.user);
+  const { data: mine } = useQuery(me ? 'certs:me' : null, () => certsApi.mine());
+  const passed = (mine?.items ?? []).filter((i) => i.certificate);
   return (
     <div className="dh-page mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6">
       <ServiceHeader
@@ -70,20 +73,20 @@ export default function Certifications() {
         />
       </ServiceHeader>
       <div className="mt-6">
-        {view === 'gratuites' && <FreeView />}
+        {view === 'gratuites' && <FreeView mine={mine?.items ?? []} />}
         {view === 'payantes' && <PaidView />}
         {view === 'base' && <Database />}
         {view === 'direct' && (
           <LiveBoard kind="cert" title="Catalogue officiel Microsoft Learn, mis à jour en direct" />
         )}
-        {view === 'mes-badges' && <MyBadges certs={passed} />}
+        {view === 'mes-badges' && <MyBadges items={passed} />}
       </div>
     </div>
   );
 }
 
-function FreeView() {
-  const results = usePlatform((s) => s.certResults);
+function FreeView({ mine }: { mine: MyCert[] }) {
+  const status = (id: string) => mine.find((i) => i.certId === id);
   return (
     <>
       <ol className="mb-8 grid gap-3 sm:grid-cols-3">
@@ -91,17 +94,17 @@ function FreeView() {
           {
             icon: GraduationCap,
             title: 'Prépare-toi',
-            text: 'Chaque certification a un parcours gratuit dans Apprendre, avec cours, exercices et quiz.',
+            text: 'Programme par thème, entraînement corrigé, examen blanc et plan de révision jusqu’à ta date d’examen.',
           },
           {
             icon: Clock,
             title: 'Passe l’examen en ligne',
-            text: '20 questions tirées dans une banque, 25 à 30 minutes chronométrées, 75 % pour réussir. Score détaillé par thème.',
+            text: '20 questions tirées et corrigées par le serveur, 25 à 30 minutes chronométrées, 75 % pour réussir.',
           },
           {
             icon: BadgeCheck,
             title: 'Montre ton badge',
-            text: 'Le badge apparaît sur ton Passport avec un code de vérification unique.',
+            text: 'Le badge apparaît sur ton profil, avec un code que n’importe quel recruteur peut vérifier.',
           },
         ].map((s, i) => (
           <li key={s.title} className="flex gap-3 rounded-[10px] bg-surface-1 p-4">
@@ -127,8 +130,8 @@ function FreeView() {
           <PlatformCertCard
             key={c.id}
             cert={c}
-            result={results[c.id]?.score}
-            passed={results[c.id]?.passed}
+            result={status(c.id)?.certificate?.bestScore ?? status(c.id)?.lastAttempt?.score}
+            passed={!!status(c.id)?.certificate}
           />
         ))}
       </div>
@@ -200,7 +203,7 @@ function PlatformCertCard({
       <div className="mt-auto flex items-center gap-3 border-t border-line pt-3 text-[12px] text-subtle">
         <span className="inline-flex items-center gap-1">
           <Clock className="size-3.5" />
-          {cert.minutes} min · {Math.min(cert.draw, cert.quiz.length)} questions
+          {cert.minutes} min · {Math.min(cert.draw, cert.bankSize)} questions
         </span>
         {passed ? (
           <span className="ml-auto inline-flex items-center gap-1 font-medium text-success">
@@ -217,12 +220,15 @@ function PlatformCertCard({
   );
 }
 
-const COURSE_IDS = new Set(COURSE_META.map((c) => c.id));
+/** Préparation DevHub d'une certification d'éditeur : la certification DevHub du même cours. */
+const PREP_CERT: Record<string, string> = { 'cloud-devops': 'docker-deploiement' };
+const prepCertOf = (path?: string) =>
+  path ? PLATFORM_CERTS.find((c) => c.course === path || c.id === PREP_CERT[path]) : undefined;
 
 function MarketCertCard({ cert }: { cert: MarketCert }) {
   const saved = usePlatform((s) => s.savedCerts.includes(cert.id));
   const toggle = usePlatform((s) => s.toggle);
-  const setCourse = usePlatform((s) => s.setCourse);
+  const prepCert = prepCertOf(cert.prepPath);
   return (
     <article className="flex flex-col gap-2 rounded-[10px] bg-surface-1 p-4">
       <div className="flex items-center gap-2.5">
@@ -281,10 +287,9 @@ function MarketCertCard({ cert }: { cert: MarketCert }) {
         </p>
       )}
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
-        {cert.prepPath && (
+        {prepCert && (
           <ButtonLink
-            to={COURSE_IDS.has(cert.prepPath) ? '/apprendre' : `/apprendre/${cert.prepPath}`}
-            onClick={() => COURSE_IDS.has(cert.prepPath!) && setCourse(cert.prepPath!)}
+            to={`/certifications/${prepCert.id}`}
             variant="secondary"
             size="sm"
             icon={<GraduationCap />}
@@ -467,54 +472,94 @@ function Database() {
   );
 }
 
-function MyBadges({ certs }: { certs: PlatformCert[] }) {
+function MyBadges({ items }: { items: MyCert[] }) {
   const me = useSession((s) => s.user);
-  const results = usePlatform((s) => s.certResults);
-  if (!certs.length)
+  const verify = (
+    <div className="mt-8 rounded-[14px] bg-surface-1 p-5">
+      <p className="text-[15px] font-semibold text-fg">Vérifier un certificat</p>
+      <p className="mt-0.5 text-[14px] text-muted">
+        Un recruteur colle ici le code d’un candidat pour voir qui l’a obtenu, quand et avec quel
+        score.
+      </p>
+      <VerifyForm className="mt-3 flex max-w-md gap-2" />
+    </div>
+  );
+  if (!me)
     return (
-      <div className="rounded-[10px] bg-surface-1 p-10 text-center">
-        <Award className="mx-auto size-10 text-subtle" />
-        <p className="mt-3 font-semibold text-fg">Pas encore de badge</p>
-        <p className="mt-1 text-sm text-muted">
-          Passe une certification DevHub gratuite : 20 questions, une demi-heure au plus.
-        </p>
-        <ButtonLink to="/certifications" variant="primary" className="mt-4">
-          Voir les certifications
-        </ButtonLink>
-      </div>
+      <>
+        <div className="rounded-[10px] bg-surface-1 p-10 text-center">
+          <Award className="mx-auto size-10 text-fg" />
+          <p className="mt-3 font-semibold text-fg">Connecte-toi pour voir tes badges</p>
+          <ButtonLink
+            to="/connexion?next=%2Fcertifications%3Fvue%3Dmes-badges"
+            variant="primary"
+            className="mt-4"
+          >
+            Se connecter
+          </ButtonLink>
+        </div>
+        {verify}
+      </>
+    );
+  if (!items.length)
+    return (
+      <>
+        <div className="rounded-[10px] bg-surface-1 p-10 text-center">
+          <Award className="mx-auto size-10 text-fg" />
+          <p className="mt-3 font-semibold text-fg">Pas encore de badge</p>
+          <p className="mt-1 text-sm text-muted">
+            Passe une certification DevHub gratuite : 20 questions, une demi-heure au plus.
+          </p>
+          <ButtonLink to="/certifications" variant="primary" className="mt-4">
+            Voir les certifications
+          </ButtonLink>
+        </div>
+        {verify}
+      </>
     );
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {certs.map((c) => (
-        <div
-          key={c.id}
-          className="flex flex-col items-center gap-3 rounded-[10px] bg-surface-1 p-6 text-center"
-        >
-          <CertBadge color={c.color} logo={c.logo} size={80} />
-          <div>
-            <h3 className="text-[15px] font-semibold text-fg">{c.title}</h3>
-            <p className="text-[13px] text-subtle">
-              Score {results[c.id]?.score} % ·{' '}
-              {new Date(results[c.id]!.at).toLocaleDateString('fr-FR')}
-            </p>
-            {results[c.id]?.code && (
-              <p className="mt-1 font-mono text-[12px] text-muted">{results[c.id]!.code}</p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard
-                ?.writeText(`${location.origin}/u/${me?.handle}?badge=${c.id}`)
-                .then(() => toast.success('Lien du badge copié'));
-            }}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-3 px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-          >
-            <Share2 className="size-3.5" />
-            Partager
-          </button>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((i) => {
+          const c = PLATFORM_CERTS.find((x) => x.id === i.certId);
+          if (!c || !i.certificate) return null;
+          const link = `${location.origin}/certificat/${i.certificate.code}`;
+          return (
+            <div
+              key={c.id}
+              className="flex flex-col items-center gap-3 rounded-[10px] bg-surface-1 p-6 text-center"
+            >
+              <CertBadge color={c.color} logo={c.logo} size={80} />
+              <div>
+                <h3 className="text-[15px] font-semibold text-fg">{c.title}</h3>
+                <p className="text-[13px] text-muted">
+                  Score {i.certificate.bestScore} % ·{' '}
+                  {new Date(i.certificate.passedAt).toLocaleDateString('fr-FR')}
+                </p>
+                <Link
+                  to={`/certificat/${i.certificate.code}`}
+                  className="mt-1 inline-block font-mono text-[12px] text-fg hover:underline"
+                >
+                  {i.certificate.code}
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard
+                    ?.writeText(link)
+                    .then(() => toast.success('Lien de vérification copié'));
+                }}
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-3 px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
+              >
+                <Share2 className="size-3.5" />
+                Partager
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {verify}
+    </>
   );
 }

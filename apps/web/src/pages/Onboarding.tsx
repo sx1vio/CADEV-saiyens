@@ -19,7 +19,7 @@ import {
   Wand2,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -211,9 +211,12 @@ export default function Onboarding() {
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
+  // Compétences pré-cochées depuis le profil dès qu'il arrive (mise à jour pendant le rendu).
+  const [seenPassport, setSeenPassport] = useState(passport);
+  if (passport !== seenPassport) {
+    setSeenPassport(passport);
     if (passport && !skillIds.length) setSkillIds(passport.skills.map((s) => s.tagId));
-  }, [passport]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   const experienced = level === 'junior' || level === 'senior';
   const learner = level === 'curious' || level === 'beginner';
@@ -247,14 +250,18 @@ export default function Onboarding() {
         ...(goals.includes('project') ? ['showcase', 'opensource'] : []),
       ]),
     ];
+    // « Apprendre » a été fondu dans les certifications (05/11) : la fiche de la certification
+    // liée au cours montre son programme et ses leçons.
     const first = learner
-      ? '/apprendre'
+      ? chosenCourse?.certId
+        ? `/certifications/${chosenCourse.certId}`
+        : '/certifications'
       : paths.length && goals.includes('learn')
-        ? `/apprendre/${paths[0]}`
+        ? '/certifications'
         : goals.includes('job')
           ? '/emplois'
           : goals.includes('help')
-            ? '/sos'
+            ? '/?f=questions'
             : '/';
     return { paths, communities, first };
   }, [domains, goals, level, learner, chosenCourse]);

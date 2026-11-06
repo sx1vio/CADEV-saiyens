@@ -57,7 +57,12 @@ export default function Login() {
 
   const { data: providers } = useQuery<Record<Provider, boolean>>('auth:providers', authProviders);
 
-  useEffect(() => setError(null), [signup]);
+  // Passage connexion ↔ inscription : l'erreur affichée ne concerne plus l'écran.
+  const [mode, setMode] = useState(signup);
+  if (mode !== signup) {
+    setMode(signup);
+    setError(null);
+  }
 
   const done = (u: User) => {
     setUser(u);
@@ -109,8 +114,8 @@ export default function Login() {
   const oauth = (p: Provider) => {
     // L'OAuth GitHub passe par l'API ; sans API (serveur simulé), on importe le profil public.
     if (p === 'github' && providers?.github && api.mode === 'http')
-      window.location.href = githubSignInUrl(
-        `/connexion?oauth=ok&next=${encodeURIComponent(next)}`,
+      window.location.assign(
+        githubSignInUrl(`/connexion?oauth=ok&next=${encodeURIComponent(next)}`),
       );
     else if (p === 'github') setGhMode(true);
   };

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 /** Décalage UTC d'un fuseau à cette date, au format « UTC+1 » ou « UTC−3:30 ». */
@@ -81,8 +81,8 @@ export function TimezoneSelect({
   onChange: (tz: string) => void;
   className?: string;
 }) {
+  const [now] = useState(() => new Date());
   const groups = useMemo(() => {
-    const now = new Date();
     let all: string[];
     try {
       all = Intl.supportedValuesOf('timeZone');
@@ -105,7 +105,7 @@ export function TimezoneSelect({
         label: REGION_LABEL[region]!,
         items: list.sort((a, b) => a.off - b.off || a.label.localeCompare(b.label, 'fr')),
       }));
-  }, []);
+  }, [now]);
 
   const known = groups.some((g) => g.items.some((i) => i.tz === value));
 

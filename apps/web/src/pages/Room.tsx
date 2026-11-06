@@ -90,6 +90,7 @@ export default function Room() {
   );
   const [joinOpen, setJoinOpen] = useState(false);
   const [feedbackKind, setFeedbackKind] = useState<FeedbackRequest['kind'] | null>(null);
+  const [now] = useState(() => Date.now());
 
   if (error)
     return (
@@ -115,7 +116,7 @@ export default function Room() {
   const done = room.tasks.filter((x) => x.status === 'done').length;
   const contributors = new Set(room.tasks.filter((x) => x.assigneeId).map((x) => x.assigneeId))
     .size;
-  const daysIdle = (Date.now() - new Date(room.lastActivityAt).getTime()) / 864e5;
+  const daysIdle = (now - new Date(room.lastActivityAt).getTime()) / 864e5;
 
   const copyInvite = () => {
     void navigator.clipboard?.writeText(`${location.origin}/p/${room.inviteCode}`);

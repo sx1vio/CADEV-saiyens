@@ -60,7 +60,7 @@ export default function PostPage() {
       await communityApi.remove(post.id);
       invalidate('posts');
       toast.success('Publication supprimée');
-      nav(`/c/${post.community}`, { replace: true });
+      nav(`/?topic=${post.community}`, { replace: true });
     } catch (e) {
       toast.error(communityError(e));
     }
@@ -81,7 +81,7 @@ export default function PostPage() {
         <article className="rounded-[10px] bg-surface-1 p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] text-subtle">
             <Link
-              to={`/c/${post.community}`}
+              to={`/?topic=${post.community}`}
               className="inline-flex items-center gap-1.5 font-medium text-fg hover:underline"
             >
               <CommunityIcon slug={post.community} size={20} />
@@ -183,7 +183,7 @@ export default function PostPage() {
               <CommentNode
                 key={cm.id}
                 comment={cm}
-                children={children}
+                tree={children}
                 postId={post.id}
                 onChange={reload}
                 onReport={setReport}
@@ -286,14 +286,14 @@ function CommentForm({
 
 function CommentNode({
   comment,
-  children,
+  tree,
   postId,
   onChange,
   onReport,
   depth,
 }: {
   comment: PostCommentView;
-  children: Map<string | null, PostCommentView[]>;
+  tree: Map<string | null, PostCommentView[]>;
   postId: string;
   onChange: () => void;
   onReport: (t: ReportTarget) => void;
@@ -301,7 +301,7 @@ function CommentNode({
 }) {
   const me = useSession((s) => s.user);
   const [replying, setReplying] = useState(false);
-  const replies = children.get(comment.id) ?? [];
+  const replies = tree.get(comment.id) ?? [];
   const remove = async () => {
     if (!confirm('Supprimer ce commentaire ?')) return;
     try {
@@ -385,7 +385,7 @@ function CommentNode({
               <CommentNode
                 key={r.id}
                 comment={r}
-                children={children}
+                tree={tree}
                 postId={postId}
                 onChange={onChange}
                 onReport={onReport}

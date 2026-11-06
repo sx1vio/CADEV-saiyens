@@ -22,6 +22,7 @@ export const XP: Record<Exclude<XPKind, 'revert'>, number> = {
   'code-review': 8,
   'project-demo': 5,
   'deployment-verified': 10,
+  'field-test': 8,
   'question-resolved': 1,
 };
 
@@ -52,6 +53,7 @@ export const STATIC_XP_RULES: XpRules = {
     demo: XP['project-demo'],
     resolved: XP['question-resolved'],
     deployment: XP['deployment-verified'],
+    fieldTest: XP['field-test'],
   },
   dailyCap: GUARDS.dailyCap,
   fastBonusMinutes: GUARDS.fastBonusMinutes,

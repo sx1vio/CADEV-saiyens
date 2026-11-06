@@ -48,9 +48,10 @@ Cette documentation traduit les cahiers des charges en architecture exécutable.
 
 ### Guides (`guides/`)
 
-| Document                         | Contenu                                                                                                    |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| [Démarrage](guides/demarrage.md) | Prérequis, installation, `.env`, base de données, lancement, connexion factice, tests, problèmes fréquents |
+| Document                         | Contenu                                                                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Démarrage](guides/demarrage.md) | Prérequis, installation, `.env`, base de données, lancement, connexion factice, tests, problèmes fréquents                                                    |
+| [Pré-vol](guides/prevol.md)      | Vérifier une application avant la mise en production : page `/prevol`, jetons d'API, serveur MCP pour l'agent IA, action GitHub (contrôle du code et pré-vol) |
 
 ### Suivi (`suivi/`)
 

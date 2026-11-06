@@ -1,40 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { MARKET_CERTS, PLATFORM_CERTS } from './certs';
+import { MARKET_CERTS } from './certs';
 import { COURSE_META, loadCourse } from './courses';
 
 // Garde-fous sur le contenu rédigé : une erreur de saisie ne doit jamais rendre un exercice
-// impossible ou une question d'examen fausse.
-
-describe('certifications DevHub', () => {
-  it('ont des identifiants uniques', () => {
-    const ids = PLATFORM_CERTS.map((c) => c.id);
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  for (const cert of PLATFORM_CERTS) {
-    it(`${cert.id} : banque complète, chaque thème couvert, réponses valides`, () => {
-      expect(cert.quiz.length).toBeGreaterThanOrEqual(cert.draw);
-      expect(cert.passScore).toBeGreaterThanOrEqual(70);
-      for (let t = 0; t < cert.syllabus.length; t++)
-        expect(
-          cert.quiz.some((q) => q.topic === t),
-          `thème ${t} sans question`,
-        ).toBe(true);
-      const seen = new Set<string>();
-      for (const q of cert.quiz) {
-        expect(seen.has(q.q), `question en double : ${q.q}`).toBe(false);
-        seen.add(q.q);
-        expect(q.choices.length).toBeGreaterThanOrEqual(2);
-        expect(new Set(q.choices).size, `choix en double : ${q.q}`).toBe(q.choices.length);
-        expect(q.answer).toBeGreaterThanOrEqual(0);
-        expect(q.answer).toBeLessThan(q.choices.length);
-        expect(q.topic).toBeGreaterThanOrEqual(0);
-        expect(q.topic).toBeLessThan(cert.syllabus.length);
-        expect(q.explain.length).toBeGreaterThan(10);
-      }
-    });
-  }
-});
+// impossible. La banque des examens DevHub est vérifiée côté API (modules/certifications).
 
 describe('certifications officielles', () => {
   it('renvoient toutes vers une page https et ont des identifiants uniques', () => {
