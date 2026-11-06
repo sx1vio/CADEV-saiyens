@@ -317,7 +317,7 @@ const fr = {
     pillarProveText:
       'Ton profil se remplit depuis GitHub, tes certifications et ton aide. Les recruteurs le voient.',
     ctaTitle: 'Rejoins la communauté.',
-    liveTitle: 'En direct sur DevHub',
+    liveTitle: 'DevHub aujourd’hui',
     liveDevs: 'Devs inscrits',
     liveResolved: 'Questions résolues',
     liveCountries: 'Pays',

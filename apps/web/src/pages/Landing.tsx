@@ -1,53 +1,43 @@
 import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  CircleCheck,
-  CircleHelp,
-  Flame,
-  RotateCcw,
-  X,
-} from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+  AirplaneTakeoff,
+  Briefcase,
+  Certificate,
+  ChatsCircle,
+  Compass,
+  DeviceMobile,
+  Newspaper,
+  PuzzlePiece,
+  SealCheck,
+} from '@phosphor-icons/react';
+import { ArrowRight, ArrowUpRight, Check, CircleCheck, CircleHelp } from 'lucide-react';
+import { useEffect, useState, type ComponentType, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import shotCerts from '@/assets/product/certs.webp';
 import shotFeed from '@/assets/product/feed.webp';
-import shotLearn from '@/assets/product/learn.webp';
-import shotPassport from '@/assets/product/passport.webp';
-import { Djeli, type DjeliPose } from '@/components/djeli';
+import shotPrevol from '@/assets/product/prevol.webp';
+import { Djeli } from '@/components/djeli';
 import { errorText } from '@/components/domain';
 import { Avatar, Skeleton } from '@/components/ui/primitives';
 import { countryName } from '@/lib/geo';
 import { invalidate, useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
+import { PLATFORM_CERTS } from '@/platform/data/certs';
+import { BrandLogo as TechLogo } from '@/platform/logos';
+import { Ago } from '@/platform/ui';
 import { api } from '@/services';
 import type { PublicLanding } from '@/services/types';
 import { useSession } from '@/stores/app';
-import { Ago } from '@/platform/ui';
-import { BrandLogo as TechLogo } from '@/platform/logos';
-import { PLATFORM_CERTS } from '@/platform/data/certs';
-import { PATHS, lessonCount } from '@/platform/data/learn';
-import type { QuizQuestion } from '@/platform/types';
+import { VerifyForm } from './CertVerify';
 
 /* ==================================================================
-   Page d'accueil publique. Structure de la page d'accueil de GitHub
-   (annonce, héros centré + e-mail, produit à onglets, logos, sections, appel final),
-   mais sobre : de vraies captures de DevHub, la typographie comme seul effet,
-   aucun halo ni dégradé décoratif. Chiffres tirés des données réelles.
+   Site vitrine (v3) : même langage que l'application — Poppins, tons neutres façon Discord,
+   verre discret, grands éléments. De vraies captures de DevHub, des chiffres tirés de la base,
+   aucun contenu inventé.
    ================================================================== */
 
-const LESSONS = PATHS.reduce((n, p) => n + lessonCount(p), 0);
-
-function SignUpInline({
-  id,
-  className,
-  tone = 'dark',
-}: {
-  id: string;
-  className?: string;
-  tone?: 'dark' | 'light';
-}) {
+function SignUpInline({ id, className }: { id: string; className?: string }) {
   const nav = useNavigate();
   const [email, setEmail] = useState('');
   const submit = (e: FormEvent) => {
@@ -70,18 +60,13 @@ function SignUpInline({
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Ton adresse e-mail"
-        className={cn(
-          'h-12 min-w-0 flex-1 rounded-[10px] px-4 text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-[#f2b33d]',
-          tone === 'dark'
-            ? 'bg-white text-[#0a0f1f] placeholder:text-[#6b7280]'
-            : 'border border-line-strong bg-canvas text-fg placeholder:text-subtle',
-        )}
+        className="lg-clear h-12 min-w-0 flex-1 rounded-full px-5 text-[15px] text-fg outline-none placeholder:text-muted focus-visible:ring-2 focus-visible:ring-accent"
       />
       <button
         type="submit"
-        className="lp-press h-12 shrink-0 rounded-[10px] bg-[#1d4ed8] px-5 text-[15px] font-semibold text-white hover:bg-[#1e40af]"
+        className="lg-tint lp-press h-12 shrink-0 rounded-full px-6 text-[15px] font-semibold"
       >
-        S’inscrire sur DevHub
+        Rejoindre DevHub
       </button>
     </form>
   );
@@ -108,29 +93,19 @@ function useTryDemo() {
 }
 
 /** Capture réelle de l'application dans un cadre de fenêtre minimal. */
-function Screen({
-  src,
-  alt,
-  className,
-  eager,
-}: {
-  src: string;
-  alt: string;
-  className?: string;
-  eager?: boolean;
-}) {
+function Screen({ src, alt, eager }: { src: string; alt: string; eager?: boolean }) {
   return (
-    <div
-      className={cn(
-        'overflow-hidden rounded-[14px] bg-white ring-1 ring-black/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45)]',
-        className,
-      )}
-    >
+    <div className="lp-fade overflow-hidden rounded-[18px] bg-white ring-1 ring-black/10 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.35)]">
+      <div className="flex h-9 items-center gap-1.5 border-b border-black/5 bg-[#f2f3f5] px-4">
+        <span className="size-2.5 rounded-full bg-black/15" />
+        <span className="size-2.5 rounded-full bg-black/15" />
+        <span className="size-2.5 rounded-full bg-black/15" />
+      </div>
       <img
         src={src}
         alt={alt}
-        width={1600}
-        height={1000}
+        width={1440}
+        height={900}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         className="block h-auto w-full"
@@ -141,68 +116,57 @@ function Screen({
 
 const TABS = [
   {
-    id: 'feed',
-    label: 'Accueil',
+    id: 'fil',
+    label: 'Fil d’actualité',
+    text: 'L’actu tech et IA de plus de 70 sources vérifiées, les questions d’entraide et les projets de la communauté, filtrés par tes centres d’intérêt.',
     src: shotFeed,
-    text: 'L’actu tech du jour, tes questions en attente et ta progression, sur un seul écran.',
   },
   {
-    id: 'learn',
-    label: 'Apprendre',
-    src: shotLearn,
-    text: 'Des parcours gratuits, du premier HTML aux agents IA, qui mènent à une certification.',
+    id: 'prevol',
+    label: 'Pré-vol',
+    text: 'Avant de lancer : secrets exposés, chargement en 3G, failles des dépendances, licences, Lighthouse et tenue à la charge. Le rapport se colle dans ton agent IA, qui corrige.',
+    src: shotPrevol,
   },
   {
-    id: 'passport',
-    label: 'Passport',
-    src: shotPassport,
-    text: 'Ton profil se remplit avec des preuves : dépôts, aide apportée, projets livrés.',
+    id: 'certs',
+    label: 'Certifications',
+    text: 'Programme par thème, entraînement corrigé, examen blanc, puis un examen corrigé par le serveur et un code que n’importe quel recruteur peut vérifier.',
+    src: shotCerts,
   },
-];
+] as const;
 
-const PROFILES: {
-  pose: DjeliPose;
-  who: string;
+type Icon = ComponentType<{ className?: string; weight?: 'fill' }>;
+
+const PILLARS: {
   title: string;
-  points: string[];
-  to: string;
-  cta: string;
+  text: string;
+  links: { to: string; label: string; icon: Icon }[];
 }[] = [
   {
-    pose: 'book',
-    who: 'Tu débutes',
-    title: 'Apprends sans te perdre.',
-    points: [
-      'Un parcours choisi selon ton objectif',
-      'Une leçon de 10 minutes par jour',
-      'De l’aide quand tu bloques',
+    title: 'Le réseau',
+    text: 'Suis l’actu qui compte, pose ta question quand tu bloques, trouve une mission ou les devs qu’il te faut.',
+    links: [
+      { to: '/connexion?next=%2F', label: 'Fil d’actualité', icon: Newspaper },
+      { to: '/connexion?next=%2F%3Ff%3Dquestions', label: 'Entraide', icon: ChatsCircle },
+      { to: '/emplois', label: 'Emplois et missions', icon: Briefcase },
+      { to: '/decouvrir', label: 'Développeurs', icon: Compass },
     ],
-    to: '/apprendre',
-    cta: 'Voir les parcours',
   },
   {
-    pose: 'laptop',
-    who: 'Tu es dev',
-    title: 'Fais valoir ce que tu sais.',
-    points: [
-      'Un Passport avec des preuves',
-      'Des projets à rejoindre',
-      'Des offres qui lisent tes compétences',
+    title: 'Progresser',
+    text: 'Prépare et passe des certifications gratuites, équipe ton agent de code avec les bons outils.',
+    links: [
+      { to: '/certifications', label: 'Certifications vérifiables', icon: Certificate },
+      { to: '/skills', label: 'Skills, plugins et serveurs MCP', icon: PuzzlePiece },
     ],
-    to: '/emplois',
-    cta: 'Voir les offres',
   },
   {
-    pose: 'point',
-    who: 'Tu ne codes pas encore',
-    title: 'Crée ton app avec l’IA.',
-    points: [
-      'Un guide adapté à ton projet',
-      'Des templates prêts à adapter',
-      'Des devs à qui demander',
+    title: 'Livrer',
+    text: 'Vérifie que ton app tient en vrai avant de la lancer, puis fais-la tester sur de vrais téléphones.',
+    links: [
+      { to: '/prevol', label: 'Pré-vol', icon: AirplaneTakeoff },
+      { to: '/banc', label: 'Banc d’essai', icon: DeviceMobile },
     ],
-    to: '/creer',
-    cta: 'Ouvrir le guide',
   },
 ];
 
@@ -223,261 +187,116 @@ const ECOSYSTEM = [
   'Node.js',
 ];
 
-/* ---------- Mini-leçon jouable : le vrai quiz du parcours web ---------- */
-
-const DEMO_QUIZ: QuizQuestion[] = [
-  ...(PATHS.flatMap((p) => p.modules.flatMap((m) => m.lessons)).find((l) => l.id === 'quiz-js')
-    ?.quiz ?? []),
+const SHIP_STEPS = [
   {
-    q: 'Quelle balise donne le titre principal d’une page ?',
-    choices: ['<title>', '<h1>', '<header>'],
-    answer: 1,
-    explain:
-      '<h1> est le titre visible de la page ; <title> s’affiche dans l’onglet du navigateur.',
+    n: '1',
+    title: 'Ton IA écrit le code',
+    text: 'Claude Code, Codex, Cursor : tu avances vite. Mais ce qui marche chez toi n’est pas encore prouvé.',
+  },
+  {
+    n: '2',
+    title: 'Pré-vol',
+    text: 'Secrets exposés, premier affichage en 3G, failles connues, licences, Lighthouse mobile, montée en charge. Aussi en action GitHub et en serveur MCP.',
+    to: '/prevol',
+  },
+  {
+    n: '3',
+    title: 'Banc d’essai',
+    text: 'D’autres devs ouvrent ton app sur leur Android d’entrée de gamme, en 3G ou hors ligne, et rendent un rapport. Chaque rapport confirmé leur rapporte des Proof XP.',
+    to: '/banc',
+  },
+  {
+    n: '4',
+    title: 'En ligne, en Afrique',
+    text: 'Héberge chez Systalink, à Dakar : ta salle de projet affiche la preuve que l’app tourne en production.',
+    to: '/systalink',
   },
 ];
-
-function QuizDemo() {
-  const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
-  const [xp, setXp] = useState(0);
-  const [done, setDone] = useState(false);
-  const q = DEMO_QUIZ[i];
-  const right = picked !== null && picked === q.answer;
-  const choose = (k: number) => {
-    if (picked !== null) return;
-    setPicked(k);
-    if (k === q.answer) setXp((x) => x + 5);
-  };
-  const next = () => {
-    if (i + 1 >= DEMO_QUIZ.length) return setDone(true);
-    setI(i + 1);
-    setPicked(null);
-  };
-  const restart = () => {
-    setI(0);
-    setPicked(null);
-    setXp(0);
-    setDone(false);
-  };
-  return (
-    <div className="rounded-[24px] border border-line-strong bg-canvas p-5 sm:p-7">
-      <div className="flex items-center gap-3">
-        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-          <div
-            className="h-full rounded-full bg-teal transition-[width] duration-500 ease-out"
-            style={{
-              width: `${((done ? DEMO_QUIZ.length : i + (picked !== null ? 1 : 0)) / DEMO_QUIZ.length) * 100}%`,
-            }}
-          />
-        </div>
-        <span className="inline-flex items-center gap-1 text-[14px] font-bold text-gold-text tabular-nums">
-          <Flame className="size-4" />
-          {xp} XP
-        </span>
-      </div>
-
-      {done ? (
-        <div className="lp-fade flex flex-col items-center py-8 text-center">
-          <Djeli pose="trophy" size={120} />
-          <p className="mt-4 text-[22px] font-bold tracking-[-0.02em] text-fg">
-            Leçon terminée, +{xp} XP
-          </p>
-          <p className="mt-1 max-w-[340px] text-[14.5px] text-muted">
-            Crée ton compte pour garder ta série et continuer le parcours « Devenir développeur·se
-            web ».
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Link
-              to="/inscription"
-              className="lp-press inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-5 text-[15px] font-semibold text-white"
-            >
-              Garder ma série
-              <ArrowRight className="size-4" />
-            </Link>
-            <button
-              type="button"
-              onClick={restart}
-              className="lp-press inline-flex h-11 items-center gap-2 rounded-[10px] px-4 text-[14.5px] font-medium text-muted hover:text-fg"
-            >
-              <RotateCcw className="size-4" />
-              Recommencer
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div key={i} className="lp-fade">
-          <p className="mt-6 text-[12.5px] font-semibold text-subtle">
-            Question {i + 1} sur {DEMO_QUIZ.length}
-          </p>
-          <p className="mt-1 text-[20px] leading-snug font-bold tracking-[-0.015em] text-fg">
-            {q.q}
-          </p>
-          <div className="mt-5 flex flex-col gap-2.5" role="group" aria-label="Réponses">
-            {q.choices.map((c, k) => {
-              const state =
-                picked === null
-                  ? 'idle'
-                  : k === q.answer
-                    ? 'right'
-                    : k === picked
-                      ? 'wrong'
-                      : 'off';
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => choose(k)}
-                  disabled={picked !== null}
-                  className={cn(
-                    'lp-press flex h-12 items-center gap-3 rounded-[12px] border-2 px-4 text-left font-mono text-[14.5px] transition-colors duration-150',
-                    state === 'idle' && 'border-line-strong text-fg hover:border-accent',
-                    state === 'right' && 'border-success bg-success-soft text-fg',
-                    state === 'wrong' && 'border-danger bg-danger-soft text-fg',
-                    state === 'off' && 'border-line text-subtle',
-                  )}
-                >
-                  <span className="grid size-6 shrink-0 place-items-center rounded-[6px] border border-current text-[12px] font-sans font-semibold opacity-70">
-                    {k + 1}
-                  </span>
-                  <span className="flex-1">{c}</span>
-                  {state === 'right' && <Check className="size-5 text-success" />}
-                  {state === 'wrong' && <X className="size-5 text-danger" />}
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-5 flex min-h-[72px] items-center gap-3" aria-live="polite">
-            {picked !== null && (
-              <>
-                <Djeli pose={right ? 'celebrate' : 'point'} size={64} className="shrink-0" />
-                <p className="flex-1 text-[14px] leading-relaxed text-muted">
-                  <b className={right ? 'text-success' : 'text-danger'}>
-                    {right ? 'Bien vu, +5 XP.' : 'Presque.'}
-                  </b>{' '}
-                  {q.explain}
-                </p>
-                <button
-                  type="button"
-                  onClick={next}
-                  className="lp-press inline-flex h-11 shrink-0 items-center gap-1.5 rounded-[10px] bg-fg px-4 text-[14.5px] font-semibold text-canvas"
-                >
-                  {i + 1 >= DEMO_QUIZ.length ? 'Terminer' : 'Suivant'}
-                  <ArrowRight className="size-4" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function Landing() {
   const { run: tryDemo, busy } = useTryDemo();
   const [tab, setTab] = useState(0);
-  const current = TABS[tab];
+  const current = TABS[tab]!;
+  const bank = PLATFORM_CERTS.reduce((n, c) => n + c.bankSize, 0);
 
   return (
     <div className="bg-canvas">
-      {/* ---------- Héros : bleu nuit uni, texte centré, produit en dessous ---------- */}
-      <section className="relative overflow-hidden bg-[#0a0f1f] text-white">
-        <Link
-          to="/apprendre"
-          className="flex items-center justify-center gap-2 border-b border-white/10 px-4 py-2.5 text-[13px] text-white/75 transition-colors hover:text-white"
+      {/* ---------- Héros ---------- */}
+      <section className="mx-auto max-w-[1180px] px-4 pt-14 text-center sm:px-6 sm:pt-20">
+        <p className="lg-clear mx-auto inline-flex h-9 items-center gap-2 rounded-full px-4 text-[14px] font-medium text-fg">
+          <SealCheck weight="fill" className="size-4 text-accent-text" />
+          Le réseau des développeurs africains
+        </p>
+        <h1 className="mx-auto mt-6 max-w-[920px] text-[42px] leading-[1.02] font-bold tracking-[-0.035em] text-fg sm:text-[68px]">
+          Le réseau pro des devs qui livrent.
+        </h1>
+        <p className="mx-auto mt-5 max-w-[680px] text-[17px] leading-relaxed text-fg/80 sm:text-[19px]">
+          L’actu tech, l’entraide et les emplois au même endroit, des certifications qu’un recruteur
+          peut vérifier, et les outils pour lancer une app qui tient : pré-vol et banc d’essai.
+        </p>
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <SignUpInline id="hero-email" />
+          <p className="text-[14px] text-fg/75">
+            Gratuit. Avec ton compte GitHub ou ton e-mail.{' '}
+            <Link to="/connexion" className="font-semibold text-fg hover:underline">
+              Se connecter
+            </Link>
+          </p>
+          {/* Les comptes de démonstration n'existent qu'avec le serveur simulé (ADR-0016). */}
+          {api.mode === 'local' && (
+            <button
+              type="button"
+              onClick={tryDemo}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-fg disabled:opacity-60"
+            >
+              {busy ? 'Ouverture…' : 'Visiter sans compte'}
+              <ArrowRight className="size-4" />
+            </button>
+          )}
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Aperçu de DevHub"
+          className="no-scrollbar mx-auto mt-14 flex max-w-full gap-2 overflow-x-auto sm:justify-center"
         >
-          <span className="rounded-full bg-[#f2b33d] px-2 py-0.5 text-[11px] font-bold text-[#0a0f1f]">
-            Nouveau
-          </span>
-          Apprends à coder 10 minutes par jour avec Djeli
-          <ArrowRight className="size-3.5" />
-        </Link>
-
-        <div className="mx-auto max-w-[1120px] px-4 pt-20 text-center sm:px-6 sm:pt-28">
-          <h1 className="mx-auto max-w-[900px] text-[44px] leading-[0.98] font-extrabold tracking-[-0.035em] sm:text-[76px]">
-            Apprends, code et grandis ensemble<span className="text-[#f2b33d]">.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-[600px] text-[18px] leading-relaxed text-white/70 sm:text-[20px]">
-            DevHub réunit les devs débutants et confirmés : cours gratuits, entraide, projets,
-            emplois et l’actu tech.
-          </p>
-          <div className="mt-9 flex flex-col items-center gap-4">
-            <SignUpInline id="hero-email" />
-            {/* Les comptes de démonstration n'existent qu'avec le serveur simulé (ADR-0016). */}
-            {api.mode === 'local' && (
-              <button
-                type="button"
-                onClick={tryDemo}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 text-[14.5px] font-semibold text-white/85 hover:text-white disabled:opacity-60"
-              >
-                {busy ? 'Ouverture…' : 'Visiter sans compte'}
-                <ArrowRight className="size-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Produit à onglets, comme GitHub : les onglets changent la capture */}
-          <div
-            role="tablist"
-            aria-label="Aperçu de DevHub"
-            className="no-scrollbar mx-auto mt-16 flex max-w-full gap-1 overflow-x-auto sm:justify-center"
-          >
-            {TABS.map((t, i) => (
-              <button
-                key={t.id}
-                role="tab"
-                type="button"
-                aria-selected={i === tab}
-                aria-controls="lp-shot"
-                onClick={() => setTab(i)}
-                className={cn(
-                  'lp-press h-9 shrink-0 rounded-full px-4 text-[14px] font-medium transition-colors duration-150',
-                  i === tab ? 'bg-white text-[#0a0f1f]' : 'text-white/65 hover:text-white',
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <p
+          {TABS.map((t, i) => (
+            <button
+              key={t.id}
+              role="tab"
+              type="button"
+              aria-selected={i === tab}
+              aria-controls="lp-shot"
+              onClick={() => setTab(i)}
+              className={cn(
+                'lp-press h-10 shrink-0 rounded-full px-5 text-[14px] font-semibold transition-colors duration-150',
+                i === tab ? 'lg-tint' : 'lg-clear text-fg',
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <p key={current.id} className="lp-fade mx-auto mt-4 max-w-[640px] text-[15px] text-fg/80">
+          {current.text}
+        </p>
+        <div id="lp-shot" role="tabpanel" className="mx-auto mt-8 max-w-[1120px]">
+          <Screen
             key={current.id}
-            className="lp-fade mx-auto mt-4 max-w-[560px] text-[15px] text-white/60"
-          >
-            {current.text}
-          </p>
-        </div>
-
-        <div className="relative mx-auto mt-10 max-w-[1180px] px-4 sm:px-6">
-          <Djeli
-            pose="wave"
-            size={120}
+            src={current.src}
+            alt={`Capture de DevHub : ${current.label}`}
             eager
-            className="absolute -top-[86px] right-[6%] z-10 hidden sm:inline-grid"
           />
-          <div id="lp-shot" role="tabpanel" className="relative translate-y-0">
-            <Screen
-              key={current.id}
-              src={current.src}
-              alt={`Capture de DevHub : ${current.label}`}
-              className="lp-fade"
-              eager
-            />
-          </div>
         </div>
-        {/* Le bas de la capture déborde sur la section claire suivante */}
-        <div aria-hidden className="h-24 sm:h-40" />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-24 bg-canvas sm:h-40" />
       </section>
 
       {/* ---------- Logos ---------- */}
-      <section aria-label="Écosystème" className="mx-auto max-w-[1280px] px-4 pt-6 pb-20 sm:px-6">
-        <p className="text-center text-[13px] text-subtle">
+      <section aria-label="Écosystème" className="mx-auto max-w-[1280px] px-4 pt-16 pb-10 sm:px-6">
+        <p className="text-center text-[14px] font-medium text-fg/75">
           Branché sur les outils que tu utilises déjà
         </p>
-        {/* Défilement continu, en pause au survol ; figé si « réduire les animations » */}
-        <div className="lp-marquee mt-7 overflow-hidden">
+        <div className="lp-marquee mt-6 overflow-hidden">
           <ul className="lp-marquee-track flex w-max items-center gap-14 pr-14">
             {[...ECOSYSTEM, ...ECOSYSTEM].map((n, i) => (
               <li
@@ -493,109 +312,161 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---------- Pour qui ---------- */}
+      {/* ---------- Trois piliers, comme le menu de l'application ---------- */}
       <section className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6">
-        <h2 className="max-w-[720px] text-[36px] leading-[1.05] font-bold tracking-[-0.03em] text-fg sm:text-[52px]">
-          Une place pour chaque dev, et pour ceux qui ne le sont pas encore.
+        <h2 className="max-w-[760px] text-[34px] leading-[1.06] font-bold tracking-[-0.03em] text-fg sm:text-[48px]">
+          Tout ce qu’il faut pour avancer, sans changer d’onglet.
         </h2>
-        <div className="mt-12 grid gap-px overflow-hidden rounded-[20px] bg-line-strong md:grid-cols-3">
-          {PROFILES.map((p) => (
-            <div key={p.who} className="flex flex-col bg-canvas p-7 sm:p-8">
-              <Djeli pose={p.pose} size={84} className="-ml-2" />
-              <p className="mt-5 text-[13px] font-semibold text-accent-text">{p.who}</p>
-              <h3 className="mt-1 text-[24px] leading-tight font-bold tracking-[-0.02em] text-fg">
-                {p.title}
-              </h3>
-              <ul className="mt-5 flex flex-col gap-2.5">
-                {p.points.map((x) => (
-                  <li key={x} className="flex items-start gap-2.5 text-[15px] text-muted">
-                    <Check className="mt-0.5 size-4 shrink-0 text-teal-text" />
-                    {x}
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {PILLARS.map((p) => (
+            <div key={p.title} className="surface-card flex flex-col p-6">
+              <h3 className="text-[22px] font-bold tracking-[-0.02em] text-fg">{p.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-fg/80">{p.text}</p>
+              <ul className="mt-5 flex flex-col gap-1">
+                {p.links.map((l) => (
+                  <li key={l.label}>
+                    <Link
+                      to={l.to}
+                      className="group flex items-center gap-3 rounded-[12px] px-2 py-2.5 text-[15px] font-semibold text-fg transition-colors hover:bg-surface-2"
+                    >
+                      <l.icon weight="fill" className="size-5 shrink-0" />
+                      <span className="flex-1">{l.label}</span>
+                      <ArrowUpRight className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </Link>
                   </li>
                 ))}
               </ul>
-              <Link
-                to={p.to}
-                className="mt-auto inline-flex items-center gap-1 pt-7 text-[15px] font-semibold text-fg hover:text-accent-text"
-              >
-                {p.cta}
-                <ArrowUpRight className="size-4" />
-              </Link>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ---------- Apprendre : le cœur pour les nouveaux devs ---------- */}
-      <section className="mx-auto grid max-w-[1120px] items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[0.85fr_1.15fr]">
-        <div>
-          <p className="text-[13px] font-semibold text-gold-text">Apprendre</p>
-          <h2 className="mt-2 text-[36px] leading-[1.05] font-bold tracking-[-0.03em] text-fg sm:text-[48px]">
-            Un peu chaque jour, pour de vrai.
+      {/* ---------- Du prompt à la prod vérifiée ---------- */}
+      <section className="bg-[#1e1f22] py-20 text-white">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+          <p className="text-[14px] font-semibold text-[#8ab4ff]">Du prompt à la prod vérifiée</p>
+          <h2 className="mt-2 max-w-[760px] text-[34px] leading-[1.06] font-bold tracking-[-0.03em] sm:text-[48px]">
+            Ton IA a écrit le code. DevHub vérifie qu’il tient.
           </h2>
-          <p className="mt-5 text-[17px] leading-relaxed text-muted">
-            Des leçons courtes, des quiz qui expliquent la bonne réponse, des projets à mettre en
-            ligne. Ta série te garde motivé, Djeli te dit quoi faire ensuite.
+          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {SHIP_STEPS.map((s) => (
+              <li key={s.n} className="flex flex-col rounded-[18px] bg-white/[0.06] p-5">
+                <span className="grid size-9 place-items-center rounded-full bg-white text-[15px] font-bold text-[#1e1f22]">
+                  {s.n}
+                </span>
+                <h3 className="mt-4 text-[18px] font-semibold">{s.title}</h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-white/80">{s.text}</p>
+                {s.to && (
+                  <Link
+                    to={s.to}
+                    className="mt-auto inline-flex items-center gap-1 pt-5 text-[14px] font-semibold text-white hover:underline"
+                  >
+                    Découvrir
+                    <ArrowRight className="size-4" />
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ---------- Certifications vérifiables ---------- */}
+      <section className="mx-auto grid max-w-[1120px] items-center gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1fr]">
+        <div>
+          <p className="text-[14px] font-semibold text-accent-text">Certifications</p>
+          <h2 className="mt-2 text-[34px] leading-[1.06] font-bold tracking-[-0.03em] text-fg sm:text-[48px]">
+            Des badges qu’un recruteur peut vérifier.
+          </h2>
+          <p className="mt-5 text-[17px] leading-relaxed text-fg/80">
+            Les questions sont tirées et corrigées par le serveur, chronométrées, et chaque
+            certificat a un code public. Pour s’y préparer : programme par thème, entraînement
+            corrigé, examen blanc et plan de révision jusqu’à ta date d’examen.
           </p>
-          <dl className="mt-10 grid grid-cols-3 border-t border-line-strong">
+          <dl className="mt-8 grid grid-cols-3 border-t border-line-strong">
             {[
-              [PATHS.length, 'parcours'],
-              [LESSONS, 'leçons et quiz'],
-              [PLATFORM_CERTS.length, 'certifications'],
+              [PLATFORM_CERTS.length, 'certifications DevHub'],
+              [bank, 'questions corrigées'],
+              ['0 F', 'pour les passer'],
             ].map(([n, l]) => (
               <div key={l} className="pt-5 pr-4">
-                <dt className="font-display text-[40px] leading-none font-bold tracking-[-0.03em] text-fg tabular-nums">
+                <dt className="text-[34px] leading-none font-bold tracking-[-0.03em] text-fg tabular-nums">
                   {n}
                 </dt>
-                <dd className="mt-2 text-[13.5px] text-muted">{l}</dd>
+                <dd className="mt-2 text-[14px] text-fg/75">{l}</dd>
               </div>
             ))}
           </dl>
           <Link
-            to="/apprendre"
-            className="lp-press mt-10 inline-flex h-11 items-center gap-2 rounded-[10px] bg-fg px-5 text-[15px] font-semibold text-canvas"
+            to="/certifications"
+            className="lg-tint lp-press mt-8 inline-flex h-11 items-center gap-2 rounded-full px-5 text-[15px] font-semibold"
           >
-            Commencer gratuitement
+            Voir les certifications
             <ArrowRight className="size-4" />
           </Link>
         </div>
-        <QuizDemo />
+        <div className="surface-card p-6 sm:p-8">
+          <p className="text-[18px] font-semibold text-fg">Vérifier un certificat</p>
+          <p className="mt-1 text-[15px] text-fg/80">
+            Un candidat t’a donné un code DevHub ? Colle-le ici : tu vois qui l’a obtenu, quand et
+            avec quel score.
+          </p>
+          <VerifyForm className="mt-5 flex gap-2" />
+          <ul className="mt-6 grid grid-cols-3 gap-3">
+            {PLATFORM_CERTS.slice(0, 6).map((c) => (
+              <li key={c.id}>
+                <Link
+                  to={`/certifications/${c.id}`}
+                  className="flex h-full flex-col items-center gap-2 rounded-[14px] bg-surface-2 p-3 text-center text-[12px] font-semibold text-fg hover:bg-surface-3"
+                >
+                  <TechLogo name={c.logo ?? c.track} size={26} />
+                  <span className="line-clamp-2">{c.title.split(' — ')[0]}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
-      {/* ---------- En direct (T1) : ce qui se passe vraiment sur DevHub ---------- */}
-      <LiveSection />
+      <StatsSection />
 
       {/* ---------- Appel final ---------- */}
-      <section className="px-4 pt-8 pb-24 sm:px-6">
-        <div className="mx-auto flex max-w-[1120px] flex-col items-center rounded-[28px] bg-[#0a0f1f] px-6 py-16 text-center text-white sm:py-20">
+      <section className="px-4 pt-6 pb-24 sm:px-6">
+        <div className="mx-auto flex max-w-[1120px] flex-col items-center rounded-[28px] bg-[#1e1f22] px-6 py-16 text-center text-white sm:py-20">
           <Djeli pose="celebrate" size={104} />
-          <h2 className="mt-5 max-w-[680px] text-[36px] leading-[1.05] font-bold tracking-[-0.03em] sm:text-[52px]">
-            Ton QG de dev t’attend<span className="text-[#f2b33d]">.</span>
+          <h2 className="mt-5 max-w-[680px] text-[34px] leading-[1.06] font-bold tracking-[-0.03em] sm:text-[48px]">
+            Ta place est déjà prête.
           </h2>
-          <p className="mt-4 max-w-[480px] text-[17px] text-white/65">
-            Ta première ligne de code ou ta millième PR : il y a une place pour toi.
+          <p className="mt-4 max-w-[480px] text-[17px] text-white/80">
+            Ta première ligne de code ou ta millième PR : rejoins les devs qui construisent.
           </p>
-          <SignUpInline id="cta-email" className="mt-8" />
-          <Link
-            to="/connexion"
-            className="mt-5 text-[14px] font-medium text-white/65 hover:text-white"
-          >
-            Déjà inscrit ? Se connecter
-          </Link>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+            <Link
+              to="/inscription"
+              className="lp-press inline-flex h-12 items-center rounded-full bg-white px-6 text-[15px] font-semibold text-[#1e1f22]"
+            >
+              Créer mon compte
+            </Link>
+            <Link
+              to="/connexion"
+              className="inline-flex h-12 items-center rounded-full px-6 text-[15px] font-semibold text-white ring-1 ring-white/30 hover:ring-white"
+            >
+              Se connecter
+            </Link>
+          </div>
         </div>
       </section>
     </div>
   );
 }
 
-const LIVE_REFRESH_MS = 30_000;
+const STATS_REFRESH_MS = 60_000;
 
 /**
- * T1 : ce qui se passe vraiment sur DevHub, sans compte. Compteurs de l'écran d'impact,
- * questions récentes (anonymes) et trois Passports. Rien n'est inventé : sans données,
- * la page le dit.
+ * Ce qui existe vraiment sur DevHub, sans compte : compteurs de l'écran d'impact, dernières
+ * questions (anonymes) et profils. Rien n'est inventé : sans données, la page le dit.
  */
-function LiveSection() {
+function StatsSection() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language.startsWith('en') ? 'en' : 'fr';
   const { data, error, refresh } = useQuery<PublicLanding>('landing:live', () => api.getLanding());
@@ -603,7 +474,7 @@ function LiveSection() {
   useEffect(() => {
     const id = window.setInterval(() => {
       if (document.visibilityState === 'visible') void refresh().catch(() => {});
-    }, LIVE_REFRESH_MS);
+    }, STATS_REFRESH_MS);
     return () => window.clearInterval(id);
   }, [refresh]);
 
@@ -614,21 +485,14 @@ function LiveSection() {
   ];
 
   return (
-    <section aria-labelledby="live-title" className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6">
-      <div className="flex items-center gap-2">
-        <span aria-hidden className="relative flex size-2.5">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60 motion-reduce:hidden" />
-          <span className="relative inline-flex size-2.5 rounded-full bg-success" />
-        </span>
-        <h2 id="live-title" className="text-[20px] font-bold tracking-[-0.02em] text-fg">
-          {t('pub.liveTitle')}
-        </h2>
-      </div>
-
+    <section aria-labelledby="stats-title" className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6">
+      <h2 id="stats-title" className="text-[24px] font-bold tracking-[-0.02em] text-fg">
+        {t('pub.liveTitle')}
+      </h2>
       <dl className="mt-5 grid grid-cols-3 gap-3">
         {stats.map((s) => (
-          <div key={s.label} className="dh-card px-4 py-4 sm:px-6">
-            <dt className="text-[13px] text-muted">{s.label}</dt>
+          <div key={s.label} className="surface-card px-4 py-4 sm:px-6">
+            <dt className="text-[14px] text-fg/75">{s.label}</dt>
             <dd className="mt-1 text-[26px] font-bold tracking-[-0.02em] text-fg tabular-nums sm:text-[32px]">
               {s.value === undefined ? error ? '—' : <Skeleton className="h-8 w-14" /> : s.value}
             </dd>
@@ -637,8 +501,8 @@ function LiveSection() {
       </dl>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <div className="dh-card p-5">
-          <h3 className="text-[15px] font-semibold text-fg">{t('pub.liveFeed')}</h3>
+        <div className="surface-card p-5">
+          <h3 className="text-[16px] font-semibold text-fg">{t('pub.liveFeed')}</h3>
           {!data && !error ? (
             <div className="mt-4 space-y-3">
               {[0, 1, 2].map((i) => (
@@ -646,11 +510,11 @@ function LiveSection() {
               ))}
             </div>
           ) : !data?.live.length ? (
-            <p className="mt-3 text-[14px] leading-relaxed text-muted">
+            <p className="mt-3 text-[15px] leading-relaxed text-fg/80">
               {error ? t('pub.liveUnavailable') : t('pub.liveEmpty')}
             </p>
           ) : (
-            <ul className="mt-3 divide-y divide-line" aria-live="polite">
+            <ul className="mt-3 divide-y divide-line">
               {data.live.map((a) => (
                 <li key={a.id} className="flex items-start gap-3 py-2.5">
                   {a.kind === 'resolved' ? (
@@ -659,7 +523,7 @@ function LiveSection() {
                     <CircleHelp aria-hidden className="mt-0.5 size-4 shrink-0 text-accent-text" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] text-muted">
+                    <p className="text-[13px] text-fg/75">
                       {a.kind === 'resolved'
                         ? t('pub.liveResolvedIn', { count: Number(a.detail) || 1 })
                         : t('pub.liveAsked')}
@@ -668,7 +532,7 @@ function LiveSection() {
                     </p>
                     <Link
                       to={a.targetHref}
-                      className="line-clamp-1 text-[14px] font-medium text-fg hover:underline"
+                      className="line-clamp-1 text-[15px] font-medium text-fg hover:underline"
                     >
                       {a.targetLabel}
                     </Link>
@@ -679,24 +543,24 @@ function LiveSection() {
           )}
         </div>
 
-        <div className="dh-card p-5">
-          <h3 className="text-[15px] font-semibold text-fg">{t('pub.liveFeatured')}</h3>
+        <div className="surface-card p-5">
+          <h3 className="text-[16px] font-semibold text-fg">{t('pub.liveFeatured')}</h3>
           {data && !data.featured.length ? (
-            <p className="mt-3 text-[14px] leading-relaxed text-muted">{t('pub.liveNoDevs')}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-fg/80">{t('pub.liveNoDevs')}</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {(data?.featured ?? []).map((d) => (
                 <li key={d.handle}>
                   <Link
                     to={`/u/${d.handle}`}
-                    className="flex items-center gap-3 rounded-[8px] p-2 hover:bg-surface-1"
+                    className="flex items-center gap-3 rounded-[10px] p-2 hover:bg-surface-2"
                   >
-                    <Avatar name={d.displayName} src={d.avatarUrl ?? undefined} size={36} />
+                    <Avatar name={d.displayName} src={d.avatarUrl ?? undefined} size={40} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[14px] font-semibold text-fg">
+                      <span className="block truncate text-[15px] font-semibold text-fg">
                         {d.displayName}
                       </span>
-                      <span className="block truncate text-[12px] text-subtle">
+                      <span className="block truncate text-[13px] text-fg/75">
                         {[countryName(d.country, lang), `${d.totalXp} Proof XP`]
                           .filter(Boolean)
                           .join(' · ')}
@@ -709,6 +573,10 @@ function LiveSection() {
           )}
         </div>
       </div>
+      <p className="mt-4 flex items-center gap-1.5 text-[13px] text-fg/75">
+        <Check className="size-3.5" />
+        Chiffres lus en direct dans la base de DevHub, rien n’est arrondi ni inventé.
+      </p>
     </section>
   );
 }

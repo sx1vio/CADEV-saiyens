@@ -319,7 +319,7 @@ const en: Dict = {
     pillarProveText:
       'Your profile fills itself from GitHub, your certifications and the help you give. Recruiters can see it.',
     ctaTitle: 'Join the community.',
-    liveTitle: 'Live on DevHub',
+    liveTitle: 'DevHub today',
     liveDevs: 'Registered devs',
     liveResolved: 'Questions solved',
     liveCountries: 'Countries',
