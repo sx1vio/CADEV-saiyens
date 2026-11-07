@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 // Reflet de packages/contracts/src/rooms.ts et tasks.ts : champs lus par l'application.
 
-object RoomLimits {
+internal object RoomLimits {
     const val NAME_MIN = 3
     const val NAME_MAX = 80
     const val DESCRIPTION_MIN = 10
@@ -20,10 +20,10 @@ object RoomLimits {
 }
 
 /** « owner/repo » public, même règle que CreateRoomRequest. */
-val REPO_FULL_NAME = Regex("""^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]{1,100}$""")
+internal val REPO_FULL_NAME = Regex("""^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]{1,100}$""")
 
 /** Lien de PR GitHub, même règle que PullRequestUrl. */
-val PULL_REQUEST_URL = Regex("""^https://github\.com/[A-Za-z0-9-]{1,39}/[A-Za-z0-9._-]{1,100}/pull/\d{1,9}/?$""")
+internal val PULL_REQUEST_URL = Regex("""^https://github\.com/[A-Za-z0-9-]{1,39}/[A-Za-z0-9._-]{1,100}/pull/\d{1,9}/?$""")
 
 @Serializable
 data class RepoLink(val fullName: String, val url: String, val verified: Boolean = false)

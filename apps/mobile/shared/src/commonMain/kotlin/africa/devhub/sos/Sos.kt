@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 // Reflet de packages/contracts/src/questions.ts et answers.ts : champs lus par l'application.
 
 /** Limites de @devhub/contracts (QUESTION_LIMITS, ANSWER_LIMITS). */
-object SosLimits {
+internal object SosLimits {
     const val TITLE_MIN = 10
     const val TITLE_MAX = 150
     const val BODY_MAX = 10_000
