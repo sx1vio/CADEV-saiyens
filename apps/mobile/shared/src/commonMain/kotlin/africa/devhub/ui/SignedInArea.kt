@@ -20,11 +20,16 @@ import africa.devhub.ui.sos.QuestionScreen
 import africa.devhub.ui.sos.QuestionsScreen
 import androidx.compose.runtime.LaunchedEffect
 import africa.devhub.resources.proofs_title
+import africa.devhub.offline.ActionStatus
+import africa.devhub.resources.sync_title
 import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.NetworkBar
+import africa.devhub.ui.sync.SyncCenterScreen
+import kotlinx.coroutines.launch
 import africa.devhub.ui.home.HomeScreen
 import africa.devhub.ui.passport.PassportScreen
 import africa.devhub.ui.passport.ProofsScreen
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -39,6 +44,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -73,12 +80,20 @@ private data class QuestionRoute(val id: String, val secretsMasked: Int = 0)
 @Serializable
 private data object AskRoute
 
+@Serializable
+private data object SyncRoute
+
 private data class TopLevel(val label: StringResource, val icon: ImageVector, val route: Any)
 
 /** Espace connecté : barre de navigation en bas, pile d'écrans par onglet. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
+    val space = remember(me.id) { graph.userSpace(me.id) }
+    val online by space.connectivity.online.collectAsStateWithLifecycle()
+    val syncing by space.engine.syncing.collectAsStateWithLifecycle()
+    val actions by space.outbox.actions.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     val navController = rememberNavController()
     val entry by navController.currentBackStackEntryAsState()
     val destination = entry?.destination
@@ -90,11 +105,13 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
     val onProofs = destination?.hasRoute<ProofsRoute>() == true
     val onQuestion = destination?.hasRoute<QuestionRoute>() == true
     val onAsk = destination?.hasRoute<AskRoute>() == true
+    val onSync = destination?.hasRoute<SyncRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
         onProofs -> Res.string.proofs_title
         onQuestion -> Res.string.nav_sos
         onAsk -> Res.string.ask_title
+        onSync -> Res.string.sync_title
         else -> null
     }
 
@@ -136,12 +153,28 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
-            NavHost(navController = navController, startDestination = HomeRoute) {
-                composable<HomeRoute> { HomeScreen(me, onSignOut) }
+        Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
+            NetworkBar(
+                online = online,
+                syncing = syncing,
+                pending = actions.count { it.status == ActionStatus.Pending },
+                failed = actions.count { it.status != ActionStatus.Pending },
+                onOpen = { if (!onSync) navController.navigate(SyncRoute) },
+            )
+            NavHost(navController = navController, startDestination = HomeRoute, modifier = Modifier.weight(1f)) {
+                composable<HomeRoute> { HomeScreen(me, actions.size, onSignOut) }
+                composable<SyncRoute> {
+                    SyncCenterScreen(
+                        actions = actions,
+                        onSyncNow = space.engine::kick,
+                        onRetry = { opId -> scope.launch { space.engine.retry(opId) } },
+                        onCancel = { opId -> scope.launch { space.engine.cancel(opId) } },
+                    )
+                }
                 composable<PassportRoute> { backStack ->
                     val handle = backStack.toRoute<PassportRoute>().handle
-                    val vm = viewModel { PassportViewModel(graph.passportApi, handle) }
+                    val mine = handle.equals(me.handle, ignoreCase = true)
+                    val vm = viewModel { PassportViewModel(graph.passportApi, handle, space, mine) }
                     val state by vm.state.collectAsStateWithLifecycle()
                     PassportScreen(
                         state = state,
@@ -152,7 +185,7 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                     )
                 }
                 composable<SosRoute> {
-                    val vm = viewModel { QuestionsViewModel(graph.sosApi) }
+                    val vm = viewModel { QuestionsViewModel(graph.sosApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
                     QuestionsScreen(
                         state = state,
@@ -170,6 +203,7 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                         QuestionViewModel(
                             api = graph.sosApi,
                             questionId = route.id,
+                            space = space,
                             initialNotice = route.secretsMasked.takeIf { it > 0 }?.let { SosNotice.SecretsMasked(it) },
                         )
                     }
@@ -187,9 +221,16 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                     )
                 }
                 composable<AskRoute> {
-                    val vm = viewModel { AskViewModel(graph.sosApi, me.uiLang) }
+                    val vm = viewModel { AskViewModel(graph.sosApi, space, me.uiLang) }
                     val state by vm.state.collectAsStateWithLifecycle()
                     val created = state.created
+                    // Hors ligne : la question attend dans la file ; la liste l'affiche « en attente ».
+                    LaunchedEffect(state.queued) {
+                        if (state.queued) {
+                            vm.consumeCreated()
+                            navController.popBackStack()
+                        }
+                    }
                     LaunchedEffect(created) {
                         if (created != null) {
                             vm.consumeCreated()

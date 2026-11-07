@@ -3,6 +3,7 @@ package africa.devhub.ui.sos
 import africa.devhub.resources.Res
 import africa.devhub.resources.ask_invalid
 import africa.devhub.resources.ask_rate_limited
+import africa.devhub.resources.error_storage
 import africa.devhub.resources.notice_failed
 import africa.devhub.resources.notice_network
 import africa.devhub.resources.notice_rate_limited
@@ -48,5 +49,6 @@ fun failureLabel(code: String, asking: Boolean = false): StringResource = when (
     "network" -> Res.string.notice_network
     "rate_limited" -> if (asking) Res.string.ask_rate_limited else Res.string.notice_rate_limited
     "validation.failed" -> Res.string.ask_invalid
+    "storage" -> Res.string.error_storage
     else -> Res.string.notice_failed
 }

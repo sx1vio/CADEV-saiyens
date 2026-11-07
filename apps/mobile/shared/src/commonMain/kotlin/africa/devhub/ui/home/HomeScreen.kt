@@ -6,6 +6,9 @@ import africa.devhub.resources.home_greeting
 import africa.devhub.resources.home_next_text
 import africa.devhub.resources.home_next_title
 import africa.devhub.resources.sign_out
+import africa.devhub.resources.signout_cancel
+import africa.devhub.resources.signout_pending
+import africa.devhub.resources.signout_title
 import africa.devhub.ui.components.Initials
 import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.components.TrustPills
@@ -15,21 +18,43 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /** Accueil connecté (étape 1) : identité, signaux de confiance, déconnexion. */
 @Composable
-fun HomeScreen(me: Me, onSignOut: () -> Unit) {
+fun HomeScreen(me: Me, pendingActions: Int, onSignOut: () -> Unit) {
+    var confirm by remember { mutableStateOf(false) }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(Res.string.signout_title)) },
+            text = { Text(pluralStringResource(Res.plurals.signout_pending, pendingActions, pendingActions)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirm = false
+                    onSignOut()
+                }) { Text(stringResource(Res.string.sign_out)) }
+            },
+            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(Res.string.signout_cancel)) } },
+        )
+    }
     ScreenColumn {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Initials(me.displayName)
@@ -68,7 +93,8 @@ fun HomeScreen(me: Me, onSignOut: () -> Unit) {
             }
         }
 
-        OutlinedButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) {
+        // O9 : prévenir avant d'effacer des actions qui n'ont pas encore été envoyées.
+        OutlinedButton(onClick = { if (pendingActions > 0) confirm = true else onSignOut() }, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(Res.string.sign_out))
         }
     }

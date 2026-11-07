@@ -1,6 +1,9 @@
 package africa.devhub.passport
 
 import africa.devhub.network.ApiException
+import africa.devhub.offline.CacheKey
+import africa.devhub.offline.UserSpace
+import africa.devhub.offline.readThrough
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
@@ -17,7 +20,12 @@ sealed interface PassportState {
 
     data object Failed : PassportState
 
-    data class Loaded(val passport: Passport, val refresh: RefreshState = RefreshState.Idle) : PassportState
+    data class Loaded(
+        val passport: Passport,
+        val refresh: RefreshState = RefreshState.Idle,
+        /** Copie locale affichée faute de réseau : date de la copie. */
+        val cachedAt: Long? = null,
+    ) : PassportState
 }
 
 /** Réimport GitHub depuis son propre Passport. */
@@ -39,7 +47,12 @@ sealed interface RefreshState {
     data object Unavailable : RefreshState
 }
 
-class PassportViewModel(private val api: PassportApi, private val handle: String) : ViewModel() {
+class PassportViewModel(
+    private val api: PassportApi,
+    private val handle: String,
+    private val space: UserSpace? = null,
+    private val mine: Boolean = false,
+) : ViewModel() {
     private val _state = MutableStateFlow<PassportState>(PassportState.Loading)
     val state: StateFlow<PassportState> = _state.asStateFlow()
 
@@ -51,7 +64,8 @@ class PassportViewModel(private val api: PassportApi, private val handle: String
         _state.value = PassportState.Loading
         viewModelScope.launch {
             _state.value = try {
-                PassportState.Loaded(api.passport(handle))
+                val fetched = readThrough(space, CacheKey.passport(handle, mine), Passport.serializer()) { api.passport(handle) }
+                PassportState.Loaded(fetched.value, cachedAt = fetched.cachedAt)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ApiException) {

@@ -180,4 +180,42 @@
         <item quantity="one">%1$d secret masqué avant publication.</item>
         <item quantity="other">%1$d secrets masqués avant publication.</item>
     </plurals>
+    <string name="net_offline">Hors ligne</string>
+    <string name="net_syncing">Synchronisation…</string>
+    <string name="net_open_center">Ouvrir le centre de synchronisation</string>
+    <string name="sync_title">Synchronisation</string>
+    <string name="sync_intro">Ce que tu écris sans réseau attend ici et part au retour de la connexion, sans doublon.</string>
+    <string name="sync_empty">Rien en attente : tout est envoyé.</string>
+    <string name="sync_now">Réessayer maintenant</string>
+    <string name="sync_retry">Réessayer</string>
+    <string name="sync_cancel">Annuler</string>
+    <string name="sync_status_pending">En attente</string>
+    <string name="sync_status_failed">Échec : %1$s</string>
+    <string name="sync_status_conflict">Conflit : modifié ailleurs entre-temps</string>
+    <string name="sync_cancel_create_hint">Annuler une question annule aussi les actions qui en dépendent.</string>
+    <string name="action_question">Question</string>
+    <string name="action_answer">Réponse</string>
+    <string name="action_vote">Vote « Utile »</string>
+    <string name="action_accept">Validation d’une réponse</string>
+    <string name="action_claim">Je m’en occupe</string>
+    <string name="pending_badge">En attente d’envoi</string>
+    <string name="pending_failed">Non envoyée : voir Synchronisation</string>
+    <string name="cached_copy">Copie hors ligne : affichée telle qu’au dernier chargement.</string>
+    <string name="notice_queued">Enregistré sur ton téléphone : envoi au retour du réseau.</string>
+    <string name="ask_queued">Question enregistrée : publication au retour du réseau.</string>
+    <string name="signout_title">Se déconnecter ?</string>
+    <string name="signout_cancel">Rester connecté</string>
+    <string name="error_storage">Impossible d’enregistrer sur le téléphone. Libère de l’espace, puis réessaie.</string>
+    <plurals name="net_pending">
+        <item quantity="one">%1$d action en attente</item>
+        <item quantity="other">%1$d actions en attente</item>
+    </plurals>
+    <plurals name="net_failed">
+        <item quantity="one">%1$d action en échec</item>
+        <item quantity="other">%1$d actions en échec</item>
+    </plurals>
+    <plurals name="signout_pending">
+        <item quantity="one">%1$d action n’est pas encore envoyée. Te déconnecter l’effacera de ce téléphone.</item>
+        <item quantity="other">%1$d actions ne sont pas encore envoyées. Te déconnecter les effacera de ce téléphone.</item>
+    </plurals>
 </resources>

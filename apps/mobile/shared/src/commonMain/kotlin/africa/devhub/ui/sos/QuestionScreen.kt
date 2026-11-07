@@ -9,6 +9,10 @@ import africa.devhub.resources.ai_title
 import africa.devhub.resources.answer_accepted
 import africa.devhub.resources.answer_hint
 import africa.devhub.resources.answers_title
+import africa.devhub.resources.cached_copy
+import africa.devhub.resources.notice_queued
+import africa.devhub.resources.pending_badge
+import africa.devhub.resources.pending_failed
 import africa.devhub.resources.claim
 import africa.devhub.resources.claimed_by
 import africa.devhub.resources.code_title
@@ -105,6 +109,9 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
     val months = stringArrayResource(Res.array.months)
     val isAuthor = q.author.handle.equals(meHandle, ignoreCase = true)
     ScreenColumn {
+        if (state.cachedAt != null) {
+            Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         Text(q.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             StatusPill(q.status)
@@ -136,7 +143,7 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 8.dp).semantics { heading() },
         )
-        if (q.answers.isEmpty()) {
+        if (q.answers.isEmpty() && state.pendingAnswers.isEmpty()) {
             Text(stringResource(Res.string.no_answers), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         q.answers.forEach { answer ->
@@ -150,6 +157,18 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
                 onVote = { actions.onVote(answer.id) },
                 onAccept = { actions.onAccept(answer.id) },
             )
+        }
+        state.pendingAnswers.forEach { pending ->
+            OutlinedCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(pending.preview, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        stringResource(if (pending.failed) Res.string.pending_failed else Res.string.pending_badge),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (pending.failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
         }
         if (q.status != "closed") Composer(state.busy, state.answersPosted, actions.onPostAnswer)
     }
@@ -216,6 +235,7 @@ private fun Notice(notice: SosNotice) {
         SosNotice.Claimed -> stringResource(Res.string.notice_claimed) to false
         SosNotice.Accepted -> stringResource(Res.string.notice_accepted) to false
         SosNotice.AlreadyVoted -> stringResource(Res.string.notice_already_voted) to false
+        SosNotice.Queued -> stringResource(Res.string.notice_queued) to false
         is SosNotice.Failed -> stringResource(failureLabel(notice.code)) to true
     }
     Text(

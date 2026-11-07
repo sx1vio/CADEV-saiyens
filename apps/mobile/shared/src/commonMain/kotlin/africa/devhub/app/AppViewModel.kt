@@ -6,6 +6,8 @@ import africa.devhub.auth.SignInResult
 import africa.devhub.me.Me
 import africa.devhub.me.MeApi
 import africa.devhub.network.ApiException
+import africa.devhub.offline.CacheKey
+import africa.devhub.offline.ReadCache
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
@@ -39,6 +41,10 @@ class AppViewModel(
     private val sessions: SessionStore,
     private val auth: AuthRepository,
     private val meApi: MeApi,
+    /** Dernier profil connu : ouvrir l'application hors ligne (O1). */
+    private val deviceCache: ReadCache? = null,
+    /** Efface les données hors ligne du compte à la déconnexion (O9). */
+    private val forgetUser: () -> Unit = {},
 ) : ViewModel() {
     private val _state = MutableStateFlow<AppState>(AppState.Loading)
     val state: StateFlow<AppState> = _state.asStateFlow()
@@ -101,23 +107,33 @@ class AppViewModel(
     }
 
     fun signOut() {
-        viewModelScope.launch { auth.signOut() }
+        viewModelScope.launch {
+            auth.signOut()
+            forgetUser()
+        }
     }
 
     private suspend fun loadMe() {
         _state.value = AppState.Loading
         _state.value = try {
             val me = meApi.me()
-            if (me.codeOfConductAcceptedAt == null) AppState.NeedsConduct(me) else AppState.SignedIn(me)
+            deviceCache?.put(CacheKey.me(), me, Me.serializer())
+            route(me)
         } catch (e: CancellationException) {
             throw e
         } catch (e: ApiException) {
             // 401 : la session vient d'être effacée, le collecteur affichera la connexion.
-            if (e.status == 401) AppState.SignedOut() else AppState.Unreachable
+            if (e.status == 401) AppState.SignedOut() else cachedMe() ?: AppState.Unreachable
         } catch (_: Exception) {
-            AppState.Unreachable
+            // Hors ligne : on entre avec le dernier profil connu, s'il y en a un.
+            cachedMe() ?: AppState.Unreachable
         }
     }
+
+    private fun route(me: Me): AppState =
+        if (me.codeOfConductAcceptedAt == null) AppState.NeedsConduct(me) else AppState.SignedIn(me)
+
+    private fun cachedMe(): AppState? = deviceCache?.get(CacheKey.me(), Me.serializer())?.value?.let(::route)
 
     private fun SignInResult.Failed.toError(): SignInError = when (reason) {
         "suspended", "auth.suspended" -> SignInError.Suspended

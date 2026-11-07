@@ -20,7 +20,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 /** Racine de l'interface, commune à Android et iOS. */
 @Composable
 fun DevHubApp(graph: AppGraph) {
-    val viewModel = viewModel { AppViewModel(graph.sessions, graph.auth, graph.meApi) }
+    val viewModel = viewModel {
+        AppViewModel(graph.sessions, graph.auth, graph.meApi, graph.deviceCache, graph::forgetUser)
+    }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     DevHubTheme {

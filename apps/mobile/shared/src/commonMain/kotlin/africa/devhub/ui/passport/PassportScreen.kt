@@ -7,6 +7,7 @@ import africa.devhub.passport.RefreshState
 import africa.devhub.passport.Skill
 import africa.devhub.passport.Tag
 import africa.devhub.resources.Res
+import africa.devhub.resources.cached_copy
 import africa.devhub.resources.hours_short
 import africa.devhub.resources.legend_g
 import africa.devhub.resources.legend_p
@@ -123,6 +124,9 @@ private fun Loaded(state: PassportState.Loaded, isMine: Boolean, onRefreshGithub
     val user = passport.user
     val months = stringArrayResource(Res.array.months)
     ScreenColumn {
+        if (state.cachedAt != null) {
+            Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Initials(user.displayName, size = 64.dp)
             Column(Modifier.padding(start = 16.dp)) {

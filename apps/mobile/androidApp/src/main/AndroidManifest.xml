@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- O3 : savoir si le téléphone a un réseau, pour l'indicateur et la reprise des envois. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Android 11+ : voir les navigateurs compatibles Custom Tabs pour la connexion. -->
     <queries>

@@ -83,6 +83,15 @@ sequenceDiagram
 - Les DTO Kotlin reflètent `@devhub/contracts` ; le JSON est lu en ignorant les champs inconnus, pour qu'un ajout côté API ne casse pas une version publiée.
 - Le hors ligne suit le contrat de [04 · Hors ligne](../architecture/04-hors-ligne-sync.md) : file d'actions locale, `Idempotency-Key` par action, `POST /sync`. Le masquage des secrets (O9) est porté en Kotlin, vérifié par les mêmes cas de test que `maskSecrets`.
 
+### 4 bis. Hors ligne sur mobile (étape 4)
+
+- **Stockage** : petits fichiers JSON écrits de façon atomique (okio), dans le dossier privé de l'application, un dossier par compte. Pas de base SQLite : quelques centaines d'entrées au plus, lues en entier.
+- **Tout passe par la file**, en ligne comme hors ligne (04 § 2). Jusqu'à 3 actions prêtes : une à une par leur endpoint, l'`opId` en `Idempotency-Key`. Au-delà, ou si une action vise un contenu encore local : un lot `POST /sync`, où l'API résout `client:<uuid>`.
+- **Lecture** : réseau d'abord, dernière copie en secours (profil, Passport, première page de chaque filtre SOS, 100 dernières questions consultées).
+- **Hors ligne détecté** par le système (ConnectivityManager, NWPathMonitor) et confirmé par les envois : derrière un portail captif, l'application se sait hors ligne et réessaie, de plus en plus espacé.
+- **Secrets** masqués par le port Kotlin de `maskSecrets` avant toute écriture sur le téléphone, avec les mêmes cas de test.
+- **Pas encore** : l'écran de conflit (O4). L'application ne modifie pas encore de texte publié, donc ne peut pas créer de conflit ; un conflit éventuel s'affiche dans le centre de synchronisation.
+
 ### 5. Livraison pas à pas
 
 Chaque étape est une PR relue, utilisable seule :
