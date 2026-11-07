@@ -44,7 +44,17 @@ import africa.devhub.ui.components.DevHubIcons
 import africa.devhub.ui.components.NetworkBar
 import africa.devhub.ui.sync.SyncCenterScreen
 import kotlinx.coroutines.launch
+import africa.devhub.discover.DiscoverViewModel
+import africa.devhub.discover.RulesViewModel
+import africa.devhub.resources.discover_title
+import africa.devhub.resources.home_settings
+import africa.devhub.resources.rules_title
+import africa.devhub.settings.SettingsViewModel
+import africa.devhub.ui.discover.DiscoverScreen
+import africa.devhub.ui.discover.RulesScreen
+import africa.devhub.ui.home.HomeLinks
 import africa.devhub.ui.home.HomeScreen
+import africa.devhub.ui.settings.SettingsScreen
 import africa.devhub.ui.passport.PassportScreen
 import africa.devhub.ui.passport.ProofsScreen
 import androidx.compose.foundation.layout.Column
@@ -108,6 +118,15 @@ private data object RoomsRoute
 private data object NotificationsRoute
 
 @Serializable
+private data class DiscoverRoute(val leaderboard: Boolean = false)
+
+@Serializable
+private data object RulesRoute
+
+@Serializable
+private data object SettingsRoute
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -118,7 +137,13 @@ private data class TopLevel(val label: StringResource, val icon: ImageVector, va
 /** Espace connecté : barre de navigation en bas, pile d'écrans par onglet. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
+fun SignedInArea(
+    graph: AppGraph,
+    me: Me,
+    onSignOut: () -> Unit,
+    onMeUpdated: (Me) -> Unit,
+    onAccountDeleted: () -> Unit,
+) {
     val space = remember(me.id) { graph.userSpace(me.id) }
     val online by space.connectivity.online.collectAsStateWithLifecycle()
     val syncing by space.engine.syncing.collectAsStateWithLifecycle()
@@ -146,6 +171,9 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
     val onSync = destination?.hasRoute<SyncRoute>() == true
     val onRoom = destination?.hasRoute<RoomRoute>() == true
     val onCreateRoom = destination?.hasRoute<CreateRoomRoute>() == true
+    val onDiscover = destination?.hasRoute<DiscoverRoute>() == true
+    val onRules = destination?.hasRoute<RulesRoute>() == true
+    val onSettings = destination?.hasRoute<SettingsRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
         onProofs -> Res.string.proofs_title
@@ -154,6 +182,9 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
         onSync -> Res.string.sync_title
         onRoom -> Res.string.nav_rooms
         onCreateRoom -> Res.string.rooms_create
+        onDiscover -> Res.string.discover_title
+        onRules -> Res.string.rules_title
+        onSettings -> Res.string.home_settings
         else -> null
     }
 
@@ -174,7 +205,7 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
             NavigationBar {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true
+                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
@@ -215,7 +246,45 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                 onOpen = { if (!onSync) navController.navigate(SyncRoute) },
             )
             NavHost(navController = navController, startDestination = HomeRoute, modifier = Modifier.weight(1f)) {
-                composable<HomeRoute> { HomeScreen(me, actions.size, onSignOut) }
+                composable<HomeRoute> {
+                    HomeScreen(
+                        me = me,
+                        pendingActions = actions.size,
+                        links = HomeLinks(
+                            onDiscover = { navController.navigate(DiscoverRoute()) },
+                            onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
+                            onRules = { navController.navigate(RulesRoute) },
+                            onSettings = { navController.navigate(SettingsRoute) },
+                        ),
+                        onSignOut = onSignOut,
+                    )
+                }
+                composable<DiscoverRoute> { backStack ->
+                    val leaderboard = backStack.toRoute<DiscoverRoute>().leaderboard
+                    val vm = viewModel { DiscoverViewModel(graph.discoverApi, space) }
+                    val devs by vm.devs.collectAsStateWithLifecycle()
+                    val board by vm.board.collectAsStateWithLifecycle()
+                    DiscoverScreen(
+                        devs = devs,
+                        board = board,
+                        startOnLeaderboard = leaderboard,
+                        onFilters = vm::setFilters,
+                        onRetryDevs = { vm.reloadDevs() },
+                        onMoreDevs = vm::loadMoreDevs,
+                        onCountry = vm::openCountry,
+                        onOpenDev = { navController.navigate(PassportRoute(it)) },
+                    )
+                }
+                composable<RulesRoute> {
+                    val vm = viewModel { RulesViewModel(graph.discoverApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    RulesScreen(state, vm::load)
+                }
+                composable<SettingsRoute> {
+                    val vm = viewModel { SettingsViewModel(graph.meApi, graph.passportApi, me, space, onMeUpdated, onAccountDeleted) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount)
+                }
                 composable<SyncRoute> {
                     SyncCenterScreen(
                         actions = actions,

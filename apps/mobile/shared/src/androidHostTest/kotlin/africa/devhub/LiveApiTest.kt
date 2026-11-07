@@ -274,4 +274,41 @@ class LiveApiTest {
         asker.forgetUser()
         helper.forgetUser()
     }
+
+    @Test
+    fun settingsDiscoveryRulesAndAccountDeletionAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val graph = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, graph.auth.signInWithGithub(loginHint = "kmp-set-$tag"))
+        graph.meApi.acceptCodeOfConduct()
+        val me = graph.meApi.me()
+
+        val updated = graph.meApi.update(
+            africa.devhub.me.UpdateMeRequest(
+                displayName = "Kmp Réglages",
+                bio = null,
+                country = "SN",
+                lookingFor = "Une mission Kotlin",
+                languages = listOf("fr", "en"),
+                uiLang = "fr",
+                emailNotifications = false,
+                availability = africa.devhub.me.AvailabilityUpdate(mission = true),
+                privacy = africa.devhub.me.Privacy(hideStats = true),
+            ),
+        )
+        assertEquals("Kmp Réglages", updated.displayName)
+        assertEquals("SN", updated.country)
+        assertEquals(null, updated.bio)
+        assertEquals(true, updated.privacy.hideStats)
+        assertEquals(true, graph.passportApi.passport(me.handle).user.availability?.mission)
+
+        assertTrue(graph.discoverApi.rules().points.isNotEmpty())
+        assertTrue(graph.discoverApi.leaderboard().method.isNotBlank())
+        graph.discoverApi.devs(africa.devhub.discover.DevFilters(mission = true))
+
+        graph.meApi.delete(me.handle)
+        val error = assertFailsWith<ApiException> { graph.meApi.me() }
+        assertEquals(401, error.status)
+    }
 }
