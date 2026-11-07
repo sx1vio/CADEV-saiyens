@@ -118,6 +118,18 @@ class ActionWriter(
             null, prUrl.orEmpty(), roomId, 0, waitMs,
         )
 
+    /** Message privé : même file, même masquage ; [conversationId] sert à l'affichage optimiste. */
+    suspend fun sendDirectMessage(conversationId: String, text: String, waitMs: Long = WAIT_MS): Queued {
+        val body = maskSecrets(text.trim())
+        val clientId = newUuid()
+        val payload = mapOf(
+            "conversationId" to JsonPrimitive(conversationId),
+            "clientId" to JsonPrimitive(clientId),
+            "body" to JsonPrimitive(body.text),
+        )
+        return enqueue("dm.create", payload, clientId, body.text.take(140), conversationId, body.count, waitMs)
+    }
+
     private suspend fun enqueue(
         type: String,
         payload: Map<String, JsonElement>,

@@ -97,6 +97,7 @@ sequenceDiagram
 
 - **Dans l'application** : liste, compteur de non-lues, ouverture de la question ou de la salle concernée ; le texte est construit par l'application à partir du type et du payload, comme sur le web.
 - **En direct** : flux SSE `GET /api/v1/events` (ADR-0007) tant que l'application est au premier plan, coupé en arrière-plan. Reprise après coupure avec `Last-Event-ID` ; pas de durée maximale de requête, 60 s de silence (l'API envoie un ping toutes les 25 s) valent une connexion morte.
+- **Messages privés** : envoyés par la file avec un type propre à l'application (`dm.create`), absent de `/sync`, donc toujours un par un ; le `clientId` empêche tout doublon.
 - **Push système (hors de l'application)** : pas encore. Il faut côté API une table des jetons d'appareil et un envoi par FCM (Android) et APNs (iOS), donc des comptes Firebase et Apple Developer et leurs secrets. Décision à prendre dans un ADR dédié.
 
 ### 5. Livraison pas à pas

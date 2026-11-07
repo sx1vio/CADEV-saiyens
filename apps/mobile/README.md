@@ -29,6 +29,7 @@ apps/mobile/
 | `rooms`                           | Salles : liste, création, tâches (Kanban), adhésion, discussion                                  |
 | `notifications`                   | Notifications : liste, non lues, flux SSE en direct au premier plan                              |
 | `discover`, `settings`            | Découverte des devs, classement par pays, règles des XP, réglages et suppression du compte       |
+| `news`, `messages`                | Actualités réelles et vidéos, messagerie privée (envoi par la file)                              |
 | `offline`                         | Hors ligne : cache de lecture, file d\'actions, synchronisation, connectivité, espace par compte |
 | `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                              |
 | `ui`                              | Thème (couleurs du web), écrans, navigation                                                      |
@@ -91,4 +92,4 @@ DEVHUB_E2E_API_URL=http://localhost:3000 ./gradlew :shared:testAndroidHostTest -
 
 ## Étapes suivantes
 
-Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages (cette version) ; 8. services écosystème.
+Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, en trois temps : 8a actualités et messages privés (cette version), 8b communautés, 8c emplois, certifications et banc d'essai.

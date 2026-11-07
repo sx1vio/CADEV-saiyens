@@ -311,4 +311,34 @@ class LiveApiTest {
         val error = assertFailsWith<ApiException> { graph.meApi.me() }
         assertEquals(401, error.status)
     }
+
+    @Test
+    fun directMessagesAndNewsAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { directMessageScenario(url) }
+    }
+
+    private suspend fun directMessageScenario(url: String) {
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val a = liveGraph(url)
+        val b = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, a.auth.signInWithGithub(loginHint = "kmp-dm-a-$tag"))
+        assertEquals(SignInResult.SignedIn, b.auth.signInWithGithub(loginHint = "kmp-dm-b-$tag"))
+        a.meApi.acceptCodeOfConduct()
+        b.meApi.acceptCodeOfConduct()
+        val aSpace = a.userSpace(a.meApi.me().id)
+        val bHandle = b.meApi.me().handle
+
+        val conversation = a.messagesApi.start(bHandle)
+        val sent = aSpace.writer.sendDirectMessage(conversation.id, "Salut, on fait une revue ?")
+        assertTrue(sent.outcome is africa.devhub.offline.SendOutcome.Applied, sent.outcome.toString())
+        val inbox = b.messagesApi.conversations()
+        assertEquals(1, inbox.unreadTotal)
+        assertEquals("Salut, on fait une revue ?", b.messagesApi.messages(conversation.id).data.single().body)
+
+        // Le fil d'actualité répond (il peut être vide sur une base de test sans collecte).
+        a.newsApi.home("all")
+        a.forgetUser()
+        b.forgetUser()
+    }
 }
