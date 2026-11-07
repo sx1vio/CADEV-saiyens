@@ -79,10 +79,16 @@ class SyncEngine(
             _syncing.value = true
             try {
                 val allResolved = ready.all { action -> action.dependsOn.all { store.resolved(it) != null } }
+                // POST /sync n'accepte que les types de @devhub/contracts (ActionType) : les autres
+                // partent toujours une par une.
+                val unitOnly = ready.filter { it.type !in SYNCABLE }
+                val batchable = ready.filter { it.type in SYNCABLE }
                 val outcomes = if (ready.size <= SINGLE_MAX && allResolved) {
                     sendOneByOne(ready)
                 } else {
-                    sender.sendBatch(ready.take(BATCH_MAX))
+                    val unit = sendOneByOne(unitOnly)
+                    if (unit.values.any { it is SendOutcome.Network } || batchable.isEmpty()) unit
+                    else unit + sender.sendBatch(batchable.take(BATCH_MAX))
                 }
                 val reachedServer = outcomes.values.any { it !is SendOutcome.Network }
                 apply(ready, outcomes)
@@ -189,5 +195,11 @@ class SyncEngine(
         const val SINGLE_MAX = 3
         const val BATCH_MAX = 50
         const val MAX_BACKOFF_MS = 60_000L
+
+        /** ActionType de @devhub/contracts (packages/contracts/src/sync.ts). */
+        val SYNCABLE = setOf(
+            "question.create", "question.update", "question.claim", "answer.create", "answer.update",
+            "answer.vote", "answer.accept", "join_request.create", "task.take", "room_message.create",
+        )
     }
 }

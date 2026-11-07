@@ -158,3 +158,38 @@ fun questionListJson(ids: List<Int>, nextCursor: String?): String {
     val cursor = nextCursor?.let { "\"$it\"" } ?: "null"
     return """{"data":[$items],"page":{"nextCursor":$cursor,"hasMore":${nextCursor != null}}}"""
 }
+
+const val ROOM_ID = "55555555-5555-4555-8555-555555555555"
+const val TASK_ID = "66666666-6666-4666-8666-666666666666"
+
+fun roomJson(role: String? = "owner", joinRequest: String? = null): String {
+    val r = role?.let { "\"$it\"" } ?: "null"
+    val j = joinRequest?.let { "\"$it\"" } ?: "null"
+    return """
+    {"id":"$ROOM_ID","code":"abc123","name":"DevHub Mobile","description":"Applications Android et iOS",
+     "state":"in_progress","visibility":"public","stack":[{"slug":"kotlin","label":"Kotlin"}],
+     "repo":{"fullName":"awa/devhub","url":"https://github.com/awa/devhub","verified":true},"demoUrl":null,
+     "deployment":null,"owner":{"handle":"awa-dev","displayName":"Awa","avatarUrl":null,"isDemo":false},
+     "memberCount":2,"openTaskCount":1,"createdAt":"2026-11-01T00:00:00.000Z","lastActivityAt":"2026-11-07T00:00:00.000Z",
+     "members":[{"user":{"handle":"awa-dev","displayName":"Awa","avatarUrl":null,"isDemo":false},"role":"owner","joinedAt":"2026-11-01T00:00:00.000Z"}],
+     "viewer":{"role":$r,"joinRequest":$j}}
+    """.trimIndent()
+}
+
+fun tasksJson(status: String = "open"): String =
+    """{"data":[{"id":"$TASK_ID","roomId":"$ROOM_ID","title":"Écran de connexion","description":null,"level":"easy",
+       "status":"$status","assignee":null,"prUrl":null,"verification":null,"fromGithubIssue":false,"version":1,
+       "createdAt":"2026-11-02T00:00:00.000Z","takenAt":null,"completedAt":null}]}"""
+
+fun messagesJson(): String =
+    """{"data":[
+      {"id":"m2","clientId":"c2","roomId":"$ROOM_ID","author":{"handle":"kofi","displayName":"Kofi","avatarUrl":null,"isDemo":false},"kind":"text","body":"Deuxième","createdAt":"2026-11-07T10:01:00.000Z"},
+      {"id":"m1","clientId":"c1","roomId":"$ROOM_ID","author":{"handle":"awa-dev","displayName":"Awa","avatarUrl":null,"isDemo":false},"kind":"text","body":"Premier","createdAt":"2026-11-07T10:00:00.000Z"}
+    ],"page":{"nextCursor":null,"hasMore":false}}"""
+
+fun roomListJson(): String =
+    """{"data":[{"id":"$ROOM_ID","code":"abc123","name":"DevHub Mobile","description":"Applications Android et iOS",
+       "state":"in_progress","visibility":"public","stack":[],"repo":null,"demoUrl":null,"deployment":null,
+       "owner":{"handle":"awa-dev","displayName":"Awa","avatarUrl":null,"isDemo":false},"memberCount":2,"openTaskCount":1,
+       "createdAt":"2026-11-01T00:00:00.000Z","lastActivityAt":"2026-11-07T00:00:00.000Z"}],
+       "page":{"nextCursor":null,"hasMore":false}}"""

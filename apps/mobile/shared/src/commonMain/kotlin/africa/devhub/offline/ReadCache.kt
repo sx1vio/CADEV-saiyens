@@ -72,5 +72,9 @@ class CacheKey private constructor(name: String, val kept: Boolean) {
         fun questions(filter: String) = CacheKey("questions-$filter", kept = true)
         fun question(id: String) = CacheKey("question-$id", kept = false)
         fun tags() = CacheKey("tags", kept = true)
+        fun rooms(mine: Boolean) = CacheKey(if (mine) "rooms-mine" else "rooms-all", kept = true)
+        fun room(code: String) = CacheKey("room-$code", kept = false)
+        fun tasks(roomId: String) = CacheKey("tasks-$roomId", kept = false)
+        fun messages(roomId: String) = CacheKey("messages-$roomId", kept = false)
     }
 }

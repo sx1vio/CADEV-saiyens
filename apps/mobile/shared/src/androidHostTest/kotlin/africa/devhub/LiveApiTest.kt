@@ -5,6 +5,8 @@ import africa.devhub.auth.SignInResult
 import africa.devhub.core.AppConfig
 import africa.devhub.core.newUuid
 import africa.devhub.offline.LocalFiles
+import africa.devhub.offline.SendOutcome
+import africa.devhub.rooms.CreateRoomRequest
 import africa.devhub.sos.AskDraft
 import okio.fakefilesystem.FakeFileSystem
 import africa.devhub.sos.AskQuestionRequest
@@ -23,6 +25,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Parcours complet contre une vraie API (faux fournisseur GitHub) : le contrat entre ce client
@@ -182,5 +185,54 @@ class LiveApiTest {
         assertEquals("Réponse écrite hors ligne", first.answers.single().body)
         assertEquals(answer.clientId?.let { space.outbox.resolved(it) }, first.answers.single().id)
         graph.forgetUser()
+    }
+
+    @Test
+    fun roomCreateJoinAcceptTaskAndChatAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        // Temps réel : le moteur de la file tourne sur ses propres fils, pas sur l'horloge du test.
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { roomScenario(url) }
+    }
+
+    private suspend fun roomScenario(url: String) {
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val owner = liveGraph(url)
+        val member = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, owner.auth.signInWithGithub(loginHint = "kmp-own-$tag"))
+        assertEquals(SignInResult.SignedIn, member.auth.signInWithGithub(loginHint = "kmp-mem-$tag"))
+        val ownerSpace = owner.userSpace(owner.meApi.me().id)
+        val memberSpace = member.userSpace(member.meApi.me().id)
+        owner.meApi.acceptCodeOfConduct()
+        member.meApi.acceptCodeOfConduct()
+        val slug = owner.sosApi.tags().data.first().slug
+
+        val room = owner.roomsApi.create(
+            CreateRoomRequest(
+                name = "Salle mobile $tag",
+                description = "Salle créée par le test de bout en bout du mobile",
+                state = "looking_for_help",
+                visibility = "public",
+                stackTagSlugs = listOf(slug),
+            ),
+        )
+        val roomId = owner.roomsApi.room(room.code).id
+
+        val join = memberSpace.writer.joinRoom(roomId, "Je connais Kotlin")
+        assertTrue(join.outcome is SendOutcome.Applied, join.outcome.toString())
+        val request = owner.roomsApi.joinRequests(roomId).data.single { it.status == "pending" }
+        assertTrue(ownerSpace.writer.decideJoin(roomId, request.id, accept = true).outcome is SendOutcome.Applied)
+        assertEquals("member", member.roomsApi.room(room.code).viewer?.role)
+
+        assertTrue(ownerSpace.writer.createTask(roomId, "Écran de connexion", null, "easy").outcome is SendOutcome.Applied)
+        val task = member.roomsApi.tasks(roomId).data.single()
+        assertTrue(memberSpace.writer.takeTask(roomId, task.id).outcome is SendOutcome.Applied)
+        assertEquals("taken", owner.roomsApi.tasks(roomId).data.single().status)
+        val again = ownerSpace.writer.takeTask(roomId, task.id)
+        assertTrue(again.outcome is SendOutcome.Rejected, again.outcome.toString())
+
+        assertTrue(memberSpace.writer.postMessage(roomId, "Je commence l'écran de connexion").outcome is SendOutcome.Applied)
+        assertEquals("Je commence l'écran de connexion", owner.roomsApi.messages(roomId).data.first().body)
+        owner.forgetUser()
+        member.forgetUser()
     }
 }

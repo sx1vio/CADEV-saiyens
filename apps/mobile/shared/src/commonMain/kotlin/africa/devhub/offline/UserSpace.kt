@@ -20,7 +20,7 @@ class UserSpace(
     val cache = ReadCache(files, now)
     val outbox = OutboxStore(files)
     val engine = SyncEngine(outbox, sender, connectivity, scope, now)
-    val writer = SosWriter(outbox, engine, now)
+    val writer = ActionWriter(outbox, engine, now)
     private val job: Job = engine.start()
 
     fun close(wipe: Boolean) {

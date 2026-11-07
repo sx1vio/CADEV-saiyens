@@ -87,6 +87,7 @@ sequenceDiagram
 
 - **Stockage** : petits fichiers JSON écrits de façon atomique (okio), dans le dossier privé de l'application, un dossier par compte. Pas de base SQLite : quelques centaines d'entrées au plus, lues en entier.
 - **Tout passe par la file**, en ligne comme hors ligne (04 § 2). Jusqu'à 3 actions prêtes : une à une par leur endpoint, l'`opId` en `Idempotency-Key`. Au-delà, ou si une action vise un contenu encore local : un lot `POST /sync`, où l'API résout `client:<uuid>`.
+- **Types hors `/sync`** : `POST /sync` n'accepte que les types d'`ActionType` (`@devhub/contracts`). Les autres écritures des salles (`task.create`, `task.submit`, `task.complete`, `join_request.decide`) passent aussi par la file, mais toujours une à une par leur endpoint.
 - **Lecture** : réseau d'abord, dernière copie en secours (profil, Passport, première page de chaque filtre SOS, 100 dernières questions consultées).
 - **Hors ligne détecté** par le système (ConnectivityManager, NWPathMonitor) et confirmé par les envois : derrière un portail captif, l'application se sait hors ligne et réessaie, de plus en plus espacé.
 - **Secrets** masqués par le port Kotlin de `maskSecrets` avant toute écriture sur le téléphone, avec les mêmes cas de test.
