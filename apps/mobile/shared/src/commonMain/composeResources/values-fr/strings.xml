@@ -29,7 +29,7 @@
     <string name="trust_founder">Membre fondateur</string>
     <string name="trust_demo">Compte démo</string>
     <string name="home_next_title">Bientôt dans l’application</string>
-    <string name="home_next_text">SOS Dev et les salles de projet arrivent dans les prochaines mises à jour. Tout est déjà disponible sur le web.</string>
+    <string name="home_next_text">Les salles de projet arrivent dans la prochaine mise à jour. Tout est déjà disponible sur le web.</string>
     <string name="sign_out">Se déconnecter</string>
 
     <string name="unreachable_title">DevHub est injoignable</string>
@@ -114,4 +114,70 @@
         <item>janv.</item><item>févr.</item><item>mars</item><item>avr.</item><item>mai</item><item>juin</item>
         <item>juil.</item><item>août</item><item>sept.</item><item>oct.</item><item>nov.</item><item>déc.</item>
     </string-array>
+    <string name="nav_sos">SOS Dev</string>
+    <string name="filter_recent">Récentes</string>
+    <string name="filter_unanswered">Sans réponse</string>
+    <string name="filter_for_me">Pour moi</string>
+    <string name="filter_mine">Mes questions</string>
+    <string name="sos_search">Rechercher une question</string>
+    <string name="sos_ask">Poser une question</string>
+    <string name="sos_empty">Aucune question ici pour le moment.</string>
+    <string name="sos_failed">Les questions n’ont pas pu être chargées.</string>
+    <string name="status_open">Ouverte</string>
+    <string name="status_resolved">Résolue</string>
+    <string name="status_closed">Fermée</string>
+    <string name="urgency_label">Urgence</string>
+    <string name="urgency_low">Pas pressé</string>
+    <string name="urgency_normal">Normale</string>
+    <string name="urgency_high">Urgente</string>
+    <string name="question_meta">%1$s · %2$s</string>
+    <string name="ai_title">Piste IA</string>
+    <string name="ai_disclaimer">Générée par IA, à vérifier.</string>
+    <string name="ai_pending">La piste IA est en préparation…</string>
+    <string name="ai_failed">La piste IA n’a pas pu être générée.</string>
+    <string name="code_title">Code</string>
+    <string name="repro_open">Ouvrir la reproduction</string>
+    <string name="answers_title">Réponses</string>
+    <string name="no_answers">Pas encore de réponse.</string>
+    <string name="answer_accepted">Réponse validée</string>
+    <string name="vote_helpful">Utile · %1$d</string>
+    <string name="accept_answer">Valider cette réponse</string>
+    <string name="claim">Je m’en occupe</string>
+    <string name="claimed_by">%1$s s’en occupe</string>
+    <string name="your_answer">Ta réponse</string>
+    <string name="answer_hint">Explique ce qui débloque, avec du code si besoin.</string>
+    <string name="send_answer">Publier la réponse</string>
+    <string name="notice_claimed">C’est noté : tu t’en occupes.</string>
+    <string name="notice_accepted">Réponse validée. Merci pour l’entraide.</string>
+    <string name="notice_already_voted">Tu as déjà voté pour cette réponse.</string>
+    <string name="notice_failed">L’action n’a pas abouti. Réessaie.</string>
+    <string name="notice_network">Pas de connexion : rien n’a été envoyé.</string>
+    <string name="notice_rate_limited">Trop d’actions d’affilée. Réessaie dans un moment.</string>
+    <string name="question_not_found">Cette question n’existe pas.</string>
+    <string name="question_failed">La question n’a pas pu être chargée.</string>
+    <string name="ask_title">Poser une question</string>
+    <string name="ask_q_title">Titre</string>
+    <string name="ask_q_title_hint">10 à 150 caractères : la question en une phrase</string>
+    <string name="ask_body">Détails</string>
+    <string name="ask_body_hint">Ce que tu as essayé, ce qui se passe, ce que tu attends</string>
+    <string name="ask_code">Code (facultatif)</string>
+    <string name="ask_tags">Étiquettes (1 à 5)</string>
+    <string name="ask_tags_filter">Filtrer les étiquettes</string>
+    <string name="ask_tags_failed">Les étiquettes n’ont pas pu être chargées.</string>
+    <string name="ask_lang">Langue de la question</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_en">English</string>
+    <string name="ask_repro">Lien de reproduction (facultatif)</string>
+    <string name="ask_repro_hint">HTTPS : StackBlitz, CodeSandbox, Replit, GitHub, Gist, CodePen, JSFiddle</string>
+    <string name="ask_send">Publier</string>
+    <string name="ask_rate_limited">Tu as déjà posé 10 questions cette heure-ci. Réessaie plus tard.</string>
+    <string name="ask_invalid">Vérifie les champs, puis publie à nouveau.</string>
+    <plurals name="answers_count">
+        <item quantity="one">%1$d réponse</item>
+        <item quantity="other">%1$d réponses</item>
+    </plurals>
+    <plurals name="notice_secrets">
+        <item quantity="one">%1$d secret masqué avant publication.</item>
+        <item quantity="other">%1$d secrets masqués avant publication.</item>
+    </plurals>
 </resources>

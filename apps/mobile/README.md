@@ -17,16 +17,17 @@ apps/mobile/
 └── iosApp/                         Application iOS (SwiftUI, Keychain, ASWebAuthenticationSession)
 ```
 
-| Couche (`shared/…/africa/devhub`) | Rôle                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| `core`                            | Réglages fournis par la plateforme (`AppConfig`)                          |
-| `platform`                        | Contrats propres à chaque plateforme : stockage chiffré, navigateur, hash |
-| `network`                         | Client Ktor : base, JSON tolérant, Bearer, erreurs RFC 9457               |
-| `auth`                            | PKCE, session, connexion GitHub, déconnexion                              |
-| `me`                              | `GET /me`, code de conduite                                               |
-| `passport`                        | Passport public, preuves paginées, réimport GitHub                        |
-| `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)       |
-| `ui`                              | Thème (couleurs du web), écrans, navigation                               |
+| Couche (`shared/…/africa/devhub`) | Rôle                                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------- |
+| `core`                            | Réglages fournis par la plateforme (`AppConfig`)                                      |
+| `platform`                        | Contrats propres à chaque plateforme : stockage chiffré, navigateur, hash             |
+| `network`                         | Client Ktor : base, JSON tolérant, Bearer, erreurs RFC 9457                           |
+| `auth`                            | PKCE, session, connexion GitHub, déconnexion                                          |
+| `me`                              | `GET /me`, code de conduite                                                           |
+| `passport`                        | Passport public, preuves paginées, réimport GitHub                                    |
+| `sos`                             | SOS Dev : liste, question, piste IA, réponses, votes, validation, « Je m\'en occupe » |
+| `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                   |
+| `ui`                              | Thème (couleurs du web), écrans, navigation                                           |
 
 ## Prérequis
 
@@ -86,4 +87,4 @@ DEVHUB_E2E_API_URL=http://localhost:3000 ./gradlew :shared:testAndroidHostTest -
 
 ## Étapes suivantes
 
-Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail (cette version) ; 3. SOS Dev ; 4. hors ligne ; 5. salles ; 6. notifications ; 7. découverte, classement, règles, réglages ; 8. services écosystème.
+Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev (cette version) ; 4. hors ligne ; 5. salles ; 6. notifications ; 7. découverte, classement, règles, réglages ; 8. services écosystème.
