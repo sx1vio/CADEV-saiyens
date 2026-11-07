@@ -106,6 +106,18 @@ class AppViewModel(
         }
     }
 
+    /** Réglages enregistrés : le profil affiché suit sans tout recharger. */
+    fun meUpdated(me: Me) {
+        deviceCache?.put(CacheKey.me(), me, Me.serializer())
+        _state.update { if (it is AppState.SignedIn) AppState.SignedIn(me) else it }
+    }
+
+    /** Compte supprimé (A3) : l'API a fermé toutes les sessions ; on efface tout ici aussi. */
+    fun accountDeleted() {
+        forgetUser()
+        sessions.clear()
+    }
+
     fun signOut() {
         viewModelScope.launch {
             auth.signOut()

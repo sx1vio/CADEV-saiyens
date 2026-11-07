@@ -38,7 +38,7 @@ fun DevHubApp(graph: AppGraph) {
                 )
                 AppState.Unreachable -> UnreachableScreen(viewModel::retry, viewModel::signOut)
                 is AppState.NeedsConduct -> ConductScreen(s, viewModel::acceptCodeOfConduct, viewModel::signOut)
-                is AppState.SignedIn -> SignedInArea(graph, s.me, viewModel::signOut)
+                is AppState.SignedIn -> SignedInArea(graph, s.me, viewModel::signOut, viewModel::meUpdated, viewModel::accountDeleted)
             }
         }
     }
