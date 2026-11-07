@@ -8,7 +8,16 @@ import africa.devhub.resources.Res
 import africa.devhub.resources.email_back
 import africa.devhub.resources.nav_home
 import africa.devhub.resources.nav_passport
+import africa.devhub.notifications.NotificationTarget
+import africa.devhub.notifications.NotificationsViewModel
+import africa.devhub.resources.nav_notifications
 import africa.devhub.resources.nav_rooms
+import africa.devhub.resources.notif_badge
+import africa.devhub.ui.notifications.NotificationsScreen
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.lifecycle.compose.LifecycleStartEffect
+import org.jetbrains.compose.resources.pluralStringResource
 import africa.devhub.resources.nav_sos
 import africa.devhub.resources.rooms_create
 import africa.devhub.rooms.CreateRoomViewModel
@@ -96,6 +105,9 @@ private data object SyncRoute
 private data object RoomsRoute
 
 @Serializable
+private data object NotificationsRoute
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -119,8 +131,15 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
         TopLevel(Res.string.nav_home, DevHubIcons.Home, HomeRoute),
         TopLevel(Res.string.nav_sos, DevHubIcons.Help, SosRoute),
         TopLevel(Res.string.nav_rooms, DevHubIcons.Folder, RoomsRoute),
+        TopLevel(Res.string.nav_notifications, DevHubIcons.Bell, NotificationsRoute),
         TopLevel(Res.string.nav_passport, DevHubIcons.Person, PassportRoute(me.handle)),
     )
+    val unread by space.notifications.unread.collectAsStateWithLifecycle()
+    // Temps réel au premier plan seulement : la connexion est coupée en arrière-plan.
+    LifecycleStartEffect(space) {
+        space.notifications.start()
+        onStopOrDispose { space.notifications.stop() }
+    }
     val onProofs = destination?.hasRoute<ProofsRoute>() == true
     val onQuestion = destination?.hasRoute<QuestionRoute>() == true
     val onAsk = destination?.hasRoute<AskRoute>() == true
@@ -158,6 +177,7 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                         is HomeRoute -> destination?.hasRoute<HomeRoute>() == true
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
+                        is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
                         else -> destination?.hasRoute<PassportRoute>() == true || onProofs
                     }
                     NavigationBarItem(
@@ -169,7 +189,16 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                                 restoreState = true
                             }
                         },
-                        icon = { Icon(tab.icon, contentDescription = null) },
+                        icon = {
+                            if (tab.route is NotificationsRoute && unread > 0) {
+                                val label = pluralStringResource(Res.plurals.notif_badge, unread, unread)
+                                BadgedBox(badge = { Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
+                                    Icon(tab.icon, contentDescription = label)
+                                }
+                            } else {
+                                Icon(tab.icon, contentDescription = null)
+                            }
+                        },
                         label = { Text(stringResource(tab.label)) },
                     )
                 }
@@ -264,6 +293,27 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                         }
                     }
                     AskScreen(state, vm::edit, vm::toggleTag, vm::loadTags, vm::send)
+                }
+                composable<NotificationsRoute> {
+                    val vm = viewModel { NotificationsViewModel(graph.notificationsApi, space.notifications, graph.roomsApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    NotificationsScreen(
+                        state = state,
+                        onOpen = { n ->
+                            vm.open(n) { target ->
+                                when (target) {
+                                    is NotificationTarget.Question -> navController.navigate(QuestionRoute(target.id))
+                                    is NotificationTarget.Room -> navController.navigate(RoomRoute(target.code))
+                                    is NotificationTarget.Passport -> navController.navigate(PassportRoute(target.handle))
+                                    NotificationTarget.Rooms -> navController.navigate(RoomsRoute)
+                                    null -> Unit
+                                }
+                            }
+                        },
+                        onMarkAll = vm::markAllRead,
+                        onRetry = vm::reload,
+                        onLoadMore = vm::loadMore,
+                    )
                 }
                 composable<RoomsRoute> {
                     val vm = viewModel { RoomsViewModel(graph.roomsApi, space) }

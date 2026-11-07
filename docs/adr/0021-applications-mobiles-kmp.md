@@ -93,6 +93,12 @@ sequenceDiagram
 - **Secrets** masqués par le port Kotlin de `maskSecrets` avant toute écriture sur le téléphone, avec les mêmes cas de test.
 - **Pas encore** : l'écran de conflit (O4). L'application ne modifie pas encore de texte publié, donc ne peut pas créer de conflit ; un conflit éventuel s'affiche dans le centre de synchronisation.
 
+### 4 ter. Notifications (étape 6)
+
+- **Dans l'application** : liste, compteur de non-lues, ouverture de la question ou de la salle concernée ; le texte est construit par l'application à partir du type et du payload, comme sur le web.
+- **En direct** : flux SSE `GET /api/v1/events` (ADR-0007) tant que l'application est au premier plan, coupé en arrière-plan. Reprise après coupure avec `Last-Event-ID` ; pas de durée maximale de requête, 60 s de silence (l'API envoie un ping toutes les 25 s) valent une connexion morte.
+- **Push système (hors de l'application)** : pas encore. Il faut côté API une table des jetons d'appareil et un envoi par FCM (Android) et APNs (iOS), donc des comptes Firebase et Apple Developer et leurs secrets. Décision à prendre dans un ADR dédié.
+
 ### 5. Livraison pas à pas
 
 Chaque étape est une PR relue, utilisable seule :

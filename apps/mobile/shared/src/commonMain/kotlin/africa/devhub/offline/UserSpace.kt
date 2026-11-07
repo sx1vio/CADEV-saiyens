@@ -1,5 +1,8 @@
 package africa.devhub.offline
 
+import africa.devhub.notifications.EventStream
+import africa.devhub.notifications.NotificationHub
+import africa.devhub.notifications.NotificationsApi
 import africa.devhub.platform.sha256
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -16,14 +19,18 @@ class UserSpace(
     val connectivity: Connectivity,
     scope: CoroutineScope,
     now: () -> Long,
+    notificationsApi: NotificationsApi,
+    eventStream: EventStream,
 ) {
     val cache = ReadCache(files, now)
     val outbox = OutboxStore(files)
     val engine = SyncEngine(outbox, sender, connectivity, scope, now)
     val writer = ActionWriter(outbox, engine, now)
+    val notifications = NotificationHub(notificationsApi, eventStream, connectivity, scope)
     private val job: Job = engine.start()
 
     fun close(wipe: Boolean) {
+        notifications.stop()
         job.cancel()
         if (wipe) files.deleteAll()
     }

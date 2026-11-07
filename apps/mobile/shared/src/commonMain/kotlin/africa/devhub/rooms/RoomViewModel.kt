@@ -82,6 +82,12 @@ class RoomViewModel(
             space.outbox.actions.collect { actions -> _state.update { (it as? RoomState.Loaded)?.withPending(actions) ?: it } }
         }
         viewModelScope.launch {
+            // Notification en direct sur cette salle (demande, décision, tâche validée) : on relit.
+            space.notifications.incoming.collect { n ->
+                if (n.text("roomId") != null && n.text("roomId") == (_state.value as? RoomState.Loaded)?.room?.id) load(showLoading = false)
+            }
+        }
+        viewModelScope.launch {
             space.engine.results.collect { r ->
                 val roomId = (_state.value as? RoomState.Loaded)?.room?.id
                 if (r.outcome is SendOutcome.Applied && roomId != null && r.type in ROOM_TYPES) load(showLoading = false)

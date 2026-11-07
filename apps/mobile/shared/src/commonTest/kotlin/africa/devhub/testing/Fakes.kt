@@ -13,7 +13,9 @@ import io.ktor.client.request.HttpResponseData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import africa.devhub.notifications.EventStream
 import africa.devhub.offline.LocalFiles
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +69,8 @@ fun testGraph(
     now: () -> Long = { 0L },
     /** Portée du moteur de synchronisation ; dans un test, backgroundScope (annulée à la fin). */
     scope: CoroutineScope? = null,
+    /** Flux temps réel ; par défaut, une connexion qui ne reçoit rien. */
+    eventStream: EventStream = EventStream { _, _ -> awaitCancellation() },
     handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData,
 ): AppGraph {
     val engine = MockEngine(
@@ -83,6 +87,7 @@ fun testGraph(
         authBrowser = browser,
         storage = LocalFiles(FakeFileSystem(), "/app"),
         engine = engine,
+        eventStream = eventStream,
         scope = engineScope,
         now = now,
     )

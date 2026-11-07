@@ -7,6 +7,9 @@ import africa.devhub.core.AppConfig
 import africa.devhub.me.MeApi
 import africa.devhub.network.createHttpClient
 import africa.devhub.passport.PassportApi
+import africa.devhub.notifications.EventStream
+import africa.devhub.notifications.NotificationsApi
+import africa.devhub.notifications.SseEventStream
 import africa.devhub.rooms.RoomsApi
 import africa.devhub.sos.SosApi
 import africa.devhub.platform.AuthBrowser
@@ -34,6 +37,8 @@ class AppGraph(
     private val storage: LocalFiles,
     connectivityProbe: ConnectivityProbe? = null,
     engine: HttpClientEngine? = null,
+    /** Flux temps réel imposé (tests) ; sinon le SSE de l'API. */
+    eventStream: EventStream? = null,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
     val now: () -> Long = ::systemNowMillis,
 ) {
@@ -50,6 +55,8 @@ class AppGraph(
     val passportApi = PassportApi(http)
     val sosApi = SosApi(http)
     val roomsApi = RoomsApi(http)
+    val notificationsApi = NotificationsApi(http)
+    private val events: EventStream = eventStream ?: SseEventStream(http)
     val auth = AuthRepository(config, AuthApi(http), authBrowser, sessions)
 
     val connectivity = Connectivity(connectivityProbe)
@@ -71,6 +78,8 @@ class AppGraph(
             connectivity = connectivity,
             scope = scope,
             now = now,
+            notificationsApi = notificationsApi,
+            eventStream = events,
         ).also { space = it }
     }
 

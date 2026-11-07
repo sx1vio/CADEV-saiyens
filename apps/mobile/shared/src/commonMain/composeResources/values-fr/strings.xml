@@ -300,4 +300,23 @@
         <item quantity="one">%1$d tâche ouverte</item>
         <item quantity="other">%1$d tâches ouvertes</item>
     </plurals>
+    <string name="nav_notifications">Alertes</string>
+    <string name="notif_title">Notifications</string>
+    <string name="notif_empty">Pas encore de notification.</string>
+    <string name="notif_failed">Les notifications n’ont pas pu être chargées.</string>
+    <string name="notif_mark_all">Tout marquer comme lu</string>
+    <string name="notif_unread">Non lue</string>
+    <string name="notif_match">On a besoin de toi : « %1$s »</string>
+    <string name="notif_answer">%1$s a répondu à « %2$s »</string>
+    <string name="notif_accepted">Ta réponse a débloqué « %1$s »</string>
+    <string name="notif_join_request">Nouvelle demande pour rejoindre %1$s</string>
+    <string name="notif_join_decided">Ta demande pour %1$s a reçu une réponse</string>
+    <string name="notif_task_done">Ta contribution « %1$s » est validée</string>
+    <string name="notif_contact">%1$s t’a écrit</string>
+    <string name="notif_feedback">Du nouveau sur une relecture dans %1$s</string>
+    <string name="notif_other">Nouvelle notification</string>
+    <plurals name="notif_badge">
+        <item quantity="one">%1$d notification non lue</item>
+        <item quantity="other">%1$d notifications non lues</item>
+    </plurals>
 </resources>

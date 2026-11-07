@@ -7,6 +7,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
@@ -58,6 +59,8 @@ fun createHttpClient(
             requestTimeoutMillis = 30_000
         }
         install(session)
+        // Flux temps réel (GET /api/v1/events) ; la reprise est gérée par NotificationHub.
+        install(SSE)
         defaultRequest {
             url(config.apiBaseUrl.trimEnd('/') + "/")
             headers.append(CLIENT_HEADER, MOBILE_CLIENT)
