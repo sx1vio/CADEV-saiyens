@@ -88,6 +88,10 @@ class QuestionViewModel(
             }
         }
         viewModelScope.launch {
+            // Notification en direct sur cette question (nouvelle réponse, validation) : on relit.
+            space.notifications.incoming.collect { n -> if (n.text("questionId") == questionId) load(showLoading = false) }
+        }
+        viewModelScope.launch {
             // Une action de cette question vient de partir (retour du réseau) : on relit.
             space.engine.results.collect { r ->
                 val action = r.outcome

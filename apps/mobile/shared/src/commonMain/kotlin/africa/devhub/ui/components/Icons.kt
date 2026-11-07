@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
-// Cinq icônes Material (Apache-2.0) tracées ici, plutôt qu'une bibliothèque d'icônes entière.
+// Six icônes Material (Apache-2.0) tracées ici, plutôt qu'une bibliothèque d'icônes entière.
 object DevHubIcons {
     val Home: ImageVector = icon("Home", "M10,20v-6h4v6h5v-8h3L12,3 2,12h3v8z")
     val Person: ImageVector = icon(
@@ -20,6 +20,10 @@ object DevHubIcons {
     val Folder: ImageVector = icon(
         "Folder",
         "M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z",
+    )
+    val Bell: ImageVector = icon(
+        "Bell",
+        "M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32V4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z",
     )
     val Back: ImageVector = icon("Back", "M20,11H7.83l5.59,-5.59L12,4l-8,8 8,8 1.41,-1.41L7.83,13H20v-2z", autoMirror = true)
 

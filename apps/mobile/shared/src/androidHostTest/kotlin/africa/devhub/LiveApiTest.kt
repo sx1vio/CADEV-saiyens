@@ -19,6 +19,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlin.random.Random
 import kotlin.test.Test
@@ -234,5 +236,42 @@ class LiveApiTest {
         assertEquals("Je commence l'écran de connexion", owner.roomsApi.messages(roomId).data.first().body)
         owner.forgetUser()
         member.forgetUser()
+    }
+
+    @Test
+    fun aNewAnswerArrivesLiveThroughServerSentEvents() = runTest {
+        val url = apiUrl ?: return@runTest
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { liveNotificationScenario(url) }
+    }
+
+    private suspend fun liveNotificationScenario(url: String) {
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val asker = liveGraph(url)
+        val helper = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, asker.auth.signInWithGithub(loginHint = "kmp-sse-a-$tag"))
+        assertEquals(SignInResult.SignedIn, helper.auth.signInWithGithub(loginHint = "kmp-sse-b-$tag"))
+        asker.meApi.acceptCodeOfConduct()
+        helper.meApi.acceptCodeOfConduct()
+        val askerSpace = asker.userSpace(asker.meApi.me().id)
+        val slug = asker.sosApi.tags().data.first().slug
+        val question = asker.sosApi.ask(
+            AskQuestionRequest(newUuid(), "Une question suivie en direct", "Détails", tagSlugs = listOf(slug), urgency = "normal", lang = "fr"),
+        )
+
+        val received = kotlinx.coroutines.CompletableDeferred<africa.devhub.notifications.NotificationView>()
+        val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default)
+        scope.launch { askerSpace.notifications.incoming.collect { if (it.type == "answer.created") received.complete(it) } }
+        askerSpace.notifications.start()
+        kotlinx.coroutines.delay(1_500) // le temps d'ouvrir la connexion SSE
+
+        helper.sosApi.answer(question.id, PostAnswerRequest(newUuid(), "Réponse reçue en direct"))
+        val notification = kotlinx.coroutines.withTimeout(15_000) { received.await() }
+        assertEquals(question.id, notification.text("questionId"))
+        assertTrue(askerSpace.notifications.unread.value >= 1)
+
+        askerSpace.notifications.stop()
+        scope.cancel()
+        asker.forgetUser()
+        helper.forgetUser()
     }
 }
