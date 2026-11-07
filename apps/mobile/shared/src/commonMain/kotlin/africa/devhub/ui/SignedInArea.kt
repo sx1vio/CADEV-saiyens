@@ -44,7 +44,14 @@ import africa.devhub.ui.components.DevHubIcons
 import africa.devhub.ui.components.NetworkBar
 import africa.devhub.ui.sync.SyncCenterScreen
 import kotlinx.coroutines.launch
+import africa.devhub.community.CreatePostViewModel
+import africa.devhub.community.FeedViewModel
+import africa.devhub.community.PostViewModel
 import africa.devhub.discover.DiscoverViewModel
+import africa.devhub.resources.community_title
+import africa.devhub.ui.community.CreatePostScreen
+import africa.devhub.ui.community.FeedScreen
+import africa.devhub.ui.community.PostScreen
 import africa.devhub.messages.ConversationViewModel
 import africa.devhub.messages.ConversationsViewModel
 import africa.devhub.news.NewsViewModel
@@ -146,6 +153,15 @@ private data object ConversationsRoute
 private data class ConversationRoute(val id: String)
 
 @Serializable
+private data object FeedRoute
+
+@Serializable
+private data class PostRoute(val id: String)
+
+@Serializable
+private data object CreatePostRoute
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -194,6 +210,8 @@ fun SignedInArea(
     val onRules = destination?.hasRoute<RulesRoute>() == true
     val onSettings = destination?.hasRoute<SettingsRoute>() == true
     val onNews = destination?.hasRoute<NewsRoute>() == true
+    val onCommunity = destination?.hasRoute<FeedRoute>() == true || destination?.hasRoute<PostRoute>() == true ||
+        destination?.hasRoute<CreatePostRoute>() == true
     val onConversations = destination?.hasRoute<ConversationsRoute>() == true || destination?.hasRoute<ConversationRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
@@ -207,6 +225,7 @@ fun SignedInArea(
         onRules -> Res.string.rules_title
         onSettings -> Res.string.home_settings
         onNews -> Res.string.news_title
+        onCommunity -> Res.string.community_title
         onConversations -> Res.string.messages_title
         else -> null
     }
@@ -228,7 +247,7 @@ fun SignedInArea(
             NavigationBar {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations
+                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
@@ -276,6 +295,7 @@ fun SignedInArea(
                         links = HomeLinks(
                             onNews = { navController.navigate(NewsRoute) },
                             onMessages = { navController.navigate(ConversationsRoute) },
+                            onCommunity = { navController.navigate(FeedRoute) },
                             onDiscover = { navController.navigate(DiscoverRoute()) },
                             onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
                             onRules = { navController.navigate(RulesRoute) },
@@ -315,6 +335,37 @@ fun SignedInArea(
                     val vm = viewModel { ConversationViewModel(graph.messagesApi, space, id) }
                     val state by vm.state.collectAsStateWithLifecycle()
                     ConversationScreen(state, vm::send, vm::loadOlder, onRetry = { navController.popBackStack() })
+                }
+                composable<FeedRoute> {
+                    val vm = viewModel { FeedViewModel(graph.communityApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    FeedScreen(
+                        state = state,
+                        onCommunity = vm::setCommunity,
+                        onTop = vm::setTop,
+                        onRetry = vm::reload,
+                        onLoadMore = vm::loadMore,
+                        onOpen = { navController.navigate(PostRoute(it)) },
+                        onPublish = { navController.navigate(CreatePostRoute) },
+                    )
+                }
+                composable<PostRoute> { backStack ->
+                    val id = backStack.toRoute<PostRoute>().id
+                    val vm = viewModel { PostViewModel(graph.communityApi, id, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    PostScreen(state, vm::vote, vm::comment, vm::refresh)
+                }
+                composable<CreatePostRoute> {
+                    val vm = viewModel { CreatePostViewModel(graph.communityApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    val createdId = state.createdId
+                    LaunchedEffect(createdId) {
+                        if (createdId != null) {
+                            vm.consumeCreated()
+                            navController.navigate(PostRoute(createdId)) { popUpTo<CreatePostRoute> { inclusive = true } }
+                        }
+                    }
+                    CreatePostScreen(state, online, vm::edit, vm::send)
                 }
                 composable<RulesRoute> {
                     val vm = viewModel { RulesViewModel(graph.discoverApi, space) }
