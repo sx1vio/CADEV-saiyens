@@ -66,17 +66,11 @@ private data class SyncResponseBody(val results: List<SyncResultBody>)
  */
 class ActionSender(private val http: HttpClient) {
     suspend fun sendOne(action: OutboxAction): SendOutcome {
+        val route = ROUTES[action.type] ?: return SendOutcome.Rejected("validation.failed")
         val p = action.payload
-        fun id(field: String) = p[field]?.jsonPrimitive?.contentOrNull.orEmpty()
-        val (path, body) = when (action.type) {
-            "question.create" -> "api/v1/questions" to p
-            "answer.create" -> "api/v1/questions/${id("questionId")}/answers" to
-                JsonObject(p.filterKeys { it != "questionId" })
-            "answer.vote" -> "api/v1/answers/${id("answerId")}/vote" to null
-            "answer.accept" -> "api/v1/answers/${id("answerId")}/accept" to null
-            "question.claim" -> "api/v1/questions/${id("questionId")}/claim" to null
-            else -> return SendOutcome.Rejected("validation.failed")
-        }
+        val path = route.path.replace(Regex("\\{(\\w+)}")) { m -> p[m.groupValues[1]]?.jsonPrimitive?.contentOrNull.orEmpty() }
+        // Le corps : le payload sans les identifiants passés dans le chemin.
+        val body = if (route.hasBody) JsonObject(p.filterKeys { it !in route.pathFields }) else null
         val response = try {
             http.post(path) {
                 header("Idempotency-Key", action.opId)
@@ -119,6 +113,28 @@ class ActionSender(private val http: HttpClient) {
                 else -> SendOutcome.Retry(r.error?.code ?: "http_${r.httpStatus}")
             }
         }
+    }
+
+    private class Route(val path: String, val hasBody: Boolean) {
+        val pathFields: Set<String> = Regex("\\{(\\w+)}").findAll(path).map { it.groupValues[1] }.toSet()
+    }
+
+    private companion object {
+        /** Endpoint unitaire de chaque type d'action (mêmes chemins que l'ActionRegistry de l'API). */
+        val ROUTES = mapOf(
+            "question.create" to Route("api/v1/questions", hasBody = true),
+            "answer.create" to Route("api/v1/questions/{questionId}/answers", hasBody = true),
+            "answer.vote" to Route("api/v1/answers/{answerId}/vote", hasBody = false),
+            "answer.accept" to Route("api/v1/answers/{answerId}/accept", hasBody = false),
+            "question.claim" to Route("api/v1/questions/{questionId}/claim", hasBody = false),
+            "join_request.create" to Route("api/v1/rooms/{roomId}/join", hasBody = true),
+            "join_request.decide" to Route("api/v1/join-requests/{requestId}/decide", hasBody = true),
+            "task.create" to Route("api/v1/rooms/{roomId}/tasks", hasBody = true),
+            "task.take" to Route("api/v1/tasks/{taskId}/take", hasBody = false),
+            "task.submit" to Route("api/v1/tasks/{taskId}/submit", hasBody = true),
+            "task.complete" to Route("api/v1/tasks/{taskId}/complete", hasBody = true),
+            "room_message.create" to Route("api/v1/rooms/{roomId}/messages", hasBody = true),
+        )
     }
 
     private suspend fun classify(response: HttpResponse): SendOutcome {

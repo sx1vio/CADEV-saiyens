@@ -8,7 +8,16 @@ import africa.devhub.resources.Res
 import africa.devhub.resources.email_back
 import africa.devhub.resources.nav_home
 import africa.devhub.resources.nav_passport
+import africa.devhub.resources.nav_rooms
 import africa.devhub.resources.nav_sos
+import africa.devhub.resources.rooms_create
+import africa.devhub.rooms.CreateRoomViewModel
+import africa.devhub.rooms.RoomViewModel
+import africa.devhub.rooms.RoomsViewModel
+import africa.devhub.ui.rooms.CreateRoomScreen
+import africa.devhub.ui.rooms.RoomActions
+import africa.devhub.ui.rooms.RoomScreen
+import africa.devhub.ui.rooms.RoomsScreen
 import africa.devhub.resources.ask_title
 import africa.devhub.sos.AskViewModel
 import africa.devhub.sos.QuestionViewModel
@@ -83,6 +92,15 @@ private data object AskRoute
 @Serializable
 private data object SyncRoute
 
+@Serializable
+private data object RoomsRoute
+
+@Serializable
+private data class RoomRoute(val code: String)
+
+@Serializable
+private data object CreateRoomRoute
+
 private data class TopLevel(val label: StringResource, val icon: ImageVector, val route: Any)
 
 /** Espace connecté : barre de navigation en bas, pile d'écrans par onglet. */
@@ -100,18 +118,23 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
     val tabs = listOf(
         TopLevel(Res.string.nav_home, DevHubIcons.Home, HomeRoute),
         TopLevel(Res.string.nav_sos, DevHubIcons.Help, SosRoute),
+        TopLevel(Res.string.nav_rooms, DevHubIcons.Folder, RoomsRoute),
         TopLevel(Res.string.nav_passport, DevHubIcons.Person, PassportRoute(me.handle)),
     )
     val onProofs = destination?.hasRoute<ProofsRoute>() == true
     val onQuestion = destination?.hasRoute<QuestionRoute>() == true
     val onAsk = destination?.hasRoute<AskRoute>() == true
     val onSync = destination?.hasRoute<SyncRoute>() == true
+    val onRoom = destination?.hasRoute<RoomRoute>() == true
+    val onCreateRoom = destination?.hasRoute<CreateRoomRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
         onProofs -> Res.string.proofs_title
         onQuestion -> Res.string.nav_sos
         onAsk -> Res.string.ask_title
         onSync -> Res.string.sync_title
+        onRoom -> Res.string.nav_rooms
+        onCreateRoom -> Res.string.rooms_create
         else -> null
     }
 
@@ -134,6 +157,7 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                     val selected = when (tab.route) {
                         is HomeRoute -> destination?.hasRoute<HomeRoute>() == true
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
+                        is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         else -> destination?.hasRoute<PassportRoute>() == true || onProofs
                     }
                     NavigationBarItem(
@@ -240,6 +264,50 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                         }
                     }
                     AskScreen(state, vm::edit, vm::toggleTag, vm::loadTags, vm::send)
+                }
+                composable<RoomsRoute> {
+                    val vm = viewModel { RoomsViewModel(graph.roomsApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    RoomsScreen(
+                        state = state,
+                        onMine = vm::setMine,
+                        onQuery = vm::setQuery,
+                        onRetry = { vm.reload() },
+                        onLoadMore = vm::loadMore,
+                        onOpen = { navController.navigate(RoomRoute(it)) },
+                        onCreate = { navController.navigate(CreateRoomRoute) },
+                    )
+                }
+                composable<RoomRoute> { backStack ->
+                    val code = backStack.toRoute<RoomRoute>().code
+                    val vm = viewModel { RoomViewModel(graph.roomsApi, code, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    RoomScreen(
+                        state = state,
+                        meHandle = me.handle,
+                        actions = RoomActions(
+                            onRetry = vm::refresh,
+                            onJoin = vm::join,
+                            onDecide = vm::decide,
+                            onTake = vm::takeTask,
+                            onSubmit = vm::submitTask,
+                            onComplete = vm::completeTask,
+                            onCreateTask = vm::createTask,
+                            onPostMessage = vm::postMessage,
+                        ),
+                    )
+                }
+                composable<CreateRoomRoute> {
+                    val vm = viewModel { CreateRoomViewModel(graph.roomsApi, graph.sosApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    val createdCode = state.createdCode
+                    LaunchedEffect(createdCode) {
+                        if (createdCode != null) {
+                            vm.consumeCreated()
+                            navController.navigate(RoomRoute(createdCode)) { popUpTo<CreateRoomRoute> { inclusive = true } }
+                        }
+                    }
+                    CreateRoomScreen(state, online, vm::edit, vm::toggleTag, vm::send)
                 }
                 composable<ProofsRoute> { backStack ->
                     val handle = backStack.toRoute<ProofsRoute>().handle

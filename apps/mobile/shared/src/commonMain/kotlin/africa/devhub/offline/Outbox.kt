@@ -41,8 +41,8 @@ data class OutboxAction(
     val dependsOn: List<String> = emptyList(),
     /** Aperçu lisible, pour le centre de synchronisation (O8). */
     val preview: String = "",
-    /** Question concernée (identifiant serveur ou « client:<uuid> »), pour l'affichage optimiste. */
-    val questionRef: String? = null,
+    /** Contenu concerné (question, salle ; identifiant serveur ou « client:<uuid> »), pour l'affichage optimiste. */
+    val target: String? = null,
 )
 
 /**

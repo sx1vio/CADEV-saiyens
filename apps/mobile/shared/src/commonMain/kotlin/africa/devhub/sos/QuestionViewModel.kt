@@ -82,7 +82,7 @@ class QuestionViewModel(
         }
         viewModelScope.launch {
             space.outbox.actions.collect { actions ->
-                pending = actions.filter { it.type == "answer.create" && it.questionRef == questionId }
+                pending = actions.filter { it.type == "answer.create" && it.target == questionId }
                     .map { PendingAnswer(it.opId, it.preview, it.status != ActionStatus.Pending) }
                 _state.update { (it as? QuestionState.Loaded)?.copy(pendingAnswers = pending) ?: it }
             }

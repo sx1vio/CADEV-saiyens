@@ -7,6 +7,7 @@ import africa.devhub.core.AppConfig
 import africa.devhub.me.MeApi
 import africa.devhub.network.createHttpClient
 import africa.devhub.passport.PassportApi
+import africa.devhub.rooms.RoomsApi
 import africa.devhub.sos.SosApi
 import africa.devhub.platform.AuthBrowser
 import africa.devhub.platform.SecureStore
@@ -48,6 +49,7 @@ class AppGraph(
     val meApi = MeApi(http)
     val passportApi = PassportApi(http)
     val sosApi = SosApi(http)
+    val roomsApi = RoomsApi(http)
     val auth = AuthRepository(config, AuthApi(http), authBrowser, sessions)
 
     val connectivity = Connectivity(connectivityProbe)

@@ -26,6 +26,7 @@ apps/mobile/
 | `me`                              | `GET /me`, code de conduite                                                                      |
 | `passport`                        | Passport public, preuves paginées, réimport GitHub                                               |
 | `sos`                             | SOS Dev : liste, question, piste IA, réponses, votes, validation, « Je m\'en occupe »            |
+| `rooms`                           | Salles : liste, création, tâches (Kanban), adhésion, discussion                                  |
 | `offline`                         | Hors ligne : cache de lecture, file d\'actions, synchronisation, connectivité, espace par compte |
 | `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                              |
 | `ui`                              | Thème (couleurs du web), écrans, navigation                                                      |
@@ -88,4 +89,4 @@ DEVHUB_E2E_API_URL=http://localhost:3000 ./gradlew :shared:testAndroidHostTest -
 
 ## Étapes suivantes
 
-Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne (cette version) ; 5. salles ; 6. notifications ; 7. découverte, classement, règles, réglages ; 8. services écosystème.
+Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet (cette version) ; 6. notifications ; 7. découverte, classement, règles, réglages ; 8. services écosystème.
