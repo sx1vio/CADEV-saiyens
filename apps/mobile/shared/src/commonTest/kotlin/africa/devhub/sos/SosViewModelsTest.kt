@@ -18,7 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -55,25 +55,33 @@ class SosViewModelsTest {
     private fun body(request: HttpRequestData) = Json.parseToJsonElement((request.body as TextContent).text).jsonObject
 
     private fun TestScope.graph(handler: suspend (HttpRequestData) -> String) =
-        testGraph(dispatcher = main) { request ->
+        testGraph(dispatcher = main, now = { testScheduler.currentTime }, scope = backgroundScope) { request ->
             requests += request
             json(handler(request))
         }
+
+    /** Laisse passer le regroupement des envois, les réponses et les relectures (temps virtuel). */
+    private fun TestScope.settle() {
+        advanceTimeBy(5_000)
+        runCurrent()
+    }
+
+    private fun africa.devhub.app.AppGraph.space() = userSpace("7f1e0c1a-0000-4000-8000-000000000001")
 
     @Test
     fun filtersSearchAndPages() = runTest(main) {
         val graph = graph { r -> questionListJson(listOf(1, 2), nextCursor = if (r.url.parameters["cursor"] == null) "c2" else null) }
         val vm = QuestionsViewModel(graph.sosApi).tracked()
-        advanceUntilIdle()
+        settle()
         assertEquals(2, vm.state.value.items.size)
 
         vm.setFilter(QuestionFilter.Unanswered)
-        advanceUntilIdle()
+        settle()
         assertEquals("true", requests.last().url.parameters["unanswered"])
         assertEquals("waiting", requests.last().url.parameters["sort"])
 
         vm.loadMore()
-        advanceUntilIdle()
+        settle()
         assertEquals("c2", requests.last().url.parameters["cursor"])
         assertEquals(4, vm.state.value.items.size)
         assertEquals(false, vm.state.value.hasMore)
@@ -83,7 +91,7 @@ class SosViewModelsTest {
         vm.setQuery("gr")
         advanceTimeBy(100)
         vm.setQuery("gradle")
-        advanceUntilIdle()
+        settle()
         assertEquals(before + 1, requests.size)
         assertEquals("gradle", requests.last().url.parameters["q"])
     }
@@ -92,8 +100,8 @@ class SosViewModelsTest {
     fun pollsThePendingAiHintUntilItArrives() = runTest(main) {
         var reads = 0
         val graph = graph { reads++; questionJson(aiStatus = if (reads < 3) "pending" else "done") }
-        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111", pollIntervalMs = 1_000).tracked()
-        advanceUntilIdle()
+        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111", graph.space(), pollIntervalMs = 1_000).tracked()
+        settle()
         val loaded = assertIs<QuestionState.Loaded>(vm.state.value)
         assertEquals("done", loaded.question.aiStatus)
         assertEquals("Définis sdk.dir", loaded.question.aiHint)
@@ -101,38 +109,57 @@ class SosViewModelsTest {
     }
 
     @Test
-    fun anAnswerRetriedAfterAFailureKeepsItsKeys() = runTest(main) {
+    fun anAnswerWrittenDuringACutIsResentByTheQueueWithTheSameKeys() = runTest(main) {
         var posts = 0
-        val graph = testGraph(dispatcher = main) { request ->
+        val graph = testGraph(dispatcher = main, now = { testScheduler.currentTime }, scope = backgroundScope) { request ->
             requests += request
             if (request.method == HttpMethod.Post) {
                 posts++
                 if (posts == 1) throw IllegalStateException("coupure")
-                json("""{"id":"22222222-2222-4222-8222-222222222222","secretsMasked":1}""", HttpStatusCode.Created)
+                json("""{"id":"22222222-2222-4222-8222-222222222222","secretsMasked":0}""", HttpStatusCode.Created)
             } else {
                 json(questionJson())
             }
         }
-        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111").tracked()
-        advanceUntilIdle()
+        val space = graph.space()
+        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111", space).tracked()
+        settle()
 
         vm.postAnswer("Ajoute local.properties")
-        advanceUntilIdle()
-        assertEquals(SosNotice.Failed("network"), (vm.state.value as QuestionState.Loaded).notice)
-        vm.postAnswer("Ajoute local.properties")
-        advanceUntilIdle()
-        vm.postAnswer("Une deuxième réponse")
-        advanceUntilIdle()
+        advanceTimeBy(1_000)
+        val waiting = assertIs<QuestionState.Loaded>(vm.state.value)
+        assertEquals(1, waiting.pendingAnswers.size)
+        assertEquals(1, waiting.answersPosted)
 
+        // Le moteur renvoie la même action au retour du réseau, sans que l'écran y touche.
+        advanceTimeBy(65_000)
+        settle()
         val sent = requests.filter { it.method == HttpMethod.Post }
-        assertEquals(3, sent.size)
+        assertEquals(2, sent.size)
         assertEquals(sent[0].headers["Idempotency-Key"], sent[1].headers["Idempotency-Key"])
         assertEquals(body(sent[0])["clientId"], body(sent[1])["clientId"])
-        assertNotEquals(sent[1].headers["Idempotency-Key"], sent[2].headers["Idempotency-Key"])
-        val loaded = assertIs<QuestionState.Loaded>(vm.state.value)
-        assertEquals(SosNotice.SecretsMasked(1), loaded.notice)
-        assertEquals(2, loaded.answersPosted)
         assertTrue(sent.all { it.url.encodedPath == "/api/v1/questions/11111111-1111-4111-8111-111111111111/answers" })
+        assertTrue(space.outbox.actions.value.isEmpty())
+        assertTrue(assertIs<QuestionState.Loaded>(vm.state.value).pendingAnswers.isEmpty())
+    }
+
+    @Test
+    fun aSecretInAnAnswerIsMaskedBeforeItIsStored() = runTest(main) {
+        val graph = testGraph(dispatcher = main, now = { testScheduler.currentTime }, scope = backgroundScope) { request ->
+            requests += request
+            if (request.method == HttpMethod.Post) throw IllegalStateException("hors ligne") else json(questionJson())
+        }
+        val space = graph.space()
+        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111", space).tracked()
+        settle()
+
+        vm.postAnswer("Mon jeton : " + "ghp" + "_" + "c".repeat(36))
+        advanceTimeBy(1_000)
+
+        val stored = space.outbox.actions.value.single().payload["body"].toString()
+        assertTrue("ghp_" !in stored)
+        assertTrue("[secret masqué]" in stored)
+        assertEquals(SosNotice.SecretsMasked(1), (vm.state.value as QuestionState.Loaded).notice)
     }
 
     @Test
@@ -149,15 +176,15 @@ class SosViewModelsTest {
                 else -> questionJson(status = if (accepted) "resolved" else "open", answers = "[${answerJson(answerId, accepted = accepted)}]")
             }
         }
-        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111").tracked()
-        advanceUntilIdle()
+        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111", graph.space()).tracked()
+        settle()
 
         vm.vote(answerId)
-        advanceUntilIdle()
+        settle()
         assertEquals(SosNotice.AlreadyVoted, (vm.state.value as QuestionState.Loaded).notice)
 
         vm.accept(answerId)
-        advanceUntilIdle()
+        settle()
         val loaded = assertIs<QuestionState.Loaded>(vm.state.value)
         assertEquals(SosNotice.Accepted, loaded.notice)
         assertEquals("resolved", loaded.question.status)
@@ -167,30 +194,31 @@ class SosViewModelsTest {
 
     @Test
     fun anUnknownQuestionIsNotFound() = runTest(main) {
-        val graph = testGraph(dispatcher = main) { problem(HttpStatusCode.NotFound, "not_found") }
-        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111").tracked()
-        advanceUntilIdle()
+        val graph = testGraph(dispatcher = main, now = { testScheduler.currentTime }, scope = backgroundScope) { problem(HttpStatusCode.NotFound, "not_found") }
+        val vm = QuestionViewModel(graph.sosApi, "11111111-1111-4111-8111-111111111111", graph.space()).tracked()
+        settle()
         assertEquals(QuestionState.NotFound, vm.state.value)
     }
 
     @Test
     fun askValidatesThenPublishes() = runTest(main) {
         var asks = 0
-        val graph = testGraph(dispatcher = main) { request ->
+        val graph = testGraph(dispatcher = main, now = { testScheduler.currentTime }, scope = backgroundScope) { request ->
             requests += request
             when (request.url.encodedPath) {
                 "/api/v1/tags" -> json("""{"data":[{"slug":"kotlin","label":"Kotlin","aliases":["kt"]}]}""")
                 else -> {
                     asks++
-                    if (asks == 1) problem(HttpStatusCode.TooManyRequests, "rate_limited")
+                    if (asks == 1) problem(HttpStatusCode.BadRequest, "validation.failed")
                     else json("""{"id":"44444444-4444-4444-8444-444444444444","clientId":"x","status":"open","aiStatus":"pending",
                         "version":1,"createdAt":"2026-11-07T08:00:00.000Z","secretsMasked":0,
                         "author":{"handle":"awa-dev","displayName":"Awa","avatarUrl":null,"isDemo":false}}""", HttpStatusCode.Created)
                 }
             }
         }
-        val vm = AskViewModel(graph.sosApi, uiLang = "fr").tracked()
-        advanceUntilIdle()
+        val space = graph.space()
+        val vm = AskViewModel(graph.sosApi, space, uiLang = "fr").tracked()
+        settle()
         assertEquals(1, vm.state.value.tags.size)
 
         vm.edit { it.copy(title = "Trop court", body = "Détails") }
@@ -201,21 +229,42 @@ class SosViewModelsTest {
         vm.edit { it.copy(reproUrl = "") }
         assertTrue(vm.state.value.canSend)
 
+        // Refus définitif : l'erreur s'affiche, le brouillon reste, la file l'oublie.
         vm.send()
-        advanceUntilIdle()
-        assertEquals("rate_limited", vm.state.value.error)
-        vm.send()
-        advanceUntilIdle()
-        assertEquals("44444444-4444-4444-8444-444444444444", vm.state.value.created?.id)
+        settle()
+        assertEquals("validation.failed", vm.state.value.error)
+        assertTrue(space.outbox.actions.value.isEmpty())
 
-        val posts = requests.filter { it.method == HttpMethod.Post }
-        assertEquals(posts[0].headers["Idempotency-Key"], posts[1].headers["Idempotency-Key"])
-        val sent = body(posts[1])
+        vm.send()
+        settle()
+        assertEquals("44444444-4444-4444-8444-444444444444", vm.state.value.created?.id)
+        val sent = body(requests.last { it.method == HttpMethod.Post })
         assertEquals("fr", sent["lang"]!!.jsonPrimitive.content)
         assertEquals("kotlin", sent["tagSlugs"].toString().trim('[', ']', '"'))
-        assertNull(sent["reproUrl"]?.jsonPrimitive?.content)
+        assertEquals("null", sent["reproUrl"].toString())
 
         vm.consumeCreated()
         assertEquals("", vm.state.value.draft.title)
+    }
+
+    @Test
+    fun offlineAQuestionWaitsInTheQueue() = runTest(main) {
+        val graph = testGraph(dispatcher = main, now = { testScheduler.currentTime }, scope = backgroundScope) { request ->
+            requests += request
+            if (request.url.encodedPath == "/api/v1/tags") json("""{"data":[{"slug":"kotlin","label":"Kotlin","aliases":[]}]}""")
+            else throw IllegalStateException("hors ligne")
+        }
+        val space = graph.space()
+        val vm = AskViewModel(graph.sosApi, space, uiLang = "fr").tracked()
+        settle()
+        vm.edit { it.copy(title = "Gradle ne trouve pas le SDK Android", body = "Détails") }
+        vm.toggleTag("kotlin")
+        vm.send()
+        advanceTimeBy(9_000)
+
+        assertTrue(vm.state.value.queued)
+        val queued = space.outbox.actions.value.single()
+        assertEquals("question.create", queued.type)
+        assertEquals("Gradle ne trouve pas le SDK Android", queued.preview)
     }
 }

@@ -2,6 +2,9 @@ package africa.devhub.ui.sos
 
 import africa.devhub.resources.Res
 import africa.devhub.resources.answers_count
+import africa.devhub.resources.cached_copy
+import africa.devhub.resources.pending_badge
+import africa.devhub.resources.pending_failed
 import africa.devhub.resources.filter_for_me
 import africa.devhub.resources.filter_mine
 import africa.devhub.resources.filter_recent
@@ -14,6 +17,7 @@ import africa.devhub.resources.sos_ask
 import africa.devhub.resources.sos_empty
 import africa.devhub.resources.sos_failed
 import africa.devhub.resources.sos_search
+import africa.devhub.sos.PendingQuestion
 import africa.devhub.sos.QuestionFilter
 import africa.devhub.sos.QuestionSummary
 import africa.devhub.sos.QuestionsState
@@ -40,6 +44,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,6 +84,10 @@ fun QuestionsScreen(
                 )
             }
             item { Filters(state.filter, onFilter) }
+            if (state.cachedAt != null) {
+                item { Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+            items(state.pending, key = { "pending-" + it.opId }) { PendingCard(it) }
             if (!state.loading && !state.failed && state.items.isEmpty()) {
                 item { Text(stringResource(Res.string.sos_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
@@ -102,6 +111,20 @@ fun QuestionsScreen(
             onClick = onAsk,
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         ) { Text(stringResource(Res.string.sos_ask)) }
+    }
+}
+
+@Composable
+private fun PendingCard(pending: PendingQuestion) {
+    OutlinedCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(pending.title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(if (pending.failed) Res.string.pending_failed else Res.string.pending_badge),
+                style = MaterialTheme.typography.labelLarge,
+                color = if (pending.failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            )
+        }
     }
 }
 

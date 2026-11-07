@@ -12,7 +12,8 @@ struct ContentView: UIViewControllerRepresentable {
             apiBaseUrl: apiUrl,
             devSignIn: devSignIn,
             secureStore: KeychainStore(),
-            authSession: WebAuthSession()
+            authSession: WebAuthSession(),
+            connectivity: NetworkMonitor()
         )
     }
 

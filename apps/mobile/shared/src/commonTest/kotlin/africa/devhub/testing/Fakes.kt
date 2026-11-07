@@ -13,7 +13,12 @@ import io.ktor.client.request.HttpResponseData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import africa.devhub.offline.LocalFiles
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import okio.fakefilesystem.FakeFileSystem
 
 val testConfig = AppConfig(apiBaseUrl = "https://api.test")
 
@@ -59,6 +64,9 @@ fun testGraph(
     store: FakeSecureStore = FakeSecureStore(),
     browser: FakeAuthBrowser = FakeAuthBrowser(),
     dispatcher: CoroutineDispatcher? = null,
+    now: () -> Long = { 0L },
+    /** Portée du moteur de synchronisation ; dans un test, backgroundScope (annulée à la fin). */
+    scope: CoroutineScope? = null,
     handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData,
 ): AppGraph {
     val engine = MockEngine(
@@ -67,7 +75,17 @@ fun testGraph(
             dispatcher?.let { this.dispatcher = it }
         },
     )
-    return AppGraph(testConfig, store, browser, engine)
+    // Le moteur de synchronisation tourne sur le dispatcher du test (temps virtuel), sinon à part.
+    val engineScope = scope ?: CoroutineScope(SupervisorJob() + (dispatcher ?: Dispatchers.Default))
+    return AppGraph(
+        config = testConfig,
+        secureStore = store,
+        authBrowser = browser,
+        storage = LocalFiles(FakeFileSystem(), "/app"),
+        engine = engine,
+        scope = engineScope,
+        now = now,
+    )
 }
 
 const val SESSION_KEY = "devhub.session"

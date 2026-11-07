@@ -4,6 +4,9 @@ import africa.devhub.app.AppGraph
 import africa.devhub.auth.SignInResult
 import africa.devhub.core.AppConfig
 import africa.devhub.core.newUuid
+import africa.devhub.offline.LocalFiles
+import africa.devhub.sos.AskDraft
+import okio.fakefilesystem.FakeFileSystem
 import africa.devhub.sos.AskQuestionRequest
 import africa.devhub.sos.PostAnswerRequest
 import africa.devhub.sos.QuestionFilter
@@ -53,10 +56,17 @@ class LiveApiTest {
         }
     }
 
+    private fun liveGraph(url: String) = AppGraph(
+        config = AppConfig(apiBaseUrl = url),
+        secureStore = FakeSecureStore(),
+        authBrowser = RedirectingBrowser(),
+        storage = LocalFiles(FakeFileSystem(), "/app"),
+    )
+
     @Test
     fun signInAcceptConductAndSignOutAgainstTheRealApi() = runTest {
         val url = apiUrl ?: return@runTest
-        val graph = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+        val graph = liveGraph(url)
         val login = "kmp-e2e-${Random.nextInt(0, Int.MAX_VALUE).toString(36)}"
 
         assertEquals(SignInResult.SignedIn, graph.auth.signInWithGithub(loginHint = login))
@@ -75,7 +85,7 @@ class LiveApiTest {
     @Test
     fun emailAccountThenPassportAndProofsAgainstTheRealApi() = runTest {
         val url = apiUrl ?: return@runTest
-        val graph = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+        val graph = liveGraph(url)
         val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
         val email = "kmp-e2e-$tag@example.test"
 
@@ -84,7 +94,7 @@ class LiveApiTest {
         assertEquals(SignInResult.SignedIn, graph.auth.signInWithEmail(email, "une phrase assez longue"))
         assertEquals(
             SignInResult.Failed("auth.bad_credentials"),
-            AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+            liveGraph(url)
                 .auth.signInWithEmail(email, "mauvais mot de passe"),
         )
 
@@ -102,8 +112,8 @@ class LiveApiTest {
     fun sosDevAskAnswerVoteAcceptAgainstTheRealApi() = runTest {
         val url = apiUrl ?: return@runTest
         val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
-        val asker = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
-        val helper = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+        val asker = liveGraph(url)
+        val helper = liveGraph(url)
         assertEquals(SignInResult.SignedIn, asker.auth.signInWithGithub(loginHint = "kmp-ask-$tag"))
         assertEquals(SignInResult.SignedIn, helper.auth.signInWithGithub(loginHint = "kmp-help-$tag"))
         asker.meApi.acceptCodeOfConduct()
@@ -136,5 +146,41 @@ class LiveApiTest {
         assertEquals(answer.id, resolved.acceptedAnswerId)
         val mine = asker.sosApi.questions(QuestionFilter.Mine)
         assertEquals(created.id, mine.data.first().id)
+    }
+
+    @Test
+    fun offlineWritesAreSentAsOneSyncBatchWithLocalReferences() = runTest {
+        val url = apiUrl ?: return@runTest
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val graph = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, graph.auth.signInWithGithub(loginHint = "kmp-off-$tag"))
+        val me = graph.meApi.me()
+        graph.meApi.acceptCodeOfConduct()
+        val space = graph.userSpace(me.id)
+        val slug = graph.sosApi.tags().data.first().slug
+
+        // Hors ligne : trois questions et une réponse à la première, qui n'a pas encore d'identifiant.
+        val drafts = (1..3).map { i ->
+            AskDraft(title = "Question écrite hors ligne numéro $i", body = "Détails $i", tagSlugs = listOf(slug), lang = "fr")
+        }
+        space.connectivity.reportUnreachable()
+        val asked = drafts.map { space.writer.ask(it, waitMs = 0) }
+        val answer = space.writer.answer("client:" + asked[0].clientId, "Réponse écrite hors ligne", waitMs = 0)
+        assertEquals(4, space.outbox.actions.value.size)
+
+        // Retour du réseau : un seul lot POST /sync, résolu par l'API.
+        space.connectivity.reportReachable()
+        space.engine.kick()
+        val deadline = kotlin.time.TimeSource.Monotonic.markNow()
+        while (space.outbox.actions.value.isNotEmpty() && deadline.elapsedNow().inWholeSeconds < 20) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { kotlinx.coroutines.delay(100) }
+        }
+        assertEquals(emptyList(), space.outbox.actions.value.map { it.type to it.lastError })
+        val firstId = space.outbox.resolved(asked[0].clientId!!)!!
+        val first = graph.sosApi.question(firstId)
+        assertEquals("Question écrite hors ligne numéro 1", first.title)
+        assertEquals("Réponse écrite hors ligne", first.answers.single().body)
+        assertEquals(answer.clientId?.let { space.outbox.resolved(it) }, first.answers.single().id)
+        graph.forgetUser()
     }
 }

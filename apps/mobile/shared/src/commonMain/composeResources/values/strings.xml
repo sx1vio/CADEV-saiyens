@@ -180,4 +180,42 @@
         <item quantity="one">%1$d secret masked before publishing.</item>
         <item quantity="other">%1$d secrets masked before publishing.</item>
     </plurals>
+    <string name="net_offline">Offline</string>
+    <string name="net_syncing">Syncing…</string>
+    <string name="net_open_center">Open the sync center</string>
+    <string name="sync_title">Sync</string>
+    <string name="sync_intro">What you write without network waits here and leaves when the connection returns, without duplicates.</string>
+    <string name="sync_empty">Nothing waiting: everything is sent.</string>
+    <string name="sync_now">Retry now</string>
+    <string name="sync_retry">Retry</string>
+    <string name="sync_cancel">Cancel</string>
+    <string name="sync_status_pending">Waiting</string>
+    <string name="sync_status_failed">Failed: %1$s</string>
+    <string name="sync_status_conflict">Conflict: edited elsewhere in the meantime</string>
+    <string name="sync_cancel_create_hint">Cancelling a question also cancels the actions that depend on it.</string>
+    <string name="action_question">Question</string>
+    <string name="action_answer">Answer</string>
+    <string name="action_vote">Helpful vote</string>
+    <string name="action_accept">Accept an answer</string>
+    <string name="action_claim">I’m on it</string>
+    <string name="pending_badge">Waiting to be sent</string>
+    <string name="pending_failed">Not sent: see Sync</string>
+    <string name="cached_copy">Offline copy: shown as last loaded.</string>
+    <string name="notice_queued">Saved on your phone: it will be sent when the network returns.</string>
+    <string name="ask_queued">Question saved: it will be published when the network returns.</string>
+    <string name="signout_title">Sign out?</string>
+    <string name="signout_cancel">Stay signed in</string>
+    <string name="error_storage">Couldn’t save on the phone. Free some space, then try again.</string>
+    <plurals name="net_pending">
+        <item quantity="one">%1$d action waiting</item>
+        <item quantity="other">%1$d actions waiting</item>
+    </plurals>
+    <plurals name="net_failed">
+        <item quantity="one">%1$d action failed</item>
+        <item quantity="other">%1$d actions failed</item>
+    </plurals>
+    <plurals name="signout_pending">
+        <item quantity="one">%1$d action isn’t sent yet. Signing out will erase it from this phone.</item>
+        <item quantity="other">%1$d actions aren’t sent yet. Signing out will erase them from this phone.</item>
+    </plurals>
 </resources>

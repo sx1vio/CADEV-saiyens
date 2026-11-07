@@ -33,5 +33,6 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         app.authBrowser.attach(this)
         app.authBrowser.onResume()
+        app.graph.onForeground()
     }
 }
