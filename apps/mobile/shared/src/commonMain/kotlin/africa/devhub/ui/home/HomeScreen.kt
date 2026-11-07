@@ -5,6 +5,8 @@ import africa.devhub.resources.Res
 import africa.devhub.resources.home_greeting
 import africa.devhub.resources.home_discover
 import africa.devhub.resources.home_leaderboard
+import africa.devhub.resources.home_messages
+import africa.devhub.resources.home_news
 import africa.devhub.resources.home_rules
 import africa.devhub.resources.home_settings
 import africa.devhub.resources.sign_out
@@ -43,6 +45,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Accès depuis l'accueil aux écrans sans onglet. */
 class HomeLinks(
+    val onNews: () -> Unit,
+    val onMessages: () -> Unit,
     val onDiscover: () -> Unit,
     val onLeaderboard: () -> Unit,
     val onRules: () -> Unit,
@@ -95,6 +99,8 @@ fun HomeScreen(me: Me, pendingActions: Int, links: HomeLinks, onSignOut: () -> U
         )
 
         listOf(
+            Res.string.home_news to links.onNews,
+            Res.string.home_messages to links.onMessages,
             Res.string.home_discover to links.onDiscover,
             Res.string.home_leaderboard to links.onLeaderboard,
             Res.string.home_rules to links.onRules,

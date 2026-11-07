@@ -134,6 +134,9 @@ class ActionSender(private val http: HttpClient) {
             "task.submit" to Route("api/v1/tasks/{taskId}/submit", hasBody = true),
             "task.complete" to Route("api/v1/tasks/{taskId}/complete", hasBody = true),
             "room_message.create" to Route("api/v1/rooms/{roomId}/messages", hasBody = true),
+            // Type propre à l'application : la messagerie privée n'est pas dans /sync ; le clientId
+            // suffit à l'API pour ne jamais dupliquer un message renvoyé.
+            "dm.create" to Route("api/v1/conversations/{conversationId}/messages", hasBody = true),
         )
     }
 

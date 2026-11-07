@@ -45,6 +45,16 @@ import africa.devhub.ui.components.NetworkBar
 import africa.devhub.ui.sync.SyncCenterScreen
 import kotlinx.coroutines.launch
 import africa.devhub.discover.DiscoverViewModel
+import africa.devhub.messages.ConversationViewModel
+import africa.devhub.messages.ConversationsViewModel
+import africa.devhub.news.NewsViewModel
+import africa.devhub.resources.messages_title
+import africa.devhub.resources.news_title
+import africa.devhub.ui.messages.ConversationScreen
+import africa.devhub.ui.messages.ConversationsScreen
+import africa.devhub.ui.news.NewsScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import africa.devhub.discover.RulesViewModel
 import africa.devhub.resources.discover_title
 import africa.devhub.resources.home_settings
@@ -127,6 +137,15 @@ private data object RulesRoute
 private data object SettingsRoute
 
 @Serializable
+private data object NewsRoute
+
+@Serializable
+private data object ConversationsRoute
+
+@Serializable
+private data class ConversationRoute(val id: String)
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -174,6 +193,8 @@ fun SignedInArea(
     val onDiscover = destination?.hasRoute<DiscoverRoute>() == true
     val onRules = destination?.hasRoute<RulesRoute>() == true
     val onSettings = destination?.hasRoute<SettingsRoute>() == true
+    val onNews = destination?.hasRoute<NewsRoute>() == true
+    val onConversations = destination?.hasRoute<ConversationsRoute>() == true || destination?.hasRoute<ConversationRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
         onProofs -> Res.string.proofs_title
@@ -185,6 +206,8 @@ fun SignedInArea(
         onDiscover -> Res.string.discover_title
         onRules -> Res.string.rules_title
         onSettings -> Res.string.home_settings
+        onNews -> Res.string.news_title
+        onConversations -> Res.string.messages_title
         else -> null
     }
 
@@ -205,7 +228,7 @@ fun SignedInArea(
             NavigationBar {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings
+                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
@@ -251,6 +274,8 @@ fun SignedInArea(
                         me = me,
                         pendingActions = actions.size,
                         links = HomeLinks(
+                            onNews = { navController.navigate(NewsRoute) },
+                            onMessages = { navController.navigate(ConversationsRoute) },
                             onDiscover = { navController.navigate(DiscoverRoute()) },
                             onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
                             onRules = { navController.navigate(RulesRoute) },
@@ -275,6 +300,22 @@ fun SignedInArea(
                         onOpenDev = { navController.navigate(PassportRoute(it)) },
                     )
                 }
+                composable<NewsRoute> {
+                    val vm = viewModel { NewsViewModel(graph.newsApi, space, lang = "all") }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    NewsScreen(state, vm::setLang, vm::setQuery, vm::reload)
+                }
+                composable<ConversationsRoute> {
+                    val vm = viewModel { ConversationsViewModel(graph.messagesApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    ConversationsScreen(state, onOpen = { navController.navigate(ConversationRoute(it.id)) }, onRetry = vm::reload)
+                }
+                composable<ConversationRoute> { backStack ->
+                    val id = backStack.toRoute<ConversationRoute>().id
+                    val vm = viewModel { ConversationViewModel(graph.messagesApi, space, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    ConversationScreen(state, vm::send, vm::loadOlder, onRetry = { navController.popBackStack() })
+                }
                 composable<RulesRoute> {
                     val vm = viewModel { RulesViewModel(graph.discoverApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
@@ -298,12 +339,21 @@ fun SignedInArea(
                     val mine = handle.equals(me.handle, ignoreCase = true)
                     val vm = viewModel { PassportViewModel(graph.passportApi, handle, space, mine) }
                     val state by vm.state.collectAsStateWithLifecycle()
+                    var writeFailed by remember(handle) { mutableStateOf(false) }
                     PassportScreen(
                         state = state,
                         isMine = handle.equals(me.handle, ignoreCase = true),
                         onRetry = vm::load,
                         onRefreshGithub = vm::refreshGithub,
                         onSeeProofs = { navController.navigate(ProofsRoute(handle)) },
+                        onWrite = {
+                            scope.launch {
+                                runCatching { graph.messagesApi.start(handle) }
+                                    .onSuccess { navController.navigate(ConversationRoute(it.id)) }
+                                    .onFailure { writeFailed = true }
+                            }
+                        },
+                        writeFailed = writeFailed,
                     )
                 }
                 composable<SosRoute> {

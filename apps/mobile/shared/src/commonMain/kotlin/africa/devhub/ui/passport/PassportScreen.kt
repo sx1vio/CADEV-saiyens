@@ -29,6 +29,8 @@ import africa.devhub.resources.passport_see_proofs
 import africa.devhub.resources.passport_skills
 import africa.devhub.resources.passport_stats
 import africa.devhub.resources.passport_want_learn
+import africa.devhub.resources.passport_write
+import africa.devhub.resources.passport_write_failed
 import africa.devhub.resources.refresh_done
 import africa.devhub.resources.refresh_github
 import africa.devhub.resources.refresh_not_linked
@@ -98,12 +100,15 @@ fun PassportScreen(
     onRetry: () -> Unit,
     onRefreshGithub: () -> Unit,
     onSeeProofs: () -> Unit,
+    /** Écrire à ce dev (Passport d'un autre membre) ; null sur son propre Passport. */
+    onWrite: (() -> Unit)? = null,
+    writeFailed: Boolean = false,
 ) {
     when (state) {
         PassportState.Loading -> LoadingScreen()
         PassportState.NotFound -> Message(stringResource(Res.string.passport_not_found), null)
         PassportState.Failed -> Message(stringResource(Res.string.passport_failed), onRetry)
-        is PassportState.Loaded -> Loaded(state, isMine, onRefreshGithub, onSeeProofs)
+        is PassportState.Loaded -> Loaded(state, isMine, onRefreshGithub, onSeeProofs, onWrite, writeFailed)
     }
 }
 
@@ -119,7 +124,14 @@ private fun Message(text: String, onRetry: (() -> Unit)?) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Loaded(state: PassportState.Loaded, isMine: Boolean, onRefreshGithub: () -> Unit, onSeeProofs: () -> Unit) {
+private fun Loaded(
+    state: PassportState.Loaded,
+    isMine: Boolean,
+    onRefreshGithub: () -> Unit,
+    onSeeProofs: () -> Unit,
+    onWrite: (() -> Unit)?,
+    writeFailed: Boolean,
+) {
     val passport = state.passport
     val user = passport.user
     val months = stringArrayResource(Res.array.months)
@@ -195,6 +207,10 @@ private fun Loaded(state: PassportState.Loaded, isMine: Boolean, onRefreshGithub
 
         Button(onClick = onSeeProofs, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(Res.string.passport_see_proofs))
+        }
+        if (!isMine && onWrite != null) {
+            OutlinedButton(onClick = onWrite, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.passport_write)) }
+            if (writeFailed) Text(stringResource(Res.string.passport_write_failed), color = MaterialTheme.colorScheme.error)
         }
         if (isMine && passport.trust.githubLinked) {
             OutlinedButton(
