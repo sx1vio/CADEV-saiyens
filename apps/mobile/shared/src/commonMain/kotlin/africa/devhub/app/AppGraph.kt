@@ -4,6 +4,7 @@ import africa.devhub.auth.AuthApi
 import africa.devhub.auth.AuthRepository
 import africa.devhub.auth.SessionStore
 import africa.devhub.core.AppConfig
+import africa.devhub.community.CommunityApi
 import africa.devhub.discover.DiscoverApi
 import africa.devhub.me.MeApi
 import africa.devhub.messages.MessagesApi
@@ -61,6 +62,7 @@ class AppGraph(
     val discoverApi = DiscoverApi(http)
     val newsApi = NewsApi(http)
     val messagesApi = MessagesApi(http)
+    val communityApi = CommunityApi(http)
     val notificationsApi = NotificationsApi(http)
     private val events: EventStream = eventStream ?: SseEventStream(http)
     val auth = AuthRepository(config, AuthApi(http), authBrowser, sessions)

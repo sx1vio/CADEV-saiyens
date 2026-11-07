@@ -341,4 +341,36 @@ class LiveApiTest {
         a.forgetUser()
         b.forgetUser()
     }
+
+    @Test
+    fun communityPostCommentAndVoteAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val a = liveGraph(url)
+        val b = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, a.auth.signInWithGithub(loginHint = "kmp-pst-a-$tag"))
+        assertEquals(SignInResult.SignedIn, b.auth.signInWithGithub(loginHint = "kmp-pst-b-$tag"))
+        a.meApi.acceptCodeOfConduct()
+        b.meApi.acceptCodeOfConduct()
+
+        val created = a.communityApi.create(
+            africa.devhub.community.CreatePostRequest(
+                community = "mobile",
+                kind = "question",
+                title = "Compose Multiplatform en production ?",
+                body = "Vos retours sur iOS.",
+                linkUrl = null,
+                code = null,
+                tags = emptyList(),
+            ),
+        )
+        // L'auteur compte d'office parmi les votes de sa publication : on part de son score initial.
+        val initial = a.communityApi.post(created.id).score
+        b.communityApi.comment(created.id, "Oui, depuis six mois.")
+        assertEquals(1, b.communityApi.vote(created.id, 1).myVote)
+        val seen = a.communityApi.post(created.id)
+        assertEquals(initial + 1, seen.score)
+        assertEquals("Oui, depuis six mois.", seen.commentList.single().body)
+        assertTrue(a.communityApi.posts("mobile", top = false).data.any { it.id == created.id })
+    }
 }
