@@ -8,6 +8,17 @@ import africa.devhub.resources.Res
 import africa.devhub.resources.email_back
 import africa.devhub.resources.nav_home
 import africa.devhub.resources.nav_passport
+import africa.devhub.resources.nav_sos
+import africa.devhub.resources.ask_title
+import africa.devhub.sos.AskViewModel
+import africa.devhub.sos.QuestionViewModel
+import africa.devhub.sos.QuestionsViewModel
+import africa.devhub.sos.SosNotice
+import africa.devhub.ui.sos.AskScreen
+import africa.devhub.ui.sos.QuestionActions
+import africa.devhub.ui.sos.QuestionScreen
+import africa.devhub.ui.sos.QuestionsScreen
+import androidx.compose.runtime.LaunchedEffect
 import africa.devhub.resources.proofs_title
 import africa.devhub.ui.components.DevHubIcons
 import africa.devhub.ui.home.HomeScreen
@@ -53,6 +64,15 @@ private data class PassportRoute(val handle: String)
 @Serializable
 private data class ProofsRoute(val handle: String)
 
+@Serializable
+private data object SosRoute
+
+@Serializable
+private data class QuestionRoute(val id: String, val secretsMasked: Int = 0)
+
+@Serializable
+private data object AskRoute
+
 private data class TopLevel(val label: StringResource, val icon: ImageVector, val route: Any)
 
 /** Espace connecté : barre de navigation en bas, pile d'écrans par onglet. */
@@ -64,15 +84,25 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
     val destination = entry?.destination
     val tabs = listOf(
         TopLevel(Res.string.nav_home, DevHubIcons.Home, HomeRoute),
+        TopLevel(Res.string.nav_sos, DevHubIcons.Help, SosRoute),
         TopLevel(Res.string.nav_passport, DevHubIcons.Person, PassportRoute(me.handle)),
     )
     val onProofs = destination?.hasRoute<ProofsRoute>() == true
+    val onQuestion = destination?.hasRoute<QuestionRoute>() == true
+    val onAsk = destination?.hasRoute<AskRoute>() == true
+    // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
+    val nestedTitle = when {
+        onProofs -> Res.string.proofs_title
+        onQuestion -> Res.string.nav_sos
+        onAsk -> Res.string.ask_title
+        else -> null
+    }
 
     Scaffold(
         topBar = {
-            if (onProofs) {
+            if (nestedTitle != null) {
                 TopAppBar(
-                    title = { Text(stringResource(Res.string.proofs_title)) },
+                    title = { Text(stringResource(nestedTitle)) },
                     navigationIcon = {
                         IconButton(onClick = { navController.navigateUp() }) {
                             Icon(DevHubIcons.Back, contentDescription = stringResource(Res.string.email_back))
@@ -86,6 +116,7 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
                         is HomeRoute -> destination?.hasRoute<HomeRoute>() == true
+                        is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         else -> destination?.hasRoute<PassportRoute>() == true || onProofs
                     }
                     NavigationBarItem(
@@ -119,6 +150,55 @@ fun SignedInArea(graph: AppGraph, me: Me, onSignOut: () -> Unit) {
                         onRefreshGithub = vm::refreshGithub,
                         onSeeProofs = { navController.navigate(ProofsRoute(handle)) },
                     )
+                }
+                composable<SosRoute> {
+                    val vm = viewModel { QuestionsViewModel(graph.sosApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    QuestionsScreen(
+                        state = state,
+                        onFilter = vm::setFilter,
+                        onQuery = vm::setQuery,
+                        onRetry = { vm.reload() },
+                        onLoadMore = vm::loadMore,
+                        onOpen = { navController.navigate(QuestionRoute(it)) },
+                        onAsk = { navController.navigate(AskRoute) },
+                    )
+                }
+                composable<QuestionRoute> { backStack ->
+                    val route = backStack.toRoute<QuestionRoute>()
+                    val vm = viewModel {
+                        QuestionViewModel(
+                            api = graph.sosApi,
+                            questionId = route.id,
+                            initialNotice = route.secretsMasked.takeIf { it > 0 }?.let { SosNotice.SecretsMasked(it) },
+                        )
+                    }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    QuestionScreen(
+                        state = state,
+                        meHandle = me.handle,
+                        actions = QuestionActions(
+                            onRetry = vm::refresh,
+                            onVote = vm::vote,
+                            onAccept = vm::accept,
+                            onClaim = vm::claim,
+                            onPostAnswer = vm::postAnswer,
+                        ),
+                    )
+                }
+                composable<AskRoute> {
+                    val vm = viewModel { AskViewModel(graph.sosApi, me.uiLang) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    val created = state.created
+                    LaunchedEffect(created) {
+                        if (created != null) {
+                            vm.consumeCreated()
+                            navController.navigate(QuestionRoute(created.id, created.secretsMasked)) {
+                                popUpTo<AskRoute> { inclusive = true }
+                            }
+                        }
+                    }
+                    AskScreen(state, vm::edit, vm::toggleTag, vm::loadTags, vm::send)
                 }
                 composable<ProofsRoute> { backStack ->
                     val handle = backStack.toRoute<ProofsRoute>().handle

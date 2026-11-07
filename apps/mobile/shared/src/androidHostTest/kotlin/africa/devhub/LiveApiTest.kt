@@ -3,6 +3,10 @@ package africa.devhub
 import africa.devhub.app.AppGraph
 import africa.devhub.auth.SignInResult
 import africa.devhub.core.AppConfig
+import africa.devhub.core.newUuid
+import africa.devhub.sos.AskQuestionRequest
+import africa.devhub.sos.PostAnswerRequest
+import africa.devhub.sos.QuestionFilter
 import africa.devhub.network.ApiException
 import africa.devhub.platform.AuthBrowser
 import africa.devhub.testing.FakeSecureStore
@@ -92,5 +96,45 @@ class LiveApiTest {
         assertEquals(0, proofs.totalXp)
         assertEquals(false, proofs.page.hasMore)
         graph.auth.signOut()
+    }
+
+    @Test
+    fun sosDevAskAnswerVoteAcceptAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        val asker = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+        val helper = AppGraph(AppConfig(apiBaseUrl = url), FakeSecureStore(), RedirectingBrowser())
+        assertEquals(SignInResult.SignedIn, asker.auth.signInWithGithub(loginHint = "kmp-ask-$tag"))
+        assertEquals(SignInResult.SignedIn, helper.auth.signInWithGithub(loginHint = "kmp-help-$tag"))
+        asker.meApi.acceptCodeOfConduct()
+        helper.meApi.acceptCodeOfConduct()
+
+        val slug = asker.sosApi.tags().data.first().slug
+        // Jeton factice construit à l'exécution : rien qui ressemble à un secret dans le dépôt.
+        val fakeToken = "ghp" + "_" + "a1B2".repeat(9)
+        val created = asker.sosApi.ask(
+            AskQuestionRequest(
+                clientId = newUuid(),
+                title = "Gradle ne trouve pas le SDK Android",
+                body = "Erreur au build. Mon jeton : $fakeToken",
+                tagSlugs = listOf(slug),
+                urgency = "high",
+                lang = "fr",
+            ),
+        )
+        assertEquals(1, created.secretsMasked)
+        val stored = helper.sosApi.question(created.id)
+        assertEquals(false, stored.body.contains(fakeToken))
+
+        val answer = helper.sosApi.answer(created.id, PostAnswerRequest(newUuid(), "Ajoute sdk.dir dans local.properties."))
+        assertEquals(true, asker.sosApi.vote(answer.id).counted)
+        assertEquals(false, asker.sosApi.vote(answer.id).counted)
+        assertEquals("resolved", asker.sosApi.accept(answer.id).status)
+
+        val resolved = asker.sosApi.question(created.id)
+        assertEquals("resolved", resolved.status)
+        assertEquals(answer.id, resolved.acceptedAnswerId)
+        val mine = asker.sosApi.questions(QuestionFilter.Mine)
+        assertEquals(created.id, mine.data.first().id)
     }
 }

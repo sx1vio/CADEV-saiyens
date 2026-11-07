@@ -110,3 +110,33 @@ fun proofsJson(ids: List<Int>, nextCursor: String?): String {
     return """{"user":{"handle":"awa-dev","displayName":"Awa"},"totalXp":30,"events":[$events],
               "page":{"nextCursor":$cursor,"hasMore":${nextCursor != null}}}"""
 }
+
+fun questionJson(
+    aiStatus: String = "done",
+    status: String = "open",
+    author: String = "awa-dev",
+    answers: String = "[]",
+    helpers: String = "[]",
+): String = """
+    {"id":"11111111-1111-4111-8111-111111111111","title":"Gradle ne trouve pas le SDK Android","status":"$status",
+     "urgency":"high","lang":"fr","tags":[{"slug":"kotlin","label":"Kotlin"}],"answerCount":0,
+     "createdAt":"2026-11-07T08:00:00.000Z","resolvedAt":null,
+     "author":{"handle":"$author","displayName":"Awa","avatarUrl":null,"isDemo":false},
+     "body":"SDK location not found","codeSnippet":"./gradlew build","reproUrl":null,"version":1,
+     "aiHint":${if (aiStatus == "done") "\"Définis sdk.dir\"" else "null"},"aiStatus":"$aiStatus",
+     "acceptedAnswerId":null,"answers":$answers,"helpers":$helpers}
+""".trimIndent()
+
+fun answerJson(id: String, author: String = "kofi", accepted: Boolean = false): String =
+    """{"id":"$id","body":"Ajoute local.properties","isAccepted":$accepted,"helpfulCount":2,"version":1,
+       "createdAt":"2026-11-07T08:05:00.000Z","author":{"handle":"$author","displayName":"Kofi","avatarUrl":null,"isDemo":false}}"""
+
+fun questionListJson(ids: List<Int>, nextCursor: String?): String {
+    val items = ids.joinToString(",") { i ->
+        """{"id":"00000000-0000-4000-8000-${i.toString().padStart(12, '0')}","title":"Question $i","status":"open",
+           "urgency":"normal","lang":"fr","tags":[],"answerCount":0,"createdAt":"2026-11-07T08:00:00.000Z",
+           "resolvedAt":null,"author":{"handle":"awa-dev","displayName":"Awa","avatarUrl":null,"isDemo":false}}"""
+    }
+    val cursor = nextCursor?.let { "\"$it\"" } ?: "null"
+    return """{"data":[$items],"page":{"nextCursor":$cursor,"hasMore":${nextCursor != null}}}"""
+}
