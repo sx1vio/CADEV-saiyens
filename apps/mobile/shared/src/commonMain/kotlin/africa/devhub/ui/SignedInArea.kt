@@ -47,7 +47,15 @@ import kotlinx.coroutines.launch
 import africa.devhub.community.CreatePostViewModel
 import africa.devhub.community.FeedViewModel
 import africa.devhub.community.PostViewModel
+import africa.devhub.certs.CertsViewModel
+import africa.devhub.certs.ExamViewModel
+import africa.devhub.certs.PracticeViewModel
 import africa.devhub.discover.DiscoverViewModel
+import africa.devhub.resources.certs_title
+import africa.devhub.ui.certs.CertScreen
+import africa.devhub.ui.certs.CertsScreen
+import africa.devhub.ui.certs.ExamScreen
+import africa.devhub.ui.certs.PracticeScreen
 import africa.devhub.jobs.ApplicationsViewModel
 import africa.devhub.jobs.JobViewModel
 import africa.devhub.jobs.JobsViewModel
@@ -178,6 +186,18 @@ private data class JobRoute(val id: String)
 private data object ApplicationsRoute
 
 @Serializable
+private data object CertsRoute
+
+@Serializable
+private data class CertRoute(val id: String)
+
+@Serializable
+private data class PracticeRoute(val id: String)
+
+@Serializable
+private data class ExamRoute(val id: String, val mode: String)
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -230,6 +250,8 @@ fun SignedInArea(
         destination?.hasRoute<CreatePostRoute>() == true
     val onJobs = destination?.hasRoute<JobsRoute>() == true || destination?.hasRoute<JobRoute>() == true ||
         destination?.hasRoute<ApplicationsRoute>() == true
+    val onCerts = destination?.hasRoute<CertsRoute>() == true || destination?.hasRoute<CertRoute>() == true ||
+        destination?.hasRoute<PracticeRoute>() == true || destination?.hasRoute<ExamRoute>() == true
     val onConversations = destination?.hasRoute<ConversationsRoute>() == true || destination?.hasRoute<ConversationRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
@@ -245,6 +267,7 @@ fun SignedInArea(
         onNews -> Res.string.news_title
         onCommunity -> Res.string.community_title
         onJobs -> Res.string.jobs_title
+        onCerts -> Res.string.certs_title
         onConversations -> Res.string.messages_title
         else -> null
     }
@@ -266,7 +289,7 @@ fun SignedInArea(
             NavigationBar {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity || onJobs
+                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity || onJobs || onCerts
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
@@ -316,6 +339,7 @@ fun SignedInArea(
                             onMessages = { navController.navigate(ConversationsRoute) },
                             onCommunity = { navController.navigate(FeedRoute) },
                             onJobs = { navController.navigate(JobsRoute) },
+                            onCerts = { navController.navigate(CertsRoute) },
                             onDiscover = { navController.navigate(DiscoverRoute()) },
                             onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
                             onRules = { navController.navigate(RulesRoute) },
@@ -408,6 +432,36 @@ fun SignedInArea(
                     val vm = viewModel { ApplicationsViewModel(graph.jobsApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
                     ApplicationsScreen(state, vm::withdraw, onOpenJob = { navController.navigate(JobRoute(it)) }, onRetry = vm::reload)
+                }
+                composable<CertsRoute> {
+                    val vm = viewModel { CertsViewModel(graph.certsApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    CertsScreen(state, onOpen = { navController.navigate(CertRoute(it)) }, onRetry = vm::reload)
+                }
+                composable<CertRoute> { backStack ->
+                    val id = backStack.toRoute<CertRoute>().id
+                    val vm = viewModel { CertsViewModel(graph.certsApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    CertScreen(
+                        certId = id,
+                        mine = state.mine[id],
+                        online = online,
+                        onPractice = { navController.navigate(PracticeRoute(id)) },
+                        onExam = { mode -> navController.navigate(ExamRoute(id, mode)) },
+                        nowMillis = graph.now(),
+                    )
+                }
+                composable<PracticeRoute> { backStack ->
+                    val id = backStack.toRoute<PracticeRoute>().id
+                    val vm = viewModel { PracticeViewModel(graph.certsApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    PracticeScreen(state, vm::answer, vm::next, vm::restart)
+                }
+                composable<ExamRoute> { backStack ->
+                    val route = backStack.toRoute<ExamRoute>()
+                    val vm = viewModel { ExamViewModel(graph.certsApi, route.id, route.mode, graph.now) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    ExamScreen(state, vm::choose, vm::goTo, vm::submit, vm::start)
                 }
                 composable<RulesRoute> {
                     val vm = viewModel { RulesViewModel(graph.discoverApi, space) }
