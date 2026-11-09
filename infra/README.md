@@ -212,17 +212,20 @@ prête ; les sauvegardes tournent ; `/srv/devhub/.env` existe avec les secrets g
    gh secret set VPS_KNOWN_HOSTS < ~/.ssh/systalink/devhub-app.known_hosts
    ```
 
-3. **Nom de domaine** (acheté sur la console Systalink, −40 %) : créer les enregistrements DNS `A` vers
-   `213.163.192.66` pour `<domaine>`, `admin.<domaine>` et `business.<domaine>`.
-4. **Remplir `/srv/devhub/.env`** : remplacer chaque `A_REMPLIR` (`SITE_ADDRESS`, `APP_URL`, `API_URL`,
-   `MAIL_FROM`) et décommenter `ADMIN_ADDRESS`/`ADMIN_URL` et `BUSINESS_ADDRESS`/`BUSINESS_URL`.
+3. **Nom de domaine `devafrica.tech`** (acheté le 09/11/2026 chez name.com, jusqu'au 09/11/2027 ;
+   renouvellement automatique désactivé). Garder les serveurs de noms de name.com et, dans « Manage
+   DNS Records », créer quatre enregistrements `A` (TTL 300) vers `213.163.192.66` : hôte vide
+   (`devafrica.tech`), `www` (redirigé vers le domaine nu par Caddy), `admin` et `business`.
+4. **`/srv/devhub/.env`** : valeurs du domaine remplies le 10/11/2026 (`SITE_ADDRESS`, `APP_URL`,
+   `API_URL`, `ADMIN_*`, `BUSINESS_*`, `MAIL_FROM`). Pour modifier :
 
    ```bash
    ssh -t -i ~/.ssh/systalink/devhub-admin devops@213.163.192.66 'sudo -u deploy nano /srv/devhub/.env'
    ```
 
-5. **Application OAuth GitHub de production** (callback sur le domaine) → `GITHUB_CLIENT_ID` et
-   `GITHUB_CLIENT_SECRET` dans `.env`. Facultatif : SMTP pro Systalink, `PAGESPEED_API_KEY`,
+5. **Application OAuth GitHub de production** (github.com/settings/developers → New OAuth App) :
+   Homepage `https://devafrica.tech`, callback `https://devafrica.tech/api/v1/auth/github/callback` →
+   `GITHUB_CLIENT_ID` et `GITHUB_CLIENT_SECRET` dans `.env`. Facultatif : SMTP pro Systalink, `PAGESPEED_API_KEY`,
    `PREFLIGHT_GITHUB_TOKEN`, `LLM_API_KEY`.
 6. **Activer le déploiement** : `gh variable set DEPLOY_ENABLED --body true`, puis un push sur `main`
    (ou relancer la CI). Suivre le job « déploiement Systalink ».
