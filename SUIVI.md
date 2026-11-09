@@ -63,25 +63,32 @@ Questions auxquelles la plateforme doit répondre :
 
 ## Reste à faire
 
-- [ ] **Acheter sur la console Systalink** (platform.systalink.com/services/create-service) avec le code promo de l’équipe (−40 %) : **Serveur cloud à Dakar** (conseil : 2 vCPU / 8 Go, ou 2 vCPU / 4 Go si la console le propose ; un mois suffit jusqu’au 23/11) et **nom de domaine** ; E-Mail Pro en option (envoi des e-mails de l’API). Sylvio paie le serveur (06/11/2026)
-- [ ] Une fois le serveur acheté : vérifier que son IP est dans `SYSTALINK_IP_RANGES` (sinon corriger la variable), puis lancer un pré-vol sur DevHub en déclarant « Serveur cloud » pour la démo (06/11/2026)
-- [ ] Pré-vol : créer une clé PageSpeed Insights gratuite et la mettre dans `PAGESPEED_API_KEY` en production (05/11/2026)
-- [ ] Pré-vol : faire tourner l'action sur une vraie PR (workflow `prevol.yml`) et vérifier gitleaks, osv-scanner et le commentaire (05/11/2026)
-- [ ] Pré-vol : essayer l’action GitHub sur un vrai dépôt une fois `main` en ligne (testée seulement en local, sans `jq`) et remplacer `api-url` par le domaine définitif (04/11/2026)
-- [ ] Production : renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule), sinon 60 requêtes GitHub par heure pour tout le serveur (04/11/2026)
-- [ ] Demander à Systalink (cadev@systalink.com) : « Quel est votre plus gros frein pour attirer des développeurs ? » et s'ils permettent de créer des espaces par programme (04/11/2026)
-- [ ] **Chaque membre** remplit sa ligne de signature dans `docs/soumission.md` §4 (09/11/2026)
-- [ ] Production : créer le compte admin par la CLI et vérifier l’onglet **Supervision** tout vert (09/11/2026)
-- [ ] **Avant le 15/11 17:00 GMT** (date repoussée) : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
-- [ ] **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue** (dates mises à jour le 04/11/2026)
-- [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
-- [ ] Créer l'application OAuth GitHub de production (avec Joachim / Emmanuel) ; GitLab et Google (A2) restent à faire côté API
-- [ ] Confirmer avec Systalink (cadev@systalink.com) leurs plages IP (`SYSTALINK_IP_RANGES`), un lien de déploiement préparé et un éventuel programme de crédits ou de commission
-- [ ] Décider d'une licence pour le dépôt (aucun fichier `LICENSE`) et identifier le contributeur `Sacem270` (23/10/2026)
-- [ ] Tester sur un vrai téléphone d'entrée de gamme, réseau coupé (CDC O1-O3)
-- [ ] Dette technique : 30 avertissements oxlint, tous « fast refresh » (exports non-composants, sans effet en production) ; les autres corrigés le 06/11/2026
-- [ ] Phase 4 : audit du mouvement et revue de code (audit d’accessibilité axe fait le 06/11/2026 : 3 défauts corrigés, alertes restantes = faux positifs de la barre latérale)
-- [ ] Passer la progression des leçons et les favoris du stockage local à l'API (posts, emplois et certifications sont sur l'API depuis le 06/11/2026)
+> Mis à jour le 09/11/2026 : **tout le code est fini** et fusionné sur `main` (CI verte). Il ne reste que des tâches hors code.
+
+### Avant la soumission (15/11/2026, 17:00 GMT), dans l'ordre
+
+- [ ] **1. Acheter sur la console Systalink** (platform.systalink.com/services/create-service) avec le code promo de l’équipe (−40 %) : **serveur cloud à Dakar** (conseil : 2 vCPU / 8 Go) et le nom de domaine. Condition de recevabilité (art. 6.2). — Sylvio, Emmanuel
+- [ ] **2. Héberger et déployer** : secrets du dépôt, `DEPLOY_ENABLED=true`, push sur `main` (voir `infra/README.md`) ; base, SMTP pro Systalink et sauvegarde sur le VPS. — Emmanuel
+- [ ] **3. Créer l’application OAuth GitHub de production** et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` ; vérifier `AUTH_FAKE_PROVIDER=false`. — Joachim, Emmanuel
+- [ ] **4. Compte admin de production** par la CLI (`apps/admin/README.md`), puis ouvrir l’onglet **Supervision** et vérifier que tout est vert (connexion de test désactivée, OAuth, SMTP, worker actif). — Sylvio, Emmanuel
+- [ ] **5. Variables restantes** : `BUSINESS_URL` et `BUSINESS_ADDRESS` (portail entreprise, sous-domaine `business.`), `VITE_CONTACT_EMAIL` (page Confidentialité), `PAGESPEED_API_KEY` et `PREFLIGHT_GITHUB_TOKEN` (pré-vol), `APP_RELEASE` rempli automatiquement par le TAG. — Emmanuel, Sylvio
+- [ ] **6. Vérifier l’IP du serveur** dans `SYSTALINK_IP_RANGES` (sinon corriger la variable), puis lancer un pré-vol en déclarant « Serveur cloud » pour la démo. — Sylvio
+- [ ] **7. Tester l’URL publique sur un vrai téléphone**, hors du réseau de l’équipe (et réseau coupé : CDC O1-O3). — Tous
+- [ ] **8. Signatures** : chaque membre remplit lui-même sa ligne dans `docs/soumission.md` §4 (personne ne signe pour un autre). — Chaque membre
+- [ ] **9. Licence** : choisir une licence permissive et ajouter un fichier `LICENSE` (aucun aujourd’hui) ; identifier le contributeur `Sacem270`. — Équipe
+- [ ] **10. Soumettre** : URL du dépôt, URL de la démo, `docs/soumission.md`. — Caleb
+- [ ] **11. Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l’équipe est exclue.** — Chaque membre
+
+### Après la soumission ou facultatif
+
+- [ ] Pré-vol : faire tourner l’action sur une vraie PR (`prevol.yml`) et vérifier gitleaks, osv-scanner et le commentaire ; remplacer `api-url` par le domaine définitif (04-05/11/2026)
+- [ ] `LLM_API_KEY` plafonnée (sinon la piste IA, les tâches IA et la traduction utilisent le modèle de secours)
+- [ ] Demander à Systalink (cadev@systalink.com) leurs plages IP, un lien de déploiement préparé, un éventuel programme de crédits, et leur plus gros frein pour attirer des développeurs
+- [ ] Connexion GitLab et Google (A2) côté API
+- [ ] Dette technique : 30 avertissements oxlint « fast refresh » (sans effet en production)
+- [ ] Phase 4 : audit du mouvement et revue de code
+- [ ] Passer la progression des leçons et les favoris du stockage local à l’API
+
 - [x] Banc d’essai : tests réels entre devs (appareil, réseau, ce qui casse) payés en XP ; l’entrée `/banc` du menu mène encore à une 404 (05/11/2026) — fait le 06/11/2026
 - [x] Préparation des certifications : programme par thème, entraînement par thème, examen blanc, révision des erreurs, plan jusqu’à la date d’examen ; réutiliser les leçons de `platform/data/courses` (05/11/2026) — fait le 06/11/2026
 - [x] Site vitrine (`Landing.tsx`, `PublicShell.tsx`) au nouveau design, sans liens vers les sections retirées (05/11/2026) — fait le 06/11/2026
