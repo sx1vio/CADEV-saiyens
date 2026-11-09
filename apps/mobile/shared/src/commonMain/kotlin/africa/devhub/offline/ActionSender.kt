@@ -137,6 +137,9 @@ class ActionSender(private val http: HttpClient) {
             // Type propre à l'application : la messagerie privée n'est pas dans /sync ; le clientId
             // suffit à l'API pour ne jamais dupliquer un message renvoyé.
             "dm.create" to Route("api/v1/conversations/{conversationId}/messages", hasBody = true),
+            // Rapport du banc d'essai : un seul par testeur et par demande (bench.already_reported),
+            // un renvoi après une coupure ne crée donc jamais de doublon.
+            "bench.report" to Route("api/v1/bench/{requestId}/reports", hasBody = true),
         )
     }
 

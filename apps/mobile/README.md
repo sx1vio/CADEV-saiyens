@@ -33,6 +33,7 @@ apps/mobile/
 | `community`                       | Communautés : fil, publication, commentaires, votes (en ligne)                                       |
 | `jobs`                            | Emplois : offres réelles, candidature sur DevHub (en ligne), mes candidatures                        |
 | `certs`                           | Certifications : catalogue, entraînement corrigé, examen et examen blanc chronométrés par le serveur |
+| `bench`                           | Banc d'essai : demandes de test, rapport rédigeable hors ligne (file), confirmation par le demandeur |
 | `offline`                         | Hors ligne : cache de lecture, file d\'actions, synchronisation, connectivité, espace par compte     |
 | `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                                  |
 | `ui`                              | Thème (couleurs du web), écrans, navigation                                                          |
@@ -90,9 +91,9 @@ Le navigateur système ouvre `GET /api/v1/auth/github/mobile?challenge=…` (PKC
 `LiveApiTest` exécute la connexion, l'acceptation du code de conduite et la déconnexion contre une vraie API. Il est ignoré si `DEVHUB_E2E_API_URL` n'est pas défini :
 
 ```bash
-DEVHUB_E2E_API_URL=http://localhost:3000 ./gradlew :shared:testAndroidHostTest --tests 'africa.devhub.LiveApiTest'
+DEVHUB_E2E_API_URL=http://localhost:3000 DEVHUB_E2E_OLD_LOGIN=<login de plus d'une heure> ./gradlew :shared:testAndroidHostTest --tests 'africa.devhub.LiveApiTest'
 ```
 
 ## Étapes suivantes
 
-Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, par sous-étapes : 8a actualités et messages privés, 8b communautés, 8c emplois, 8d certifications (cette version), 8e banc d'essai.
+Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, par sous-étapes : 8a actualités et messages privés, 8b communautés, 8c emplois, 8d certifications, 8e banc d'essai (cette version).

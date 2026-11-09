@@ -3,6 +3,7 @@ package africa.devhub.ui.home
 import africa.devhub.me.Me
 import africa.devhub.resources.Res
 import africa.devhub.resources.home_greeting
+import africa.devhub.resources.home_bench
 import africa.devhub.resources.home_certs
 import africa.devhub.resources.home_community
 import africa.devhub.resources.home_discover
@@ -53,6 +54,7 @@ class HomeLinks(
     val onCommunity: () -> Unit,
     val onJobs: () -> Unit,
     val onCerts: () -> Unit,
+    val onBench: () -> Unit,
     val onDiscover: () -> Unit,
     val onLeaderboard: () -> Unit,
     val onRules: () -> Unit,
@@ -110,6 +112,7 @@ fun HomeScreen(me: Me, pendingActions: Int, links: HomeLinks, onSignOut: () -> U
             Res.string.home_community to links.onCommunity,
             Res.string.home_jobs to links.onJobs,
             Res.string.home_certs to links.onCerts,
+            Res.string.home_bench to links.onBench,
             Res.string.home_discover to links.onDiscover,
             Res.string.home_leaderboard to links.onLeaderboard,
             Res.string.home_rules to links.onRules,

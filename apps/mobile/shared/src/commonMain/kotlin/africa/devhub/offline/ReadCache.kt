@@ -87,5 +87,7 @@ class CacheKey private constructor(name: String, val kept: Boolean) {
         fun jobs() = CacheKey("jobs", kept = true)
         fun job(id: String) = CacheKey("job-$id", kept = false)
         fun certs() = CacheKey("certs-mine", kept = true)
+        fun bench(scope: String) = CacheKey("bench-$scope", kept = true)
+        fun benchItem(id: String) = CacheKey("bench-item-$id", kept = false)
     }
 }
