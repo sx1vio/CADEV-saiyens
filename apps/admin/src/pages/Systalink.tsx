@@ -8,6 +8,7 @@ const TARGET: Record<string, string> = {
   deploy: 'Serverless',
   orion: 'Orion (site créé par IA)',
   server: 'Serveur cloud',
+  console: 'Console Systalink (offres −40 %)',
 };
 const SOURCE: Record<string, string> = {
   room: 'Salle de projet',
@@ -15,6 +16,8 @@ const SOURCE: Record<string, string> = {
   build: 'Guide IA (ancien)',
   systalink: 'Page Systalink',
   help: 'Aide Systalink',
+  preflight: 'Pré-vol',
+  bench: 'Banc d’essai',
 };
 
 function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {

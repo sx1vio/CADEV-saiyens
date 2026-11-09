@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
 import {
+  BadRequestException,
   ForbiddenException,
   Body,
+  Logger,
   ConflictException,
   Controller,
   HttpCode,
@@ -16,27 +18,41 @@ import {
 import type { Request, Response } from 'express';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
+import { MAILER, type Mailer } from '../../../infrastructure/mail/mailer';
+import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type { SignInContext, SignInResult } from '../application/sign-in-with-github';
 import {
   BadCredentialsError,
   EmailTakenError,
   SignInWithEmail,
 } from '../application/sign-in-with-email';
+import { PasswordResets, resetEmail } from '../infrastructure/password-resets';
 import { PrismaSessionStore } from '../infrastructure/prisma-session.store';
+import { ScryptPasswordHasher } from '../infrastructure/scrypt-password-hasher';
 import { AttemptLimiter } from './attempt-limiter';
 import { SESSION_COOKIE, baseCookie } from './cookies';
-import { EmailLoginRequestDto, EmailRegisterRequestDto } from './email-auth.dto';
+import {
+  EmailLoginRequestDto,
+  EmailRegisterRequestDto,
+  PasswordForgotRequestDto,
+  PasswordResetRequestDto,
+} from './email-auth.dto';
 
 // Inscription et connexion par e-mail. Réponse 204 et cookie de session, comme le retour
 // d'OAuth ; le front relit GET /me. Écritures : X-DevHub-Client exigé (OriginGuard global).
 @Controller('api/v1/auth/email')
 export class EmailAuthController {
   private readonly limiter = new AttemptLimiter();
+  private readonly logger = new Logger(EmailAuthController.name);
+  private readonly hasher = new ScryptPasswordHasher();
 
   constructor(
     @Inject(ENV) private readonly env: Env,
     private readonly auth: SignInWithEmail,
     private readonly sessions: PrismaSessionStore,
+    private readonly prisma: PrismaService,
+    private readonly resets: PasswordResets,
+    @Inject(MAILER) private readonly mailer: Mailer,
   ) {}
 
   @Post('register')
@@ -87,6 +103,56 @@ export class EmailAuthController {
       }
       throw err;
     }
+  }
+
+  /**
+   * Mot de passe oublié : toujours 204, qu'un compte existe ou non (on ne révèle pas les
+   * adresses inscrites). Les comptes d'administration ne se réinitialisent que par la CLI.
+   */
+  @Post('forgot')
+  @HttpCode(204)
+  async forgot(@Body() body: PasswordForgotRequestDto, @Req() req: Request): Promise<void> {
+    const context = this.context(req);
+    this.guard(context);
+    // Chaque demande compte : on ne peut pas inonder une boîte de liens.
+    this.limiter.fail(context.ipHash ?? 'unknown');
+    const user = await this.prisma.user.findFirst({
+      where: { email: body.email, passwordHash: { not: null }, deletedAt: null, isAdmin: false },
+      select: { id: true, displayName: true, email: true },
+    });
+    if (!user?.email) return;
+    const token = await this.resets.issue('user', user.id);
+    const url = new URL('/mot-de-passe', this.env.APP_URL);
+    url.hash = token; // dans le fragment : jamais envoyé au serveur ni écrit dans les journaux
+    try {
+      await this.mailer.send({
+        to: user.email,
+        ...resetEmail({ name: user.displayName, url: url.toString(), product: 'DevHub' }),
+      });
+    } catch (err) {
+      this.logger.error({ err }, 'E-mail de réinitialisation non envoyé');
+    }
+  }
+
+  /** Nouveau mot de passe depuis le lien : toutes les sessions du compte sont fermées. */
+  @Post('reset')
+  @HttpCode(204)
+  async reset(@Body() body: PasswordResetRequestDto, @Req() req: Request): Promise<void> {
+    const context = this.context(req);
+    this.guard(context);
+    const userId = await this.resets.consume('user', body.token);
+    if (!userId) {
+      this.limiter.fail(context.ipHash ?? 'unknown');
+      throw new BadRequestException({
+        code: 'auth.reset_invalid',
+        title: 'This reset link is invalid or has expired',
+      });
+    }
+    const passwordHash = await this.hasher.hash(body.password);
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+      this.prisma.session.deleteMany({ where: { userId } }),
+    ]);
   }
 
   private guard(context: SignInContext): void {

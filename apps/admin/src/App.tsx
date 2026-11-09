@@ -5,6 +5,7 @@ import {
   Building2,
   FileText,
   Gauge,
+  HeartPulse,
   KeyRound,
   LogOut,
   Megaphone,
@@ -25,12 +26,14 @@ import { Feeds } from './pages/Feeds';
 import { Jobs } from './pages/Jobs';
 import { Login } from './pages/Login';
 import { Moderation } from './pages/Moderation';
+import { Monitoring } from './pages/Monitoring';
 import { Overview } from './pages/Overview';
 import { Systalink } from './pages/Systalink';
 import { Users } from './pages/Users';
 
 type Tab =
   | 'overview'
+  | 'monitoring'
   | 'systalink'
   | 'activity'
   | 'users'
@@ -43,6 +46,7 @@ type Tab =
   | 'admins';
 const TABS: { id: Tab; label: string; icon: typeof Gauge }[] = [
   { id: 'overview', label: 'Vue d’ensemble', icon: Gauge },
+  { id: 'monitoring', label: 'Supervision', icon: HeartPulse },
   { id: 'systalink', label: 'Systalink', icon: Server },
   { id: 'activity', label: 'Activité', icon: ActivityIcon },
   { id: 'users', label: 'Utilisateurs', icon: UsersIcon },
@@ -80,6 +84,10 @@ export function App() {
     if (isSignedOut(e)) setSession(null);
   }, []);
 
+  const signOut = () => {
+    void api.signOut().finally(() => setSession(null));
+  };
+
   if (session === undefined) return <div className="min-h-dvh" />;
   if (!session) return <Login onSignedIn={refresh} />;
 
@@ -92,6 +100,15 @@ export function App() {
             <p className="text-[15px] font-bold">DevHub</p>
             <p className="text-[12px] text-white/60">Administration</p>
           </div>
+          {/* Sur mobile, le pied de la barre latérale est masqué : déconnexion ici. */}
+          <button
+            type="button"
+            onClick={signOut}
+            aria-label="Se déconnecter"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] text-white/70 hover:text-white lg:hidden"
+          >
+            <LogOut className="size-4" />
+          </button>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:pb-0">
           {TABS.map((t) => (
@@ -117,7 +134,7 @@ export function App() {
           </p>
           <button
             type="button"
-            onClick={() => api.signOut().finally(() => setSession(null))}
+            onClick={signOut}
             className="mt-3 inline-flex items-center gap-2 text-[13px] text-white/70 hover:text-white"
           >
             <LogOut className="size-4" />
@@ -127,6 +144,7 @@ export function App() {
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8">
         {tab === 'overview' && <Overview onError={onError} />}
+        {tab === 'monitoring' && <Monitoring onError={onError} />}
         {tab === 'systalink' && <Systalink onError={onError} />}
         {tab === 'companies' && <Companies onError={onError} />}
         {tab === 'jobs' && <Jobs onError={onError} />}

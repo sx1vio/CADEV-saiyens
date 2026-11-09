@@ -33,8 +33,111 @@ export const AdminOverview = z.object({
   openReports: z.number().int(),
   publishedJobs: z.number().int(),
   draftJobs: z.number().int(),
+  /** Entreprises du portail en attente de vérification */
+  pendingCompanies: z.number().int(),
 });
 export type AdminOverview = z.infer<typeof AdminOverview>;
+
+/* ---------------- Supervision ---------------- */
+
+const HttpWindow = z.object({
+  requests: z.number().int(),
+  clientErrors: z.number().int(),
+  serverErrors: z.number().int(),
+  p50Ms: z.number().nullable(),
+  p95Ms: z.number().nullable(),
+});
+
+/** GET /api/v1/admin/monitoring : santé technique de la plateforme, à cet instant. */
+export const AdminMonitoringView = z.object({
+  checkedAt: z.iso.datetime(),
+  api: z.object({
+    startedAt: z.iso.datetime(),
+    uptimeSeconds: z.number().int(),
+    nodeVersion: z.string(),
+    environment: z.string(),
+    /** Identifiant de la version déployée (commit), si fourni au déploiement */
+    release: z.string().nullable(),
+    memoryMb: z.object({ rss: z.number(), heapUsed: z.number() }),
+    eventLoopDelayMs: z.number().nullable(),
+  }),
+  http: z.object({
+    last5m: HttpWindow,
+    lastHour: HttpWindow,
+    slowestRoutes: z.array(
+      z.object({
+        route: z.string(),
+        requests: z.number().int(),
+        serverErrors: z.number().int(),
+        p95Ms: z.number(),
+      }),
+    ),
+    recentErrors: z.array(
+      z.object({
+        at: z.iso.datetime(),
+        method: z.string(),
+        path: z.string(),
+        requestId: z.string().nullable(),
+        message: z.string(),
+      }),
+    ),
+  }),
+  database: z.object({
+    ok: z.boolean(),
+    latencyMs: z.number().nullable(),
+    sizeMb: z.number().nullable(),
+    connections: z.number().int().nullable(),
+    migrations: z.number().int().nullable(),
+    lastMigration: z.string().nullable(),
+    largestTables: z.array(z.object({ table: z.string(), rows: z.number().int() })),
+  }),
+  worker: z.object({
+    /** Le worker a fait tourner son planificateur il y a moins de 3 minutes */
+    alive: z.boolean(),
+    lastBeatAt: z.iso.datetime().nullable(),
+    queues: z.array(
+      z.object({
+        name: z.string(),
+        cron: z.string().nullable(),
+        waiting: z.number().int(),
+        active: z.number().int(),
+        completed24h: z.number().int(),
+        failed24h: z.number().int(),
+        lastCompletedAt: z.iso.datetime().nullable(),
+      }),
+    ),
+    recentFailures: z.array(
+      z.object({ queue: z.string(), at: z.iso.datetime().nullable(), message: z.string() }),
+    ),
+  }),
+  services: z.array(
+    z.object({
+      service: z.string(),
+      ok: z.boolean(),
+      /** Faux quand le service n'est pas encore branché (ex. BACKUP_STATUS_URL absent) */
+      configured: z.boolean(),
+      latencyMs: z.number().nullable(),
+      checkedAt: z.iso.datetime(),
+    }),
+  ),
+  /** Réglages de production : présents ou non, jamais leur valeur */
+  config: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      state: z.enum(['ok', 'missing', 'danger']),
+      hint: z.string(),
+    }),
+  ),
+  security: z.object({
+    activeAdminSessions: z.number().int(),
+    adminSignIns24h: z.number().int(),
+    memberSessions24h: z.number().int(),
+    suspendedUsers: z.number().int(),
+    openReports: z.number().int(),
+  }),
+});
+export type AdminMonitoringView = z.infer<typeof AdminMonitoringView>;
 
 /* ---------------- Utilisateurs ---------------- */
 

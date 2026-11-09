@@ -80,7 +80,16 @@ export function Jobs({ me, onError }: { me: BusinessMeView; onError: (e: unknown
   );
   const [viewing, setViewing] = useState<BusinessJobView | null>(null);
   const load = useCallback(() => {
-    api.jobs().then((r) => setJobs(r.data), onError);
+    api.jobs().then((r) => {
+      setJobs(r.data);
+      // Lien direct vers les candidatures d'une offre (#offres/<id>, depuis le tableau de bord).
+      const id = /^#offres\/([0-9a-f-]{36})$/.exec(location.hash)?.[1];
+      if (id) {
+        const job = r.data.find((j) => j.id === id);
+        if (job) setViewing(job);
+        history.replaceState(null, '', '#offres');
+      }
+    }, onError);
   }, [onError]);
   useEffect(load, [load]);
 

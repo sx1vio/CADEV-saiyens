@@ -7,6 +7,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import { ENV } from './infrastructure/config/config.module';
 import type { Env } from './infrastructure/config/env';
+import { httpMetricsMiddleware } from './infrastructure/http/http-metrics';
 import { isAdminPath, isBusinessPath } from './modules/identity';
 
 async function bootstrap(): Promise<void> {
@@ -17,6 +18,8 @@ async function bootstrap(): Promise<void> {
 
   // Derrière Caddy : faire confiance au proxy du réseau Docker pour l'IP cliente.
   app.set('trust proxy', 'loopback, uniquelocal');
+  // Volumes, erreurs et latences pour l'onglet « Supervision » de l'administration.
+  app.use(httpMetricsMiddleware);
   // L'application publique peut appeler l'API depuis son origine ; jamais les routes
   // d'administration, servies sur leur propre origine sans CORS.
   app.enableCors((req: { url?: string }, cb) => {

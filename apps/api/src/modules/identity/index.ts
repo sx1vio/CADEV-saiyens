@@ -20,3 +20,9 @@ export { AttemptLimiter } from './http/attempt-limiter';
 export { baseCookie, readCookie } from './http/cookies';
 export { hashSessionToken, newSessionToken } from './application/session-token';
 export { AccountDeletion } from './infrastructure/account-deletion';
+export {
+  PasswordResets,
+  RESET_TTL_MS,
+  type ResetKind,
+  resetEmail,
+} from './infrastructure/password-resets';

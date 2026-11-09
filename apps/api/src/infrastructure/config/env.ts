@@ -71,6 +71,8 @@ export const EnvSchema = z
     PAGESPEED_API_KEY: optional(z.string()),
     // R7 : index.html construit du front, enrichi des balises de partage (défaut : ./web/index.html).
     WEB_INDEX_HTML: optional(z.string()),
+    // Version déployée (commit), affichée dans la supervision de l'administration.
+    APP_RELEASE: optional(z.string()),
     // Espace d'administration (apps/admin), servi sur sa propre origine. Absent : désactivé,
     // toutes les routes /api/v1/admin/* répondent 404.
     ADMIN_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),

@@ -1,24 +1,34 @@
 import type { BusinessMeView } from '@devhub/contracts';
-import { Briefcase, Building2, Gauge, LogOut } from 'lucide-react';
+import { Briefcase, Building2, Gauge, LogOut, UserCog } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { api, isSignedOut } from './api';
+import { Account } from './pages/Account';
 import { Company } from './pages/Company';
 import { Dashboard } from './pages/Dashboard';
 import { Jobs } from './pages/Jobs';
 import { Welcome } from './pages/Welcome';
 
-type Tab = 'tableau' | 'offres' | 'entreprise';
+type Tab = 'tableau' | 'offres' | 'entreprise' | 'compte';
 const TABS: { id: Tab; label: string; icon: typeof Gauge }[] = [
   { id: 'tableau', label: 'Tableau de bord', icon: Gauge },
   { id: 'offres', label: 'Offres et candidatures', icon: Briefcase },
   { id: 'entreprise', label: 'Entreprise', icon: Building2 },
+  { id: 'compte', label: 'Compte et équipe', icon: UserCog },
 ];
 const tabFromHash = (): Tab => {
   const h = location.hash.slice(1).split('/')[0];
   return TABS.some((t) => t.id === h) ? (h as Tab) : 'tableau';
 };
 
+/** Jeton d'un lien « mot de passe oublié » (#reinitialiser=…), retiré aussitôt de l'adresse. */
+function readResetToken(): string | null {
+  const m = /^#reinitialiser=([\w-]{20,200})$/.exec(location.hash);
+  if (m) history.replaceState(null, '', location.pathname);
+  return m?.[1] ?? null;
+}
+
 export function App() {
+  const [resetToken] = useState(readResetToken);
   const [me, setMe] = useState<BusinessMeView | null | undefined>(undefined);
   const [tab, setTab] = useState<Tab>(tabFromHash);
 
@@ -35,17 +45,32 @@ export function App() {
     if (isSignedOut(e)) setMe(null);
   }, []);
 
+  const signOut = () => {
+    void api.signOut().finally(() => setMe(null));
+  };
+
   if (me === undefined) return <div className="min-h-dvh" />;
-  if (!me) return <Welcome onSignedIn={refresh} />;
+  if (!me) return <Welcome onSignedIn={refresh} resetToken={resetToken} />;
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="flex shrink-0 flex-col border-b border-line bg-panel lg:w-64 lg:border-r lg:border-b-0">
-        <div className="px-5 py-5">
-          <p className="text-[16px] font-bold">
-            DevHub <span className="text-accent">Business</span>
-          </p>
-          <p className="mt-0.5 truncate text-[13px] text-muted">{me.company.name}</p>
+        <div className="flex items-start gap-3 px-5 py-5">
+          <div className="min-w-0">
+            <p className="text-[16px] font-bold">
+              DevHub <span className="text-accent">Business</span>
+            </p>
+            <p className="mt-0.5 truncate text-[13px] text-muted">{me.company.name}</p>
+          </div>
+          {/* Sur mobile, le pied de la barre latérale est masqué : déconnexion ici. */}
+          <button
+            type="button"
+            onClick={signOut}
+            aria-label="Se déconnecter"
+            className="ml-auto rounded-lg p-1.5 text-muted hover:text-ink lg:hidden"
+          >
+            <LogOut className="size-5" />
+          </button>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:pb-0">
           {TABS.map((t) => (
@@ -69,7 +94,7 @@ export function App() {
           <p className="truncate text-[12px] text-muted">{me.account.email}</p>
           <button
             type="button"
-            onClick={() => api.signOut().finally(() => setMe(null))}
+            onClick={signOut}
             className="mt-3 inline-flex items-center gap-2 text-[13px] text-muted hover:text-ink"
           >
             <LogOut className="size-4" />
@@ -81,6 +106,7 @@ export function App() {
         {tab === 'tableau' && <Dashboard me={me} onError={onError} />}
         {tab === 'offres' && <Jobs me={me} onError={onError} />}
         {tab === 'entreprise' && <Company me={me} onSaved={refresh} onError={onError} />}
+        {tab === 'compte' && <Account me={me} onError={onError} />}
       </main>
     </div>
   );

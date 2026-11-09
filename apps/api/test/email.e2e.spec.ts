@@ -107,7 +107,7 @@ describe('e-mail récapitulatif des notifications (Y3)', () => {
   });
 
   it('désabonnement en un clic (lien et bouton du client mail), sans session ; jeton modifié refusé', async () => {
-    const url = new URL(awaMails()[0]!.unsubscribeUrl);
+    const url = new URL(awaMails()[0]!.unsubscribeUrl!);
     const token = url.searchParams.get('token')!;
     await request(app.getHttpServer()).get(`/api/v1/unsubscribe?token=${token}x`).expect(400);
     const res = await request(app.getHttpServer())

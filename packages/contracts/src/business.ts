@@ -121,6 +121,44 @@ export const ApplicationView = z.object({
 });
 export type ApplicationView = z.infer<typeof ApplicationView>;
 
+/** GET /api/v1/business/applications : dernières candidatures, toutes offres confondues. */
+export const RecentApplicationView = ApplicationView.extend({ jobTitle: z.string() });
+export type RecentApplicationView = z.infer<typeof RecentApplicationView>;
+
+/* ---------------- Compte et équipe ---------------- */
+
+/** PUT /api/v1/business/account/password */
+export const BusinessPasswordChange = z.object({
+  current: z.string().min(1).max(200),
+  password: z.string().min(10).max(200),
+});
+export type BusinessPasswordChange = z.infer<typeof BusinessPasswordChange>;
+
+/** GET /api/v1/business/team */
+export const BusinessTeamMember = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  email: z.string(),
+  role: z.enum(['owner', 'recruiter']),
+  lastLoginAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+});
+export type BusinessTeamMember = z.infer<typeof BusinessTeamMember>;
+
+/** POST /api/v1/business/team (propriétaire uniquement) */
+export const BusinessInviteRequest = z.object({
+  name: z.string().trim().min(2).max(80),
+  email: Email,
+});
+export type BusinessInviteRequest = z.infer<typeof BusinessInviteRequest>;
+
+/** Le mot de passe provisoire n'est montré qu'une fois, au propriétaire qui l'invite. */
+export const BusinessInviteResponse = z.object({
+  member: BusinessTeamMember,
+  password: z.string(),
+});
+export type BusinessInviteResponse = z.infer<typeof BusinessInviteResponse>;
+
 /** PATCH /api/v1/business/applications/:id (le dev voit le nouveau statut) */
 export const ApplicationStatusRequest = z.object({
   status: z.enum(['seen', 'interview', 'rejected', 'hired']),

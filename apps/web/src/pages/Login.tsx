@@ -300,6 +300,14 @@ export default function Login() {
                     </button>
                   </div>
                 </Field>
+                {!signup && api.mode === 'http' && (
+                  <Link
+                    to={`/mot-de-passe${email ? `?email=${encodeURIComponent(email)}` : ''}`}
+                    className="-mt-2 self-end text-[13px] font-medium text-accent-text hover:underline"
+                  >
+                    Mot de passe oublié ?
+                  </Link>
+                )}
                 {signup && password && (
                   <div className="-mt-2 flex items-center gap-2" aria-live="polite">
                     <div className="flex flex-1 gap-1">

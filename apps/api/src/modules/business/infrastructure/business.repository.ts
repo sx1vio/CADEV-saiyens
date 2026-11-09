@@ -6,11 +6,14 @@ import type {
   BusinessJobView,
   BusinessMeView,
   BusinessRegisterRequest,
+  BusinessTeamMember,
   CompanyProfileInput,
   CompanyPublicView,
   CompanyView,
   MyApplicationView,
+  RecentApplicationView,
 } from '@devhub/contracts';
+import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { publishToUsers } from '../../../infrastructure/realtime/realtime.publisher';
 import type { Company } from '../../../generated/prisma/client';
@@ -215,10 +218,26 @@ export class BusinessRepository {
   async applications(companyId: string, jobId: string): Promise<ApplicationView[] | null> {
     const job = await this.prisma.jobOffer.findFirst({ where: { id: jobId, companyId } });
     if (!job) return null;
+    return (await this.loadApplications({ jobId, status: { not: 'withdrawn' } })).map(
+      ({ jobTitle: _title, ...a }) => a,
+    );
+  }
+
+  /** Dernières candidatures reçues par l'entreprise, toutes offres confondues. */
+  recentApplications(companyId: string, take: number): Promise<RecentApplicationView[]> {
+    return this.loadApplications({ job: { companyId }, status: { not: 'withdrawn' } }, take);
+  }
+
+  private async loadApplications(
+    where: Prisma.JobApplicationWhereInput,
+    take?: number,
+  ): Promise<RecentApplicationView[]> {
     const rows = await this.prisma.jobApplication.findMany({
-      where: { jobId, status: { not: 'withdrawn' } },
+      where,
       orderBy: { createdAt: 'desc' },
+      ...(take ? { take } : {}),
       include: {
+        job: { select: { title: true } },
         user: {
           select: {
             id: true,
@@ -245,6 +264,7 @@ export class BusinessRepository {
     return rows.map((r) => ({
       id: r.id,
       jobId: r.jobId,
+      jobTitle: r.job.title,
       status: r.status as ApplicationStatus,
       message: r.message,
       createdAt: r.createdAt.toISOString(),
@@ -290,6 +310,84 @@ export class BusinessRepository {
       }
     });
     return true;
+  }
+
+  /* ---------------- Compte et équipe ---------------- */
+
+  findAccount(id: string) {
+    return this.prisma.businessAccount.findFirst({
+      where: { id, disabledAt: null },
+      select: { id: true, name: true, email: true, passwordHash: true, companyId: true },
+    });
+  }
+
+  /** Compte actif d'une entreprise non suspendue, pour le lien « mot de passe oublié ». */
+  findResettable(email: string) {
+    return this.prisma.businessAccount.findFirst({
+      where: { email, disabledAt: null, company: { status: { not: 'suspended' } } },
+      select: { id: true, name: true, email: true },
+    });
+  }
+
+  /** Nouveau mot de passe ; ferme toutes les sessions du compte sauf celle à garder. */
+  async setPassword(accountId: string, passwordHash: string, keepSession?: string) {
+    await this.prisma.$transaction([
+      this.prisma.businessAccount.update({ where: { id: accountId }, data: { passwordHash } }),
+      this.prisma.businessSession.deleteMany({
+        where: { accountId, ...(keepSession ? { id: { not: keepSession } } : {}) },
+      }),
+    ]);
+  }
+
+  async team(companyId: string): Promise<BusinessTeamMember[]> {
+    const rows = await this.prisma.businessAccount.findMany({
+      where: { companyId, disabledAt: null },
+      orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+    });
+    return rows.map((a) => ({
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      role: a.role as 'owner' | 'recruiter',
+      lastLoginAt: a.lastLoginAt?.toISOString() ?? null,
+      createdAt: a.createdAt.toISOString(),
+    }));
+  }
+
+  async addRecruiter(
+    companyId: string,
+    input: { name: string; email: string },
+    passwordHash: string,
+  ): Promise<BusinessTeamMember> {
+    const taken = await this.prisma.businessAccount.findUnique({ where: { email: input.email } });
+    // Un recruteur retiré de la même entreprise peut revenir : on réactive son compte.
+    const back =
+      taken && taken.companyId === companyId && taken.disabledAt && taken.role !== 'owner';
+    if (taken && !back) throw new EmailTakenError();
+    const data = { name: input.name, role: 'recruiter', passwordHash, disabledAt: null };
+    const a = back
+      ? await this.prisma.businessAccount.update({ where: { id: taken.id }, data })
+      : await this.prisma.businessAccount.create({
+          data: { ...data, companyId, email: input.email },
+        });
+    return {
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      role: 'recruiter',
+      lastLoginAt: null,
+      createdAt: a.createdAt.toISOString(),
+    };
+  }
+
+  /** Retire un recruteur : compte désactivé (historique gardé), sessions fermées. */
+  async removeRecruiter(companyId: string, id: string): Promise<boolean> {
+    const { count } = await this.prisma.businessAccount.updateMany({
+      where: { id, companyId, role: 'recruiter', disabledAt: null },
+      data: { disabledAt: new Date() },
+    });
+    if (count) await this.prisma.businessSession.deleteMany({ where: { accountId: id } });
+    return count > 0;
   }
 
   /* ---------------- Côté devs ---------------- */

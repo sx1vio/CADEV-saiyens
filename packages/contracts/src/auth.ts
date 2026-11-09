@@ -24,3 +24,16 @@ export const EmailLoginRequest = z
   })
   .strict();
 export type EmailLoginRequest = z.infer<typeof EmailLoginRequest>;
+
+/** POST /api/v1/auth/email/forgot (et /business/password/forgot) : toujours 204. */
+export const PasswordForgotRequest = z.object({ email: Email }).strict();
+export type PasswordForgotRequest = z.infer<typeof PasswordForgotRequest>;
+
+/** POST /api/v1/auth/email/reset (et /business/password/reset) : jeton du lien reçu par e-mail. */
+export const PasswordResetRequest = z
+  .object({
+    token: z.string().min(20).max(200),
+    password: z.string().min(8).max(200),
+  })
+  .strict();
+export type PasswordResetRequest = z.infer<typeof PasswordResetRequest>;

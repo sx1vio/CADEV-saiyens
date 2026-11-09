@@ -1301,3 +1301,18 @@ model Certificate {
   @@unique([userId, certId])
   @@map("certificates")
 }
+
+/// Liens de réinitialisation du mot de passe (devs inscrits par e-mail et recruteurs).
+/// Seul le SHA-256 du jeton est gardé ; le jeton brut ne vit que dans l'e-mail envoyé.
+model PasswordReset {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind      String // user | business
+  subjectId String    @map("subject_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
+  usedAt    DateTime? @map("used_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([kind, subjectId])
+  @@map("password_resets")
+}

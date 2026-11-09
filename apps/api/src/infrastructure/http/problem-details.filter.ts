@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { httpMetrics } from './http-metrics';
 
 // Erreurs au format RFC 9457 (application/problem+json) : docs/architecture/06-api.md#erreurs
 export interface ProblemDetails {
@@ -87,6 +88,14 @@ export class ProblemDetailsFilter implements ExceptionFilter {
 
     if (!(exception instanceof HttpException)) {
       this.logger.error({ err: exception, requestId: problem.requestId }, 'Unhandled error');
+      httpMetrics.recordError({
+        at: new Date().toISOString(),
+        method: request.method,
+        // Chemin sans la chaîne de requête : elle peut contenir des données personnelles.
+        path: request.originalUrl.split('?')[0] ?? '',
+        requestId: problem.requestId ?? null,
+        message: exception instanceof Error ? exception.message.slice(0, 300) : String(exception),
+      });
     }
     if (problem.retryAfter) response.setHeader('Retry-After', String(problem.retryAfter));
     response.status(problem.status).type('application/problem+json').json(problem);

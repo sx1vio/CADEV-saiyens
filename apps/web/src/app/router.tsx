@@ -64,6 +64,7 @@ import { useSession, useUI } from '@/stores/app';
 const pages = {
   landing: () => import('@/pages/Landing'),
   login: () => import('@/pages/Login'),
+  passwordReset: () => import('@/pages/PasswordReset'),
   onboarding: () => import('@/pages/Onboarding'),
   home: () => import('@/pages/Feed'),
   post: () => import('@/pages/PostPage'),
@@ -126,7 +127,7 @@ function Root() {
   return (
     <>
       <ScrollRestoration />
-      {['/bienvenue', '/connexion', '/inscription'].includes(location.pathname) ||
+      {['/bienvenue', '/connexion', '/inscription', '/mot-de-passe'].includes(location.pathname) ||
       location.pathname.startsWith('/lecon/') ? (
         <Outlet />
       ) : user ? (
@@ -218,6 +219,7 @@ export const router = createBrowserRouter([
       { index: true, element: <IndexSwitch /> },
       { path: 'connexion', lazy: lazy('login') },
       { path: 'inscription', lazy: lazy('login') },
+      { path: 'mot-de-passe', lazy: lazy('passwordReset') },
       {
         path: 'bienvenue',
         lazy: async () => {
