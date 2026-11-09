@@ -29,7 +29,6 @@ import africa.devhub.resources.passport_certs_prepare
 import africa.devhub.resources.passport_cover_desc
 import africa.devhub.resources.passport_edit
 import africa.devhub.resources.passport_share
-import africa.devhub.resources.passport_share_copied
 import africa.devhub.resources.passport_failed
 import africa.devhub.resources.passport_help_title
 import africa.devhub.resources.passport_member_since
@@ -70,6 +69,7 @@ import africa.devhub.resources.trust_email
 import africa.devhub.resources.trust_founder
 import africa.devhub.resources.trust_github
 import africa.devhub.resources.trust_github_years
+import africa.devhub.platform.rememberShareText
 import africa.devhub.ui.components.Badge
 import africa.devhub.ui.components.Button
 import africa.devhub.ui.components.CertBadge
@@ -142,11 +142,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import africa.devhub.passport.lastDays
 import africa.devhub.ui.theme.successColor
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
@@ -207,14 +203,7 @@ private fun Loaded(
     writeFailed: Boolean,
 ) {
     val passport = state.passport
-    val clipboard = LocalClipboardManager.current
-    var copied by remember { mutableStateOf(false) }
-    LaunchedEffect(copied) {
-        if (copied) {
-            delay(2_000)
-            copied = false
-        }
-    }
+    val share = rememberShareText()
     val coverDays = remember(state.proofDays) { lastDays(state.proofDays, todayEpochDay(), 52 * 7) }
     val user = passport.user
     val months = stringArrayResource(Res.array.months)
@@ -248,19 +237,8 @@ private fun Loaded(
                         } else if (onWrite != null) {
                             PrimaryPill(stringResource(Res.string.passport_write), onWrite)
                         }
-                        ShareButton(stringResource(Res.string.passport_share)) {
-                            clipboard.setText(AnnotatedString(shareUrl))
-                            copied = true
-                        }
+                        ShareButton(stringResource(Res.string.passport_share)) { share(shareUrl) }
                     }
-                }
-                if (copied) {
-                    Text(
-                        stringResource(Res.string.passport_share_copied),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = successColor,
-                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                    )
                 }
                 if (writeFailed) Text(stringResource(Res.string.passport_write_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

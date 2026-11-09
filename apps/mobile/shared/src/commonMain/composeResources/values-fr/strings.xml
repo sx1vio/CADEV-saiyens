@@ -863,7 +863,6 @@
     <string name="gh_ago_months">il y a %1$d mois</string>
     <string name="passport_cover_desc">Activité sur DevHub ces dernières semaines, un carré par jour</string>
     <string name="passport_share">Partager</string>
-    <string name="passport_share_copied">Lien copié</string>
     <string name="jobs_live_title">Offres en direct · dev en Afrique et à distance</string>
     <string name="jobs_live_sources">%1$d sources officielles</string>
     <string name="jobs_live_refresh">Actualiser</string>
