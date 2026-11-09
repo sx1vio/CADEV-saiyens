@@ -178,6 +178,13 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 10/11/2026 — Nom de domaine devafrica.tech
+
+- **Sylvio** a acheté `devafrica.tech` chez name.com (jusqu’au 09/11/2027, renouvellement automatique désactivé).
+- **À faire par Sylvio chez name.com** : garder les serveurs de noms de name.com ; quatre enregistrements `A` (TTL 300) vers `213.163.192.66` : hôte vide, `www`, `admin`, `business`.
+- **Fait** : `/srv/devhub/.env` rempli avec le domaine (site, API, `admin.`, `business.`, `MAIL_FROM`), copie de l’ancien fichier gardée sur le serveur ; Caddy redirige `www.devafrica.tech` vers `devafrica.tech` (configuration validée avec les vraies valeurs) ; `infra/README.md` §8 mis à jour (DNS, callback OAuth `https://devafrica.tech/api/v1/auth/github/callback`).
+- **Reste, dans l’ordre** : DNS, clé de lecture du dépôt (§8 étape 1), application OAuth GitHub, secrets de la CI, `DEPLOY_ENABLED=true`, compte admin.
+
 ### 09/11/2026 — Deux VPS Systalink installés et sécurisés (app + base)
 
 - **Demande de Sylvio** : le VPS payé avec le code promo CADEV (`vps-cadev-044`) a validé l’étape « Produit Systalink actif », mais ses accès n’ont pas été donnés ; deux autres VPS payés sur la Datacloud sont en ligne. Les utiliser pour déployer de façon organisée, bien installer, sécuriser et configurer les deux, faire une doc ordonnée et noter ici. Le nom de domaine viendra à la fin.

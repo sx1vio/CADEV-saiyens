@@ -44,6 +44,11 @@
 	}
 }
 
+# www.<domaine> renvoie vers le domaine nu (enregistrement DNS « www » vers le même serveur).
+www.{$SITE_ADDRESS} {
+	redir https://{$SITE_ADDRESS}{uri} permanent
+}
+
 # Espace d'administration (apps/admin) : adresse à part, jamais liée depuis le site.
 # Sans ADMIN_ADDRESS, ce bloc écoute sur 127.0.0.1:8081 (port non publié) et l'API garde
 # l'administration désactivée (ADMIN_URL vide : toutes les routes /api/v1/admin/* en 404).
