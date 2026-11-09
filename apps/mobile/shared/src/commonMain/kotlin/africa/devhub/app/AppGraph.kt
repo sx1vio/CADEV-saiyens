@@ -6,6 +6,7 @@ import africa.devhub.auth.SessionStore
 import africa.devhub.core.AppConfig
 import africa.devhub.community.CommunityApi
 import africa.devhub.discover.DiscoverApi
+import africa.devhub.certs.CertsApi
 import africa.devhub.jobs.JobsApi
 import africa.devhub.me.MeApi
 import africa.devhub.messages.MessagesApi
@@ -23,9 +24,12 @@ import africa.devhub.offline.ActionSender
 import africa.devhub.offline.Connectivity
 import africa.devhub.offline.ConnectivityProbe
 import africa.devhub.offline.LocalFiles
+import africa.devhub.offline.ReachabilityRecovery
 import africa.devhub.offline.ReadCache
 import africa.devhub.offline.UserSpace
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.request.get
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -46,6 +50,8 @@ class AppGraph(
     eventStream: EventStream? = null,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
     val now: () -> Long = ::systemNowMillis,
+    /** Sonder l'API tant qu'elle est injoignable pour retirer « Hors ligne » d'elle-même ; désactivé dans les tests. */
+    autoRecover: Boolean = true,
 ) {
     val sessions = SessionStore(secureStore)
 
@@ -65,12 +71,23 @@ class AppGraph(
     val messagesApi = MessagesApi(http)
     val communityApi = CommunityApi(http)
     val jobsApi = JobsApi(http)
+    val preflightApi = africa.devhub.preflight.PreflightApi(http)
+    val benchApi = africa.devhub.bench.BenchApi(http)
+    val certsApi = CertsApi(http)
     val notificationsApi = NotificationsApi(http)
     private val events: EventStream = eventStream ?: SseEventStream(http)
     val auth = AuthRepository(config, AuthApi(http), authBrowser, sessions)
 
     val connectivity = Connectivity(connectivityProbe)
     private val sender = ActionSender(http)
+
+    /** Fait disparaître « Hors ligne » dès que l'API répond de nouveau, même sans action de l'utilisateur. */
+    @Suppress("unused")
+    private val recovery = if (autoRecover) {
+        ReachabilityRecovery(connectivity, scope, ping = { http.get("api/v1/healthz").status.isSuccess() })
+    } else {
+        null
+    }
 
     /** Dernier profil connu, hors de tout espace utilisateur : ouvrir l'application hors ligne. */
     val deviceCache = ReadCache(storage.child("device"), now)

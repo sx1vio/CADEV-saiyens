@@ -1,5 +1,25 @@
 package africa.devhub.ui.jobs
 
+import androidx.compose.foundation.background
+import africa.devhub.ui.theme.successColor
+import africa.devhub.ui.rooms.RemoteLogo
+import africa.devhub.ui.rooms.RoomMark
+import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.news.LiveBoardState
+import africa.devhub.news.NewsItem
+import africa.devhub.resources.jobs_live_linkedin
+import africa.devhub.resources.jobs_live_refresh
+import africa.devhub.resources.jobs_live_sources
+import africa.devhub.resources.jobs_live_title
+import africa.devhub.resources.live_empty
+import africa.devhub.resources.live_failed
+import africa.devhub.resources.live_failed_text
+import africa.devhub.resources.live_open
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.passport.agoLabel
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.StateMessage
+import africa.devhub.ui.components.openWeb
 import africa.devhub.jobs.APPLY_MESSAGE_MAX
 import africa.devhub.jobs.APPLY_MESSAGE_MIN
 import africa.devhub.jobs.ApplicationsState
@@ -8,6 +28,9 @@ import africa.devhub.jobs.JobFilters
 import africa.devhub.jobs.JobState
 import africa.devhub.jobs.JobsState
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_book
+import africa.devhub.resources.djeli_laptop
 import africa.devhub.resources.app_status_hired
 import africa.devhub.resources.app_status_interview
 import africa.devhub.resources.app_status_rejected
@@ -50,6 +73,7 @@ import africa.devhub.ui.components.Pill
 import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.components.dayMonthYear
 import africa.devhub.ui.sos.failureLabel
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -66,13 +90,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -88,6 +112,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -133,8 +158,12 @@ fun JobsScreen(
     onRetry: () -> Unit,
     onOpen: (String) -> Unit,
     onApplications: () -> Unit,
+    live: LiveBoardState = LiveBoardState(),
+    onLiveRefresh: () -> Unit = {},
+    onLiveRetry: () -> Unit = {},
 ) {
     val f = state.filters
+    val uriHandler = LocalUriHandler.current
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
@@ -142,12 +171,13 @@ fun JobsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item { Text(stringResource(Res.string.jobs_intro), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            item { TextButton(onClick = onApplications) { Text(stringResource(Res.string.jobs_my_applications)) } }
+            item { SecondaryPill(stringResource(Res.string.jobs_my_applications), onApplications, Modifier.fillMaxWidth()) }
             item {
                 OutlinedTextField(
                     value = f.text,
                     onValueChange = { onFilters(f.copy(text = it.take(80))) },
                     label = { Text(stringResource(Res.string.jobs_search)) },
+                    leadingIcon = { androidx.compose.material3.Icon(africa.devhub.ui.components.DevHubIcons.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -175,23 +205,144 @@ fun JobsScreen(
                         OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.retry)) }
                     }
                 }
-                state.items.isEmpty() -> item { Text(stringResource(Res.string.jobs_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                state.items.isEmpty() -> item { EmptyCard(stringResource(Res.string.jobs_empty), Res.drawable.djeli_laptop) }
                 else -> items(state.items, key = { it.id }) { JobCard(it, onOpen) }
+            }
+            liveJobItems(live, onLiveRefresh, onLiveRetry) { uriHandler.openWeb(it) }
+        }
+    }
+}
+
+/** Lien de recherche LinkedIn : pas d'API ouverte et collecte interdite, donc un simple lien, comme sur le web. */
+private const val LINKEDIN_SEARCH = "https://www.linkedin.com/jobs/search/?keywords=developer&location=Africa&f_WT=2"
+
+/**
+ * « Offres en direct » : les annonces collectées par l'API chez des sources officielles (Remotive,
+ * Jobicy, Himalayas…), sous les offres de DevHub. Relues seules toutes les 5 minutes.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+private fun androidx.compose.foundation.lazy.LazyListScope.liveJobItems(
+    live: LiveBoardState,
+    onRefresh: () -> Unit,
+    onRetry: () -> Unit,
+    open: (String) -> Unit,
+) {
+    item {
+        Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.Icon(DevHubIcons.Radio, contentDescription = null, tint = successColor, modifier = Modifier.size(18.dp))
+                Text(
+                    stringResource(Res.string.jobs_live_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+            }
+            val sources = live.items.map { it.sourceName }.distinct().size
+            if (sources > 0) {
+                Text(
+                    stringResource(Res.string.jobs_live_sources, sources),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SecondaryPill(stringResource(Res.string.jobs_live_refresh), onRefresh, leading = DevHubIcons.Refresh, enabled = !live.loading)
+                SecondaryPill(stringResource(Res.string.jobs_live_linkedin), { open(LINKEDIN_SEARCH) }, leading = DevHubIcons.ExternalLink)
+            }
+        }
+    }
+    when {
+        live.loading && live.items.isEmpty() -> item { Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) { CircularProgressIndicator() } }
+        live.failed && live.items.isEmpty() -> item {
+            DevCard {
+                StateMessage(
+                    icon = DevHubIcons.WifiOff,
+                    title = stringResource(Res.string.live_failed),
+                    text = stringResource(Res.string.live_failed_text),
+                    isError = true,
+                    onRetry = onRetry,
+                )
+            }
+        }
+        live.items.isEmpty() -> item { DevCard { StateMessage(icon = DevHubIcons.Search, title = stringResource(Res.string.live_empty)) } }
+        else -> items(live.items, key = { it.id }) { LiveJobCard(it) { open(it.url) } }
+    }
+}
+
+/** Offre collectée (`LiveCard` du web) : entreprise, contrat, lieu et salaire ; s'ouvre sur l'annonce d'origine. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LiveJobCard(item: NewsItem, onOpen: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    DevCard(Modifier.clickable(role = Role.Button, onClickLabel = stringResource(Res.string.live_open), onClick = onOpen)) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            RemoteLogo(item.image, item.author ?: item.sourceName, 48.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(item.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    androidx.compose.material3.Icon(
+                        DevHubIcons.ExternalLink,
+                        contentDescription = null,
+                        tint = scheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 8.dp, top = 2.dp).size(16.dp),
+                    )
+                }
+                item.author?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                val tags = listOfNotNull(item.extraText("jobType"), item.extraText("location"))
+                val salary = item.extraText("salary")
+                if (tags.isNotEmpty() || salary != null) {
+                    FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        tags.forEach { Chip(it, scheme.onSurface, scheme.surfaceVariant) }
+                        salary?.let { Chip(it, successColor, successColor.copy(alpha = 0.12f)) }
+                    }
+                }
+                Text(
+                    item.sourceName + " · " + agoLabel(item.publishedAt),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
             }
         }
     }
 }
 
+/** Ligne d'offre du web (`JobRow`) : monogramme de l'entreprise, titre, entreprise, lieu et mode, contrat et salaire. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun JobCard(job: Job, onOpen: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(job.id) })) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(job.title, style = MaterialTheme.typography.titleMedium)
-            Text("${job.company} · ${job.location}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            JobPills(job)
+    val scheme = MaterialTheme.colorScheme
+    DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpen(job.id) })) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            RoomMark(job.company, 48.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(job.title, style = MaterialTheme.typography.titleSmall)
+                Text(job.company, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                Text(
+                    job.location + " · " + stringResource(modeLabel(job.workMode)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                )
+                FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Chip(stringResource(contractLabel(job.contract)) + " · " + stringResource(seniorityLabel(job.seniority)), scheme.onSurface, scheme.surfaceVariant)
+                    job.salary?.let { Chip(it, successColor, successColor.copy(alpha = 0.12f)) }
+                }
+            }
         }
     }
+}
+
+/** Pastille de contrat ou de salaire (`rounded-[6px]` du web), à ne pas confondre avec les puces de filtre. */
+@Composable
+private fun Chip(text: String, color: androidx.compose.ui.graphics.Color, background: androidx.compose.ui.graphics.Color) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium,
+        color = color,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.background(background, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -223,12 +374,12 @@ fun JobScreen(state: JobState, onApply: (String) -> Unit, onRetry: () -> Unit) {
                 Text("${job.company} · ${job.location}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 JobPills(job)
                 Text(job.description, style = MaterialTheme.typography.bodyMedium)
-                job.sourceUrl?.let { url -> OutlinedButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.job_source)) } }
+                job.sourceUrl?.let { url -> OutlinedButton(onClick = { uriHandler.openWeb(url) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.job_source)) } }
                 val external = job.applyUrl
                 val application = state.application
                 when {
                     // Offre d'une entreprise non inscrite : on candidate chez elle.
-                    external != null -> Button(onClick = { uriHandler.openUri(external) }, modifier = Modifier.fillMaxWidth()) {
+                    external != null -> Button(onClick = { uriHandler.openWeb(external, allowMail = true) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(Res.string.job_apply_external))
                     }
                     application != null -> Text(
@@ -270,9 +421,9 @@ fun ApplicationsScreen(state: ApplicationsState, onWithdraw: (String) -> Unit, o
         when {
             state.loading && state.items.isEmpty() -> LoadingScreen()
             state.failed && state.items.isEmpty() -> OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.retry)) }
-            state.items.isEmpty() -> Text(stringResource(Res.string.applications_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            state.items.isEmpty() -> EmptyCard(stringResource(Res.string.applications_empty), Res.drawable.djeli_book)
             else -> state.items.forEach { a ->
-                Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpenJob(a.job.id) })) {
+                DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpenJob(a.job.id) })) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(a.job.title, style = MaterialTheme.typography.titleMedium)
                         Text("${a.job.company} · ${dayMonthYear(a.createdAt, months)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

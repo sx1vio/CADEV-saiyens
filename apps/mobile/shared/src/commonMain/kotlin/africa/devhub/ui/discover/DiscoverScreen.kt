@@ -3,11 +3,22 @@ package africa.devhub.ui.discover
 import africa.devhub.discover.DevCard
 import africa.devhub.discover.DevFilters
 import africa.devhub.discover.DevsState
+import africa.devhub.discover.SkillScore
+import africa.devhub.platform.formatUtc
+import africa.devhub.platform.utcOffsetMinutes
+import africa.devhub.ui.components.RemoteImage
+import africa.devhub.ui.devmap.countryName
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import africa.devhub.discover.LeaderboardState
 import africa.devhub.resources.Res
 import africa.devhub.resources.board_back
-import africa.devhub.resources.board_country_line
-import africa.devhub.resources.board_dev_line
 import africa.devhub.resources.board_failed
 import africa.devhub.resources.board_method
 import africa.devhub.resources.cached_copy
@@ -19,14 +30,22 @@ import africa.devhub.resources.filter_available
 import africa.devhub.resources.filter_country
 import africa.devhub.resources.filter_mission
 import africa.devhub.resources.filter_tag
+import africa.devhub.resources.filter_tag_hint
+import africa.devhub.resources.filter_country_hint
 import africa.devhub.resources.passport_mission
 import africa.devhub.resources.proofs_more
 import africa.devhub.resources.retry
 import africa.devhub.resources.tab_devs
 import africa.devhub.resources.tab_leaderboard
 import africa.devhub.resources.trust_demo
-import africa.devhub.ui.components.Pill
+import africa.devhub.ui.components.Badge
+import africa.devhub.ui.components.DevCard as Panel
+import africa.devhub.ui.components.TechTag
 import africa.devhub.ui.theme.successColor
+import africa.devhub.ui.components.TabBar
+import africa.devhub.ui.components.RankRow
+import africa.devhub.ui.components.Initials
+import africa.devhub.resources.board_devs
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -44,14 +63,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -79,10 +95,7 @@ fun DiscoverScreen(
 ) {
     var tab by rememberSaveable { mutableIntStateOf(if (startOnLeaderboard) 1 else 0) }
     Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = tab) {
-            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(Res.string.tab_devs)) })
-            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(Res.string.tab_leaderboard)) })
-        }
+        TabBar(listOf(stringResource(Res.string.tab_devs), stringResource(Res.string.tab_leaderboard)), tab, onSelect = { tab = it })
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
@@ -105,27 +118,31 @@ private fun LazyListScope.devsTab(
 ) {
     val f = state.filters
     item {
-        OutlinedTextField(
-            value = f.tag,
-            onValueChange = { onFilters(f.copy(tag = it.trim().take(40)), true) },
-            label = { Text(stringResource(Res.string.filter_tag)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-    item {
-        OutlinedTextField(
-            value = f.country,
-            onValueChange = { onFilters(f.copy(country = it.trim().uppercase().take(2)), true) },
-            label = { Text(stringResource(Res.string.filter_country)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-    item {
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = f.availableNow, onClick = { onFilters(f.copy(availableNow = !f.availableNow), false) }, label = { Text(stringResource(Res.string.filter_available)) })
-            FilterChip(selected = f.mission, onClick = { onFilters(f.copy(mission = !f.mission), false) }, label = { Text(stringResource(Res.string.filter_mission)) })
+        Panel {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = f.tag,
+                        onValueChange = { onFilters(f.copy(tag = it.trim().take(40)), true) },
+                        label = { Text(stringResource(Res.string.filter_tag)) },
+                        placeholder = { Text(stringResource(Res.string.filter_tag_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = f.country,
+                        onValueChange = { onFilters(f.copy(country = it.trim().uppercase().take(2)), true) },
+                        label = { Text(stringResource(Res.string.filter_country)) },
+                        placeholder = { Text(stringResource(Res.string.filter_country_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = f.availableNow, onClick = { onFilters(f.copy(availableNow = !f.availableNow), false) }, label = { Text(stringResource(Res.string.filter_available)) })
+                    FilterChip(selected = f.mission, onClick = { onFilters(f.copy(mission = !f.mission), false) }, label = { Text(stringResource(Res.string.filter_mission)) })
+                }
+            }
         }
     }
     if (state.cachedAt != null) item { CachedNote() }
@@ -145,25 +162,60 @@ private fun LazyListScope.devsTab(
     }
 }
 
+/** Carte du web (`DevCard`) : avatar et disponibilité, nom, lieu et fuseau, XP, trois barres de compétences. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DevCardView(dev: DevCard, onOpen: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(dev.handle) })) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(dev.displayName, style = MaterialTheme.typography.titleMedium)
-            Text(
-                listOfNotNull("@${dev.handle}", dev.country, stringResource(Res.string.dev_xp, dev.totalXp)).joinToString(" · "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (dev.availableNow) Pill(stringResource(Res.string.dev_available), successColor)
-                if (dev.availableForMission) Pill(stringResource(Res.string.passport_mission), successColor)
-                if (dev.isDemo) Pill(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
-                dev.topSkills.take(3).forEach { Pill("${it.label} ${it.score}") }
+    val scheme = MaterialTheme.colorScheme
+    val offset = dev.timezone?.let { utcOffsetMinutes(it) }?.let { formatUtc(it) }
+    val place = listOfNotNull(dev.country?.let { countryName(it) }, offset).joinToString(" · ")
+    Panel(Modifier.clickable(role = Role.Button, onClick = { onOpen(dev.handle) })) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box {
+                    Initials(dev.displayName, 48.dp)
+                    RemoteImage(dev.avatarUrl, width = 160, modifier = Modifier.size(48.dp).clip(CircleShape))
+                    Box(
+                        Modifier.align(Alignment.BottomEnd).size(14.dp)
+                            .background(scheme.surface, CircleShape).padding(2.dp)
+                            .background(if (dev.availableNow) successColor else scheme.outline, CircleShape),
+                    )
+                }
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(dev.displayName, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        if (dev.isDemo) Badge(stringResource(Res.string.trust_demo), scheme.onSurfaceVariant)
+                    }
+                    if (place.isNotEmpty()) {
+                        Text(place, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(dev.totalXp.toString(), style = MaterialTheme.typography.titleSmall)
+                    Text("XP", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                }
             }
-            dev.lookingFor?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2) }
+            if (dev.topSkills.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                dev.topSkills.take(3).forEach { SkillRow(it) }
+            }
+            if (dev.availableNow || dev.availableForMission) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (dev.availableNow) Badge(stringResource(Res.string.dev_available), successColor)
+                if (dev.availableForMission) Badge(stringResource(Res.string.passport_mission), successColor)
+            }
         }
+    }
+}
+
+/** Ligne de compétence : nom, barre de score (bleu du web), score. */
+@Composable
+private fun SkillRow(skill: SkillScore) {
+    val scheme = MaterialTheme.colorScheme
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(skill.label, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(104.dp))
+        Box(Modifier.weight(1f).height(6.dp).clip(CircleShape).background(scheme.surfaceVariant)) {
+            Box(Modifier.fillMaxWidth(skill.score.coerceIn(0, 100) / 100f).height(6.dp).background(scheme.primary, CircleShape))
+        }
+        Text(skill.score.toString(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(28.dp), textAlign = TextAlign.End)
     }
 }
 
@@ -180,21 +232,18 @@ private fun LazyListScope.boardTab(state: LeaderboardState, onCountry: (String?)
             }
         }
         state.country == null -> items(board.countries, key = { it.country }) { c ->
-            Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onCountry(c.country) })) {
-                Text(
-                    stringResource(Res.string.board_country_line, c.rank, c.country, c.totalXp, c.devs),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(16.dp),
+            Panel {
+                RankRow(
+                    c.rank,
+                    c.country,
+                    stringResource(Res.string.dev_xp, c.totalXp) + " · " + stringResource(Res.string.board_devs, c.devs),
+                    onClick = { onCountry(c.country) },
                 )
             }
         }
         else -> items(board.devs, key = { it.handle }) { d ->
-            Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(d.handle) })) {
-                Text(
-                    stringResource(Res.string.board_dev_line, d.rank, d.displayName, d.totalXp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(16.dp),
-                )
+            Panel {
+                RankRow(d.rank, d.displayName, stringResource(Res.string.dev_xp, d.totalXp), onClick = { onOpen(d.handle) })
             }
         }
     }

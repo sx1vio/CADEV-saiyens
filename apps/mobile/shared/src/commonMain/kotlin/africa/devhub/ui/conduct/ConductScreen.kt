@@ -14,10 +14,9 @@ import africa.devhub.resources.sign_out
 import africa.devhub.ui.components.ScreenColumn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.PrimaryPill
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,7 +44,7 @@ fun ConductScreen(state: AppState.NeedsConduct, onAccept: () -> Unit, onSignOut:
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Card(Modifier.fillMaxWidth()) {
+        DevCard {
             rules.forEachIndexed { index, rule ->
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Text(
@@ -65,13 +64,7 @@ fun ConductScreen(state: AppState.NeedsConduct, onAccept: () -> Unit, onSignOut:
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
-        Button(
-            onClick = onAccept,
-            enabled = !state.busy,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) {
-            Text(stringResource(Res.string.conduct_accept))
-        }
+        PrimaryPill(stringResource(Res.string.conduct_accept), onClick = onAccept, enabled = !state.busy, modifier = Modifier.fillMaxWidth())
         TextButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(Res.string.sign_out))
         }

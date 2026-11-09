@@ -19,20 +19,24 @@ import africa.devhub.resources.visibility_unlisted
 import africa.devhub.rooms.CreateRoomState
 import africa.devhub.rooms.RoomDraft
 import africa.devhub.rooms.RoomLimits
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.PrimaryPill
 import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.sos.failureLabel
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import africa.devhub.ui.components.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,6 +64,7 @@ fun CreateRoomScreen(
     val d = state.draft
     ScreenColumn {
         if (!online) Text(stringResource(Res.string.create_offline), color = MaterialTheme.colorScheme.error)
+        DevCard { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedTextField(
             value = d.name,
             onValueChange = { v -> onEdit { it.copy(name = v.take(RoomLimits.NAME_MAX)) } },
@@ -128,6 +133,7 @@ fun CreateRoomScreen(
                     )
                 }
         }
+        } }
         state.error?.let { code ->
             Text(
                 stringResource(
@@ -141,8 +147,6 @@ fun CreateRoomScreen(
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
-        Button(onClick = onSend, enabled = state.canSend && !state.sending && online, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-            if (state.sending) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text(stringResource(Res.string.create_send))
-        }
+        PrimaryPill(stringResource(Res.string.create_send), onClick = onSend, enabled = state.canSend && !state.sending && online, busy = state.sending, modifier = Modifier.fillMaxWidth())
     }
 }

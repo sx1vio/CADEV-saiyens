@@ -11,6 +11,9 @@ class PassportApi(private val http: HttpClient) {
     suspend fun passport(handle: String): Passport =
         apiCall { http.get("api/v1/u/${handle.encodeURLPathPart()}") }
 
+    suspend fun certificates(handle: String): UserCertificates =
+        apiCall { http.get("api/v1/u/${handle.encodeURLPathPart()}/certificates") }
+
     suspend fun proofs(handle: String, cursor: String? = null, limit: Int = 20): Proofs =
         apiCall {
             http.get("api/v1/u/${handle.encodeURLPathPart()}/proofs") {
@@ -18,6 +21,10 @@ class PassportApi(private val http: HttpClient) {
                 parameter("limit", limit)
             }
         }
+
+    /** Activité GitHub publique ; 404 quand GitHub n'est pas relié ou l'activité masquée. */
+    suspend fun githubActivity(handle: String): GithubActivity =
+        apiCall { http.get("api/v1/users/${handle.encodeURLPathPart()}/github") }
 
     /** Réimport du profil GitHub (une fois par heure au plus). */
     suspend fun refreshGithub(): MySkills = apiCall { http.post("api/v1/me/github/refresh") }

@@ -1,5 +1,31 @@
 package africa.devhub.ui.sos
 
+import africa.devhub.resources.answers_count
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import africa.devhub.resources.urgency_high
+import africa.devhub.resources.status_resolved
+import africa.devhub.resources.status_closed
+import africa.devhub.resources.status_open
+import africa.devhub.ui.theme.warningColor
+import africa.devhub.ui.components.TechTag
+import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.ui.components.Initials
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.Badge
+import africa.devhub.ui.components.openWeb
 import africa.devhub.resources.Res
 import africa.devhub.resources.accept_answer
 import africa.devhub.resources.ai_disclaimer
@@ -52,13 +78,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedCard
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -108,28 +134,49 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
     val q = state.question
     val months = stringArrayResource(Res.array.months)
     val isAuthor = q.author.handle.equals(meHandle, ignoreCase = true)
-    ScreenColumn {
+    ScreenColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         if (state.cachedAt != null) {
             Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Text(q.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            StatusPill(q.status)
-            UrgencyPill(q.urgency)
-            q.tags.forEach { Pill(it.label) }
-            if (q.author.isDemo) Pill(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val resolved = q.status == "resolved"
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (q.urgency == "high" && !resolved) Badge(stringResource(Res.string.urgency_high), MaterialTheme.colorScheme.error)
+                when (q.status) {
+                    "resolved" -> Badge(stringResource(Res.string.status_resolved), successColor, DevHubIcons.CircleCheck)
+                    "closed" -> Badge(stringResource(Res.string.status_closed), MaterialTheme.colorScheme.onSurfaceVariant)
+                    else -> Badge(stringResource(Res.string.status_open), MaterialTheme.colorScheme.primary)
+                }
+                if (q.author.isDemo) Badge(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
+            }
+            Text(q.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Initials(q.author.displayName, size = 24.dp)
+                Text(
+                    stringResource(Res.string.question_meta, q.author.displayName, dayMonthYear(q.createdAt, months)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                q.tags.forEach { TechTag(it.label) }
+            }
         }
-        Text(
-            stringResource(Res.string.question_meta, q.author.displayName, dayMonthYear(q.createdAt, months)),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(q.body, style = MaterialTheme.typography.bodyLarge)
-        q.codeSnippet?.takeIf { it.isNotBlank() }?.let { CodeBlock(it) }
-        q.reproUrl?.let { url ->
-            val uriHandler = LocalUriHandler.current
-            OutlinedButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(Res.string.repro_open))
+        DevCard {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(q.body, style = MaterialTheme.typography.bodyLarge)
+                q.codeSnippet?.takeIf { it.isNotBlank() }?.let { CodeBlock(it) }
+                q.reproUrl?.let { url ->
+                    val uriHandler = LocalUriHandler.current
+                    Row(
+                        Modifier.clickable(role = Role.Button) { uriHandler.openWeb(url) }.defaultMinSize(minHeight = 40.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(stringResource(Res.string.repro_open), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Icon(DevHubIcons.ExternalLink, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                    }
+                }
             }
         }
 
@@ -139,12 +186,25 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
         state.notice?.let { Notice(it) }
 
         Text(
-            stringResource(Res.string.answers_title),
+            pluralStringResource(Res.plurals.answers_count, q.answers.size, q.answers.size),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+            modifier = Modifier.padding(top = 4.dp).semantics { heading() },
         )
         if (q.answers.isEmpty() && state.pendingAnswers.isEmpty()) {
-            Text(stringResource(Res.string.no_answers), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = Color.Transparent,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(Res.string.no_answers),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(20.dp),
+                )
+            }
         }
         q.answers.forEach { answer ->
             AnswerCard(
@@ -159,13 +219,13 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
             )
         }
         state.pendingAnswers.forEach { pending ->
-            OutlinedCard(Modifier.fillMaxWidth()) {
+            DevCard {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(pending.preview, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         stringResource(if (pending.failed) Res.string.pending_failed else Res.string.pending_badge),
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (pending.failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        color = if (pending.failed) MaterialTheme.colorScheme.error else warningColor,
                     )
                 }
             }
@@ -176,8 +236,8 @@ private fun Loaded(state: QuestionState.Loaded, meHandle: String, actions: Quest
 
 @Composable
 private fun CodeBlock(code: String) {
-    Text(stringResource(Res.string.code_title), style = MaterialTheme.typography.titleSmall)
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    Text(stringResource(Res.string.code_title), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxWidth()) {
         Text(
             code,
             fontFamily = FontFamily.Monospace,
@@ -191,26 +251,33 @@ private fun CodeBlock(code: String) {
 /** S2 : toujours présentée comme générée par IA, jamais comme vérifiée. */
 @Composable
 private fun AiHint(q: QuestionDetail) {
-    when (q.aiStatus) {
-        "done" -> q.aiHint?.let { hint ->
-            OutlinedCard(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(Res.string.ai_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+    if (q.aiStatus !in listOf("done", "pending", "failed")) return
+    DevCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.size(36.dp).background(Color.Black, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                    Icon(DevHubIcons.Sparkles, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                }
+                Text(stringResource(Res.string.ai_title), style = MaterialTheme.typography.titleSmall)
+            }
+            when (q.aiStatus) {
+                "done" -> q.aiHint?.let { hint ->
                     Text(hint, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         stringResource(Res.string.ai_disclaimer),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                "pending" -> Text(
+                    stringResource(Res.string.ai_pending),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                else -> Text(stringResource(Res.string.ai_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        "pending" -> Text(
-            stringResource(Res.string.ai_pending),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-        )
-        "failed" -> Text(stringResource(Res.string.ai_failed), color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -255,23 +322,22 @@ private fun AnswerCard(
     onVote: () -> Unit,
     onAccept: () -> Unit,
 ) {
-    val border = if (answer.isAccepted) BorderStroke(2.dp, successColor) else null
-    OutlinedCard(Modifier.fillMaxWidth(), border = border ?: CardDefaults.outlinedCardBorder()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (answer.isAccepted) Text(stringResource(Res.string.answer_accepted), color = successColor, style = MaterialTheme.typography.labelLarge)
+    DevCard(if (answer.isAccepted) Modifier.border(1.5.dp, successColor, RoundedCornerShape(10.dp)) else Modifier) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Initials(answer.author.displayName, size = 32.dp)
+                Column(Modifier.weight(1f)) {
+                    Text(answer.author.displayName, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(dayMonthYear(answer.createdAt, months), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (answer.isAccepted) Badge(stringResource(Res.string.answer_accepted), successColor, DevHubIcons.CircleCheck)
+            }
             Text(answer.body, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                stringResource(Res.string.question_meta, answer.author.displayName, dayMonthYear(answer.createdAt, months)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (canVote) {
-                    OutlinedButton(onClick = onVote, enabled = !busy) {
-                        Text(stringResource(Res.string.vote_helpful, answer.helpfulCount))
-                    }
+                    SecondaryPill(stringResource(Res.string.vote_helpful, answer.helpfulCount), onVote, enabled = !busy)
                 } else {
-                    Text(stringResource(Res.string.vote_helpful, answer.helpfulCount), style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(Res.string.vote_helpful, answer.helpfulCount), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (canAccept) TextButton(onClick = onAccept, enabled = !busy) { Text(stringResource(Res.string.accept_answer)) }
             }
@@ -284,15 +350,19 @@ private fun Composer(busy: Boolean, answersPosted: Int, onPost: (String) -> Unit
     var draft by rememberSaveable { mutableStateOf("") }
     // Réponse publiée : le brouillon est vidé (pas avant, pour ne rien perdre en cas d'échec).
     LaunchedEffect(answersPosted) { if (answersPosted > 0) draft = "" }
-    OutlinedTextField(
-        value = draft,
-        onValueChange = { draft = it.take(SosLimits.ANSWER_MAX) },
-        label = { Text(stringResource(Res.string.your_answer)) },
-        placeholder = { Text(stringResource(Res.string.answer_hint)) },
-        minLines = 4,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-    )
-    Button(onClick = { onPost(draft) }, enabled = !busy && draft.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
-        Text(stringResource(Res.string.send_answer))
+    DevCard {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = draft,
+                onValueChange = { draft = it.take(SosLimits.ANSWER_MAX) },
+                label = { Text(stringResource(Res.string.your_answer)) },
+                placeholder = { Text(stringResource(Res.string.answer_hint)) },
+                minLines = 4,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+            )
+            Button(onClick = { onPost(draft) }, enabled = !busy && draft.isNotBlank(), modifier = Modifier.align(Alignment.End)) {
+                Text(stringResource(Res.string.send_answer))
+            }
+        }
     }
 }

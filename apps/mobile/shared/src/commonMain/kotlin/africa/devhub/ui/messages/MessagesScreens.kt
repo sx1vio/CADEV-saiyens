@@ -5,6 +5,8 @@ import africa.devhub.messages.ConversationState
 import africa.devhub.messages.ConversationsState
 import africa.devhub.messages.DM_MAX
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_wave
 import africa.devhub.resources.cached_copy
 import africa.devhub.resources.messages_blocked
 import africa.devhub.resources.messages_empty
@@ -27,16 +29,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.Badge
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.Initials
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,20 +69,23 @@ fun ConversationsScreen(state: ConversationsState, onOpen: (Conversation) -> Uni
                 Text(stringResource(Res.string.messages_failed), color = MaterialTheme.colorScheme.error)
                 OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.retry)) }
             }
-            state.items.isEmpty() -> Text(stringResource(Res.string.messages_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            state.items.isEmpty() -> EmptyCard(stringResource(Res.string.messages_empty), Res.drawable.djeli_wave)
             else -> state.items.forEach { c ->
-                Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(c) })) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(c.peer.displayName, style = MaterialTheme.typography.titleMedium, fontWeight = if (c.unread > 0) FontWeight.Bold else FontWeight.Normal)
-                        c.lastMessage?.let { last ->
-                            Text(
-                                if (last.mine) stringResource(Res.string.messages_you, last.body) else last.body,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 2,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpen(c) })) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Initials(c.peer.displayName, 44.dp)
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(c.peer.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = if (c.unread > 0) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
+                            c.lastMessage?.let { last ->
+                                Text(
+                                    if (last.mine) stringResource(Res.string.messages_you, last.body) else last.body,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 2,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
-                        if (c.unread > 0) Text(stringResource(Res.string.messages_unread, c.unread), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        if (c.unread > 0) Badge(stringResource(Res.string.messages_unread, c.unread), MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -97,7 +105,10 @@ fun ConversationScreen(state: ConversationState, onSend: (String) -> Unit, onOld
             val months = stringArrayResource(Res.array.months)
             ScreenColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (state.cachedAt != null) Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall)
-                Text(state.conversation.peer.displayName, style = MaterialTheme.typography.titleLarge)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Initials(state.conversation.peer.displayName, 40.dp)
+                    Text(state.conversation.peer.displayName, style = MaterialTheme.typography.titleLarge)
+                }
                 if (state.hasMore) TextButton(onClick = onOlder) { Text(stringResource(Res.string.messages_older)) }
                 state.messages.forEach { m ->
                     Bubble(
@@ -140,12 +151,14 @@ private fun Bubble(text: String, meta: String, mine: Boolean) {
     Box(Modifier.fillMaxWidth(), contentAlignment = if (mine) Alignment.CenterEnd else Alignment.CenterStart) {
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = if (mine) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+            contentColor = if (mine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+            border = if (mine) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             modifier = Modifier.widthIn(max = 320.dp),
         ) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Text(text, style = MaterialTheme.typography.bodyMedium)
-                Text(meta, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(meta, style = MaterialTheme.typography.labelSmall, color = LocalContentColor.current.copy(alpha = 0.75f))
             }
         }
     }

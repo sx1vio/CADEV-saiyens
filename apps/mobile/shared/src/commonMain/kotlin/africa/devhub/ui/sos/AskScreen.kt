@@ -21,19 +21,23 @@ import africa.devhub.resources.urgency_label
 import africa.devhub.sos.AskDraft
 import africa.devhub.sos.AskState
 import africa.devhub.sos.SosLimits
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.PrimaryPill
 import africa.devhub.ui.components.ScreenColumn
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import africa.devhub.ui.components.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -68,6 +72,7 @@ fun AskScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        DevCard { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedTextField(
             value = d.title,
             onValueChange = { v -> onEdit { it.copy(title = v.take(SosLimits.TITLE_MAX)) } },
@@ -93,7 +98,9 @@ fun AskScreen(
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
+        } }
 
+        DevCard { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(Res.string.ask_tags), style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
         if (state.tagsFailed) {
             Text(stringResource(Res.string.ask_tags_failed), color = MaterialTheme.colorScheme.error)
@@ -156,6 +163,7 @@ fun AskScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth(),
         )
+        } }
 
         state.error?.let {
             Text(
@@ -164,13 +172,6 @@ fun AskScreen(
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
-        Button(
-            onClick = onSend,
-            enabled = state.canSend && !state.sending,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-        ) {
-            if (state.sending) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-            else Text(stringResource(Res.string.ask_send))
-        }
+        PrimaryPill(stringResource(Res.string.ask_send), onClick = onSend, enabled = state.canSend && !state.sending, busy = state.sending, modifier = Modifier.fillMaxWidth())
     }
 }

@@ -26,6 +26,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 @OptIn(ExperimentalCoroutinesApi::class)
+private const val CERTIFICATES = """{"items":[{"certId":"git-bases","code":"DH-AB12","bestScore":90,"passedAt":"2026-11-01T10:00:00.000Z"}]}"""
+
 class PassportViewModelTest {
     private val main = UnconfinedTestDispatcher()
     private val created = mutableListOf<ViewModel>()
@@ -43,17 +45,37 @@ class PassportViewModelTest {
 
     @Test
     fun loadsThePassport() = runTest {
-        var path = ""
+        val paths = mutableListOf<String>()
         val graph = testGraph(dispatcher = main) { request ->
-            path = request.url.encodedPath
-            json(passportJson())
+            paths += request.url.encodedPath
+            when {
+                request.url.encodedPath.endsWith("/certificates") -> json(CERTIFICATES)
+                request.url.encodedPath.endsWith("/proofs") -> json(proofsJson(emptyList(), null))
+                request.url.encodedPath.endsWith("/github") -> problem(HttpStatusCode.NotFound, "not_found")
+                else -> json(passportJson())
+            }
         }
         val vm = PassportViewModel(graph.passportApi, "awa-dev").tracked()
         val loaded = assertIs<PassportState.Loaded>(vm.state.value)
-        assertEquals("/api/v1/u/awa-dev", path)
+        // Le profil et les badges d'abord ; la bannière et le bloc GitHub se chargent ensuite.
+        assertEquals(listOf("/api/v1/u/awa-dev", "/api/v1/u/awa-dev/certificates"), paths.take(2))
+        assertEquals(setOf("/api/v1/u/awa-dev/proofs", "/api/v1/users/awa-dev/github"), paths.drop(2).toSet())
+        assertEquals(null, loaded.github)
+        assertEquals("DH-AB12", loaded.certs.single().code)
         assertEquals(42, loaded.passport.stats?.totalXp)
         assertEquals(35, loaded.passport.skills.single().githubSignal)
         assertEquals(true, loaded.passport.user.availability?.mission)
+    }
+
+    @Test
+    fun theProfileStillLoadsWhenTheCertificatesCannotBeRead() = runTest {
+        val graph = testGraph(dispatcher = main) { request ->
+            if (request.url.encodedPath.endsWith("/certificates")) problem(HttpStatusCode.InternalServerError, "server_error")
+            else json(passportJson())
+        }
+        val loaded = assertIs<PassportState.Loaded>(PassportViewModel(graph.passportApi, "awa-dev").tracked().state.value)
+        assertEquals(42, loaded.passport.stats?.totalXp)
+        assertEquals(emptyList(), loaded.certs)
     }
 
     @Test
@@ -75,6 +97,12 @@ class PassportViewModelTest {
                         HttpHeaders.RetryAfter to listOf("90"),
                     ),
                 )
+            } else if (request.url.encodedPath.endsWith("/certificates")) {
+                json(CERTIFICATES)
+            } else if (request.url.encodedPath.endsWith("/proofs")) {
+                json(proofsJson(emptyList(), null))
+            } else if (request.url.encodedPath.endsWith("/github")) {
+                problem(HttpStatusCode.NotFound, "not_found")
             } else {
                 loads++
                 json(passportJson(totalXp = 40 + loads))

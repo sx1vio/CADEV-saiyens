@@ -17,7 +17,9 @@ data class SkillScore(val slug: String, val label: String, val score: Int = 0)
 data class DevCard(
     val handle: String,
     val displayName: String,
+    val avatarUrl: String? = null,
     val country: String? = null,
+    val timezone: String? = null,
     val lookingFor: String? = null,
     val isDemo: Boolean = false,
     val totalXp: Int = 0,
@@ -107,4 +109,6 @@ class DiscoverApi(private val http: HttpClient) {
         }
 
     suspend fun rules(): XpRules = apiCall { http.get("api/v1/rules/xp") }
+
+    suspend fun map(): africa.devhub.devmap.DevMap = apiCall { http.get("api/v1/leaderboard/map") }
 }

@@ -1,32 +1,70 @@
 package africa.devhub.ui
 
+import africa.devhub.resources.home_jobs
+import africa.devhub.resources.nav_devs
+import africa.devhub.resources.nav_projects
+import africa.devhub.resources.nav_questions
+import africa.devhub.resources.nav_tools
+import africa.devhub.resources.nav_profile
+import africa.devhub.resources.drawer_progress
+import africa.devhub.resources.drawer_network
+import africa.devhub.resources.drawer_platform
+import africa.devhub.resources.nav_rules
+import africa.devhub.resources.nav_leaderboard
+import africa.devhub.resources.signout_title
+import africa.devhub.resources.signout_pending
+import africa.devhub.resources.signout_cancel
+import africa.devhub.resources.sign_out
+import africa.devhub.ui.components.AppDrawer
+import africa.devhub.ui.components.DrawerEntry
+import africa.devhub.ui.components.DrawerGroup
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import africa.devhub.ui.components.DevCard
+import africa.devhub.resources.feed_publish
+import africa.devhub.resources.sos_ask
+import africa.devhub.resources.create_post_hint
+import africa.devhub.resources.create_ask_hint
+import africa.devhub.resources.create_title
 import africa.devhub.app.AppGraph
 import africa.devhub.me.Me
+import africa.devhub.onboarding.StartTarget
 import africa.devhub.passport.PassportViewModel
 import africa.devhub.passport.ProofsViewModel
 import africa.devhub.resources.Res
 import africa.devhub.resources.email_back
 import africa.devhub.resources.nav_home
-import africa.devhub.resources.nav_passport
+import africa.devhub.resources.home_menu
 import africa.devhub.notifications.NotificationTarget
 import africa.devhub.notifications.NotificationsViewModel
 import africa.devhub.resources.nav_notifications
-import africa.devhub.resources.nav_rooms
 import africa.devhub.resources.notif_badge
 import africa.devhub.ui.notifications.NotificationsScreen
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.lifecycle.compose.LifecycleStartEffect
 import org.jetbrains.compose.resources.pluralStringResource
-import africa.devhub.resources.nav_sos
 import africa.devhub.resources.rooms_create
 import africa.devhub.rooms.CreateRoomViewModel
 import africa.devhub.rooms.RoomViewModel
 import africa.devhub.rooms.RoomsViewModel
+import africa.devhub.rooms.FeedbackViewModel
 import africa.devhub.ui.rooms.CreateRoomScreen
 import africa.devhub.ui.rooms.RoomActions
 import africa.devhub.ui.rooms.RoomScreen
 import africa.devhub.ui.rooms.RoomsScreen
+import africa.devhub.ui.rooms.FeedbackActions
 import africa.devhub.resources.ask_title
 import africa.devhub.sos.AskViewModel
 import africa.devhub.sos.QuestionViewModel
@@ -55,13 +93,44 @@ import africa.devhub.resources.jobs_title
 import africa.devhub.ui.jobs.ApplicationsScreen
 import africa.devhub.ui.jobs.JobScreen
 import africa.devhub.ui.jobs.JobsScreen
+import africa.devhub.bench.BenchCreateViewModel
+import africa.devhub.bench.BenchDetailViewModel
+import africa.devhub.bench.BenchListViewModel
+import africa.devhub.bench.BenchReportViewModel
+import africa.devhub.devmap.DevMapViewModel
+import africa.devhub.preflight.PreflightReportViewModel
+import africa.devhub.preflight.PreflightViewModel
+import africa.devhub.ui.bench.BenchCreateScreen
+import africa.devhub.ui.bench.BenchDetailScreen
+import africa.devhub.ui.bench.BenchReportScreen
+import africa.devhub.ui.bench.BenchScreen
+import africa.devhub.ui.devmap.DevMapScreen
+import africa.devhub.ui.preflight.PreflightReportScreen
+import africa.devhub.ui.preflight.PreflightScreen
+import africa.devhub.resources.nav_preflight
+import africa.devhub.resources.nav_bench
+import africa.devhub.resources.nav_devmap
+import africa.devhub.resources.drawer_deliver
+import africa.devhub.resources.pf_report
+import africa.devhub.resources.bn_new
+import africa.devhub.resources.bn_r_title
 import africa.devhub.resources.community_title
 import africa.devhub.ui.community.CreatePostScreen
 import africa.devhub.ui.community.FeedScreen
 import africa.devhub.ui.community.PostScreen
 import africa.devhub.messages.ConversationViewModel
 import africa.devhub.messages.ConversationsViewModel
+import africa.devhub.certs.CertsViewModel
+import africa.devhub.news.LiveBoardViewModel
+import africa.devhub.ui.certs.CertDetailScreen
+import africa.devhub.ui.certs.CertificationsScreen
 import africa.devhub.news.NewsViewModel
+import africa.devhub.resources.certs_title
+import africa.devhub.resources.skills_title
+import africa.devhub.ui.components.openWeb
+import africa.devhub.ui.news.LiveBoardScreen
+import africa.devhub.ui.news.LiveRefresh
+import androidx.compose.ui.platform.LocalUriHandler
 import africa.devhub.resources.messages_title
 import africa.devhub.resources.news_title
 import africa.devhub.ui.messages.ConversationScreen
@@ -91,6 +160,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -154,6 +226,15 @@ private data object SettingsRoute
 private data object NewsRoute
 
 @Serializable
+private data object CertsRoute
+
+@Serializable
+private data class CertRoute(val id: String)
+
+@Serializable
+private data object SkillsRoute
+
+@Serializable
 private data object ConversationsRoute
 
 @Serializable
@@ -183,7 +264,27 @@ private data class RoomRoute(val code: String)
 @Serializable
 private data object CreateRoomRoute
 
-private data class TopLevel(val label: StringResource, val icon: ImageVector, val route: Any)
+@Serializable
+private data object PreflightRoute
+
+@Serializable
+private data class PreflightReportRoute(val id: String)
+
+@Serializable
+private data object BenchRoute
+
+@Serializable
+private data class BenchRequestRoute(val id: String)
+
+@Serializable
+private data object BenchNewRoute
+
+@Serializable
+private data class BenchReportFormRoute(val id: String)
+
+@Serializable
+private data object DevMapRoute
+
 
 /** Espace connecté : barre de navigation en bas, pile d'écrans par onglet. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -191,6 +292,8 @@ private data class TopLevel(val label: StringResource, val icon: ImageVector, va
 fun SignedInArea(
     graph: AppGraph,
     me: Me,
+    start: StartTarget,
+    onStartHandled: () -> Unit,
     onSignOut: () -> Unit,
     onMeUpdated: (Me) -> Unit,
     onAccountDeleted: () -> Unit,
@@ -203,14 +306,17 @@ fun SignedInArea(
     val navController = rememberNavController()
     val entry by navController.currentBackStackEntryAsState()
     val destination = entry?.destination
-    val tabs = listOf(
-        TopLevel(Res.string.nav_home, DevHubIcons.Home, HomeRoute),
-        TopLevel(Res.string.nav_sos, DevHubIcons.Help, SosRoute),
-        TopLevel(Res.string.nav_rooms, DevHubIcons.Folder, RoomsRoute),
-        TopLevel(Res.string.nav_notifications, DevHubIcons.Bell, NotificationsRoute),
-        TopLevel(Res.string.nav_passport, DevHubIcons.Person, PassportRoute(me.handle)),
-    )
     val unread by space.notifications.unread.collectAsStateWithLifecycle()
+    // Juste après l'accueil : on ouvre la page que le plan a annoncée, une seule fois.
+    LaunchedEffect(start) {
+        when (start) {
+            StartTarget.Certifications -> navController.navigate(CertsRoute)
+            StartTarget.Jobs -> navController.navigate(JobsRoute)
+            StartTarget.Sos -> navController.navigate(SosRoute)
+            StartTarget.Home -> Unit
+        }
+        if (start != StartTarget.Home) onStartHandled()
+    }
     // Temps réel au premier plan seulement : la connexion est coupée en arrière-plan.
     LifecycleStartEffect(space) {
         space.notifications.start()
@@ -226,77 +332,197 @@ fun SignedInArea(
     val onRules = destination?.hasRoute<RulesRoute>() == true
     val onSettings = destination?.hasRoute<SettingsRoute>() == true
     val onNews = destination?.hasRoute<NewsRoute>() == true
+    val onCert = destination?.hasRoute<CertRoute>() == true
+    val onCerts = destination?.hasRoute<CertsRoute>() == true || onCert
+    val onSkills = destination?.hasRoute<SkillsRoute>() == true
     val onCommunity = destination?.hasRoute<FeedRoute>() == true || destination?.hasRoute<PostRoute>() == true ||
         destination?.hasRoute<CreatePostRoute>() == true
     val onJobs = destination?.hasRoute<JobsRoute>() == true || destination?.hasRoute<JobRoute>() == true ||
         destination?.hasRoute<ApplicationsRoute>() == true
     val onConversations = destination?.hasRoute<ConversationsRoute>() == true || destination?.hasRoute<ConversationRoute>() == true
+    val onSos = destination?.hasRoute<SosRoute>() == true
+    val onRooms = destination?.hasRoute<RoomsRoute>() == true
+    val onAlerts = destination?.hasRoute<NotificationsRoute>() == true
+    val onPreflight = destination?.hasRoute<PreflightRoute>() == true
+    val onPreflightReport = destination?.hasRoute<PreflightReportRoute>() == true
+    val onBench = destination?.hasRoute<BenchRoute>() == true || destination?.hasRoute<BenchRequestRoute>() == true
+    val onBenchNew = destination?.hasRoute<BenchNewRoute>() == true
+    val onBenchReport = destination?.hasRoute<BenchReportFormRoute>() == true
+    val onDevMap = destination?.hasRoute<DevMapRoute>() == true
+    val onOwnProfile = destination?.hasRoute<PassportRoute>() == true && entry?.toRoute<PassportRoute>()?.handle == me.handle
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
         onProofs -> Res.string.proofs_title
-        onQuestion -> Res.string.nav_sos
+        onQuestion -> Res.string.nav_questions
         onAsk -> Res.string.ask_title
         onSync -> Res.string.sync_title
-        onRoom -> Res.string.nav_rooms
+        onRoom -> Res.string.nav_projects
         onCreateRoom -> Res.string.rooms_create
         onDiscover -> Res.string.discover_title
         onRules -> Res.string.rules_title
         onSettings -> Res.string.home_settings
         onNews -> Res.string.news_title
+        onCerts -> Res.string.certs_title
+        onSkills -> Res.string.skills_title
         onCommunity -> Res.string.community_title
         onJobs -> Res.string.jobs_title
         onConversations -> Res.string.messages_title
+        onSos -> Res.string.nav_questions
+        onRooms -> Res.string.nav_projects
+        onAlerts -> Res.string.nav_notifications
+        onOwnProfile -> Res.string.nav_profile
+        onPreflight -> Res.string.nav_preflight
+        onPreflightReport -> Res.string.pf_report
+        onBench -> Res.string.nav_bench
+        onBenchNew -> Res.string.bn_new
+        onBenchReport -> Res.string.bn_r_title
+        onDevMap -> Res.string.nav_devmap
         else -> null
     }
 
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    var confirmSignOut by remember { mutableStateOf(false) }
+    if (confirmSignOut) {
+        AlertDialog(
+            onDismissRequest = { confirmSignOut = false },
+            title = { Text(stringResource(Res.string.signout_title)) },
+            text = { Text(pluralStringResource(Res.plurals.signout_pending, actions.size, actions.size)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmSignOut = false
+                    onSignOut()
+                }) { Text(stringResource(Res.string.sign_out)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmSignOut = false }) { Text(stringResource(Res.string.signout_cancel)) } },
+        )
+    }
+    // Une entrée du tiroir ouvre toujours la racine de sa page : ni pile restaurée (on retombait sur
+    // un détail au lieu de la liste), ni second Accueil empilé. Accueil, lui, dépile jusqu'à sa racine.
+    val go: (Any) -> Unit = { route ->
+        scope.launch { drawerState.close() }
+        if (route == HomeRoute) {
+            navController.popBackStack(HomeRoute, inclusive = false)
+        } else {
+            navController.navigate(route) {
+                popUpTo(navController.graph.findStartDestination().id)
+                launchSingleTop = true
+            }
+        }
+    }
+    val leaderboard = entry?.takeIf { onDiscover }?.toRoute<DiscoverRoute>()?.leaderboard == true
+    val drawerKey = when {
+        destination?.hasRoute<HomeRoute>() == true -> "home"
+        onJobs -> "jobs"
+        onDiscover && !leaderboard -> "devs"
+        destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom -> "projects"
+        destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk -> "questions"
+        onCerts -> "certs"
+        onSkills -> "tools"
+        destination?.hasRoute<PassportRoute>() == true || onProofs -> "profile"
+        onPreflight || onPreflightReport -> "preflight"
+        onBench || onBenchNew || onBenchReport -> "bench"
+        onDevMap -> "devmap"
+        else -> null
+    }
+    val groups = listOf(
+        DrawerGroup(
+            null,
+            listOf(
+                DrawerEntry("home", stringResource(Res.string.nav_home), DevHubIcons.Home) { go(HomeRoute) },
+                DrawerEntry("jobs", stringResource(Res.string.home_jobs), DevHubIcons.Jobs) { go(JobsRoute) },
+                DrawerEntry("devs", stringResource(Res.string.nav_devs), DevHubIcons.Compass) { go(DiscoverRoute()) },
+                DrawerEntry("projects", stringResource(Res.string.nav_projects), DevHubIcons.Folder) { go(RoomsRoute) },
+            ),
+        ),
+        DrawerGroup(
+            stringResource(Res.string.drawer_progress),
+            listOf(
+                DrawerEntry("certs", stringResource(Res.string.certs_title), DevHubIcons.Certification) { go(CertsRoute) },
+                DrawerEntry("tools", stringResource(Res.string.nav_tools), DevHubIcons.Puzzle) { go(SkillsRoute) },
+            ),
+        ),
+        DrawerGroup(
+            stringResource(Res.string.drawer_deliver),
+            listOf(
+                DrawerEntry("preflight", stringResource(Res.string.nav_preflight), DevHubIcons.Rocket) { go(PreflightRoute) },
+                DrawerEntry("bench", stringResource(Res.string.nav_bench), DevHubIcons.Smartphone) { go(BenchRoute) },
+            ),
+        ),
+        DrawerGroup(
+            stringResource(Res.string.drawer_network),
+            listOf(
+                DrawerEntry("profile", stringResource(Res.string.nav_profile), DevHubIcons.Person) { go(PassportRoute(me.handle)) },
+                DrawerEntry("devmap", stringResource(Res.string.nav_devmap), DevHubIcons.Map) { go(DevMapRoute) },
+            ),
+        ),
+    )
+    // Écrans que le tiroir ou la barre du bas atteignent directement : menu en haut, pas de retour.
+    val isRoot = listOf<kotlin.reflect.KClass<*>>(
+        JobsRoute::class, DiscoverRoute::class, CertsRoute::class, NewsRoute::class, SkillsRoute::class,
+        FeedRoute::class, ConversationsRoute::class, RulesRoute::class, SosRoute::class, RoomsRoute::class,
+        NotificationsRoute::class, PreflightRoute::class, BenchRoute::class, DevMapRoute::class,
+    ).any { destination?.hasRoute(it) == true } || onOwnProfile
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = true,
+        drawerContent = {
+            AppDrawer(
+                groups = groups,
+                selectedKey = drawerKey,
+                name = me.displayName,
+                subtitle = "@${me.handle}",
+                settingsLabel = stringResource(Res.string.home_settings),
+                onSettings = { go(SettingsRoute) },
+                // O9 : prévenir avant d'effacer des actions qui n'ont pas encore été envoyées.
+                signOut = DrawerEntry("signout", stringResource(Res.string.sign_out), DevHubIcons.SignOut) {
+                    scope.launch { drawerState.close() }
+                    if (actions.isNotEmpty()) confirmSignOut = true else onSignOut()
+                },
+            )
+        },
+    ) {
     Scaffold(
         topBar = {
             if (nestedTitle != null) {
                 TopAppBar(
-                    title = { Text(stringResource(nestedTitle)) },
+                    title = { if (!onCerts) Text(stringResource(nestedTitle), style = MaterialTheme.typography.titleMedium) },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                    actions = {
+                        // Un écran de détail n'a que la flèche retour : un accès direct à l'accueil, comme le logo du web.
+                        if (!isRoot) {
+                            IconButton(onClick = { go(HomeRoute) }) {
+                                Icon(DevHubIcons.Home, contentDescription = stringResource(Res.string.nav_home))
+                            }
+                        }
+                        // Les alertes restent à portée de pouce partout, pas seulement sur l'accueil.
+                        if (isRoot && !onConversations) {
+                            IconButton(onClick = { navController.navigate(ConversationsRoute) { launchSingleTop = true } }) {
+                                Icon(DevHubIcons.Chat, contentDescription = stringResource(Res.string.messages_title))
+                            }
+                        }
+                        if (isRoot && !onAlerts) {
+                            IconButton(onClick = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }) {
+                                BadgedBox(badge = { if (unread > 0) Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
+                                    Icon(DevHubIcons.Bell, contentDescription = stringResource(Res.string.nav_notifications))
+                                }
+                            }
+                        }
+                    },
                     navigationIcon = {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(DevHubIcons.Back, contentDescription = stringResource(Res.string.email_back))
+                        if (isRoot) {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(DevHubIcons.Menu, contentDescription = stringResource(Res.string.home_menu))
+                            }
+                        } else {
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(DevHubIcons.Back, contentDescription = stringResource(Res.string.email_back))
+                            }
                         }
                     },
                 )
             }
         },
-        bottomBar = {
-            NavigationBar {
-                tabs.forEach { tab ->
-                    val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity || onJobs
-                        is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
-                        is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
-                        is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
-                        else -> destination?.hasRoute<PassportRoute>() == true || onProofs
-                    }
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            navController.navigate(tab.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            if (tab.route is NotificationsRoute && unread > 0) {
-                                val label = pluralStringResource(Res.plurals.notif_badge, unread, unread)
-                                BadgedBox(badge = { Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
-                                    Icon(tab.icon, contentDescription = label)
-                                }
-                            } else {
-                                Icon(tab.icon, contentDescription = null)
-                            }
-                        },
-                        label = { Text(stringResource(tab.label)) },
-                    )
-                }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
             NetworkBar(
@@ -308,20 +534,31 @@ fun SignedInArea(
             )
             NavHost(navController = navController, startDestination = HomeRoute, modifier = Modifier.weight(1f)) {
                 composable<HomeRoute> {
+                    val newsVm = viewModel { NewsViewModel(graph.newsApi, space, lang = "all") }
+                    val newsState by newsVm.state.collectAsStateWithLifecycle()
+                    val feedVm = viewModel { FeedViewModel(graph.communityApi, space) }
+                    val feedState by feedVm.state.collectAsStateWithLifecycle()
+                    val uriHandler = LocalUriHandler.current
                     HomeScreen(
                         me = me,
-                        pendingActions = actions.size,
+                        unread = unread,
+                        news = newsState,
+                        feed = feedState,
                         links = HomeLinks(
-                            onNews = { navController.navigate(NewsRoute) },
+                            onOpenArticle = { uriHandler.openWeb(it.url) },
+                            onCompose = { navController.navigate(CreatePostRoute) },
+                            onAsk = { navController.navigate(AskRoute) },
+                            onOpenPost = { navController.navigate(PostRoute(it)) },
+                            onMenu = { scope.launch { drawerState.open() } },
+                            onAlerts = { navController.navigate(NotificationsRoute) },
                             onMessages = { navController.navigate(ConversationsRoute) },
-                            onCommunity = { navController.navigate(FeedRoute) },
-                            onJobs = { navController.navigate(JobsRoute) },
-                            onDiscover = { navController.navigate(DiscoverRoute()) },
-                            onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
-                            onRules = { navController.navigate(RulesRoute) },
-                            onSettings = { navController.navigate(SettingsRoute) },
+                            onQuestions = { navController.navigate(SosRoute) },
                         ),
-                        onSignOut = onSignOut,
+                        onCommunity = feedVm::setCommunity,
+                        onReload = {
+                            newsVm.reload()
+                            feedVm.reload()
+                        },
                     )
                 }
                 composable<DiscoverRoute> { backStack ->
@@ -339,6 +576,35 @@ fun SignedInArea(
                         onCountry = vm::openCountry,
                         onOpenDev = { navController.navigate(PassportRoute(it)) },
                     )
+                }
+                composable<CertsRoute> {
+                    val vm = viewModel { CertsViewModel(graph.certsApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    val liveVm = viewModel { LiveBoardViewModel(graph.newsApi, "cert") }
+                    val live by liveVm.state.collectAsStateWithLifecycle()
+                    LiveRefresh(liveVm::refresh)
+                    CertificationsScreen(
+                        state = state,
+                        live = live,
+                        onView = vm::setView,
+                        onQuery = vm::setQuery,
+                        onPrice = vm::setPrice,
+                        onLevel = vm::setLevel,
+                        onLiveRetry = liveVm::reload,
+                        onOpenCert = { navController.navigate(CertRoute(it)) },
+                    )
+                }
+                composable<CertRoute> { entry ->
+                    val id = entry.toRoute<CertRoute>().id
+                    val vm = viewModel { CertsViewModel(graph.certsApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    CertDetailScreen(id, state.mine.firstOrNull { it.certId == id })
+                }
+                composable<SkillsRoute> {
+                    val vm = viewModel { LiveBoardViewModel(graph.newsApi, "skill") }
+                    val board by vm.state.collectAsStateWithLifecycle()
+                    LiveRefresh(vm::refresh)
+                    LiveBoardScreen("skill", board, onCategory = vm::setCategory, onQuery = vm::setQuery, onRetry = vm::reload)
                 }
                 composable<NewsRoute> {
                     val vm = viewModel { NewsViewModel(graph.newsApi, space, lang = "all") }
@@ -390,12 +656,18 @@ fun SignedInArea(
                 composable<JobsRoute> {
                     val vm = viewModel { JobsViewModel(graph.jobsApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
+                    val liveVm = viewModel { LiveBoardViewModel(graph.newsApi, "job") }
+                    val live by liveVm.state.collectAsStateWithLifecycle()
+                    LiveRefresh(liveVm::refresh)
                     JobsScreen(
                         state = state,
                         onFilters = vm::setFilters,
                         onRetry = vm::reload,
                         onOpen = { navController.navigate(JobRoute(it)) },
                         onApplications = { navController.navigate(ApplicationsRoute) },
+                        live = live,
+                        onLiveRefresh = { liveVm.reload() },
+                        onLiveRetry = liveVm::reload,
                     )
                 }
                 composable<JobRoute> { backStack ->
@@ -414,10 +686,59 @@ fun SignedInArea(
                     val state by vm.state.collectAsStateWithLifecycle()
                     RulesScreen(state, vm::load)
                 }
+                composable<PreflightRoute> {
+                    val vm = viewModel { PreflightViewModel(graph.preflightApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { vm.reload() }
+                    PreflightScreen(
+                        state = state,
+                        onRun = { url, repo -> vm.run(url, repo) { navController.navigate(PreflightReportRoute(it)) } },
+                        onOpen = { navController.navigate(PreflightReportRoute(it)) },
+                        onRetry = vm::reload,
+                    )
+                }
+                composable<PreflightReportRoute> { backStack ->
+                    val id = backStack.toRoute<PreflightReportRoute>().id
+                    val vm = viewModel { PreflightReportViewModel(graph.preflightApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    PreflightReportScreen(state, vm::load)
+                }
+                composable<BenchRoute> {
+                    val vm = viewModel { BenchListViewModel(graph.benchApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    // Au retour d'une fiche ou d'un formulaire, la liste se relit.
+                    LaunchedEffect(Unit) { vm.reload() }
+                    BenchScreen(state, vm::setScope, onOpen = { navController.navigate(BenchRequestRoute(it)) }, onNew = { navController.navigate(BenchNewRoute) }, onRetry = vm::reload)
+                }
+                composable<BenchRequestRoute> { backStack ->
+                    val id = backStack.toRoute<BenchRequestRoute>().id
+                    val vm = viewModel { BenchDetailViewModel(graph.benchApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { vm.load() }
+                    BenchDetailScreen(state, onReport = { navController.navigate(BenchReportFormRoute(id)) }, onReview = vm::review, onToggle = vm::setOpen, onRetry = vm::load)
+                }
+                composable<BenchNewRoute> {
+                    val vm = viewModel { BenchCreateViewModel(graph.benchApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    BenchCreateScreen(state, vm::edit) {
+                        vm.send { id -> navController.navigate(BenchRequestRoute(id)) { popUpTo<BenchNewRoute> { inclusive = true } } }
+                    }
+                }
+                composable<BenchReportFormRoute> { backStack ->
+                    val id = backStack.toRoute<BenchReportFormRoute>().id
+                    val vm = viewModel { BenchReportViewModel(graph.benchApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    BenchReportScreen(state, vm::edit) { vm.send { navController.popBackStack() } }
+                }
+                composable<DevMapRoute> {
+                    val vm = viewModel { DevMapViewModel(graph.discoverApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    DevMapScreen(state, vm::reload)
+                }
                 composable<SettingsRoute> {
                     val vm = viewModel { SettingsViewModel(graph.meApi, graph.passportApi, me, space, onMeUpdated, onAccountDeleted) }
                     val state by vm.state.collectAsStateWithLifecycle()
-                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount)
+                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount, onRules = { navController.navigate(RulesRoute) })
                 }
                 composable<SyncRoute> {
                     SyncCenterScreen(
@@ -436,9 +757,13 @@ fun SignedInArea(
                     PassportScreen(
                         state = state,
                         isMine = handle.equals(me.handle, ignoreCase = true),
+                        lang = me.uiLang,
                         onRetry = vm::load,
                         onRefreshGithub = vm::refreshGithub,
                         onSeeProofs = { navController.navigate(ProofsRoute(handle)) },
+                        onEdit = { navController.navigate(SettingsRoute) },
+                        onCerts = { navController.navigate(CertsRoute) },
+                        shareUrl = "${graph.config.apiBaseUrl.trimEnd('/')}/u/$handle",
                         onWrite = {
                             scope.launch {
                                 runCatching { graph.messagesApi.start(handle) }
@@ -530,6 +855,8 @@ fun SignedInArea(
                 composable<RoomsRoute> {
                     val vm = viewModel { RoomsViewModel(graph.roomsApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
+                    val reviewsVm = viewModel { FeedbackViewModel(graph.roomsApi, graph.passportApi, me.handle) }
+                    val reviews by reviewsVm.state.collectAsStateWithLifecycle()
                     RoomsScreen(
                         state = state,
                         onMine = vm::setMine,
@@ -538,6 +865,18 @@ fun SignedInArea(
                         onLoadMore = vm::loadMore,
                         onOpen = { navController.navigate(RoomRoute(it)) },
                         onCreate = { navController.navigate(CreateRoomRoute) },
+                        reviews = reviews,
+                        reviewActions = FeedbackActions(
+                            onStackOnly = reviewsVm::setStackOnly,
+                            onRetry = reviewsVm::reload,
+                            onTake = reviewsVm::take,
+                            onConfirm = reviewsVm::confirm,
+                            onCancel = reviewsVm::cancel,
+                            onDismissNotice = reviewsVm::dismissNotice,
+                            onOpenRoom = { navController.navigate(RoomRoute(it)) },
+                            isMine = reviewsVm::isMine,
+                            isMyReview = reviewsVm::isMyReview,
+                        ),
                     )
                 }
                 composable<RoomRoute> { backStack ->
@@ -579,5 +918,6 @@ fun SignedInArea(
                 }
             }
         }
+    }
     }
 }

@@ -27,21 +27,25 @@ import africa.devhub.resources.settings_saved
 import africa.devhub.resources.settings_ui_lang
 import africa.devhub.settings.SettingsForm
 import africa.devhub.settings.SettingsState
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.NavRow
+import africa.devhub.resources.nav_rules
 import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.sos.failureLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,10 +72,11 @@ fun SettingsScreen(
     onEdit: ((SettingsForm) -> SettingsForm) -> Unit,
     onSave: () -> Unit,
     onDelete: (String) -> Unit,
+    onRules: () -> Unit,
 ) {
     val f = state.form
     ScreenColumn {
-        Title(stringResource(Res.string.settings_profile))
+        Section(stringResource(Res.string.settings_profile)) {
         OutlinedTextField(
             value = f.displayName,
             onValueChange = { v -> onEdit { it.copy(displayName = v.take(80)) } },
@@ -121,12 +126,18 @@ fun SettingsScreen(
         }
         SwitchRow(stringResource(Res.string.settings_mission), f.mission, stringResource(Res.string.settings_mission_hint)) { v -> onEdit { it.copy(mission = v) } }
         SwitchRow(stringResource(Res.string.settings_email), f.emailNotifications) { v -> onEdit { it.copy(emailNotifications = v) } }
+        }
 
-        Title(stringResource(Res.string.settings_privacy))
+        Section(stringResource(Res.string.settings_privacy)) {
         SwitchRow(stringResource(Res.string.privacy_unlisted), f.privacy.unlisted) { v -> onEdit { it.copy(privacy = it.privacy.copy(unlisted = v)) } }
         SwitchRow(stringResource(Res.string.privacy_country), f.privacy.hideCountry) { v -> onEdit { it.copy(privacy = it.privacy.copy(hideCountry = v)) } }
         SwitchRow(stringResource(Res.string.privacy_availability), f.privacy.hideAvailability) { v -> onEdit { it.copy(privacy = it.privacy.copy(hideAvailability = v)) } }
         SwitchRow(stringResource(Res.string.privacy_stats), f.privacy.hideStats) { v -> onEdit { it.copy(privacy = it.privacy.copy(hideStats = v)) } }
+        }
+
+        DevCard {
+            NavRow(DevHubIcons.Info, stringResource(Res.string.nav_rules), onClick = onRules)
+        }
 
         when {
             state.saved -> Notice(stringResource(Res.string.settings_saved), error = false)
@@ -137,7 +148,7 @@ fun SettingsScreen(
             Text(stringResource(Res.string.settings_save))
         }
 
-        Title(stringResource(Res.string.settings_danger))
+        Section(stringResource(Res.string.settings_danger)) {
         Text(stringResource(Res.string.settings_delete_text, handle), style = MaterialTheme.typography.bodyMedium)
         var confirm by rememberSaveable { mutableStateOf("") }
         OutlinedTextField(
@@ -151,9 +162,10 @@ fun SettingsScreen(
         Button(
             onClick = { onDelete(confirm) },
             enabled = !state.deleting && confirm.trim().equals(handle, ignoreCase = true),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+            destructive = true,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.settings_delete)) }
+        }
     }
 }
 
@@ -172,8 +184,13 @@ private fun SwitchRow(label: String, checked: Boolean, hint: String? = null, onC
 }
 
 @Composable
-private fun Title(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
+private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
+    DevCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+            content()
+        }
+    }
 }
 
 @Composable

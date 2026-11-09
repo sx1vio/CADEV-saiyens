@@ -5,7 +5,14 @@ import africa.devhub.auth.SessionStore
 import africa.devhub.auth.SignInResult
 import africa.devhub.me.Me
 import africa.devhub.me.MeApi
+import africa.devhub.me.AvailabilityUpdate
+import africa.devhub.me.UpdateMeRequest
 import africa.devhub.network.ApiException
+import africa.devhub.me.OnboardingAvailability
+import africa.devhub.me.OnboardingExtras
+import africa.devhub.onboarding.OnboardingProfile
+import kotlinx.serialization.builtins.serializer
+import africa.devhub.onboarding.StartTarget
 import africa.devhub.offline.CacheKey
 import africa.devhub.offline.ReadCache
 import androidx.lifecycle.ViewModel
@@ -34,7 +41,8 @@ sealed interface AppState {
     data class NeedsConduct(val me: Me, val busy: Boolean = false, val failed: Boolean = false) :
         AppState
 
-    data class SignedIn(val me: Me) : AppState
+    /** [start] : première page, choisie à l'accueil ; seulement juste après celui-ci. */
+    data class SignedIn(val me: Me, val start: StartTarget = StartTarget.Home) : AppState
 }
 
 class AppViewModel(
@@ -106,10 +114,62 @@ class AppViewModel(
         }
     }
 
+    /**
+     * Fin de l'accueil : profil d'abord, code de conduite ensuite. Si le second échoue après le
+     * premier, réessayer renvoie le même profil, sans effet de bord.
+     */
+    fun completeOnboarding(profile: OnboardingProfile) {
+        val current = _state.value as? AppState.NeedsConduct ?: return
+        if (current.busy) return
+        _state.value = current.copy(busy = true, failed = false)
+        viewModelScope.launch {
+            try {
+                val me = current.me
+                val updated = meApi.update(
+                    UpdateMeRequest(
+                        displayName = me.displayName,
+                        bio = me.bio,
+                        country = profile.country ?: me.country,
+                        lookingFor = profile.lookingFor ?: me.lookingFor,
+                        languages = profile.languages.ifEmpty { me.languages },
+                        uiLang = me.uiLang,
+                        emailNotifications = me.emailNotifications,
+                        availability = AvailabilityUpdate(mission = profile.mission),
+                        privacy = me.privacy,
+                    ),
+                )
+                val extras = OnboardingExtras(
+                    timezone = profile.timezone,
+                    canHelpTagSlugs = profile.skillSlugs.takeIf { it.isNotEmpty() },
+                    availability = profile.availableNow?.let { OnboardingAvailability(it, profile.mission) },
+                )
+                val withExtras = if (extras.timezone != null || extras.canHelpTagSlugs != null || extras.availability != null) {
+                    meApi.updateOnboardingExtras(extras)
+                } else {
+                    updated
+                }
+                profile.dailyGoal?.let { deviceCache?.put(CacheKey.dailyGoal(), it, Int.serializer()) }
+                val accepted = meApi.acceptCodeOfConduct()
+                val done = withExtras.copy(codeOfConductAcceptedAt = accepted.codeOfConductAcceptedAt)
+                deviceCache?.put(CacheKey.me(), done, Me.serializer())
+                _state.value = AppState.SignedIn(done, profile.start)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _state.update { (it as? AppState.NeedsConduct)?.copy(busy = false, failed = true) ?: it }
+            }
+        }
+    }
+
+    /** La page annoncée par le plan est ouverte : on n'y retourne pas si l'écran est recréé (rotation, thème). */
+    fun startHandled() {
+        _state.update { if (it is AppState.SignedIn && it.start != StartTarget.Home) it.copy(start = StartTarget.Home) else it }
+    }
+
     /** Réglages enregistrés : le profil affiché suit sans tout recharger. */
     fun meUpdated(me: Me) {
         deviceCache?.put(CacheKey.me(), me, Me.serializer())
-        _state.update { if (it is AppState.SignedIn) AppState.SignedIn(me) else it }
+        _state.update { if (it is AppState.SignedIn) AppState.SignedIn(me, it.start) else it }
     }
 
     /** Compte supprimé (A3) : l'API a fermé toutes les sessions ; on efface tout ici aussi. */

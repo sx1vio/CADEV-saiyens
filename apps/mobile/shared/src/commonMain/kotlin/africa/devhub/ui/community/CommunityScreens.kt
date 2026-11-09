@@ -1,5 +1,14 @@
 package africa.devhub.ui.community
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.material3.HorizontalDivider
+import africa.devhub.ui.components.Initials
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.home.PostFeedCard
+import africa.devhub.ui.components.openWeb
 import africa.devhub.community.COMMUNITY_SLUGS
 import africa.devhub.community.CreatePostState
 import africa.devhub.community.FeedState
@@ -9,6 +18,8 @@ import africa.devhub.community.PostLimits
 import africa.devhub.community.PostState
 import africa.devhub.community.PostView
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_wave
 import africa.devhub.resources.cached_copy
 import africa.devhub.resources.code_title
 import africa.devhub.resources.community_all
@@ -79,15 +90,15 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.ExtendedFloatingActionButton
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -174,9 +185,9 @@ fun FeedScreen(
             }
             if (state.cachedAt != null) item { Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall) }
             if (!state.loading && !state.failed && state.items.isEmpty()) {
-                item { Text(stringResource(Res.string.feed_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item { EmptyCard(stringResource(Res.string.feed_empty), Res.drawable.djeli_wave) }
             }
-            items(state.items, key = { it.id }) { PostCard(it, months, onOpen) }
+            items(state.items, key = { it.id }) { PostFeedCard(it, months) { onOpen(it.id) } }
             item {
                 when {
                     state.loading -> Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) { CircularProgressIndicator() }
@@ -190,27 +201,6 @@ fun FeedScreen(
         }
         ExtendedFloatingActionButton(onClick = onPublish, modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
             Text(stringResource(Res.string.feed_publish))
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun PostCard(post: PostView, months: List<String>, onOpen: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(post.id) })) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Pill(stringResource(communityLabel(post.community)), MaterialTheme.colorScheme.primary)
-                Pill(stringResource(kindLabel(post.kind)))
-                if (post.author.isDemo) Pill(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
-            }
-            Text(post.title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(Res.string.post_meta, post.author.displayName, dayMonthYear(post.createdAt, months), post.comments) +
-                    " · " + stringResource(Res.string.post_score, post.score),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -230,25 +220,32 @@ fun PostScreen(state: PostState, onVote: (Int) -> Unit, onComment: (String) -> U
             val uriHandler = LocalUriHandler.current
             ScreenColumn {
                 if (state.cachedAt != null) Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall)
-                Text(p.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-                Text(
-                    stringResource(Res.string.question_meta, p.author.displayName, dayMonthYear(p.createdAt, months)) + " · " + stringResource(communityLabel(p.community)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (p.body.isNotBlank()) Text(p.body, style = MaterialTheme.typography.bodyLarge)
-                p.code?.takeIf { it.isNotBlank() }?.let { code ->
-                    Text(stringResource(Res.string.code_title), style = MaterialTheme.typography.titleSmall)
-                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                        Text(code, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, softWrap = false, modifier = Modifier.horizontalScroll(rememberScrollState()).padding(12.dp))
+                DevCard {
+                    Row(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Initials(p.author.displayName, size = 48.dp)
+                        Column(Modifier.weight(1f)) {
+                            Text(p.author.displayName, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                stringResource(communityLabel(p.community)) + " · " + dayMonthYear(p.createdAt, months),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
-                }
-                p.linkUrl?.let { url -> OutlinedButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.post_open_link)) } }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    VoteButton(stringResource(Res.string.post_up), selected = p.myVote == 1, enabled = !state.busy) { onVote(1) }
-                    Text(stringResource(Res.string.post_score, p.score), fontWeight = FontWeight.SemiBold)
-                    VoteButton(stringResource(Res.string.post_down), selected = p.myVote == -1, enabled = !state.busy) { onVote(-1) }
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(p.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+                        if (p.body.isNotBlank()) Text(p.body, style = MaterialTheme.typography.bodyLarge)
+                        p.code?.takeIf { it.isNotBlank() }?.let { code ->
+                            Text(code, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, softWrap = false, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)).horizontalScroll(rememberScrollState()).padding(12.dp))
+                        }
+                        p.linkUrl?.let { url -> SecondaryPill(stringResource(Res.string.post_open_link), { uriHandler.openWeb(url) }, Modifier.fillMaxWidth(), leading = DevHubIcons.ExternalLink) }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        VoteButton(stringResource(Res.string.post_up), selected = p.myVote == 1, enabled = !state.busy) { onVote(1) }
+                        Text(stringResource(Res.string.post_score, p.score), fontWeight = FontWeight.SemiBold)
+                        VoteButton(stringResource(Res.string.post_down), selected = p.myVote == -1, enabled = !state.busy) { onVote(-1) }
+                    }
                 }
                 state.error?.let { Text(communityError(it), color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
                 if (state.secretsMasked > 0) Text(pluralStringResource(Res.plurals.notice_secrets, state.secretsMasked, state.secretsMasked))
