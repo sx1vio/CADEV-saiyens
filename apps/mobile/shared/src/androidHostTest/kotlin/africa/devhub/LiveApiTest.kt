@@ -373,4 +373,16 @@ class LiveApiTest {
         assertEquals("Oui, depuis six mois.", seen.commentList.single().body)
         assertTrue(a.communityApi.posts("mobile", top = false).data.any { it.id == created.id })
     }
+
+    @Test
+    fun jobsAndMyApplicationsAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        val graph = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, graph.auth.signInWithGithub(loginHint = "kmp-job-${Random.nextInt(0, Int.MAX_VALUE).toString(36)}"))
+        // Une base de test n'a pas d'offre publiée (il faut l'administration) : on vérifie le format.
+        val jobs = graph.jobsApi.jobs().data
+        jobs.firstOrNull()?.let { assertEquals(it.id, graph.jobsApi.job(it.id).id) }
+        assertTrue(graph.jobsApi.myApplications().data.isEmpty())
+        graph.forgetUser()
+    }
 }

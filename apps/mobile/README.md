@@ -31,6 +31,7 @@ apps/mobile/
 | `discover`, `settings`            | Découverte des devs, classement par pays, règles des XP, réglages et suppression du compte       |
 | `news`, `messages`                | Actualités réelles et vidéos, messagerie privée (envoi par la file)                              |
 | `community`                       | Communautés : fil, publication, commentaires, votes (en ligne)                                   |
+| `jobs`                            | Emplois : offres réelles, candidature sur DevHub (en ligne), mes candidatures                    |
 | `offline`                         | Hors ligne : cache de lecture, file d\'actions, synchronisation, connectivité, espace par compte |
 | `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                              |
 | `ui`                              | Thème (couleurs du web), écrans, navigation                                                      |
@@ -93,4 +94,4 @@ DEVHUB_E2E_API_URL=http://localhost:3000 ./gradlew :shared:testAndroidHostTest -
 
 ## Étapes suivantes
 
-Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, en trois temps : 8a actualités et messages privés, 8b communautés (cette version), 8c emplois, certifications et banc d'essai.
+Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, en trois temps : 8a actualités et messages privés, 8b communautés, 8c emplois (cette version), 8d certifications et banc d'essai.
