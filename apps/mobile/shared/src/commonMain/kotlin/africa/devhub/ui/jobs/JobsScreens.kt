@@ -1,5 +1,11 @@
 package africa.devhub.ui.jobs
 
+import androidx.compose.foundation.background
+import africa.devhub.ui.theme.successColor
+import africa.devhub.ui.rooms.RoomMark
+import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.openWeb
 import africa.devhub.jobs.APPLY_MESSAGE_MAX
 import africa.devhub.jobs.APPLY_MESSAGE_MIN
 import africa.devhub.jobs.ApplicationsState
@@ -8,6 +14,9 @@ import africa.devhub.jobs.JobFilters
 import africa.devhub.jobs.JobState
 import africa.devhub.jobs.JobsState
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_book
+import africa.devhub.resources.djeli_laptop
 import africa.devhub.resources.app_status_hired
 import africa.devhub.resources.app_status_interview
 import africa.devhub.resources.app_status_rejected
@@ -50,6 +59,7 @@ import africa.devhub.ui.components.Pill
 import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.components.dayMonthYear
 import africa.devhub.ui.sos.failureLabel
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -66,13 +76,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -142,12 +152,13 @@ fun JobsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item { Text(stringResource(Res.string.jobs_intro), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            item { TextButton(onClick = onApplications) { Text(stringResource(Res.string.jobs_my_applications)) } }
+            item { SecondaryPill(stringResource(Res.string.jobs_my_applications), onApplications, Modifier.fillMaxWidth()) }
             item {
                 OutlinedTextField(
                     value = f.text,
                     onValueChange = { onFilters(f.copy(text = it.take(80))) },
                     label = { Text(stringResource(Res.string.jobs_search)) },
+                    leadingIcon = { androidx.compose.material3.Icon(africa.devhub.ui.components.DevHubIcons.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -175,23 +186,47 @@ fun JobsScreen(
                         OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.retry)) }
                     }
                 }
-                state.items.isEmpty() -> item { Text(stringResource(Res.string.jobs_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                state.items.isEmpty() -> item { EmptyCard(stringResource(Res.string.jobs_empty), Res.drawable.djeli_laptop) }
                 else -> items(state.items, key = { it.id }) { JobCard(it, onOpen) }
             }
         }
     }
 }
 
+/** Ligne d'offre du web (`JobRow`) : monogramme de l'entreprise, titre, entreprise, lieu et mode, contrat et salaire. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun JobCard(job: Job, onOpen: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(job.id) })) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(job.title, style = MaterialTheme.typography.titleMedium)
-            Text("${job.company} · ${job.location}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            JobPills(job)
+    val scheme = MaterialTheme.colorScheme
+    DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpen(job.id) })) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            RoomMark(job.company, 48.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(job.title, style = MaterialTheme.typography.titleSmall)
+                Text(job.company, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                Text(
+                    job.location + " · " + stringResource(modeLabel(job.workMode)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                )
+                FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Chip(stringResource(contractLabel(job.contract)) + " · " + stringResource(seniorityLabel(job.seniority)), scheme.onSurface, scheme.surfaceVariant)
+                    job.salary?.let { Chip(it, successColor, successColor.copy(alpha = 0.12f)) }
+                }
+            }
         }
     }
+}
+
+/** Pastille de contrat ou de salaire (`rounded-[6px]` du web), à ne pas confondre avec les puces de filtre. */
+@Composable
+private fun Chip(text: String, color: androidx.compose.ui.graphics.Color, background: androidx.compose.ui.graphics.Color) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium,
+        color = color,
+        modifier = Modifier.background(background, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -223,12 +258,12 @@ fun JobScreen(state: JobState, onApply: (String) -> Unit, onRetry: () -> Unit) {
                 Text("${job.company} · ${job.location}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 JobPills(job)
                 Text(job.description, style = MaterialTheme.typography.bodyMedium)
-                job.sourceUrl?.let { url -> OutlinedButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.job_source)) } }
+                job.sourceUrl?.let { url -> OutlinedButton(onClick = { uriHandler.openWeb(url) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.job_source)) } }
                 val external = job.applyUrl
                 val application = state.application
                 when {
                     // Offre d'une entreprise non inscrite : on candidate chez elle.
-                    external != null -> Button(onClick = { uriHandler.openUri(external) }, modifier = Modifier.fillMaxWidth()) {
+                    external != null -> Button(onClick = { uriHandler.openWeb(external, allowMail = true) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(Res.string.job_apply_external))
                     }
                     application != null -> Text(
@@ -270,9 +305,9 @@ fun ApplicationsScreen(state: ApplicationsState, onWithdraw: (String) -> Unit, o
         when {
             state.loading && state.items.isEmpty() -> LoadingScreen()
             state.failed && state.items.isEmpty() -> OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.retry)) }
-            state.items.isEmpty() -> Text(stringResource(Res.string.applications_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            state.items.isEmpty() -> EmptyCard(stringResource(Res.string.applications_empty), Res.drawable.djeli_book)
             else -> state.items.forEach { a ->
-                Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpenJob(a.job.id) })) {
+                DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpenJob(a.job.id) })) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(a.job.title, style = MaterialTheme.typography.titleMedium)
                         Text("${a.job.company} · ${dayMonthYear(a.createdAt, months)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

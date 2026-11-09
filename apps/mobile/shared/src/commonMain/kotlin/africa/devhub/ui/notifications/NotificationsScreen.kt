@@ -1,8 +1,17 @@
 package africa.devhub.ui.notifications
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
+import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.ui.components.DevCard
 import africa.devhub.notifications.NotificationView
 import africa.devhub.notifications.NotificationsState
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_wave
 import africa.devhub.resources.months
 import africa.devhub.resources.notif_accepted
 import africa.devhub.resources.notif_answer
@@ -31,7 +40,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -63,10 +72,10 @@ fun NotificationsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (state.items.any { it.readAt == null }) {
-                item { TextButton(onClick = onMarkAll) { Text(stringResource(Res.string.notif_mark_all)) } }
+                item { SecondaryPill(stringResource(Res.string.notif_mark_all), onMarkAll, Modifier.fillMaxWidth()) }
             }
             if (!state.loading && !state.failed && state.items.isEmpty()) {
-                item { Text(stringResource(Res.string.notif_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item { EmptyCard(stringResource(Res.string.notif_empty), Res.drawable.djeli_wave) }
             }
             items(state.items, key = { it.id }) { n -> NotificationCard(n, months, onOpen) }
             item {
@@ -88,17 +97,20 @@ fun NotificationsScreen(
 @Composable
 private fun NotificationCard(n: NotificationView, months: List<String>, onOpen: (NotificationView) -> Unit) {
     val unread = n.readAt == null
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(n) }),
-        colors = if (unread) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer) else CardDefaults.cardColors(),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(notificationText(n), style = MaterialTheme.typography.bodyLarge, fontWeight = if (unread) FontWeight.SemiBold else FontWeight.Normal)
-            Text(
-                listOfNotNull(if (unread) stringResource(Res.string.notif_unread) else null, dayMonthYear(n.createdAt, months)).joinToString(" · "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+    DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpen(n) })) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Pastille bleue : non lu. Le texte « Non lu » reste dans la ligne de date pour les lecteurs d'écran.
+            Box(
+                Modifier.padding(top = 7.dp).size(8.dp).background(if (unread) MaterialTheme.colorScheme.primary else Color.Transparent, CircleShape),
             )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(notificationText(n), style = MaterialTheme.typography.bodyLarge, fontWeight = if (unread) FontWeight.SemiBold else FontWeight.Normal)
+                Text(
+                    listOfNotNull(if (unread) stringResource(Res.string.notif_unread) else null, dayMonthYear(n.createdAt, months)).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

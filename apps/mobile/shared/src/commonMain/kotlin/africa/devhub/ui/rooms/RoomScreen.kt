@@ -1,5 +1,10 @@
 package africa.devhub.ui.rooms
 
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.ui.components.TechTag
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.openWeb
 import africa.devhub.resources.Res
 import africa.devhub.resources.cached_copy
 import africa.devhub.resources.chat_empty
@@ -62,6 +67,7 @@ import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.components.dayMonthYear
 import africa.devhub.ui.sos.failureLabel
 import africa.devhub.ui.theme.successColor
+import africa.devhub.ui.components.TabBar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -70,15 +76,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.Card
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
+import africa.devhub.ui.components.OutlinedCard
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -135,36 +139,39 @@ private fun Loaded(state: RoomState.Loaded, meHandle: String, actions: RoomActio
         if (state.cachedAt != null) {
             Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Text(room.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Pill(stringResource(roomStateLabel(room.state)), MaterialTheme.colorScheme.primary)
-            room.stack.forEach { Pill(it.label) }
-            room.deployment?.let {
-                if (it.status == "verified" && it.hostedOnSystalink) Pill(stringResource(Res.string.room_deployed), successColor)
-                else Pill(stringResource(Res.string.room_deploy_pending))
-            }
-            if (room.owner.isDemo) Pill(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
-        }
-        Text(stringResource(Res.string.room_by, room.owner.displayName), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(room.description, style = MaterialTheme.typography.bodyLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            room.repo?.let { repo ->
-                OutlinedButton(onClick = { uriHandler.openUri(repo.url) }) {
-                    Text(stringResource(if (repo.verified) Res.string.room_repo_verified else Res.string.room_repo))
+        DevCard {
+            RoomHead(room.name, room.state, asHeading = true)
+            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(room.description, style = MaterialTheme.typography.bodyLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    room.stack.forEach { TechTag(it.label) }
+                    room.deployment?.let {
+                        if (it.status == "verified" && it.hostedOnSystalink) Pill(stringResource(Res.string.room_deployed), successColor)
+                        else Pill(stringResource(Res.string.room_deploy_pending))
+                    }
+                    if (room.owner.isDemo) Pill(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
+                }
+                Text(stringResource(Res.string.room_by, room.owner.displayName), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (room.repo != null || room.demoUrl != null) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        room.repo?.let { repo ->
+                            SecondaryPill(
+                                stringResource(if (repo.verified) Res.string.room_repo_verified else Res.string.room_repo),
+                                { uriHandler.openWeb(repo.url) },
+                                leading = DevHubIcons.Github,
+                            )
+                        }
+                        room.demoUrl?.let { url -> SecondaryPill(stringResource(Res.string.room_demo), { uriHandler.openWeb(url) }, leading = DevHubIcons.ExternalLink) }
+                    }
                 }
             }
-            room.demoUrl?.let { url -> OutlinedButton(onClick = { uriHandler.openUri(url) }) { Text(stringResource(Res.string.room_demo)) } }
         }
 
         Membership(state, actions)
         if (state.canManage && state.joinRequests.isNotEmpty()) JoinRequests(state, actions)
         state.notice?.let { Notice(it) }
 
-        PrimaryTabRow(selectedTabIndex = tab) {
-            listOf(Res.string.tab_tasks, Res.string.tab_chat, Res.string.tab_members).forEachIndexed { i, label ->
-                Tab(selected = tab == i, onClick = { tab = i }, text = { Text(stringResource(label)) })
-            }
-        }
+        TabBar(listOf(Res.string.tab_tasks, Res.string.tab_chat, Res.string.tab_members).map { stringResource(it) }, tab, onSelect = { tab = it })
         when (tab) {
             0 -> Tasks(state, meHandle, actions)
             1 -> Chat(state, actions)
@@ -178,21 +185,25 @@ private fun Loaded(state: RoomState.Loaded, meHandle: String, actions: RoomActio
 @Composable
 private fun Membership(state: RoomState.Loaded, actions: RoomActions) {
     if (state.isMember) return
-    when {
-        state.joinPending || state.room.viewer?.joinRequest == "pending" ->
-            Text(stringResource(Res.string.join_pending), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        state.room.viewer?.joinRequest == "refused" ->
-            Text(stringResource(Res.string.join_refused), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        else -> {
-            var message by rememberSaveable { mutableStateOf("") }
-            OutlinedTextField(
-                value = message,
-                onValueChange = { message = it.take(RoomLimits.JOIN_MESSAGE_MAX) },
-                label = { Text(stringResource(Res.string.join_message)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Button(onClick = { actions.onJoin(message.ifBlank { null }) }, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(Res.string.join_send))
+    DevCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            when {
+                state.joinPending || state.room.viewer?.joinRequest == "pending" ->
+                    Text(stringResource(Res.string.join_pending), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                state.room.viewer?.joinRequest == "refused" ->
+                    Text(stringResource(Res.string.join_refused), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                else -> {
+                    var message by rememberSaveable { mutableStateOf("") }
+                    OutlinedTextField(
+                        value = message,
+                        onValueChange = { message = it.take(RoomLimits.JOIN_MESSAGE_MAX) },
+                        label = { Text(stringResource(Res.string.join_message)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Button(onClick = { actions.onJoin(message.ifBlank { null }) }, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(Res.string.join_send))
+                    }
+                }
             }
         }
     }
@@ -263,7 +274,7 @@ private fun TaskCard(task: TaskView, state: RoomState.Loaded, meHandle: String, 
             }
             task.description?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 4) }
             task.assignee?.let { Text(stringResource(Res.string.task_assignee, it.displayName), style = MaterialTheme.typography.bodySmall) }
-            task.prUrl?.let { url -> TextButton(onClick = { uriHandler.openUri(url) }) { Text(stringResource(Res.string.task_pr)) } }
+            task.prUrl?.let { url -> TextButton(onClick = { uriHandler.openWeb(url) }) { Text(stringResource(Res.string.task_pr)) } }
             if (pending) {
                 Text(stringResource(Res.string.task_pending), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                 return@Column

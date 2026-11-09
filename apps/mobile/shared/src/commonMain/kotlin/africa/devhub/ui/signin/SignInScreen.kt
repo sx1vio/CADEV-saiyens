@@ -3,7 +3,7 @@ package africa.devhub.ui.signin
 import africa.devhub.app.AppState
 import africa.devhub.app.SignInError
 import africa.devhub.resources.Res
-import africa.devhub.resources.app_name
+import africa.devhub.resources.djeli_wave
 import africa.devhub.resources.email_address
 import africa.devhub.resources.email_back
 import africa.devhub.resources.email_name
@@ -28,7 +28,11 @@ import africa.devhub.resources.signin_or
 import africa.devhub.resources.signin_suspended
 import africa.devhub.resources.signin_tagline
 import africa.devhub.resources.signin_text
+import africa.devhub.ui.components.BrandLogo
+import africa.devhub.ui.components.PrimaryPill
 import africa.devhub.ui.components.ScreenColumn
+import africa.devhub.ui.components.SecondaryPill
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,11 +40,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import africa.devhub.ui.components.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -60,6 +64,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 private enum class Mode { Choice, EmailLogin, EmailRegister }
@@ -76,12 +81,7 @@ fun SignInScreen(
     var mode by rememberSaveable { mutableStateOf(Mode.Choice) }
 
     ScreenColumn(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)) {
-        Text(
-            stringResource(Res.string.app_name),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        BrandLogo(height = 40.dp)
         when (mode) {
             Mode.Choice -> Choice(
                 busy = state.busy,
@@ -107,6 +107,7 @@ fun SignInScreen(
 @Composable
 private fun Choice(busy: Boolean, devSignIn: Boolean, onGithub: (String?) -> Unit, onEmail: () -> Unit) {
     var devLogin by rememberSaveable { mutableStateOf("") }
+    Image(painterResource(Res.drawable.djeli_wave), contentDescription = null, modifier = Modifier.height(112.dp))
     Text(stringResource(Res.string.signin_tagline), style = MaterialTheme.typography.titleLarge)
     Text(
         stringResource(Res.string.signin_text),
@@ -130,9 +131,7 @@ private fun Choice(busy: Boolean, devSignIn: Boolean, onGithub: (String?) -> Uni
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
     )
-    OutlinedButton(onClick = onEmail, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-        Text(stringResource(Res.string.signin_email))
-    }
+    SecondaryPill(stringResource(Res.string.signin_email), onClick = onEmail, enabled = !busy, modifier = Modifier.fillMaxWidth())
 }
 
 @Composable
@@ -201,17 +200,7 @@ private fun EmailForm(
 
 @Composable
 private fun PrimaryButton(label: String, busy: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
-    Button(onClick = onClick, enabled = enabled && !busy, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-        if (busy) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        } else {
-            Text(label)
-        }
-    }
+    PrimaryPill(label, onClick = onClick, enabled = enabled && !busy, busy = busy, modifier = Modifier.fillMaxWidth())
 }
 
 @Composable

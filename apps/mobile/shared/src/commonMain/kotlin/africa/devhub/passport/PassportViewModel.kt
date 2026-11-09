@@ -25,6 +25,8 @@ sealed interface PassportState {
         val refresh: RefreshState = RefreshState.Idle,
         /** Copie locale affichée faute de réseau : date de la copie. */
         val cachedAt: Long? = null,
+        /** Badges de certification publics ; vide si la liste n'a pas pu être lue. */
+        val certs: List<UserCertificate> = emptyList(),
     ) : PassportState
 }
 
@@ -65,7 +67,11 @@ class PassportViewModel(
         viewModelScope.launch {
             _state.value = try {
                 val fetched = readThrough(space, CacheKey.passport(handle, mine), Passport.serializer()) { api.passport(handle) }
-                PassportState.Loaded(fetched.value, cachedAt = fetched.cachedAt)
+                PassportState.Loaded(
+                    fetched.value,
+                    cachedAt = fetched.cachedAt,
+                    certs = runCatching { api.certificates(handle).items }.getOrDefault(emptyList()),
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ApiException) {

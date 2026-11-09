@@ -90,6 +90,7 @@ fun testGraph(
         eventStream = eventStream,
         scope = engineScope,
         now = now,
+        autoRecover = false,
     )
 }
 

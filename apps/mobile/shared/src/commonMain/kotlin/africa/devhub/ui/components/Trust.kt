@@ -79,13 +79,14 @@ fun Initials(name: String, size: Dp = 56.dp) {
         .take(2)
         .joinToString("") { it.first().uppercase() }
         .ifEmpty { "?" }
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(size)) {
+    val (tone, ink) = africa.devhub.ui.theme.avatarTone(name)
+    Surface(shape = CircleShape, color = tone, modifier = Modifier.size(size)) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.clearAndSetSemantics {}) {
             Text(
                 initials,
-                style = MaterialTheme.typography.titleLarge,
+                style = if (size < 32.dp) MaterialTheme.typography.labelSmall else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = ink,
             )
         }
     }

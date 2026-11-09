@@ -1,8 +1,12 @@
 package africa.devhub.ui.news
 
+import africa.devhub.ui.home.NewsCard
+import africa.devhub.ui.components.openWeb
 import africa.devhub.news.NewsItem
 import africa.devhub.news.NewsState
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_book
 import africa.devhub.resources.cached_copy
 import africa.devhub.resources.lang_en
 import africa.devhub.resources.lang_fr
@@ -17,6 +21,8 @@ import africa.devhub.resources.news_top
 import africa.devhub.resources.news_videos
 import africa.devhub.resources.retry
 import africa.devhub.ui.components.dayMonthYear
+import africa.devhub.ui.components.TabBar
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,14 +36,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,13 +66,10 @@ import org.jetbrains.compose.resources.stringResource
 fun NewsScreen(state: NewsState, onLang: (String) -> Unit, onQuery: (String) -> Unit, onRetry: () -> Unit) {
     val months = stringArrayResource(Res.array.months)
     val uriHandler = LocalUriHandler.current
-    val open: (NewsItem) -> Unit = { uriHandler.openUri(it.url) }
+    val open: (NewsItem) -> Unit = { uriHandler.openWeb(it.url) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = tab) {
-            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(Res.string.news_top)) })
-            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(Res.string.news_videos)) })
-        }
+        TabBar(listOf(stringResource(Res.string.news_top), stringResource(Res.string.news_videos)), tab, onSelect = { tab = it })
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
@@ -89,6 +90,7 @@ fun NewsScreen(state: NewsState, onLang: (String) -> Unit, onQuery: (String) -> 
                             value = state.query,
                             onValueChange = { onQuery(it.take(80)) },
                             label = { Text(stringResource(Res.string.news_search)) },
+                            leadingIcon = { androidx.compose.material3.Icon(africa.devhub.ui.components.DevHubIcons.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -105,10 +107,10 @@ fun NewsScreen(state: NewsState, onLang: (String) -> Unit, onQuery: (String) -> 
                         }
                     }
                     home == null -> Unit
-                    tab == 1 -> articles(home.videos, months, open)
-                    state.results != null -> if (state.searching) item { Spinner() } else articles(state.results, months, open)
+                    tab == 1 -> articles(home.videos, months, open, labels = home.sectionLabels)
+                    state.results != null -> if (state.searching) item { Spinner() } else articles(state.results, months, open, labels = home.sectionLabels)
                     else -> {
-                        articles(home.hero, months, open)
+                        if (home.hero.isNotEmpty() || home.sections.values.all { it.isEmpty() }) articles(home.hero, months, open, labels = home.sectionLabels)
                         home.sections.forEach { (key, list) ->
                             if (list.isEmpty()) return@forEach
                             item {
@@ -118,7 +120,7 @@ fun NewsScreen(state: NewsState, onLang: (String) -> Unit, onQuery: (String) -> 
                                     modifier = Modifier.padding(top = 8.dp).semantics { heading() },
                                 )
                             }
-                            articles(list.take(5), months, open, keyPrefix = key)
+                            articles(list.take(5), months, open, keyPrefix = key, labels = home.sectionLabels)
                         }
                     }
                 }
@@ -127,24 +129,19 @@ fun NewsScreen(state: NewsState, onLang: (String) -> Unit, onQuery: (String) -> 
     }
 }
 
-private fun LazyListScope.articles(list: List<NewsItem>, months: List<String>, open: (NewsItem) -> Unit, keyPrefix: String = "") {
+private fun LazyListScope.articles(
+    list: List<NewsItem>,
+    months: List<String>,
+    open: (NewsItem) -> Unit,
+    keyPrefix: String = "",
+    labels: Map<String, String> = emptyMap(),
+) {
     if (list.isEmpty()) {
-        item(key = "$keyPrefix-empty") { Text(stringResource(Res.string.news_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        item(key = "$keyPrefix-empty") { EmptyCard(stringResource(Res.string.news_empty), Res.drawable.djeli_book) }
         return
     }
-    items(list, key = { keyPrefix + it.id }) { item ->
-        Card(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { open(item) })) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(item.title, style = MaterialTheme.typography.titleSmall)
-                if (item.summary.isNotBlank()) Text(item.summary, style = MaterialTheme.typography.bodySmall, maxLines = 3)
-                Text(
-                    stringResource(Res.string.news_source, item.sourceName, dayMonthYear(item.publishedAt, months)),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
+    // Même carte que le fil d'accueil : logo de la source, titre, résumé, image, lien.
+    items(list, key = { keyPrefix + it.id }) { item -> NewsCard(item, labels[item.category], months, onOpen = { open(item) }) }
 }
 
 @Composable

@@ -23,8 +23,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Button
+import africa.devhub.ui.components.DevCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -63,7 +63,7 @@ fun SyncCenterScreen(
 
 @Composable
 private fun ActionCard(action: OutboxAction, onRetry: (String) -> Unit, onCancel: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    DevCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(label(action.type)), style = MaterialTheme.typography.titleSmall)
             if (action.preview.isNotBlank()) Text(action.preview, style = MaterialTheme.typography.bodyMedium, maxLines = 3)

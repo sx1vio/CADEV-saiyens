@@ -1,6 +1,8 @@
 package africa.devhub.ui.sos
 
 import africa.devhub.resources.Res
+import africa.devhub.ui.components.EmptyCard
+import africa.devhub.resources.djeli_laptop
 import africa.devhub.resources.answers_count
 import africa.devhub.resources.cached_copy
 import africa.devhub.resources.pending_badge
@@ -17,11 +19,33 @@ import africa.devhub.resources.sos_ask
 import africa.devhub.resources.sos_empty
 import africa.devhub.resources.sos_failed
 import africa.devhub.resources.sos_search
+import africa.devhub.resources.sos_no_answer
+import africa.devhub.resources.status_resolved
+import africa.devhub.resources.urgency_high
+import africa.devhub.ui.components.Badge
+import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.Initials
+import africa.devhub.ui.components.TechTag
+import africa.devhub.ui.theme.Glass
+import africa.devhub.ui.theme.successColor
+import africa.devhub.ui.theme.warningColor
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import africa.devhub.sos.PendingQuestion
 import africa.devhub.sos.QuestionFilter
 import africa.devhub.sos.QuestionSummary
 import africa.devhub.sos.QuestionsState
 import africa.devhub.ui.components.dayMonthYear
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -38,14 +62,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Card
+import africa.devhub.ui.components.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
+import africa.devhub.ui.components.ExtendedFloatingActionButton
+import africa.devhub.ui.components.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
+import africa.devhub.ui.components.OutlinedCard
+import africa.devhub.ui.components.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -79,6 +103,7 @@ fun QuestionsScreen(
                     value = state.query,
                     onValueChange = { onQuery(it.take(200)) },
                     label = { Text(stringResource(Res.string.sos_search)) },
+                    leadingIcon = { androidx.compose.material3.Icon(africa.devhub.ui.components.DevHubIcons.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -89,7 +114,7 @@ fun QuestionsScreen(
             }
             items(state.pending, key = { "pending-" + it.opId }) { PendingCard(it) }
             if (!state.loading && !state.failed && state.items.isEmpty()) {
-                item { Text(stringResource(Res.string.sos_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item { EmptyCard(stringResource(Res.string.sos_empty), Res.drawable.djeli_laptop) }
             }
             items(state.items, key = { it.id }) { QuestionCard(it, months, onOpen) }
             item {
@@ -131,44 +156,70 @@ private fun PendingCard(pending: PendingQuestion) {
 @Composable
 private fun Filters(selected: QuestionFilter, onFilter: (QuestionFilter) -> Unit) {
     val filters = listOf(
-        QuestionFilter.Recent to Res.string.filter_recent,
-        QuestionFilter.Unanswered to Res.string.filter_unanswered,
-        QuestionFilter.ForMe to Res.string.filter_for_me,
-        QuestionFilter.Mine to Res.string.filter_mine,
+        Triple(QuestionFilter.ForMe, Res.string.filter_for_me, DevHubIcons.Sparkles),
+        Triple(QuestionFilter.Unanswered, Res.string.filter_unanswered, DevHubIcons.Inbox),
+        Triple(QuestionFilter.Recent, Res.string.filter_recent, DevHubIcons.Layers),
+        Triple(QuestionFilter.Mine, Res.string.filter_mine, DevHubIcons.Person),
     )
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        filters.forEach { (filter, label) ->
-            FilterChip(
-                selected = filter == selected,
-                onClick = { onFilter(filter) },
-                label = { Text(stringResource(label)) },
-            )
+    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        filters.forEach { (filter, label, icon) -> InkChip(filter == selected, { onFilter(filter) }, stringResource(label), icon) }
+    }
+}
+
+/** Puce des onglets de questions du web : encre pleine quand elle est choisie, liseré gris sinon, avec son icône. */
+@Composable
+private fun InkChip(selected: Boolean, onClick: () -> Unit, label: String, icon: ImageVector) {
+    val scheme = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = if (selected) scheme.onSurface else Glass.strong,
+        contentColor = if (selected) scheme.background else scheme.onSurfaceVariant,
+        border = if (selected) null else BorderStroke(1.dp, scheme.outline),
+        modifier = Modifier.semantics { this.selected = selected },
+    ) {
+        Row(
+            Modifier.defaultMinSize(minHeight = 36.dp).padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
+            Text(label, style = MaterialTheme.typography.labelMedium)
         }
     }
 }
 
+/** Carte de question du web : auteur et date, états, titre, étiquettes, nombre de réponses. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun QuestionCard(question: QuestionSummary, months: List<String>, onOpen: (String) -> Unit) {
-    Card(
-        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpen(question.id) }),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(question.title, style = MaterialTheme.typography.titleMedium)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                StatusPill(question.status)
-                UrgencyPill(question.urgency)
-                question.tags.forEach { Text("#${it.slug}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary) }
+    val resolved = question.status == "resolved"
+    val noAnswer = question.answerCount == 0 && !resolved
+    DevCard(Modifier.clickable(role = Role.Button, onClick = { onOpen(question.id) })) {
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Initials(question.author.displayName, size = 24.dp)
+                Text(question.author.displayName, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                Text(dayMonthYear(question.createdAt, months), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                Spacer(Modifier.weight(1f))
+                if (question.urgency == "high" && !resolved) Badge(stringResource(Res.string.urgency_high), MaterialTheme.colorScheme.error)
+                if (resolved) Badge(stringResource(Res.string.status_resolved), successColor, DevHubIcons.CircleCheck)
             }
-            Text(
-                stringResource(
-                    Res.string.question_meta,
-                    question.author.displayName,
-                    dayMonthYear(question.createdAt, months),
-                ) + " · " + pluralStringResource(Res.plurals.answers_count, question.answerCount, question.answerCount),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Text(question.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    question.tags.take(4).forEach { TechTag(it.label.ifBlank { it.slug }) }
+                }
+                val tone = if (noAnswer) warningColor else MaterialTheme.colorScheme.onSurfaceVariant
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(DevHubIcons.MessageText, contentDescription = null, tint = tone, modifier = Modifier.size(16.dp))
+                    Text(
+                        if (question.answerCount > 0) question.answerCount.toString() else stringResource(Res.string.sos_no_answer),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = tone,
+                    )
+                }
+            }
         }
     }
 }

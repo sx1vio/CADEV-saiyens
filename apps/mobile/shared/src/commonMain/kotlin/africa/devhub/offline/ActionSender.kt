@@ -60,6 +60,12 @@ private data class SyncResultBody(
 private data class SyncResponseBody(val results: List<SyncResultBody>)
 
 /**
+ * `{champ}` dans un chemin d'endpoint. L'accolade fermante est échappée : la JVM l'accepte nue, mais le moteur
+ * d'expressions régulières d'Android (ICU) la refuse et fait planter l'application au démarrage.
+ */
+private val PATH_FIELD = Regex("\\{(\\w+)\\}")
+
+/**
  * Envoie les actions à l'API. Peu d'actions prêtes : une à une par leur endpoint, avec l'opId en
  * Idempotency-Key (latence minimale). Davantage, ou une référence encore locale : un lot
  * `POST /sync` (50 au plus), où l'API résout « client:<uuid> » (04-hors-ligne-sync.md § 2 et 4).
@@ -68,7 +74,7 @@ class ActionSender(private val http: HttpClient) {
     suspend fun sendOne(action: OutboxAction): SendOutcome {
         val route = ROUTES[action.type] ?: return SendOutcome.Rejected("validation.failed")
         val p = action.payload
-        val path = route.path.replace(Regex("\\{(\\w+)}")) { m -> p[m.groupValues[1]]?.jsonPrimitive?.contentOrNull.orEmpty() }
+        val path = route.path.replace(PATH_FIELD) { m -> p[m.groupValues[1]]?.jsonPrimitive?.contentOrNull.orEmpty() }
         // Le corps : le payload sans les identifiants passés dans le chemin.
         val body = if (route.hasBody) JsonObject(p.filterKeys { it !in route.pathFields }) else null
         val response = try {
@@ -116,7 +122,7 @@ class ActionSender(private val http: HttpClient) {
     }
 
     private class Route(val path: String, val hasBody: Boolean) {
-        val pathFields: Set<String> = Regex("\\{(\\w+)}").findAll(path).map { it.groupValues[1] }.toSet()
+        val pathFields: Set<String> = PATH_FIELD.findAll(path).map { it.groupValues[1] }.toSet()
     }
 
     private companion object {

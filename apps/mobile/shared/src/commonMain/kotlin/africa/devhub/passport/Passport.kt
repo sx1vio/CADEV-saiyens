@@ -28,6 +28,8 @@ data class PassportUser(
     val avatarUrl: String? = null,
     val bio: String? = null,
     val country: String? = null,
+    val timezone: String? = null,
+    val languages: List<String> = emptyList(),
     val lookingFor: String? = null,
     val availability: Availability? = null,
     val isDemo: Boolean = false,
@@ -100,3 +102,10 @@ data class ProofEvent(
 
 @Serializable
 data class PageInfo(val nextCursor: String? = null, val hasMore: Boolean)
+
+/** GET /api/v1/u/:handle/certificates : badges publics du profil. */
+@Serializable
+data class UserCertificate(val certId: String, val code: String, val bestScore: Int, val passedAt: String)
+
+@Serializable
+data class UserCertificates(val items: List<UserCertificate> = emptyList())

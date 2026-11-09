@@ -11,6 +11,9 @@ class PassportApi(private val http: HttpClient) {
     suspend fun passport(handle: String): Passport =
         apiCall { http.get("api/v1/u/${handle.encodeURLPathPart()}") }
 
+    suspend fun certificates(handle: String): UserCertificates =
+        apiCall { http.get("api/v1/u/${handle.encodeURLPathPart()}/certificates") }
+
     suspend fun proofs(handle: String, cursor: String? = null, limit: Int = 20): Proofs =
         apiCall {
             http.get("api/v1/u/${handle.encodeURLPathPart()}/proofs") {

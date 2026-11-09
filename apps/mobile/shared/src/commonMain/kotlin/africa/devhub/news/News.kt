@@ -17,6 +17,8 @@ data class NewsItem(
     val title: String,
     val summary: String = "",
     val url: String,
+    /** Image de l'article ; toujours lue par le proxy du serveur, jamais en direct chez l'éditeur. */
+    val image: String? = null,
     val publishedAt: String,
     val score: Int = 0,
     val comments: Int = 0,
@@ -47,6 +49,17 @@ class NewsApi(private val http: HttpClient) {
                 parameter("q", query.take(80))
                 parameter("lang", lang)
                 parameter("limit", 40)
+            }
+        }
+
+    /** Éléments collectés d'un type (`cert`, `skill`…) ; [category] et [query] affinent les skills. */
+    suspend fun list(kind: String, category: String? = null, query: String? = null, limit: Int = 60): NewsList =
+        apiCall {
+            http.get("api/v1/news") {
+                parameter("kind", kind)
+                if (!category.isNullOrBlank()) parameter("category", category)
+                if (!query.isNullOrBlank()) parameter("q", query.take(80))
+                parameter("limit", limit)
             }
         }
 }
