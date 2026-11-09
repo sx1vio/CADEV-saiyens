@@ -488,6 +488,12 @@ fun SignedInArea(
                     actions = {
                         // Les alertes restent à portée de pouce partout, pas seulement sur l'accueil.
                         if (isRoot && !onConversations) {
+                        // Un écran de détail n'a que la flèche retour : un accès direct à l'accueil, comme le logo du web.
+                        if (!isRoot) {
+                            IconButton(onClick = { go(HomeRoute) }) {
+                                Icon(DevHubIcons.Home, contentDescription = stringResource(Res.string.nav_home))
+                            }
+                        }
                             IconButton(onClick = { navController.navigate(ConversationsRoute) { launchSingleTop = true } }) {
                                 Icon(DevHubIcons.Chat, contentDescription = stringResource(Res.string.messages_title))
                             }
