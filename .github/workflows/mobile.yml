@@ -68,4 +68,12 @@ jobs:
           xcodegen
           xcodebuild -project DevHub.xcodeproj -scheme DevHub \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            -configuration Debug CODE_SIGNING_ALLOWED=NO build
+            -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Archive de l'application pour un simulateur en ligne
+        working-directory: apps/mobile/iosApp/build/Build/Products/Debug-iphonesimulator
+        run: ditto -c -k --keepParent DevHub.app "$GITHUB_WORKSPACE/DevHub-simulator.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: DevHub-simulator.zip
+          retention-days: 7
