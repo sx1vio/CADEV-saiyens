@@ -48,6 +48,13 @@ import africa.devhub.community.CreatePostViewModel
 import africa.devhub.community.FeedViewModel
 import africa.devhub.community.PostViewModel
 import africa.devhub.discover.DiscoverViewModel
+import africa.devhub.jobs.ApplicationsViewModel
+import africa.devhub.jobs.JobViewModel
+import africa.devhub.jobs.JobsViewModel
+import africa.devhub.resources.jobs_title
+import africa.devhub.ui.jobs.ApplicationsScreen
+import africa.devhub.ui.jobs.JobScreen
+import africa.devhub.ui.jobs.JobsScreen
 import africa.devhub.resources.community_title
 import africa.devhub.ui.community.CreatePostScreen
 import africa.devhub.ui.community.FeedScreen
@@ -162,6 +169,15 @@ private data class PostRoute(val id: String)
 private data object CreatePostRoute
 
 @Serializable
+private data object JobsRoute
+
+@Serializable
+private data class JobRoute(val id: String)
+
+@Serializable
+private data object ApplicationsRoute
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -212,6 +228,8 @@ fun SignedInArea(
     val onNews = destination?.hasRoute<NewsRoute>() == true
     val onCommunity = destination?.hasRoute<FeedRoute>() == true || destination?.hasRoute<PostRoute>() == true ||
         destination?.hasRoute<CreatePostRoute>() == true
+    val onJobs = destination?.hasRoute<JobsRoute>() == true || destination?.hasRoute<JobRoute>() == true ||
+        destination?.hasRoute<ApplicationsRoute>() == true
     val onConversations = destination?.hasRoute<ConversationsRoute>() == true || destination?.hasRoute<ConversationRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
@@ -226,6 +244,7 @@ fun SignedInArea(
         onSettings -> Res.string.home_settings
         onNews -> Res.string.news_title
         onCommunity -> Res.string.community_title
+        onJobs -> Res.string.jobs_title
         onConversations -> Res.string.messages_title
         else -> null
     }
@@ -247,7 +266,7 @@ fun SignedInArea(
             NavigationBar {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity
+                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity || onJobs
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
@@ -296,6 +315,7 @@ fun SignedInArea(
                             onNews = { navController.navigate(NewsRoute) },
                             onMessages = { navController.navigate(ConversationsRoute) },
                             onCommunity = { navController.navigate(FeedRoute) },
+                            onJobs = { navController.navigate(JobsRoute) },
                             onDiscover = { navController.navigate(DiscoverRoute()) },
                             onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
                             onRules = { navController.navigate(RulesRoute) },
@@ -366,6 +386,28 @@ fun SignedInArea(
                         }
                     }
                     CreatePostScreen(state, online, vm::edit, vm::send)
+                }
+                composable<JobsRoute> {
+                    val vm = viewModel { JobsViewModel(graph.jobsApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    JobsScreen(
+                        state = state,
+                        onFilters = vm::setFilters,
+                        onRetry = vm::reload,
+                        onOpen = { navController.navigate(JobRoute(it)) },
+                        onApplications = { navController.navigate(ApplicationsRoute) },
+                    )
+                }
+                composable<JobRoute> { backStack ->
+                    val id = backStack.toRoute<JobRoute>().id
+                    val vm = viewModel { JobViewModel(graph.jobsApi, id, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    JobScreen(state, vm::apply, vm::refresh)
+                }
+                composable<ApplicationsRoute> {
+                    val vm = viewModel { ApplicationsViewModel(graph.jobsApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    ApplicationsScreen(state, vm::withdraw, onOpenJob = { navController.navigate(JobRoute(it)) }, onRetry = vm::reload)
                 }
                 composable<RulesRoute> {
                     val vm = viewModel { RulesViewModel(graph.discoverApi, space) }
