@@ -25,7 +25,8 @@ import { toast } from 'sonner';
 import { Djeli, EmptyState, ErrorState } from '@/components/djeli';
 import { EditSheet, PendingEdit, useQueuedEdit, type EditTarget } from '@/components/EditText';
 import { ReportSheet } from '@/components/ReportSheet';
-import { DemoBadge, errorText, UserLink, isNotFound } from '@/components/domain';
+import { DemoBadge, errorText, UserLink } from '@/components/domain';
+import { isNotFound } from '@/lib/not-found';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CodeBlock, Markdown } from '@/components/ui/code';
 import { Sheet, Tip } from '@/components/ui/overlay';
@@ -84,6 +85,7 @@ export default function QuestionPage() {
       <div className="mx-auto max-w-3xl p-6">
         {isNotFound(error) ? (
           <EmptyState
+            heading
             pose="laptop"
             title={t('question.notFound')}
             action={

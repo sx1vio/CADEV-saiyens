@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 import { DomainError } from '@/services/types';
 import { useSession } from '@/stores/app';
 import { usePlatform } from './store';
-import { Ago, CommunityIcon, compact } from './ui';
+import { Ago, CommunityIcon, communityOf, compact } from './ui';
 import { TechChip } from './logos';
 
 export type { PostView, PostDetail, PostKind, CommunitySlug };
@@ -248,7 +248,8 @@ export function PostCard({ post }: { post: PostView }) {
             to={`/?topic=${post.community}`}
             className="inline-flex items-center gap-1.5 font-medium text-fg hover:underline"
           >
-            <CommunityIcon slug={post.community} size={18} />#{post.community}
+            <CommunityIcon slug={post.community} size={18} />
+            {communityOf(post.community).name}
           </Link>
           <span aria-hidden>·</span>
           <Link to={`/u/${post.author.handle}`} className="hover:underline">

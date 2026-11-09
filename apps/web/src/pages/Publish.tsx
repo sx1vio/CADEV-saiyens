@@ -14,12 +14,12 @@ import {
 } from '@/platform/community';
 import { COMMUNITIES } from '@/platform/data/feed';
 import { usePlatform } from '@/platform/store';
-import { CommunityIcon } from '@/platform/ui';
+import { CommunityIcon, communityOf } from '@/platform/ui';
 import { cn } from '@/lib/utils';
 
 const KINDS = (Object.keys(POST_KINDS) as PostKind[]).map((id) => ({ id, ...POST_KINDS[id] }));
 
-/** Publier dans le fil : type, communauté, titre, texte, lien et dépôt. */
+/** Publier dans le fil : type, sujet, titre, texte, lien et dépôt. */
 export default function Publish() {
   const nav = useNavigate();
   const [params] = useSearchParams();
@@ -64,7 +64,7 @@ export default function Publish() {
       });
       invalidate('posts');
       invalidate('communities');
-      toast.success('Publié dans c/' + community);
+      toast.success(`Publié : ${communityOf(community).name}`);
       nav(`/post/${id}`);
     } catch (e) {
       toast.error(communityError(e));
@@ -76,7 +76,7 @@ export default function Publish() {
     <div className="dh-page mx-auto w-full max-w-[760px] px-4 py-6 sm:px-6">
       <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-fg">Publier</h1>
       <p className="mt-1 text-[14px] text-muted">
-        Ton post apparaît dans le fil et dans la communauté choisie.
+        Ton post apparaît dans le fil des devs qui suivent ce sujet.
       </p>
 
       <div className="mt-6 flex flex-col gap-5 rounded-[10px] bg-surface-1 p-4 sm:p-5">
@@ -100,7 +100,7 @@ export default function Publish() {
           </div>
         </Field>
 
-        <Field label="Communauté">
+        <Field label="Sujet">
           <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
             {COMMUNITIES.map((c) => (
               <button

@@ -107,7 +107,7 @@ export default function Jobs() {
           Toutes les offres
         </button>
         <div className="rounded-[10px] bg-surface-1">
-          <JobDetail job={selected} />
+          <JobDetail job={selected} alone />
         </div>
       </div>
     );
@@ -312,7 +312,9 @@ function JobRow({ job, active }: { job: JobOffer; active: boolean }) {
   );
 }
 
-function JobDetail({ job }: { job: JobOffer }) {
+/** `alone` : le détail occupe tout l'écran (mobile), son titre devient celui de la page. */
+function JobDetail({ job, alone }: { job: JobOffer; alone?: boolean }) {
+  const Title = alone ? 'h1' : 'h2';
   const saved = usePlatform((s) => s.savedJobs.includes(job.id));
   const toggle = usePlatform((s) => s.toggle);
   const expires = job.expiresAt
@@ -343,7 +345,9 @@ function JobDetail({ job }: { job: JobOffer }) {
               job.company
             )}
           </p>
-          <h2 className="mt-0.5 text-[19px] leading-tight font-semibold text-fg">{job.title}</h2>
+          <Title className="mt-0.5 text-[19px] leading-tight font-semibold text-fg">
+            {job.title}
+          </Title>
           <p className="mt-1 text-[13px] text-subtle">
             Publiée <Ago iso={job.publishedAt} />
             {expires && <> · jusqu’au {expires}</>}

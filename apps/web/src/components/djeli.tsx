@@ -59,6 +59,7 @@ export function EmptyState({
   pose = 'laptop',
   className,
   compact,
+  heading,
 }: {
   title: ReactNode;
   text?: ReactNode;
@@ -66,7 +67,10 @@ export function EmptyState({
   pose?: DjeliPose;
   className?: string;
   compact?: boolean;
+  /** Titre de la page (h1) quand l'état vide occupe toute la page (404, profil introuvable). */
+  heading?: boolean;
 }) {
+  const Title = heading ? 'h1' : 'p';
   return (
     <div
       className={cn(
@@ -77,7 +81,7 @@ export function EmptyState({
     >
       <Djeli pose={pose} size={compact ? 72 : 104} />
       <div className="max-w-sm">
-        <p className="font-semibold text-fg">{title}</p>
+        <Title className="font-semibold text-fg">{title}</Title>
         {text && <p className="mt-1 text-sm text-muted">{text}</p>}
       </div>
       {action}

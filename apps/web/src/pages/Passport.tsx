@@ -22,7 +22,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { EmptyState, ErrorState } from '@/components/djeli';
-import { DemoBadge, errorText, isNotFound } from '@/components/domain';
+import { DemoBadge, errorText } from '@/components/domain';
+import { isNotFound } from '@/lib/not-found';
 import { ReportSheet } from '@/components/ReportSheet';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CodeBlock } from '@/components/ui/code';
@@ -78,6 +79,7 @@ export default function Passport() {
       <Page>
         {isNotFound(error) ? (
           <EmptyState
+            heading
             pose="laptop"
             title={t('passport.notFound')}
             action={

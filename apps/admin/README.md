@@ -7,6 +7,15 @@ Le site public n'en contient aucune trace : pas de page `/admin`, pas d'entrée 
 ## Ce qu'on y fait
 
 - **Vue d'ensemble** : chiffres réels de la plateforme (membres, questions, salles, signalements, offres).
+  Bloc « À traiter » : signalements ouverts, entreprises à vérifier, worker arrêté, tâches en échec,
+  réglage dangereux, erreurs serveur récentes, chacun avec un lien vers l'onglet concerné.
+- **Supervision** : santé technique actualisée toutes les 15 s. API (démarrage, version déployée
+  `APP_RELEASE`, mémoire, retard de la boucle d'événements), trafic HTTP sur 5 min et 1 h (volumes,
+  erreurs, latences médiane et p95, routes les plus lentes, 30 dernières erreurs 500), base de
+  données (latence, taille, connexions, migrations, tables les plus remplies), worker pg-boss
+  (vivant ou non, files, réussites et échecs sur 24 h, derniers échecs), sondes Systalink, réglages
+  de production (présents ou non, jamais leur valeur ; connexion de test active = danger) et accès
+  (sessions admin, connexions admin et membres actifs sur 24 h, comptes suspendus).
 - **Activité** : courbes des 30 derniers jours (inscriptions, questions, réponses, publications,
   projets, candidatures), membres actifs, et fil de tout ce qui se passe (filtrable, actualisé en direct).
 - **Utilisateurs** : recherche, filtres (nouveaux, suspendus, admins, démo, supprimés), Proof XP et
@@ -44,9 +53,17 @@ Toutes les actions qui modifient quelque chose sont inscrites au journal (`admin
 # En local (depuis la racine du dépôt)
 pnpm --filter @devhub/api admin create --email admin@exemple.com --name "Prénom Nom"
 
-# En production
-docker compose exec api node dist/modules/backoffice/cli.js create --email admin@exemple.com --name "Prénom Nom"
+# En production, sur le VPS (dans /srv/devhub, avec le TAG déployé)
+TAG=<sha> docker compose -f infra/docker-compose.yml --env-file /srv/devhub/.env \
+  exec api node dist/modules/backoffice/cli.js create --email admin@exemple.com --name "Prénom Nom"
 ```
+
+Ordre conseillé le jour du déploiement : créer le compte de Sylvio (super-admin), se connecter sur
+l'administration, ouvrir **Supervision** et vérifier que tout est vert (connexion de test
+désactivée, OAuth GitHub, SMTP, worker actif), puis inviter les autres membres depuis l'onglet
+**Administrateurs**. Un mot de passe d'administrateur oublié se réinitialise par la CLI
+(`reset-2fa` pour le double facteur) : le lien « mot de passe oublié » du site ne touche jamais un
+compte d'administration.
 
 La commande affiche le mot de passe **une seule fois** et un lien `otpauth://` à ajouter dans une
 application d'authentification (Google Authenticator, Aegis, 1Password…). Autres commandes :

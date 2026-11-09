@@ -28,22 +28,22 @@
 
 ## 1. Liste de contrôle avant l'envoi
 
-| #   | Étape                                                                                                                | Qui               | État                         |
-| --- | -------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------- |
-| 1   | Acheter au moins un produit sur Datacloud avec le code promo −40 % (VPS **à Dakar**, pas hors de Dakar)              | Emmanuel, Sylvio  | À faire                      |
-| 2   | Déployer : secrets du dépôt, `DEPLOY_ENABLED=true`, pousser sur `main` (voir `infra/README.md`)                      | Emmanuel          | À faire                      |
-| 3   | Créer l'application OAuth GitHub de production et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`             | Joachim, Emmanuel | À faire                      |
-| 4   | Vérifier que `AUTH_FAKE_PROVIDER` vaut `false` en production                                                         | Emmanuel          | À faire                      |
-| 5   | Optionnel : `LLM_API_KEY` plafonnée (sinon la piste IA, les tâches IA et la traduction utilisent le faux modèle)     | Joachim           | À faire                      |
-| 6   | Ouvrir l'URL publique depuis un téléphone, hors du réseau de l'équipe                                                | Tous              | À faire                      |
-| 7   | Remplir et signer la section 4 (propriété), un membre après l'autre                                                  | Chaque membre     | À faire                      |
-| 8   | Soumettre : URL du dépôt, URL de la démo, ce document                                                                | Caleb             | À faire                      |
-| 9   | **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue**               | Chaque membre     | À faire                      |
-| 10  | Aucun composant GPL, AGPL ou LGPL                                                                                    | —                 | Vérifié le 04/11 (section 2) |
-| 11  | Créer le compte d'administration en production par la CLI (`apps/admin/README.md`), jamais dans le code              | Emmanuel, Sylvio  | À faire                      |
-| 12  | Portail entreprise : `BUSINESS_URL` et `BUSINESS_ADDRESS` (sous-domaine `business.`), voir `apps/business/README.md` | Emmanuel          | À faire                      |
-| 13  | Renseigner `VITE_CONTACT_EMAIL` (adresse affichée sur la page Confidentialité)                                       | Sylvio            | À faire                      |
-| 14  | Ne laisser aucun compte de test ni contenu fictif en base de production                                              | Tous              | À vérifier avant l'envoi     |
+| #   | Étape                                                                                                                  | Qui               | État                         |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------- |
+| 1   | Acheter au moins un produit sur Datacloud avec le code promo −40 % (VPS **à Dakar**, pas hors de Dakar)                | Emmanuel, Sylvio  | À faire                      |
+| 2   | Déployer : secrets du dépôt, `DEPLOY_ENABLED=true`, pousser sur `main` (voir `infra/README.md`)                        | Emmanuel          | À faire                      |
+| 3   | Créer l'application OAuth GitHub de production et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`               | Joachim, Emmanuel | À faire                      |
+| 4   | Vérifier que `AUTH_FAKE_PROVIDER` vaut `false` en production                                                           | Emmanuel          | À faire                      |
+| 5   | Optionnel : `LLM_API_KEY` plafonnée (sinon la piste IA, les tâches IA et la traduction utilisent le faux modèle)       | Joachim           | À faire                      |
+| 6   | Ouvrir l'URL publique depuis un téléphone, hors du réseau de l'équipe                                                  | Tous              | À faire                      |
+| 7   | Remplir et signer la section 4 (propriété), un membre après l'autre                                                    | Chaque membre     | À faire                      |
+| 8   | Soumettre : URL du dépôt, URL de la démo, ce document                                                                  | Caleb             | À faire                      |
+| 9   | **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue**                 | Chaque membre     | À faire                      |
+| 10  | Aucun composant GPL, AGPL ou LGPL                                                                                      | —                 | Vérifié le 04/11 (section 2) |
+| 11  | Créer le compte d'administration en production par la CLI (`apps/admin/README.md`), puis vérifier l'onglet Supervision | Emmanuel, Sylvio  | À faire (code prêt le 09/11) |
+| 12  | Portail entreprise : `BUSINESS_URL` et `BUSINESS_ADDRESS` (sous-domaine `business.`), voir `apps/business/README.md`   | Emmanuel          | À faire (code fini le 09/11) |
+| 13  | Renseigner `VITE_CONTACT_EMAIL` (adresse affichée sur la page Confidentialité)                                         | Sylvio            | À faire                      |
+| 14  | Ne laisser aucun compte de test ni contenu fictif en base de production                                                | Tous              | À vérifier avant l'envoi     |
 
 ## 2. Composants et licences
 

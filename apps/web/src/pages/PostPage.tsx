@@ -85,7 +85,7 @@ export default function PostPage() {
               className="inline-flex items-center gap-1.5 font-medium text-fg hover:underline"
             >
               <CommunityIcon slug={post.community} size={20} />
-              c/{post.community}
+              {c.name}
             </Link>
             <span aria-hidden>·</span>
             <Link to={`/u/${post.author.handle}`} className="hover:underline">
@@ -200,7 +200,7 @@ export default function PostPage() {
       </div>
 
       <aside className="hidden w-[316px] shrink-0 flex-col gap-4 lg:flex">
-        <SideCard title={`c/${c.slug}`}>
+        <SideCard title={c.name}>
           <p className="text-[14px] text-muted">{c.description}</p>
           <Button
             variant={joined.includes(c.slug) ? 'secondary' : 'primary'}
@@ -208,10 +208,10 @@ export default function PostPage() {
             className="mt-3 w-full rounded-full"
             onClick={() => toggle('joined', c.slug)}
           >
-            {joined.includes(c.slug) ? 'Membre' : 'Rejoindre'}
+            {joined.includes(c.slug) ? 'Dans ton fil' : 'Suivre ce sujet'}
           </Button>
         </SideCard>
-        <SideCard title="Règles">
+        <SideCard title="Bonnes pratiques">
           <ol className="flex list-decimal flex-col gap-2 pl-4 text-[13px] text-muted">
             {c.rules.map((r) => (
               <li key={r}>{r}</li>
