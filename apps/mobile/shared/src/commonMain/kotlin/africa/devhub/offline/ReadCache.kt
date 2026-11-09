@@ -86,5 +86,6 @@ class CacheKey private constructor(name: String, val kept: Boolean) {
         fun post(id: String) = CacheKey("post-$id", kept = false)
         fun jobs() = CacheKey("jobs", kept = true)
         fun job(id: String) = CacheKey("job-$id", kept = false)
+        fun certs() = CacheKey("certs-mine", kept = true)
     }
 }

@@ -385,4 +385,26 @@ class LiveApiTest {
         assertTrue(graph.jobsApi.myApplications().data.isEmpty())
         graph.forgetUser()
     }
+
+    @Test
+    fun certificationPracticeAndMockExamAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        val graph = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, graph.auth.signInWithGithub(loginHint = "kmp-crt-${Random.nextInt(0, Int.MAX_VALUE).toString(36)}"))
+        val certId = africa.devhub.certs.CERT_CATALOG.first().id
+
+        val practice = graph.certsApi.practice(certId, count = 3).questions
+        assertEquals(3, practice.size)
+        val checked = graph.certsApi.check(certId, practice.first().id, 0)
+        assertTrue(checked.answer in practice.first().choices.indices)
+
+        val attempt = graph.certsApi.start(certId, "mock")
+        assertEquals(africa.devhub.certs.CERT_CATALOG.first().draw, attempt.questions.size)
+        val result = graph.certsApi.submit(attempt.id, List(attempt.questions.size) { null })
+        assertEquals(0, result.score)
+        assertEquals(false, result.passed)
+        assertEquals(attempt.questions.size, result.corrections.size)
+        assertTrue(graph.certsApi.mine().items.any { it.certId == certId })
+        graph.forgetUser()
+    }
 }

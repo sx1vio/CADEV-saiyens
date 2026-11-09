@@ -17,24 +17,25 @@ apps/mobile/
 └── iosApp/                         Application iOS (SwiftUI, Keychain, ASWebAuthenticationSession)
 ```
 
-| Couche (`shared/…/africa/devhub`) | Rôle                                                                                             |
-| --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `core`                            | Réglages fournis par la plateforme (`AppConfig`)                                                 |
-| `platform`                        | Contrats propres à chaque plateforme : stockage chiffré, navigateur, hash                        |
-| `network`                         | Client Ktor : base, JSON tolérant, Bearer, erreurs RFC 9457                                      |
-| `auth`                            | PKCE, session, connexion GitHub, déconnexion                                                     |
-| `me`                              | `GET /me`, code de conduite                                                                      |
-| `passport`                        | Passport public, preuves paginées, réimport GitHub                                               |
-| `sos`                             | SOS Dev : liste, question, piste IA, réponses, votes, validation, « Je m\'en occupe »            |
-| `rooms`                           | Salles : liste, création, tâches (Kanban), adhésion, discussion                                  |
-| `notifications`                   | Notifications : liste, non lues, flux SSE en direct au premier plan                              |
-| `discover`, `settings`            | Découverte des devs, classement par pays, règles des XP, réglages et suppression du compte       |
-| `news`, `messages`                | Actualités réelles et vidéos, messagerie privée (envoi par la file)                              |
-| `community`                       | Communautés : fil, publication, commentaires, votes (en ligne)                                   |
-| `jobs`                            | Emplois : offres réelles, candidature sur DevHub (en ligne), mes candidatures                    |
-| `offline`                         | Hors ligne : cache de lecture, file d\'actions, synchronisation, connectivité, espace par compte |
-| `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                              |
-| `ui`                              | Thème (couleurs du web), écrans, navigation                                                      |
+| Couche (`shared/…/africa/devhub`) | Rôle                                                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `core`                            | Réglages fournis par la plateforme (`AppConfig`)                                                     |
+| `platform`                        | Contrats propres à chaque plateforme : stockage chiffré, navigateur, hash                            |
+| `network`                         | Client Ktor : base, JSON tolérant, Bearer, erreurs RFC 9457                                          |
+| `auth`                            | PKCE, session, connexion GitHub, déconnexion                                                         |
+| `me`                              | `GET /me`, code de conduite                                                                          |
+| `passport`                        | Passport public, preuves paginées, réimport GitHub                                                   |
+| `sos`                             | SOS Dev : liste, question, piste IA, réponses, votes, validation, « Je m\'en occupe »                |
+| `rooms`                           | Salles : liste, création, tâches (Kanban), adhésion, discussion                                      |
+| `notifications`                   | Notifications : liste, non lues, flux SSE en direct au premier plan                                  |
+| `discover`, `settings`            | Découverte des devs, classement par pays, règles des XP, réglages et suppression du compte           |
+| `news`, `messages`                | Actualités réelles et vidéos, messagerie privée (envoi par la file)                                  |
+| `community`                       | Communautés : fil, publication, commentaires, votes (en ligne)                                       |
+| `jobs`                            | Emplois : offres réelles, candidature sur DevHub (en ligne), mes candidatures                        |
+| `certs`                           | Certifications : catalogue, entraînement corrigé, examen et examen blanc chronométrés par le serveur |
+| `offline`                         | Hors ligne : cache de lecture, file d\'actions, synchronisation, connectivité, espace par compte     |
+| `app`                             | Graphe des dépendances (`AppGraph`) et état global (`AppViewModel`)                                  |
+| `ui`                              | Thème (couleurs du web), écrans, navigation                                                          |
 
 ## Prérequis
 
@@ -94,4 +95,4 @@ DEVHUB_E2E_API_URL=http://localhost:3000 ./gradlew :shared:testAndroidHostTest -
 
 ## Étapes suivantes
 
-Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, en trois temps : 8a actualités et messages privés, 8b communautés, 8c emplois (cette version), 8d certifications et banc d'essai.
+Livraison pas à pas (ADR-0021, §5) : 1. socle ; 2. Passport et connexion par e-mail ; 3. SOS Dev ; 4. hors ligne ; 5. salles de projet ; 6. notifications dans l'application ; 7. découverte, classement, règles, réglages ; 8. services écosystème, par sous-étapes : 8a actualités et messages privés, 8b communautés, 8c emplois, 8d certifications (cette version), 8e banc d'essai.
