@@ -67,13 +67,8 @@ interface Actions {
   setGuideTrack: (t: BuildTrack) => void;
   toggleGuideCheck: (stepId: string, item: string) => void;
   resetGuide: () => void;
-  /** Applique les choix de l'onboarding : parcours suivis, communautés rejointes, objectif du jour */
-  applyOnboarding: (o: {
-    enroll: string[];
-    join: string[];
-    dailyGoal: number;
-    course?: string | null;
-  }) => void;
+  /** Applique les choix de l'onboarding : centres d'intérêt du fil et cours choisi (débutant). */
+  applyOnboarding: (o: { interests: string[]; course?: string | null }) => void;
   setCourse: (id: string) => void;
   setDailyGoal: (min: number) => void;
 }
@@ -206,11 +201,10 @@ export const usePlatform = create<Persisted & Actions>((set, get) => ({
       };
     }),
   resetGuide: () => set({ guideChecks: {}, guideTrack: null }),
-  applyOnboarding: ({ enroll, join, dailyGoal, course }) =>
+  // Les centres d'intérêt choisis remplacent ceux par défaut : le fil suit exactement ce choix.
+  applyOnboarding: ({ interests, course }) =>
     set((s) => ({
-      enrolled: [...new Set([...s.enrolled, ...enroll])],
-      joined: [...new Set([...s.joined, ...join])],
-      dailyGoal,
+      joined: interests.length ? [...new Set(interests)] : s.joined,
       course: course ?? s.course,
     })),
   setCourse: (id) => set({ course: id }),

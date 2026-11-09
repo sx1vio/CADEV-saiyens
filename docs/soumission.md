@@ -137,13 +137,26 @@ Chaque membre remplit sa ligne, avec la date.
 
 Si un membre a intégré du code personnel antérieur au concours (article 6.5), il le déclare ici avec son emplacement.
 
-| Membre            | Rôle                                   | Contributions principales                         | Date et accord |
-| ----------------- | -------------------------------------- | ------------------------------------------------- | -------------- |
-| Caleb KPOSSOU     | Back-end, produit et pitch (rôle 1)    | `identity`, `passport`, `reputation`, `discovery` |                |
-| AMAMION Florent   | Back-end temps réel et synchronisation | `sos`, `matching`, `notifications`, `sync`        |                |
-| Joachim GOEH-AKUE | Back-end, IA et intégrations (rôle 5)  | `ai`, `github`, `rooms`                           |                |
-| Sylvio CHALLA     | Front-end et hors ligne (rôle 3)       | `apps/web`, design, moteur hors ligne, Systalink  |                |
-| Emmanuel OKORIE   | DevOps et sécurité (rôle 4)            | `moderation`, `platform`, `infra/`                |                |
+| Membre            | Rôle                                   | Contributions principales                                                   |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------------- |
+| Caleb KPOSSOU     | Back-end, produit et pitch (rôle 1)    | `identity`, `passport`, `reputation`, `discovery`                           |
+| Florent AMAMION   | Back-end temps réel et synchronisation | `sos`, `matching`, `notifications`, `sync`                                  |
+| Joachim GOEH-AKUE | Back-end, IA et intégrations (rôle 5)  | `ai`, `github`, `rooms`                                                     |
+| Sylvio CHALLA     | Front-end et hors ligne (rôle 3)       | `apps/web`, `apps/admin`, `apps/business`, pré-vol, banc d'essai, Systalink |
+| Emmanuel OKORIE   | DevOps et sécurité (rôle 4)            | `moderation`, `platform`, `infra/`                                          |
+
+### Signatures
+
+Chaque membre lit la déclaration ci-dessus, puis écrit lui-même la date et « Lu et approuvé » sur
+sa ligne (personne ne signe pour un autre).
+
+| Membre            | Code personnel antérieur au concours (art. 6.5) | Date | Lu et approuvé |
+| ----------------- | ----------------------------------------------- | ---- | -------------- |
+| Caleb KPOSSOU     |                                                 |      |                |
+| Florent AMAMION   |                                                 |      |                |
+| Joachim GOEH-AKUE |                                                 |      |                |
+| Sylvio CHALLA     |                                                 |      |                |
+| Emmanuel OKORIE   |                                                 |      |                |
 
 ## 5. Points à trancher par l'équipe
 

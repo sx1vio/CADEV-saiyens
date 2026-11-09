@@ -160,13 +160,13 @@ export default function Login() {
           <BrandLogo size={38} onDark />
         </Link>
         <h2 className="mt-16 text-[44px] leading-[1.02] font-extrabold tracking-[-0.035em]">
-          {signup ? 'Ton QG de dev commence ici' : 'Content de te revoir'}
+          {signup ? 'Rejoins les devs d’Afrique' : 'Content de te revoir'}
           <span className="text-[#f2b33d]">.</span>
         </h2>
         <ul className="mt-8 flex flex-col gap-3.5 text-[15.5px] text-white/75">
           {[
-            'Des cours gratuits, 10 minutes par jour',
-            'De l’aide quand tu es bloqué',
+            'De l’aide d’autres devs quand tu es bloqué',
+            'L’actu tech, les emplois et les projets du continent',
             'Un profil qui prouve ce que tu sais faire',
           ].map((b) => (
             <li key={b} className="flex items-center gap-3">

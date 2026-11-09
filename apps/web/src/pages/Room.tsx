@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { DeploymentCard } from '@/components/DeploymentCard';
 import { FeedbackRow, FeedbackSheet } from '@/components/FeedbackRequests';
 import { EmptyState, ErrorState } from '@/components/djeli';
-import { DemoBadge, errorText, RoomIcon, UserLink } from '@/components/domain';
+import { DemoBadge, errorText, RoomIcon, UserLink, isNotFound } from '@/components/domain';
 import { GitHubIcon } from '@/components/icons';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Markdown } from '@/components/ui/code';
@@ -95,7 +95,7 @@ export default function Room() {
   if (error)
     return (
       <div className="mx-auto max-w-3xl p-6">
-        {(error as { code?: string }).code === 'not-found' ? (
+        {isNotFound(error) ? (
           <EmptyState
             title={t('room.notFound')}
             action={

@@ -1,13 +1,14 @@
 import {
+  PlaneTakeoff,
   ArrowLeft,
   ArrowRight,
   Briefcase,
+  Award,
   Check,
-  Cloud,
-  Code2,
-  Compass,
+  Container,
   Database,
-  GraduationCap,
+  GitFork,
+  Globe,
   HandHelping,
   LifeBuoy,
   Newspaper,
@@ -16,7 +17,7 @@ import {
   Server,
   Smartphone,
   Sparkles,
-  Wand2,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
@@ -34,95 +35,67 @@ import { useLang } from '@/i18n';
 import { COUNTRIES } from '@/lib/geo';
 import { invalidate, useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
-import { PATHS } from '@/platform/data/learn';
 import { COURSE_META, courseMeta } from '@/platform/data/courses/meta';
 import { COMMUNITIES } from '@/platform/data/feed';
 import { usePlatform } from '@/platform/store';
 import { api, type AvailabilityStatus, type Lang, type User } from '@/services';
 import { useSession } from '@/stores/app';
 
-type Level = 'curious' | 'beginner' | 'junior' | 'senior';
-type Goal = 'learn' | 'job' | 'get-help' | 'help' | 'project' | 'build-ai' | 'news';
-type Domain = 'web' | 'mobile' | 'backend' | 'data' | 'cloud' | 'ai';
+type Level = 'beginner' | 'junior' | 'senior';
+type Goal = 'get-help' | 'help' | 'job' | 'certify' | 'project' | 'ship' | 'news';
 
 const LEVELS: { id: Level; title: string; text: string; pose: DjeliPose }[] = [
   {
-    id: 'curious',
-    title: 'Je ne code pas (encore)',
-    text: 'J’ai une idée d’app ou je suis curieux.',
-    pose: 'point',
-  },
-  {
     id: 'beginner',
     title: 'Je débute',
-    text: 'Je connais les bases, ou je m’y mets.',
+    text: 'J’apprends les bases et je veux progresser avec d’autres devs.',
     pose: 'book',
   },
   {
     id: 'junior',
     title: 'J’ai quelques projets',
-    text: 'Je code régulièrement, je veux progresser.',
+    text: 'Je code régulièrement et je veux le prouver.',
     pose: 'laptop',
   },
   {
     id: 'senior',
     title: 'Je suis dev confirmé',
-    text: 'Je veux partager, recruter ou trouver des missions.',
+    text: 'Je partage mon expérience, je recrute ou je cherche des missions.',
     pose: 'trophy',
   },
 ];
 
+/** Chaque objectif mène à un espace réel de la plateforme. */
 const GOALS: { id: Goal; title: string; icon: LucideIcon }[] = [
-  { id: 'learn', title: 'Apprendre à coder', icon: GraduationCap },
-  { id: 'job', title: 'Trouver un emploi ou des missions', icon: Briefcase },
   { id: 'get-help', title: 'Me faire aider quand je bloque', icon: LifeBuoy },
   { id: 'help', title: 'Aider d’autres devs', icon: HandHelping },
-  { id: 'project', title: 'Rejoindre ou lancer un projet', icon: Rocket },
-  { id: 'build-ai', title: 'Créer une app avec l’IA', icon: Wand2 },
-  { id: 'news', title: 'Suivre l’actu tech', icon: Newspaper },
+  { id: 'job', title: 'Trouver un emploi ou des missions', icon: Briefcase },
+  { id: 'certify', title: 'Prouver mes compétences', icon: Award },
+  { id: 'project', title: 'Montrer ou lancer un projet', icon: Rocket },
+  { id: 'ship', title: 'Mettre en ligne une app qui tient', icon: PlaneTakeoff },
+  { id: 'news', title: 'Suivre l’actu tech et IA', icon: Newspaper },
 ];
 
-const DOMAINS: { id: Domain; title: string; icon: LucideIcon; path: string; community: string }[] =
-  [
-    { id: 'web', title: 'Web', icon: Code2, path: 'dev-web', community: 'web' },
-    {
-      id: 'mobile',
-      title: 'Mobile',
-      icon: Smartphone,
-      path: 'mobile-flutter',
-      community: 'mobile',
-    },
-    {
-      id: 'backend',
-      title: 'Back-end et API',
-      icon: Server,
-      path: 'backend-node',
-      community: 'backend',
-    },
-    { id: 'data', title: 'Data', icon: Database, path: 'data-ia', community: 'data' },
-    {
-      id: 'cloud',
-      title: 'Cloud et DevOps',
-      icon: Cloud,
-      path: 'cloud-devops',
-      community: 'devops',
-    },
-    { id: 'ai', title: 'IA et agents', icon: Sparkles, path: 'dev-ia', community: 'ia' },
-  ];
+/** Icônes des centres d'intérêt du fil (mêmes identifiants que les filtres de l'accueil). */
+const INTEREST_ICON: Record<string, LucideIcon> = {
+  sparkles: Sparkles,
+  globe: Globe,
+  smartphone: Smartphone,
+  server: Server,
+  container: Container,
+  'git-fork': GitFork,
+  briefcase: Briefcase,
+  wallet: Wallet,
+  database: Database,
+  rocket: Rocket,
+};
 
-const RHYTHMS = [
-  { min: 5, title: 'Tranquille', text: '5 min par jour' },
-  { min: 10, title: 'Régulier', text: '10 min par jour' },
-  { min: 20, title: 'Sérieux', text: '20 min par jour' },
-  { min: 30, title: 'Intensif', text: '30 min par jour' },
-];
-
-type StepId = 'level' | 'goals' | 'course' | 'domains' | 'rhythm' | 'help' | 'where' | 'plan';
+type StepId = 'level' | 'goals' | 'course' | 'interests' | 'help' | 'where' | 'plan';
 
 const STEP_COPY: Record<StepId, { q: string; hint: string; pose: DjeliPose }> = {
   level: {
     q: 'Où en es-tu avec le code ?',
-    hint: 'Pas de mauvaise réponse : on adapte tout le reste.',
+    hint: 'Pas de mauvaise réponse : DevHub s’adapte à toi.',
     pose: 'wave',
   },
   goals: {
@@ -131,19 +104,14 @@ const STEP_COPY: Record<StepId, { q: string; hint: string; pose: DjeliPose }> = 
     pose: 'point',
   },
   course: {
-    q: 'Qu’est-ce que tu veux apprendre ?',
-    hint: 'Choisis un cours : des leçons de quelques minutes, des exercices corrigés tout de suite.',
+    q: 'Par quoi veux-tu commencer ?',
+    hint: 'Chaque cours prépare une certification DevHub : leçons courtes, exercices corrigés tout de suite.',
     pose: 'book',
   },
-  domains: {
-    q: 'Qu’est-ce qui t’attire ?',
-    hint: 'On s’en sert pour tes parcours, tes communautés et ton fil.',
+  interests: {
+    q: 'Qu’est-ce qui t’intéresse ?',
+    hint: 'Ton fil d’actualité et les questions d’entraide suivent ces sujets. Tu peux les changer depuis l’accueil.',
     pose: 'laptop',
-  },
-  rhythm: {
-    q: 'À quel rythme ?',
-    hint: 'Ton objectif du jour. Tu pourras le changer quand tu veux.',
-    pose: 'streak',
   },
   help: {
     q: 'Comment veux-tu aider ?',
@@ -152,25 +120,23 @@ const STEP_COPY: Record<StepId, { q: string; hint: string; pose: DjeliPose }> = 
   },
   where: {
     q: 'D’où codes-tu ?',
-    hint: 'Pour te présenter des devs et des offres proches de toi.',
+    hint: 'Pour te présenter des devs et des offres proches de toi, partout en Afrique.',
     pose: 'wave',
   },
   plan: {
-    q: 'Voici ton plan.',
-    hint: 'Dernière étape : les règles de la communauté.',
+    q: 'Bienvenue dans la communauté.',
+    hint: 'Voici ce qui t’attend. Dernière étape : les règles.',
     pose: 'celebrate',
   },
 };
 
 /**
- * Les étapes suivent le niveau : un débutant choisit un cours et un rythme ; un dev confirmé
- * n'apprend pas ici, il dit seulement comment il veut aider.
+ * Les étapes suivent le niveau : un débutant choisit un cours ; un dev qui a déjà des projets
+ * renseigne ses compétences et dit comment il veut aider.
  */
 function flowFor(level: Level | null): StepId[] {
-  if (level === 'curious' || level === 'beginner')
-    return ['level', 'goals', 'course', 'rhythm', 'where', 'plan'];
-  if (level === 'senior') return ['level', 'goals', 'domains', 'help', 'where', 'plan'];
-  return ['level', 'goals', 'domains', 'rhythm', 'where', 'plan'];
+  if (level === 'beginner') return ['level', 'goals', 'course', 'interests', 'where', 'plan'];
+  return ['level', 'goals', 'interests', 'help', 'where', 'plan'];
 }
 
 const browserTz = () => {
@@ -195,11 +161,10 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [level, setLevel] = useState<Level | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [domains, setDomains] = useState<Domain[]>([]);
+  const [interests, setInterests] = useState<string[]>([]);
   const [skillIds, setSkillIds] = useState<string[]>([]);
   const [filter, setFilter] = useState('');
   const [course, setCourse] = useState<string | null>(null);
-  const [rhythm, setRhythm] = useState(10);
   const [avail, setAvail] = useState<AvailabilityStatus>(me.availability.status);
   const [mission, setMission] = useState(me.availability.forMission);
   const [country, setCountry] = useState(me.country);
@@ -219,61 +184,42 @@ export default function Onboarding() {
   }
 
   const experienced = level === 'junior' || level === 'senior';
-  const learner = level === 'curious' || level === 'beginner';
   const flow = flowFor(level);
   const id = flow[step]!;
   const canNext: boolean = {
     level: !!level,
     goals: goals.length > 0,
     course: !!course,
-    domains: domains.length > 0 && (!experienced || skillIds.length >= 3),
-    rhythm: true,
+    interests: interests.length > 0 && (!experienced || skillIds.length >= 3),
     help: true,
     where: !!country && languages.length > 0,
     plan: accepted,
   }[id];
-  // Un dev confirmé n'apprend pas ici : l'objectif « Apprendre à coder » ne lui est pas proposé.
-  const goalChoices = level === 'senior' ? GOALS.filter((g) => g.id !== 'learn') : GOALS;
   const chosenCourse = courseMeta(course);
 
-  // Le plan découle des choix : parcours, communautés, première page.
-  const plan = useMemo(() => {
-    const picked = DOMAINS.filter((d) =>
-      learner ? d.id === chosenCourse?.domain : domains.includes(d.id),
-    );
-    const paths =
-      level === 'senior' || learner ? [] : [...new Set(picked.map((d) => d.path))].slice(0, 2);
-    const communities = [
-      ...new Set([
-        ...picked.map((d) => d.community),
-        ...(goals.includes('job') ? ['carriere'] : []),
-        ...(goals.includes('project') ? ['showcase', 'opensource'] : []),
-      ]),
-    ];
-    // « Apprendre » a été fondu dans les certifications (05/11) : la fiche de la certification
-    // liée au cours montre son programme et ses leçons.
-    const first = learner
-      ? chosenCourse?.certId
-        ? `/certifications/${chosenCourse.certId}`
-        : '/certifications'
-      : paths.length && goals.includes('learn')
-        ? '/certifications'
-        : goals.includes('job')
-          ? '/emplois'
-          : goals.includes('help')
-            ? '/?f=questions'
-            : '/';
-    return { paths, communities, first };
-  }, [domains, goals, level, learner, chosenCourse]);
+  // Première page après l'onboarding : l'espace qui répond au premier objectif choisi.
+  const first = useMemo(() => {
+    if (level === 'beginner' && chosenCourse?.certId)
+      return `/certifications/${chosenCourse.certId}`;
+    const byGoal: Record<Goal, string> = {
+      'get-help': '/?f=questions',
+      help: '/?f=questions',
+      job: '/emplois',
+      certify: '/certifications',
+      project: '/projets',
+      ship: '/prevol',
+      news: '/',
+    };
+    const g = GOALS.find((x) => goals.includes(x.id));
+    return g ? byGoal[g.id] : '/';
+  }, [chosenCourse, goals, level]);
 
   const intent: NonNullable<User['intent']> =
     goals.includes('help') && experienced
       ? 'help'
-      : goals.includes('build-ai')
+      : goals.includes('project') || goals.includes('ship')
         ? 'start-project'
-        : goals.includes('project')
-          ? 'find-project'
-          : 'get-help';
+        : 'get-help';
 
   const finish = async () => {
     setBusy(true);
@@ -281,7 +227,7 @@ export default function Onboarding() {
       const slugs = skillIds
         .map((id) => tags.find((x) => x.id === id)?.slug)
         .filter(Boolean) as string[];
-      if (slugs.length) await api.setMySkills(slugs);
+      if (experienced && slugs.length) await api.setMySkills(slugs);
       const profile = {
         country,
         city,
@@ -291,7 +237,7 @@ export default function Onboarding() {
         canHelpWith: experienced ? skillIds.slice(0, 6) : [],
         wantsToLearn: [],
         lookingFor: [
-          ...(goals.includes('get-help') || goals.includes('learn') ? ['help' as const] : []),
+          ...(goals.includes('get-help') ? ['help' as const] : []),
           ...(goals.includes('help') ? ['helping' as const] : []),
           ...(goals.includes('project') ? ['project' as const] : []),
           ...(goals.includes('job') ? ['team' as const] : []),
@@ -306,15 +252,10 @@ export default function Onboarding() {
         ...profile,
         codeOfConductAcceptedAt: new Date().toISOString(),
       });
-      applyOnboarding({
-        enroll: plan.paths,
-        join: plan.communities,
-        dailyGoal: rhythm,
-        course: learner ? course : null,
-      });
+      applyOnboarding({ interests, course: level === 'beginner' ? course : null });
       setUser(u);
       invalidate('');
-      nav(plan.first, { replace: true });
+      nav(first, { replace: true });
     } catch (e) {
       toast.error(errorText(t, e));
       setBusy(false);
@@ -329,7 +270,7 @@ export default function Onboarding() {
     <div className="flex min-h-dvh flex-col bg-canvas">
       <header className="mx-auto flex h-16 w-full max-w-[760px] items-center gap-4 px-5">
         <BrandLogo size={30} />
-        {/* Barre de progression façon Duolingo */}
+        {/* Barre de progression */}
         <div
           className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2"
           role="progressbar"
@@ -374,7 +315,7 @@ export default function Onboarding() {
                     on={level === l.id}
                     onClick={() => {
                       setLevel(l.id);
-                      if (l.id === 'senior') setGoals((g) => g.filter((x) => x !== 'learn'));
+                      setStep(0);
                     }}
                     className="items-center gap-4 p-4"
                   >
@@ -390,7 +331,7 @@ export default function Onboarding() {
 
             {id === 'goals' && (
               <div className="grid gap-2.5 sm:grid-cols-2">
-                {goalChoices.map((g) => (
+                {GOALS.map((g) => (
                   <Choice
                     key={g.id}
                     on={goals.includes(g.id)}
@@ -431,28 +372,32 @@ export default function Onboarding() {
               </div>
             )}
 
-            {id === 'domains' && (
+            {id === 'interests' && (
               <>
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                  {DOMAINS.map((d) => (
-                    <Choice
-                      key={d.id}
-                      on={domains.includes(d.id)}
-                      onClick={() => setDomains(toggle(domains, d.id))}
-                      className="flex-col items-start gap-3 p-4"
-                      check
-                    >
-                      <d.icon className="size-6 text-accent-text" />
-                      <span className="text-[15px] font-semibold text-fg">{d.title}</span>
-                    </Choice>
-                  ))}
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {COMMUNITIES.map((c) => {
+                    const Icon = INTEREST_ICON[c.icon] ?? Sparkles;
+                    return (
+                      <Choice
+                        key={c.slug}
+                        on={interests.includes(c.slug)}
+                        onClick={() => setInterests(toggle(interests, c.slug))}
+                        className="items-center gap-3 px-4 py-3.5"
+                        check="center"
+                      >
+                        <Icon className="size-5 shrink-0" style={{ color: c.color }} />
+                        <span className="text-[15px] font-medium text-fg">{c.name}</span>
+                      </Choice>
+                    );
+                  })}
                 </div>
                 {experienced && (
                   <div className="flex flex-col gap-3">
                     <div>
                       <h2 className="text-[16px] font-semibold text-fg">Tes compétences</h2>
                       <p className="text-[13.5px] text-muted">
-                        Au moins 3. Elles servent à te proposer les questions que tu sais résoudre.
+                        Au moins 3. Elles s’affichent sur ton profil et servent à te proposer les
+                        questions que tu sais résoudre.
                       </p>
                     </div>
                     <div className="relative">
@@ -461,6 +406,7 @@ export default function Onboarding() {
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                         placeholder="Chercher une techno"
+                        aria-label="Chercher une techno"
                         className="pl-10"
                       />
                     </div>
@@ -479,69 +425,44 @@ export default function Onboarding() {
               </>
             )}
 
-            {(id === 'rhythm' || id === 'help') && (
-              <>
-                {id === 'rhythm' && (
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                    {RHYTHMS.map((r) => (
-                      <Choice
-                        key={r.min}
-                        on={rhythm === r.min}
-                        onClick={() => setRhythm(r.min)}
-                        className="flex-col items-start gap-1 p-4"
-                      >
-                        <span className="font-display text-[28px] leading-none font-bold text-fg tabular-nums">
-                          {r.min}
-                        </span>
-                        <span className="text-[14px] font-semibold text-fg">{r.title}</span>
-                        <span className="text-[12.5px] text-muted">{r.text}</span>
-                      </Choice>
-                    ))}
-                  </div>
-                )}
-                {experienced && (
-                  <div className="flex flex-col gap-3">
-                    {id === 'rhythm' && (
-                      <h2 className="text-[16px] font-semibold text-fg">Pour aider les autres</h2>
-                    )}
-                    <div className="grid gap-2.5 sm:grid-cols-3">
-                      {(
-                        [
-                          ['now', 'Disponible maintenant', 'bg-success'],
-                          ['today', 'Dans la journée', 'bg-warning'],
-                          ['busy', 'Pas en ce moment', 'bg-subtle'],
-                        ] as [AvailabilityStatus, string, string][]
-                      ).map(([a, label, dot]) => (
-                        <Choice
-                          key={a}
-                          on={avail === a}
-                          onClick={() => setAvail(a)}
-                          className="items-center gap-2.5 px-4 py-3.5"
-                        >
-                          <span className={cn('size-2.5 rounded-full', dot)} />
-                          <span className="text-[14.5px] font-medium text-fg">{label}</span>
-                        </Choice>
-                      ))}
-                    </div>
-                    <label className="flex cursor-pointer items-start gap-3 rounded-[16px] border border-line-strong p-4">
-                      <input
-                        type="checkbox"
-                        checked={mission}
-                        onChange={(e) => setMission(e.target.checked)}
-                        className="mt-1 size-4 accent-[var(--accent)]"
-                      />
-                      <span>
-                        <span className="block font-medium text-fg">
-                          Ouvert aux missions rémunérées
-                        </span>
-                        <span className="block text-[13.5px] text-muted">
-                          Les entreprises pourront te contacter depuis ton Passport.
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-                )}
-              </>
+            {id === 'help' && (
+              <div className="flex flex-col gap-3">
+                <div className="grid gap-2.5 sm:grid-cols-3">
+                  {(
+                    [
+                      ['now', 'Disponible maintenant', 'bg-success'],
+                      ['today', 'Dans la journée', 'bg-warning'],
+                      ['busy', 'Pas en ce moment', 'bg-subtle'],
+                    ] as [AvailabilityStatus, string, string][]
+                  ).map(([a, label, dot]) => (
+                    <Choice
+                      key={a}
+                      on={avail === a}
+                      onClick={() => setAvail(a)}
+                      className="items-center gap-2.5 px-4 py-3.5"
+                    >
+                      <span className={cn('size-2.5 rounded-full', dot)} />
+                      <span className="text-[14.5px] font-medium text-fg">{label}</span>
+                    </Choice>
+                  ))}
+                </div>
+                <label className="flex cursor-pointer items-start gap-3 rounded-[16px] border border-line-strong p-4">
+                  <input
+                    type="checkbox"
+                    checked={mission}
+                    onChange={(e) => setMission(e.target.checked)}
+                    className="mt-1 size-4 accent-[var(--accent)]"
+                  />
+                  <span>
+                    <span className="block font-medium text-fg">
+                      Ouvert aux missions rémunérées
+                    </span>
+                    <span className="block text-[13.5px] text-muted">
+                      Les entreprises et les autres devs pourront te contacter depuis ton profil.
+                    </span>
+                  </span>
+                </label>
+              </div>
             )}
 
             {id === 'where' && (
@@ -604,52 +525,60 @@ export default function Onboarding() {
             {id === 'plan' && (
               <>
                 <ol className="flex flex-col divide-y divide-line overflow-hidden rounded-[18px] border border-line-strong">
-                  {learner && chosenCourse && (
+                  {level === 'beginner' && chosenCourse && (
                     <PlanRow
                       icon={chosenCourse.icon}
                       title={`Cours « ${chosenCourse.title} »`}
-                      text={`Des leçons de quelques minutes, objectif ${rhythm} min par jour. Ta première leçon t’attend.`}
+                      text="Des leçons de quelques minutes, puis l’examen de la certification DevHub qu’un recruteur peut vérifier."
                     />
                   )}
-                  {plan.paths.map((id) => {
-                    const p = PATHS.find((x) => x.id === id)!;
-                    return (
-                      <PlanRow
-                        key={id}
-                        icon={GraduationCap}
-                        title={p.title}
-                        text={`Parcours suivi · ${p.hours} h au total, ${rhythm} min par jour`}
-                      />
-                    );
-                  })}
-                  {plan.communities.length > 0 && (
+                  <PlanRow
+                    icon={Newspaper}
+                    title="Ton fil d’actualité"
+                    text={`L’actu et les publications des devs sur : ${interests
+                      .map((c) => COMMUNITIES.find((x) => x.slug === c)?.name ?? c)
+                      .join(', ')}.`}
+                  />
+                  {(goals.includes('get-help') || level === 'beginner') && (
                     <PlanRow
-                      icon={Compass}
-                      title={`${plan.communities.length} communauté${plan.communities.length > 1 ? 's' : ''} rejointe${plan.communities.length > 1 ? 's' : ''}`}
-                      text={plan.communities
-                        .map((c) => COMMUNITIES.find((x) => x.slug === c)?.name ?? c)
-                        .join(', ')}
+                      icon={LifeBuoy}
+                      title="De l’aide quand tu bloques"
+                      text="« Je suis bloqué » : une piste tout de suite, puis des devs qui ont déjà résolu ce problème."
                     />
                   )}
                   {experienced && goals.includes('help') && (
                     <PlanRow
                       icon={HandHelping}
                       title="Les questions que tu sais résoudre"
-                      text="Elles arrivent dans ton onglet « Pour moi » de l’entraide."
+                      text="Chaque réponse validée te rapporte des Proof XP, visibles sur ton profil."
                     />
                   )}
                   {goals.includes('job') && (
                     <PlanRow
                       icon={Briefcase}
                       title="Des offres qui te correspondent"
-                      text="Classées selon tes compétences prouvées."
+                      text="Tu postules avec ton profil : compétences prouvées, projets et certifications."
                     />
                   )}
-                  {goals.includes('build-ai') && (
+                  {goals.includes('certify') && level !== 'beginner' && (
                     <PlanRow
-                      icon={Wand2}
-                      title="Le guide « Créer avec l’IA »"
-                      text="Étapes adaptées à ce que tu veux construire."
+                      icon={Award}
+                      title="Des certifications vérifiables"
+                      text="Examens corrigés par le serveur et code public que tout recruteur peut vérifier."
+                    />
+                  )}
+                  {goals.includes('project') && (
+                    <PlanRow
+                      icon={Rocket}
+                      title="Ton projet, avec d’autres devs"
+                      text="Une salle de projet reliée à GitHub pour présenter ton travail et trouver du renfort."
+                    />
+                  )}
+                  {goals.includes('ship') && (
+                    <PlanRow
+                      icon={PlaneTakeoff}
+                      title="Pré-vol et banc d’essai"
+                      text="Une vérification complète avant la mise en ligne, puis des tests sur de vrais téléphones."
                     />
                   )}
                 </ol>

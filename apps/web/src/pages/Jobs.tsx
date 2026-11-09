@@ -83,6 +83,8 @@ export default function Jobs() {
   }, [jobs, q, active, saved]);
 
   const selected = (jobs ?? []).find((j) => j.id === id) ?? (wide ? list[0] : undefined);
+  // Lien vers une offre retirée ou expirée : on le dit au lieu d'afficher une autre offre sans prévenir.
+  const gone = !!id && !!jobs && !jobs.some((j) => j.id === id);
 
   const toggleFilter = (f: Filter) => {
     const next = active.includes(f) ? active.filter((x) => x !== f) : [...active, f];
@@ -119,6 +121,12 @@ export default function Jobs() {
         title="Emplois"
         subtitle="Des offres réelles : publiées par des entreprises vérifiées par DevHub, sélectionnées par l’équipe, ou collectées en direct chez les entreprises qui recrutent en Afrique et à distance."
       >
+        {gone && (
+          <p role="status" className="rounded-[12px] bg-warning-soft px-4 py-3 text-[14px] text-fg">
+            Cette offre n’est plus en ligne : elle a été pourvue ou retirée. Voici les offres du
+            moment.
+          </p>
+        )}
         <form
           onSubmit={(e) => e.preventDefault()}
           className="flex h-12 items-center gap-2.5 rounded-full border border-line-strong bg-canvas px-4"

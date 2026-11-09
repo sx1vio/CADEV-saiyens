@@ -225,14 +225,15 @@ export default function Landing() {
       <section className="mx-auto max-w-[1180px] px-4 pt-14 text-center sm:px-6 sm:pt-20">
         <p className="lg-clear mx-auto inline-flex h-9 items-center gap-2 rounded-full px-4 text-[14px] font-medium text-fg">
           <SealCheck weight="fill" className="size-4 text-accent-text" />
-          Le réseau des développeurs africains
+          Par les devs, pour les devs
         </p>
         <h1 className="mx-auto mt-6 max-w-[920px] text-[42px] leading-[1.02] font-bold tracking-[-0.035em] text-fg sm:text-[68px]">
-          Le réseau pro des devs qui livrent.
+          La plateforme d’échange des devs africains.
         </h1>
         <p className="mx-auto mt-5 max-w-[680px] text-[17px] leading-relaxed text-fg/80 sm:text-[19px]">
-          L’actu tech, l’entraide et les emplois au même endroit, des certifications qu’un recruteur
-          peut vérifier, et les outils pour lancer une app qui tient : pré-vol et banc d’essai.
+          On s’entraide quand on bloque, on partage l’actu, ses projets et les offres d’emploi, et
+          on prouve ce qu’on sait faire : certifications vérifiables, pré-vol et banc d’essai pour
+          livrer des apps qui tiennent.
         </p>
         <div className="mt-8 flex flex-col items-center gap-4">
           <SignUpInline id="hero-email" />

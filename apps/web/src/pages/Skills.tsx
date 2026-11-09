@@ -199,7 +199,7 @@ export default function Skills() {
             {list.length} résultat{list.length > 1 ? 's' : ''}
             {saved.length > 0 && ` · ${saved.length} enregistré${saved.length > 1 ? 's' : ''}`}
           </p>
-          <ul className="mt-2 grid gap-3 lg:grid-cols-2">
+          <ul className="mt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
             {list.map((s) => (
               <li key={s.id}>
                 <SkillCard skill={s} />

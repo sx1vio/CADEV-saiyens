@@ -56,8 +56,8 @@ const en: Dict = {
     shortcut: 'Shortcut',
   },
   nav: {
-    home: 'HQ',
-    sos: 'SOS Dev',
+    home: 'Home',
+    sos: 'Entraide',
     projects: 'Projects',
     discover: 'Discover',
     passport: 'Profile',
@@ -215,7 +215,7 @@ const en: Dict = {
     pillarsTitle: 'Three moves, one developer identity',
     help: 'Help',
     helpText:
-      'SOS Dev: describe your error, get an AI hint, then help from 3 devs picked for their real experience of the problem.',
+      'Help: describe your error, get an AI hint, then help from 3 devs picked for their real experience of the problem.',
     build: 'Build',
     buildText:
       'Project rooms linked to GitHub: post tasks, welcome contributors, move forward together.',
@@ -348,7 +348,7 @@ const en: Dict = {
     skillsMin: 'Pick at least 3 technologies.',
     skillsSearch: 'Filter technologies…',
     intentTitle: "You're mostly here to…",
-    intentText: 'Your HQ is organised around your answer. You can change your mind.',
+    intentText: 'Your home is organised around your answer. You can change your mind.',
     intent: {
       'get-help': 'Get help',
       help: 'Help others',
@@ -381,7 +381,7 @@ const en: Dict = {
     conduct4:
       'Never post a secret (key, password, token): we mask them automatically, but double-check.',
     accept: 'I accept the code of conduct',
-    finish: 'Enter my HQ',
+    finish: 'Enter DevHub',
   },
   tour: {
     title: 'Guided tour',
@@ -395,7 +395,7 @@ const en: Dict = {
       "Where I come from, the djeli keeps knowledge and passes it on. Here, I'll show you how we help each other. 60 seconds, promise.",
     s1Title: 'Your feed',
     s1Text:
-      'AI and tech news, projects and discussions from your communities. Every service is in the menu: jobs, certifications, AI skills, videos, learning.',
+      'AI and tech news, help requests and projects from devs, based on your interests. Every service is in the menu: jobs, certifications, AI tools, pre-flight and test bench.',
     s2Title: 'Stuck? One button',
     s2Text:
       'Describe your error: a hint arrives right away, then 3 devs who already solved a similar problem.',
@@ -414,7 +414,7 @@ const en: Dict = {
     evening: 'Good evening, {{name}}',
   },
   home: {
-    title: 'Your HQ',
+    title: 'Your home',
     subtitle: "Here's what's waiting for you today.",
     composer: 'Stuck on a bug? Describe your error…',
     heroTitle: 'Stuck on a bug?',
@@ -446,7 +446,7 @@ const en: Dict = {
     nextLevel: 'Next level: {{level}} in {{tag}}',
   },
   sos: {
-    title: 'SOS Dev',
+    title: 'Entraide',
     subtitle: 'Ask your question, get a hint, then help from a peer.',
     tabs: {
       'for-me': 'For me',
@@ -771,9 +771,9 @@ const en: Dict = {
     standupNext: 'Next',
     standupBlocked: 'Blocked on',
     standupBlockedHint:
-      "If you're blocked, we create an SOS Dev question linked to the room, with the stack already filled in.",
+      "If you're blocked, we create a help question linked to the room, with the stack already filled in.",
     standupPost: 'Post check-in',
-    askFromStandup: 'Create the SOS question',
+    askFromStandup: 'Ask for help',
     feedback: 'Ask for feedback',
     review: 'Ask for a code review',
     feedbackSent: 'Request posted in the stack feed.',
@@ -924,7 +924,7 @@ const en: Dict = {
   systalinkHelp: {
     title: 'Systalink help',
     subtitle:
-      'Hosting, deploying, configuring at Systalink: the community answers, and accepted answers become the FAQ. A good answer earns Proof XP, as in SOS Dev.',
+      'Hosting, deploying, configuring at Systalink: the community answers, and accepted answers become the FAQ. A good answer earns Proof XP, as in Help.',
     ask: 'Ask a question about Systalink',
     docs: 'Systalink documentation',
     faq: 'Accepted answers',
@@ -1231,7 +1231,7 @@ const en: Dict = {
   notFound: {
     title: 'Page not found',
     text: "Djeli looked everywhere. This page doesn't exist (anymore).",
-    home: 'Back to HQ',
+    home: 'Back home',
   },
   time: { justNow: 'just now' },
 };

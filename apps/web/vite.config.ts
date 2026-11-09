@@ -30,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
           name: 'DevHub Africa',
           short_name: 'DevHub',
           description:
-            "La plateforme des développeurs basée sur la preuve : aider, construire, prouver. Hors ligne d'abord.",
+            "La plateforme d'échange des développeurs africains, par les devs, pour les devs. Même hors ligne.",
           lang: 'fr',
           start_url: '/',
           display: 'standalone',
