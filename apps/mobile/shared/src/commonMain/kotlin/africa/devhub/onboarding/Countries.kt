@@ -84,3 +84,23 @@ private fun String.fold(): String =
             else -> it
         }
     }.joinToString("")
+
+/** Fuseau d'un pays d'Afrique (le plus peuplé quand il y en a plusieurs) ; null si inconnu. */
+fun timezoneOf(code: String?): String? = TIMEZONES[code]
+
+private val TIMEZONES = mapOf(
+    "DZ" to "Africa/Algiers", "AO" to "Africa/Luanda", "BJ" to "Africa/Porto-Novo", "BW" to "Africa/Gaborone",
+    "BF" to "Africa/Ouagadougou", "BI" to "Africa/Bujumbura", "CM" to "Africa/Douala", "CV" to "Atlantic/Cape_Verde",
+    "CF" to "Africa/Bangui", "TD" to "Africa/Ndjamena", "KM" to "Indian/Comoro", "CG" to "Africa/Brazzaville",
+    "CD" to "Africa/Kinshasa", "CI" to "Africa/Abidjan", "DJ" to "Africa/Djibouti", "EG" to "Africa/Cairo",
+    "GQ" to "Africa/Malabo", "ER" to "Africa/Asmara", "SZ" to "Africa/Mbabane", "ET" to "Africa/Addis_Ababa",
+    "GA" to "Africa/Libreville", "GM" to "Africa/Banjul", "GH" to "Africa/Accra", "GN" to "Africa/Conakry",
+    "GW" to "Africa/Bissau", "KE" to "Africa/Nairobi", "LS" to "Africa/Maseru", "LR" to "Africa/Monrovia",
+    "LY" to "Africa/Tripoli", "MG" to "Indian/Antananarivo", "MW" to "Africa/Blantyre", "ML" to "Africa/Bamako",
+    "MR" to "Africa/Nouakchott", "MU" to "Indian/Mauritius", "MA" to "Africa/Casablanca", "MZ" to "Africa/Maputo",
+    "NA" to "Africa/Windhoek", "NE" to "Africa/Niamey", "NG" to "Africa/Lagos", "RW" to "Africa/Kigali",
+    "ST" to "Africa/Sao_Tome", "SN" to "Africa/Dakar", "SC" to "Indian/Mahe", "SL" to "Africa/Freetown",
+    "SO" to "Africa/Mogadishu", "ZA" to "Africa/Johannesburg", "SS" to "Africa/Juba", "SD" to "Africa/Khartoum",
+    "TZ" to "Africa/Dar_es_Salaam", "TG" to "Africa/Lome", "TN" to "Africa/Tunis", "UG" to "Africa/Kampala",
+    "ZM" to "Africa/Lusaka", "ZW" to "Africa/Harare",
+)

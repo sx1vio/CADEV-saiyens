@@ -72,3 +72,18 @@ data class Trust(
 /** POST /api/v1/me/code-of-conduct. */
 @Serializable
 data class CodeOfConductResponse(val codeOfConductAcceptedAt: String)
+
+/** PR4 : disponibilité envoyée à l'accueil (« maintenant » et « pour une mission »). */
+@Serializable
+data class OnboardingAvailability(val now: Boolean, val mission: Boolean)
+
+/**
+ * Seconde requête de l'accueil, partielle : seuls les champs présents changent (les null ne sont pas
+ * envoyés), au contraire de [UpdateMeRequest] qui envoie tous les réglages.
+ */
+@Serializable
+data class OnboardingExtras(
+    val timezone: String? = null,
+    val canHelpTagSlugs: List<String>? = null,
+    val availability: OnboardingAvailability? = null,
+)

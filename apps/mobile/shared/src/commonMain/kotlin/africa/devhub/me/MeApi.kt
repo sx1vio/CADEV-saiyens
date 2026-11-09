@@ -33,6 +33,16 @@ class MeApi(private val http: HttpClient) {
             }
         }
 
+    /** Accueil : fuseau, compétences et disponibilité, en une requête partielle. */
+    suspend fun updateOnboardingExtras(extras: OnboardingExtras, key: String = newUuid()): Me =
+        apiCall {
+            http.patch("api/v1/me") {
+                header("Idempotency-Key", key)
+                contentType(ContentType.Application.Json)
+                setBody(extras)
+            }
+        }
+
     /** A3 : suppression du compte (anonymisation), après avoir retapé son pseudo. */
     suspend fun delete(confirmHandle: String) =
         apiCallUnit {

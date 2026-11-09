@@ -8,7 +8,10 @@ import africa.devhub.me.MeApi
 import africa.devhub.me.AvailabilityUpdate
 import africa.devhub.me.UpdateMeRequest
 import africa.devhub.network.ApiException
+import africa.devhub.me.OnboardingAvailability
+import africa.devhub.me.OnboardingExtras
 import africa.devhub.onboarding.OnboardingProfile
+import kotlinx.serialization.builtins.serializer
 import africa.devhub.onboarding.StartTarget
 import africa.devhub.offline.CacheKey
 import africa.devhub.offline.ReadCache
@@ -135,8 +138,19 @@ class AppViewModel(
                         privacy = me.privacy,
                     ),
                 )
+                val extras = OnboardingExtras(
+                    timezone = profile.timezone,
+                    canHelpTagSlugs = profile.skillSlugs.takeIf { it.isNotEmpty() },
+                    availability = profile.availableNow?.let { OnboardingAvailability(it, profile.mission) },
+                )
+                val withExtras = if (extras.timezone != null || extras.canHelpTagSlugs != null || extras.availability != null) {
+                    meApi.updateOnboardingExtras(extras)
+                } else {
+                    updated
+                }
+                profile.dailyGoal?.let { deviceCache?.put(CacheKey.dailyGoal(), it, Int.serializer()) }
                 val accepted = meApi.acceptCodeOfConduct()
-                val done = updated.copy(codeOfConductAcceptedAt = accepted.codeOfConductAcceptedAt)
+                val done = withExtras.copy(codeOfConductAcceptedAt = accepted.codeOfConductAcceptedAt)
                 deviceCache?.put(CacheKey.me(), done, Me.serializer())
                 _state.value = AppState.SignedIn(done, profile.start)
             } catch (e: CancellationException) {

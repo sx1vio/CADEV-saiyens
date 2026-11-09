@@ -86,6 +86,7 @@ fun ChoiceCard(
     mascot: DrawableResource? = null,
     icon: ImageVector? = null,
     check: Boolean = false,
+    leading: (@Composable () -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
     Surface(
@@ -101,6 +102,7 @@ fun ChoiceCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            leading?.invoke()
             if (mascot != null) Image(painterResource(mascot), contentDescription = null, modifier = Modifier.size(width = 56.dp, height = 48.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
             if (icon != null) Icon(icon, contentDescription = null, tint = scheme.onSurface, modifier = Modifier.size(20.dp))
             Column(Modifier.weight(1f)) {

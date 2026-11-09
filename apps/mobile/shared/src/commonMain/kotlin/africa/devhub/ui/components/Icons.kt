@@ -12,6 +12,13 @@ import androidx.compose.ui.unit.dp
 // pour tout le produit. Générées depuis lucide-react ; ne pas éditer à la main.
 object DevHubIcons {
     val Rocket: ImageVector = icon("Rocket", "M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5")
+    val Globe: ImageVector = icon("Globe", "M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0zM12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20M2 12h20")
+    val Code: ImageVector = icon("Code", "m18 16 4-4-4-4m-12 0-4 4 4 4m8.5-12-5 16")
+    val Server: ImageVector = icon("Server", "M4 2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 14h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2zM6 6h.01M6 18h.01")
+    val Database: ImageVector = icon("Database", "M3 5a9 3 0 1 0 18 0a9 3 0 1 0 -18 0zM3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0")
+    val Cloud: ImageVector = icon("Cloud", "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z")
+    val Terminal: ImageVector = icon("Terminal", "M12 19h8m-16-2 6-6-6-6")
+    val GitBranch: ImageVector = icon("GitBranch", "M6 3v12M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM3 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM18 9a9 9 0 0 1-9 9")
     val Smartphone: ImageVector = icon("Smartphone", "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01")
     val Map: ImageVector = icon("Map", "M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0zM15 5.764v15M9 3.236v15")
     val Home: ImageVector = icon("Home", "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z")

@@ -54,7 +54,7 @@ fun DevHubApp(graph: AppGraph) {
                     onRegisterWithEmail = viewModel::registerWithEmail,
                 )
                 AppState.Unreachable -> UnreachableScreen(viewModel::retry, viewModel::signOut)
-                is AppState.NeedsConduct -> OnboardingScreen(s, viewModel::completeOnboarding, viewModel::signOut)
+                is AppState.NeedsConduct -> OnboardingScreen(s, { graph.sosApi.tags().data }, viewModel::completeOnboarding, viewModel::signOut)
                 is AppState.SignedIn -> SignedInArea(graph, s.me, s.start, viewModel::signOut, viewModel::meUpdated, viewModel::accountDeleted)
             }
         }

@@ -3,6 +3,19 @@ package africa.devhub.ui.discover
 import africa.devhub.discover.DevCard
 import africa.devhub.discover.DevFilters
 import africa.devhub.discover.DevsState
+import africa.devhub.discover.SkillScore
+import africa.devhub.platform.formatUtc
+import africa.devhub.platform.utcOffsetMinutes
+import africa.devhub.ui.components.RemoteImage
+import africa.devhub.ui.devmap.countryName
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import africa.devhub.discover.LeaderboardState
 import africa.devhub.resources.Res
 import africa.devhub.resources.board_back
@@ -149,37 +162,60 @@ private fun LazyListScope.devsTab(
     }
 }
 
+/** Carte du web (`DevCard`) : avatar et disponibilité, nom, lieu et fuseau, XP, trois barres de compétences. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DevCardView(dev: DevCard, onOpen: (String) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val offset = dev.timezone?.let { utcOffsetMinutes(it) }?.let { formatUtc(it) }
+    val place = listOfNotNull(dev.country?.let { countryName(it) }, offset).joinToString(" · ")
     Panel(Modifier.clickable(role = Role.Button, onClick = { onOpen(dev.handle) })) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Initials(dev.displayName, 48.dp)
-                Column(Modifier.weight(1f)) {
-                    Text(dev.displayName, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                    Text(
-                        listOfNotNull("@${dev.handle}", dev.country).joinToString(" · "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Box {
+                    Initials(dev.displayName, 48.dp)
+                    RemoteImage(dev.avatarUrl, width = 160, modifier = Modifier.size(48.dp).clip(CircleShape))
+                    Box(
+                        Modifier.align(Alignment.BottomEnd).size(14.dp)
+                            .background(scheme.surface, CircleShape).padding(2.dp)
+                            .background(if (dev.availableNow) successColor else scheme.outline, CircleShape),
                     )
                 }
-                Text(
-                    stringResource(Res.string.dev_xp, dev.totalXp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(dev.displayName, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        if (dev.isDemo) Badge(stringResource(Res.string.trust_demo), scheme.onSurfaceVariant)
+                    }
+                    if (place.isNotEmpty()) {
+                        Text(place, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(dev.totalXp.toString(), style = MaterialTheme.typography.titleSmall)
+                    Text("XP", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                }
             }
-            dev.lookingFor?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+            if (dev.topSkills.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                dev.topSkills.take(3).forEach { SkillRow(it) }
             }
-            if (dev.availableNow || dev.availableForMission || dev.isDemo || dev.topSkills.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (dev.availableNow || dev.availableForMission) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (dev.availableNow) Badge(stringResource(Res.string.dev_available), successColor)
                 if (dev.availableForMission) Badge(stringResource(Res.string.passport_mission), successColor)
-                if (dev.isDemo) Badge(stringResource(Res.string.trust_demo), MaterialTheme.colorScheme.error)
-                dev.topSkills.take(3).forEach { TechTag("${it.label} ${it.score}") }
             }
         }
+    }
+}
+
+/** Ligne de compétence : nom, barre de score (bleu du web), score. */
+@Composable
+private fun SkillRow(skill: SkillScore) {
+    val scheme = MaterialTheme.colorScheme
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(skill.label, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(104.dp))
+        Box(Modifier.weight(1f).height(6.dp).clip(CircleShape).background(scheme.surfaceVariant)) {
+            Box(Modifier.fillMaxWidth(skill.score.coerceIn(0, 100) / 100f).height(6.dp).background(scheme.primary, CircleShape))
+        }
+        Text(skill.score.toString(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(28.dp), textAlign = TextAlign.End)
     }
 }
 

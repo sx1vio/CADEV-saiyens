@@ -68,6 +68,8 @@ class CacheKey private constructor(name: String, val kept: Boolean) {
 
     companion object {
         fun me() = CacheKey("me", kept = true)
+        /** Objectif du jour choisi à l'accueil (minutes), gardé sur l'appareil. */
+        fun dailyGoal() = CacheKey("daily-goal", kept = true)
         fun passport(handle: String, mine: Boolean) = CacheKey("passport-${handle.lowercase()}", kept = mine)
         fun questions(filter: String) = CacheKey("questions-$filter", kept = true)
         fun question(id: String) = CacheKey("question-$id", kept = false)
