@@ -28,6 +28,9 @@ import africa.devhub.resources.settings_ui_lang
 import africa.devhub.settings.SettingsForm
 import africa.devhub.settings.SettingsState
 import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.components.NavRow
+import africa.devhub.resources.nav_rules
 import africa.devhub.ui.components.ScreenColumn
 import africa.devhub.ui.sos.failureLabel
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +72,7 @@ fun SettingsScreen(
     onEdit: ((SettingsForm) -> SettingsForm) -> Unit,
     onSave: () -> Unit,
     onDelete: (String) -> Unit,
+    onRules: () -> Unit,
 ) {
     val f = state.form
     ScreenColumn {
@@ -129,6 +133,10 @@ fun SettingsScreen(
         SwitchRow(stringResource(Res.string.privacy_country), f.privacy.hideCountry) { v -> onEdit { it.copy(privacy = it.privacy.copy(hideCountry = v)) } }
         SwitchRow(stringResource(Res.string.privacy_availability), f.privacy.hideAvailability) { v -> onEdit { it.copy(privacy = it.privacy.copy(hideAvailability = v)) } }
         SwitchRow(stringResource(Res.string.privacy_stats), f.privacy.hideStats) { v -> onEdit { it.copy(privacy = it.privacy.copy(hideStats = v)) } }
+        }
+
+        DevCard {
+            NavRow(DevHubIcons.Info, stringResource(Res.string.nav_rules), onClick = onRules)
         }
 
         when {

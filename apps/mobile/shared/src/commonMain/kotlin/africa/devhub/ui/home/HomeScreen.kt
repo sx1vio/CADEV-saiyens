@@ -24,6 +24,8 @@ import africa.devhub.resources.home_jobs_detail
 import africa.devhub.resources.home_leaderboard
 import africa.devhub.resources.home_leaderboard_detail
 import africa.devhub.resources.home_menu
+import africa.devhub.resources.messages_title
+import africa.devhub.resources.nav_questions
 import africa.devhub.resources.home_messages
 import africa.devhub.resources.home_messages_detail
 import africa.devhub.resources.home_news
@@ -106,6 +108,8 @@ class HomeLinks(
     val onOpenPost: (String) -> Unit,
     val onMenu: () -> Unit,
     val onAlerts: () -> Unit,
+    val onMessages: () -> Unit,
+    val onQuestions: () -> Unit,
 )
 
 /** Une ligne du fil « Pour toi » : une actualité ou une publication, triées par date. */
@@ -186,6 +190,9 @@ fun HomeScreen(
             Icon(DevHubIcons.Menu, contentDescription = stringResource(Res.string.home_menu))
         }
         BrandLogo(height = 28.dp, modifier = Modifier.weight(1f))
+        IconButton(onClick = links.onMessages) {
+            Icon(DevHubIcons.Chat, contentDescription = stringResource(Res.string.messages_title))
+        }
         IconButton(onClick = links.onAlerts) {
             BadgedBox(badge = { if (unread > 0) Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
                 Icon(DevHubIcons.Bell, contentDescription = stringResource(Res.string.nav_notifications))
@@ -202,9 +209,9 @@ fun HomeScreen(
             item {
                 Column {
                     UnderlineTabs(
-                        labels = listOf(stringResource(Res.string.home_tab_for_you), stringResource(Res.string.home_tab_news)),
+                        labels = listOf(stringResource(Res.string.home_tab_for_you), stringResource(Res.string.home_tab_news), stringResource(Res.string.nav_questions)),
                         selected = tab,
-                        onSelect = { tab = it },
+                        onSelect = { if (it == 2) links.onQuestions() else tab = it },
                         indicator = MaterialTheme.colorScheme.onSurface,
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

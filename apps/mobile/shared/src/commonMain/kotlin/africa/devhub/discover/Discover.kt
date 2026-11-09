@@ -107,4 +107,6 @@ class DiscoverApi(private val http: HttpClient) {
         }
 
     suspend fun rules(): XpRules = apiCall { http.get("api/v1/rules/xp") }
+
+    suspend fun map(): africa.devhub.devmap.DevMap = apiCall { http.get("api/v1/leaderboard/map") }
 }

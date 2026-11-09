@@ -71,6 +71,8 @@ class AppGraph(
     val messagesApi = MessagesApi(http)
     val communityApi = CommunityApi(http)
     val jobsApi = JobsApi(http)
+    val preflightApi = africa.devhub.preflight.PreflightApi(http)
+    val benchApi = africa.devhub.bench.BenchApi(http)
     val certsApi = CertsApi(http)
     val notificationsApi = NotificationsApi(http)
     private val events: EventStream = eventStream ?: SseEventStream(http)

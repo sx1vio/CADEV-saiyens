@@ -91,6 +91,27 @@ import africa.devhub.resources.jobs_title
 import africa.devhub.ui.jobs.ApplicationsScreen
 import africa.devhub.ui.jobs.JobScreen
 import africa.devhub.ui.jobs.JobsScreen
+import africa.devhub.bench.BenchCreateViewModel
+import africa.devhub.bench.BenchDetailViewModel
+import africa.devhub.bench.BenchListViewModel
+import africa.devhub.bench.BenchReportViewModel
+import africa.devhub.devmap.DevMapViewModel
+import africa.devhub.preflight.PreflightReportViewModel
+import africa.devhub.preflight.PreflightViewModel
+import africa.devhub.ui.bench.BenchCreateScreen
+import africa.devhub.ui.bench.BenchDetailScreen
+import africa.devhub.ui.bench.BenchReportScreen
+import africa.devhub.ui.bench.BenchScreen
+import africa.devhub.ui.devmap.DevMapScreen
+import africa.devhub.ui.preflight.PreflightReportScreen
+import africa.devhub.ui.preflight.PreflightScreen
+import africa.devhub.resources.nav_preflight
+import africa.devhub.resources.nav_bench
+import africa.devhub.resources.nav_devmap
+import africa.devhub.resources.drawer_deliver
+import africa.devhub.resources.pf_report
+import africa.devhub.resources.bn_new
+import africa.devhub.resources.bn_r_title
 import africa.devhub.resources.community_title
 import africa.devhub.ui.community.CreatePostScreen
 import africa.devhub.ui.community.FeedScreen
@@ -240,6 +261,27 @@ private data class RoomRoute(val code: String)
 @Serializable
 private data object CreateRoomRoute
 
+@Serializable
+private data object PreflightRoute
+
+@Serializable
+private data class PreflightReportRoute(val id: String)
+
+@Serializable
+private data object BenchRoute
+
+@Serializable
+private data class BenchRequestRoute(val id: String)
+
+@Serializable
+private data object BenchNewRoute
+
+@Serializable
+private data class BenchReportFormRoute(val id: String)
+
+@Serializable
+private data object DevMapRoute
+
 
 /** Espace connecté : barre de navigation en bas, pile d'écrans par onglet. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -296,6 +338,12 @@ fun SignedInArea(
     val onSos = destination?.hasRoute<SosRoute>() == true
     val onRooms = destination?.hasRoute<RoomsRoute>() == true
     val onAlerts = destination?.hasRoute<NotificationsRoute>() == true
+    val onPreflight = destination?.hasRoute<PreflightRoute>() == true
+    val onPreflightReport = destination?.hasRoute<PreflightReportRoute>() == true
+    val onBench = destination?.hasRoute<BenchRoute>() == true || destination?.hasRoute<BenchRequestRoute>() == true
+    val onBenchNew = destination?.hasRoute<BenchNewRoute>() == true
+    val onBenchReport = destination?.hasRoute<BenchReportFormRoute>() == true
+    val onDevMap = destination?.hasRoute<DevMapRoute>() == true
     val onOwnProfile = destination?.hasRoute<PassportRoute>() == true && entry?.toRoute<PassportRoute>()?.handle == me.handle
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
@@ -318,6 +366,12 @@ fun SignedInArea(
         onRooms -> Res.string.nav_projects
         onAlerts -> Res.string.nav_notifications
         onOwnProfile -> Res.string.nav_profile
+        onPreflight -> Res.string.nav_preflight
+        onPreflightReport -> Res.string.pf_report
+        onBench -> Res.string.nav_bench
+        onBenchNew -> Res.string.bn_new
+        onBenchReport -> Res.string.bn_r_title
+        onDevMap -> Res.string.nav_devmap
         else -> null
     }
 
@@ -354,13 +408,10 @@ fun SignedInArea(
         destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk -> "questions"
         onCerts -> "certs"
         onSkills -> "tools"
-        onNews -> "news"
         destination?.hasRoute<PassportRoute>() == true || onProofs -> "profile"
-        onConversations -> "messages"
-        destination?.hasRoute<NotificationsRoute>() == true -> "alerts"
-        onCommunity -> "community"
-        leaderboard -> "leaderboard"
-        onRules -> "rules"
+        onPreflight || onPreflightReport -> "preflight"
+        onBench || onBenchNew || onBenchReport -> "bench"
+        onDevMap -> "devmap"
         else -> null
     }
     val groups = listOf(
@@ -371,7 +422,6 @@ fun SignedInArea(
                 DrawerEntry("jobs", stringResource(Res.string.home_jobs), DevHubIcons.Jobs) { go(JobsRoute) },
                 DrawerEntry("devs", stringResource(Res.string.nav_devs), DevHubIcons.Compass) { go(DiscoverRoute()) },
                 DrawerEntry("projects", stringResource(Res.string.nav_projects), DevHubIcons.Folder) { go(RoomsRoute) },
-                DrawerEntry("questions", stringResource(Res.string.nav_questions), DevHubIcons.Help) { go(SosRoute) },
             ),
         ),
         DrawerGroup(
@@ -379,23 +429,20 @@ fun SignedInArea(
             listOf(
                 DrawerEntry("certs", stringResource(Res.string.certs_title), DevHubIcons.Certification) { go(CertsRoute) },
                 DrawerEntry("tools", stringResource(Res.string.nav_tools), DevHubIcons.Puzzle) { go(SkillsRoute) },
-                DrawerEntry("news", stringResource(Res.string.news_title), DevHubIcons.News) { go(NewsRoute) },
+            ),
+        ),
+        DrawerGroup(
+            stringResource(Res.string.drawer_deliver),
+            listOf(
+                DrawerEntry("preflight", stringResource(Res.string.nav_preflight), DevHubIcons.Rocket) { go(PreflightRoute) },
+                DrawerEntry("bench", stringResource(Res.string.nav_bench), DevHubIcons.Smartphone) { go(BenchRoute) },
             ),
         ),
         DrawerGroup(
             stringResource(Res.string.drawer_network),
             listOf(
                 DrawerEntry("profile", stringResource(Res.string.nav_profile), DevHubIcons.Person) { go(PassportRoute(me.handle)) },
-                DrawerEntry("messages", stringResource(Res.string.messages_title), DevHubIcons.Chat) { go(ConversationsRoute) },
-                DrawerEntry("alerts", stringResource(Res.string.nav_notifications), DevHubIcons.Bell) { go(NotificationsRoute) },
-                DrawerEntry("community", stringResource(Res.string.community_title), DevHubIcons.People) { go(FeedRoute) },
-                DrawerEntry("leaderboard", stringResource(Res.string.nav_leaderboard), DevHubIcons.Trophy) { go(DiscoverRoute(leaderboard = true)) },
-            ),
-        ),
-        DrawerGroup(
-            stringResource(Res.string.drawer_platform),
-            listOf(
-                DrawerEntry("rules", stringResource(Res.string.nav_rules), DevHubIcons.Info) { go(RulesRoute) },
+                DrawerEntry("devmap", stringResource(Res.string.nav_devmap), DevHubIcons.Map) { go(DevMapRoute) },
             ),
         ),
     )
@@ -403,7 +450,7 @@ fun SignedInArea(
     val isRoot = listOf<kotlin.reflect.KClass<*>>(
         JobsRoute::class, DiscoverRoute::class, CertsRoute::class, NewsRoute::class, SkillsRoute::class,
         FeedRoute::class, ConversationsRoute::class, RulesRoute::class, SosRoute::class, RoomsRoute::class,
-        NotificationsRoute::class,
+        NotificationsRoute::class, PreflightRoute::class, BenchRoute::class, DevMapRoute::class,
     ).any { destination?.hasRoute(it) == true } || onOwnProfile
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -432,7 +479,12 @@ fun SignedInArea(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                     actions = {
                         // Les alertes restent à portée de pouce partout, pas seulement sur l'accueil.
-                        if (isRoot && drawerKey != "alerts") {
+                        if (isRoot && !onConversations) {
+                            IconButton(onClick = { navController.navigate(ConversationsRoute) { launchSingleTop = true } }) {
+                                Icon(DevHubIcons.Chat, contentDescription = stringResource(Res.string.messages_title))
+                            }
+                        }
+                        if (isRoot && !onAlerts) {
                             IconButton(onClick = { navController.navigate(NotificationsRoute) { launchSingleTop = true } }) {
                                 BadgedBox(badge = { if (unread > 0) Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
                                     Icon(DevHubIcons.Bell, contentDescription = stringResource(Res.string.nav_notifications))
@@ -483,6 +535,8 @@ fun SignedInArea(
                             onOpenPost = { navController.navigate(PostRoute(it)) },
                             onMenu = { scope.launch { drawerState.open() } },
                             onAlerts = { navController.navigate(NotificationsRoute) },
+                            onMessages = { navController.navigate(ConversationsRoute) },
+                            onQuestions = { navController.navigate(SosRoute) },
                         ),
                         onCommunity = feedVm::setCommunity,
                         onReload = {
@@ -608,10 +662,59 @@ fun SignedInArea(
                     val state by vm.state.collectAsStateWithLifecycle()
                     RulesScreen(state, vm::load)
                 }
+                composable<PreflightRoute> {
+                    val vm = viewModel { PreflightViewModel(graph.preflightApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { vm.reload() }
+                    PreflightScreen(
+                        state = state,
+                        onRun = { url, repo -> vm.run(url, repo) { navController.navigate(PreflightReportRoute(it)) } },
+                        onOpen = { navController.navigate(PreflightReportRoute(it)) },
+                        onRetry = vm::reload,
+                    )
+                }
+                composable<PreflightReportRoute> { backStack ->
+                    val id = backStack.toRoute<PreflightReportRoute>().id
+                    val vm = viewModel { PreflightReportViewModel(graph.preflightApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    PreflightReportScreen(state, vm::load)
+                }
+                composable<BenchRoute> {
+                    val vm = viewModel { BenchListViewModel(graph.benchApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    // Au retour d'une fiche ou d'un formulaire, la liste se relit.
+                    LaunchedEffect(Unit) { vm.reload() }
+                    BenchScreen(state, vm::setScope, onOpen = { navController.navigate(BenchRequestRoute(it)) }, onNew = { navController.navigate(BenchNewRoute) }, onRetry = vm::reload)
+                }
+                composable<BenchRequestRoute> { backStack ->
+                    val id = backStack.toRoute<BenchRequestRoute>().id
+                    val vm = viewModel { BenchDetailViewModel(graph.benchApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { vm.load() }
+                    BenchDetailScreen(state, onReport = { navController.navigate(BenchReportFormRoute(id)) }, onReview = vm::review, onToggle = vm::setOpen, onRetry = vm::load)
+                }
+                composable<BenchNewRoute> {
+                    val vm = viewModel { BenchCreateViewModel(graph.benchApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    BenchCreateScreen(state, vm::edit) {
+                        vm.send { id -> navController.navigate(BenchRequestRoute(id)) { popUpTo<BenchNewRoute> { inclusive = true } } }
+                    }
+                }
+                composable<BenchReportFormRoute> { backStack ->
+                    val id = backStack.toRoute<BenchReportFormRoute>().id
+                    val vm = viewModel { BenchReportViewModel(graph.benchApi, id) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    BenchReportScreen(state, vm::edit) { vm.send { navController.popBackStack() } }
+                }
+                composable<DevMapRoute> {
+                    val vm = viewModel { DevMapViewModel(graph.discoverApi) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    DevMapScreen(state, vm::reload)
+                }
                 composable<SettingsRoute> {
                     val vm = viewModel { SettingsViewModel(graph.meApi, graph.passportApi, me, space, onMeUpdated, onAccountDeleted) }
                     val state by vm.state.collectAsStateWithLifecycle()
-                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount)
+                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount, onRules = { navController.navigate(RulesRoute) })
                 }
                 composable<SyncRoute> {
                     SyncCenterScreen(
