@@ -6,7 +6,10 @@ import { OFFICIAL_CERTS, CHECKED_AT } from '../../web/src/platform/data/certs/of
 
 const q = (s) => JSON.stringify(s).replace(/\$/g, '\\$');
 const list = (a) => `listOf(${(a ?? []).map(q).join(', ')})`;
-const lvl = (l) => ({ debutant: 'Beginner', intermediaire: 'Intermediate', avance: 'Advanced', expert: 'Expert' })[l];
+const lvl = (l) =>
+  ({ debutant: 'Beginner', intermediaire: 'Intermediate', avance: 'Advanced', expert: 'Expert' })[
+    l
+  ];
 const hex = (c) => `0xFF${c.replace('#', '').toUpperCase()}`;
 
 let out = `// Fichier généré par apps/mobile/scripts/gen-certs.mjs : ne pas modifier à la main.
