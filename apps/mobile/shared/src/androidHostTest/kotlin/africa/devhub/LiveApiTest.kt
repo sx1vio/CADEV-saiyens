@@ -407,4 +407,60 @@ class LiveApiTest {
         assertTrue(graph.certsApi.mine().items.any { it.certId == certId })
         graph.forgetUser()
     }
+
+    @Test
+    fun benchRequestReportAndConfirmationAgainstTheRealApi() = runTest {
+        val url = apiUrl ?: return@runTest
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { benchScenario(url) }
+    }
+
+    private suspend fun benchScenario(url: String) {
+        val tag = Random.nextInt(0, Int.MAX_VALUE).toString(36)
+        // L'API refuse une demande de test pendant la première heure d'un compte (bench.account_too_new) :
+        // le demandeur est un compte ancien de la base de test.
+        val oldLogin = System.getenv("DEVHUB_E2E_OLD_LOGIN") ?: "kmp-bench-owner"
+        val requester = liveGraph(url)
+        val tester = liveGraph(url)
+        assertEquals(SignInResult.SignedIn, requester.auth.signInWithGithub(loginHint = oldLogin))
+        assertEquals(SignInResult.SignedIn, tester.auth.signInWithGithub(loginHint = "kmp-bch-b-$tag"))
+        requester.meApi.acceptCodeOfConduct()
+        tester.meApi.acceptCodeOfConduct()
+        val testerSpace = tester.userSpace(tester.meApi.me().id)
+
+        val bench = try {
+            requester.benchApi.create(
+            africa.devhub.bench.CreateBenchRequest(
+                title = "Tester DevHub en 3G",
+                appUrl = "https://devhub.africa",
+                repoUrl = null,
+                instructions = "Poser une question hors ligne puis revenir en ligne.",
+                devices = listOf("android_low"),
+                networks = listOf("3g"),
+                maxTesters = 3,
+            ),
+        )
+        } catch (e: ApiException) {
+            if (e.code == "bench.account_too_new") {
+                println("LiveApiTest : $oldLogin a moins d'une heure ; relancer plus tard ou fixer DEVHUB_E2E_OLD_LOGIN.")
+                return
+            }
+            throw e
+        }
+        val draft = africa.devhub.bench.BenchReportDraft(
+            device = "android_low", model = "Tecno Spark 10", os = "Android 13", browser = "Chrome 120",
+            network = "3g", country = "SN", verdict = "works",
+        )
+        val sent = testerSpace.writer.submitBenchReport(bench.id, draft)
+        assertTrue(sent.outcome is africa.devhub.offline.SendOutcome.Applied, sent.outcome.toString())
+        // Un second envoi (rejeu après une coupure) est refusé : pas de doublon.
+        val again = testerSpace.writer.submitBenchReport(bench.id, draft)
+        assertEquals(africa.devhub.offline.SendOutcome.Rejected("bench.already_reported"), again.outcome)
+        testerSpace.engine.cancel(again.opId)
+
+        val report = requester.benchApi.detail(bench.id).reports.single()
+        assertEquals("confirmed", requester.benchApi.review(report.id, confirm = true).status)
+        assertEquals("confirmed", tester.benchApi.detail(bench.id).reports.single().status)
+        requester.forgetUser()
+        tester.forgetUser()
+    }
 }

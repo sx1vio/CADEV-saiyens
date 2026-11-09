@@ -1,5 +1,6 @@
 package africa.devhub.offline
 
+import africa.devhub.bench.BenchReportDraft
 import africa.devhub.core.maskSecrets
 import africa.devhub.core.newUuid
 import africa.devhub.sos.AskDraft
@@ -128,6 +129,32 @@ class ActionWriter(
             "body" to JsonPrimitive(body.text),
         )
         return enqueue("dm.create", payload, clientId, body.text.take(140), conversationId, body.count, waitMs)
+    }
+
+    /**
+     * Rapport du banc d'essai, rédigeable sans réseau : c'est tout l'intérêt de tester en 2G ou
+     * hors ligne. Les textes libres sont masqués (un rapport peut décrire une faille).
+     */
+    suspend fun submitBenchReport(requestId: String, report: BenchReportDraft, waitMs: Long = WAIT_MS): Queued {
+        val notes = maskSecrets(report.notes.trim())
+        val findings = report.findings.map { f -> f.copy(title = maskSecrets(f.title.trim()).text, details = maskSecrets(f.details.trim()).text) }
+        val payload = mapOf(
+            "requestId" to JsonPrimitive(requestId),
+            "device" to JsonPrimitive(report.device),
+            "model" to JsonPrimitive(report.model.trim()),
+            "os" to JsonPrimitive(report.os.trim()),
+            "browser" to JsonPrimitive(report.browser.trim()),
+            "network" to JsonPrimitive(report.network),
+            "country" to (report.country.trim().uppercase().takeIf { it.length == 2 }?.let(::JsonPrimitive) ?: JsonNull),
+            "verdict" to JsonPrimitive(report.verdict),
+            "findings" to JsonArray(
+                findings.map { f ->
+                    JsonObject(mapOf("severity" to JsonPrimitive(f.severity), "title" to JsonPrimitive(f.title), "details" to JsonPrimitive(f.details)))
+                },
+            ),
+            "notes" to JsonPrimitive(notes.text),
+        )
+        return enqueue("bench.report", payload, null, report.model.trim(), requestId, notes.count, waitMs)
     }
 
     private suspend fun enqueue(

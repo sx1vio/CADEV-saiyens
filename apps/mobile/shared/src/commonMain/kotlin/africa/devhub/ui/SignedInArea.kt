@@ -47,7 +47,14 @@ import kotlinx.coroutines.launch
 import africa.devhub.community.CreatePostViewModel
 import africa.devhub.community.FeedViewModel
 import africa.devhub.community.PostViewModel
+import africa.devhub.bench.BenchListViewModel
+import africa.devhub.bench.BenchViewModel
+import africa.devhub.bench.CreateBenchViewModel
 import africa.devhub.certs.CertsViewModel
+import africa.devhub.resources.bench_title
+import africa.devhub.ui.bench.BenchListScreen
+import africa.devhub.ui.bench.BenchScreen
+import africa.devhub.ui.bench.CreateBenchScreen
 import africa.devhub.certs.ExamViewModel
 import africa.devhub.certs.PracticeViewModel
 import africa.devhub.discover.DiscoverViewModel
@@ -198,6 +205,15 @@ private data class PracticeRoute(val id: String)
 private data class ExamRoute(val id: String, val mode: String)
 
 @Serializable
+private data object BenchListRoute
+
+@Serializable
+private data class BenchRoute(val id: String)
+
+@Serializable
+private data object CreateBenchRoute
+
+@Serializable
 private data class RoomRoute(val code: String)
 
 @Serializable
@@ -252,6 +268,8 @@ fun SignedInArea(
         destination?.hasRoute<ApplicationsRoute>() == true
     val onCerts = destination?.hasRoute<CertsRoute>() == true || destination?.hasRoute<CertRoute>() == true ||
         destination?.hasRoute<PracticeRoute>() == true || destination?.hasRoute<ExamRoute>() == true
+    val onBench = destination?.hasRoute<BenchListRoute>() == true || destination?.hasRoute<BenchRoute>() == true ||
+        destination?.hasRoute<CreateBenchRoute>() == true
     val onConversations = destination?.hasRoute<ConversationsRoute>() == true || destination?.hasRoute<ConversationRoute>() == true
     // Écrans empilés : titre et retour en haut ; l'onglet parent reste sélectionné en bas.
     val nestedTitle = when {
@@ -268,6 +286,7 @@ fun SignedInArea(
         onCommunity -> Res.string.community_title
         onJobs -> Res.string.jobs_title
         onCerts -> Res.string.certs_title
+        onBench -> Res.string.bench_title
         onConversations -> Res.string.messages_title
         else -> null
     }
@@ -289,7 +308,7 @@ fun SignedInArea(
             NavigationBar {
                 tabs.forEach { tab ->
                     val selected = when (tab.route) {
-                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity || onJobs || onCerts
+                        is HomeRoute -> destination?.hasRoute<HomeRoute>() == true || onDiscover || onRules || onSettings || onNews || onConversations || onCommunity || onJobs || onCerts || onBench
                         is SosRoute -> destination?.hasRoute<SosRoute>() == true || onQuestion || onAsk
                         is RoomsRoute -> destination?.hasRoute<RoomsRoute>() == true || onRoom || onCreateRoom
                         is NotificationsRoute -> destination?.hasRoute<NotificationsRoute>() == true
@@ -340,6 +359,7 @@ fun SignedInArea(
                             onCommunity = { navController.navigate(FeedRoute) },
                             onJobs = { navController.navigate(JobsRoute) },
                             onCerts = { navController.navigate(CertsRoute) },
+                            onBench = { navController.navigate(BenchListRoute) },
                             onDiscover = { navController.navigate(DiscoverRoute()) },
                             onLeaderboard = { navController.navigate(DiscoverRoute(leaderboard = true)) },
                             onRules = { navController.navigate(RulesRoute) },
@@ -462,6 +482,37 @@ fun SignedInArea(
                     val vm = viewModel { ExamViewModel(graph.certsApi, route.id, route.mode, graph.now) }
                     val state by vm.state.collectAsStateWithLifecycle()
                     ExamScreen(state, vm::choose, vm::goTo, vm::submit, vm::start)
+                }
+                composable<BenchListRoute> {
+                    val vm = viewModel { BenchListViewModel(graph.benchApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    BenchListScreen(
+                        state = state,
+                        onScope = vm::setScope,
+                        onDevice = vm::setDevice,
+                        onNetwork = vm::setNetwork,
+                        onRetry = vm::reload,
+                        onOpen = { navController.navigate(BenchRoute(it)) },
+                        onRequest = { navController.navigate(CreateBenchRoute) },
+                    )
+                }
+                composable<BenchRoute> { backStack ->
+                    val id = backStack.toRoute<BenchRoute>().id
+                    val vm = viewModel { BenchViewModel(graph.benchApi, id, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    BenchScreen(state, vm::edit, vm::submitReport, vm::review, vm::close, vm::reopen, vm::refresh)
+                }
+                composable<CreateBenchRoute> {
+                    val vm = viewModel { CreateBenchViewModel(graph.benchApi, space) }
+                    val state by vm.state.collectAsStateWithLifecycle()
+                    val createdId = state.createdId
+                    LaunchedEffect(createdId) {
+                        if (createdId != null) {
+                            vm.consumeCreated()
+                            navController.navigate(BenchRoute(createdId)) { popUpTo<CreateBenchRoute> { inclusive = true } }
+                        }
+                    }
+                    CreateBenchScreen(state, online, vm::edit, vm::send)
                 }
                 composable<RulesRoute> {
                     val vm = viewModel { RulesViewModel(graph.discoverApi, space) }
