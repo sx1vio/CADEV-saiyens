@@ -1,4 +1,6 @@
-# Production sur le VPS Systalink — voir docs/architecture/11-infrastructure-deploiement.md
+# Production sur le serveur devhub-app (VPS Systalink) — voir infra/README.md.
+# La base PostgreSQL tourne sur l'autre VPS (devhub-data), jointe par le réseau privé en TLS vérifié :
+# DATABASE_URL=...@10.10.3.62:5432/devhub?sslmode=verify-full&sslrootcert=/srv/devhub/pg-ca.crt
 # Les images sont construites par la CI et étiquetées avec le SHA du commit (variable TAG).
 # Lancement : TAG=<sha> docker compose -f infra/docker-compose.yml --env-file /srv/devhub/.env up -d
 
@@ -7,6 +9,9 @@ x-app: &app
   env_file: /srv/devhub/.env
   restart: unless-stopped
   networks: [internal]
+  # Autorité TLS privée de la base (devhub-data) : vérifie le certificat du serveur PostgreSQL.
+  volumes:
+    - /srv/devhub/pg-ca.crt:/srv/devhub/pg-ca.crt:ro
   logging:
     driver: json-file
     options: { max-size: '10m', max-file: '5' }
@@ -49,20 +54,14 @@ services:
       APP_RELEASE: ${TAG}
     # Y1 : status.check lit le fichier d'état écrit par backup.sh (BACKUP_STATUS_URL).
     volumes:
+      - /srv/devhub/pg-ca.crt:/srv/devhub/pg-ca.crt:ro
       - /srv/devhub/backups:/srv/devhub/backups:ro
 
-  # Si la base managée Systalink ne convient pas (voir ADR-0005), décommenter :
-  # postgres:
-  #   image: postgres:16-alpine
-  #   restart: unless-stopped
-  #   env_file: /srv/devhub/.env.postgres
-  #   volumes: [pgdata:/var/lib/postgresql/data]
-  #   networks: [internal]
+  # Pas de service postgres ici : la base est sur devhub-data (infra/scripts/serveurs/role-data.sh).
 
 volumes:
   caddy_data:
   caddy_config:
-  # pgdata:
 
 networks:
   internal:
