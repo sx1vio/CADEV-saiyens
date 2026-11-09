@@ -34,6 +34,16 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import africa.devhub.ui.components.Badge
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import africa.devhub.ui.components.openWeb
+import africa.devhub.rooms.FeedbackState
+import africa.devhub.resources.fb_tab
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.CircleShape
 import africa.devhub.ui.passport.agoLabel
@@ -81,7 +91,12 @@ fun RoomsScreen(
     onLoadMore: () -> Unit,
     onOpen: (code: String) -> Unit,
     onCreate: () -> Unit,
+    reviews: FeedbackState = FeedbackState(),
+    reviewActions: FeedbackActions? = null,
 ) {
+    // Troisième onglet du web (« Revues demandées ») : un flux à part, sans recherche ni liste de salles.
+    var showReviews by rememberSaveable { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
@@ -91,21 +106,30 @@ fun RoomsScreen(
             item {
                 Text(stringResource(Res.string.rooms_subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            item {
-                OutlinedTextField(
-                    value = state.query,
-                    onValueChange = { onQuery(it.take(200)) },
-                    label = { Text(stringResource(Res.string.rooms_search)) },
-                    leadingIcon = { androidx.compose.material3.Icon(africa.devhub.ui.components.DevHubIcons.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            if (!showReviews) {
+                item {
+                    OutlinedTextField(
+                        value = state.query,
+                        onValueChange = { onQuery(it.take(200)) },
+                        label = { Text(stringResource(Res.string.rooms_search)) },
+                        leadingIcon = { androidx.compose.material3.Icon(africa.devhub.ui.components.DevHubIcons.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !state.mine, onClick = { onMine(false) }, label = { Text(stringResource(Res.string.rooms_all)) })
-                    FilterChip(selected = state.mine, onClick = { onMine(true) }, label = { Text(stringResource(Res.string.rooms_mine)) })
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = !showReviews && !state.mine, onClick = { showReviews = false; onMine(false) }, label = { Text(stringResource(Res.string.rooms_all)) })
+                    FilterChip(selected = !showReviews && state.mine, onClick = { showReviews = false; onMine(true) }, label = { Text(stringResource(Res.string.rooms_mine)) })
+                    if (reviewActions != null) {
+                        FilterChip(selected = showReviews, onClick = { showReviews = true }, label = { Text(stringResource(Res.string.fb_tab)) })
+                    }
                 }
+            }
+            if (showReviews && reviewActions != null) {
+                feedbackItems(reviews, reviewActions) { uriHandler.openWeb(it) }
+                return@LazyColumn
             }
             if (state.cachedAt != null) {
                 item { Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }

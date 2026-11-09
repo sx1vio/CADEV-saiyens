@@ -59,10 +59,12 @@ import africa.devhub.resources.rooms_create
 import africa.devhub.rooms.CreateRoomViewModel
 import africa.devhub.rooms.RoomViewModel
 import africa.devhub.rooms.RoomsViewModel
+import africa.devhub.rooms.FeedbackViewModel
 import africa.devhub.ui.rooms.CreateRoomScreen
 import africa.devhub.ui.rooms.RoomActions
 import africa.devhub.ui.rooms.RoomScreen
 import africa.devhub.ui.rooms.RoomsScreen
+import africa.devhub.ui.rooms.FeedbackActions
 import africa.devhub.resources.ask_title
 import africa.devhub.sos.AskViewModel
 import africa.devhub.sos.QuestionViewModel
@@ -486,14 +488,14 @@ fun SignedInArea(
                     title = { if (!onCerts) Text(stringResource(nestedTitle), style = MaterialTheme.typography.titleMedium) },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                     actions = {
-                        // Les alertes restent à portée de pouce partout, pas seulement sur l'accueil.
-                        if (isRoot && !onConversations) {
                         // Un écran de détail n'a que la flèche retour : un accès direct à l'accueil, comme le logo du web.
                         if (!isRoot) {
                             IconButton(onClick = { go(HomeRoute) }) {
                                 Icon(DevHubIcons.Home, contentDescription = stringResource(Res.string.nav_home))
                             }
                         }
+                        // Les alertes restent à portée de pouce partout, pas seulement sur l'accueil.
+                        if (isRoot && !onConversations) {
                             IconButton(onClick = { navController.navigate(ConversationsRoute) { launchSingleTop = true } }) {
                                 Icon(DevHubIcons.Chat, contentDescription = stringResource(Res.string.messages_title))
                             }
@@ -853,6 +855,8 @@ fun SignedInArea(
                 composable<RoomsRoute> {
                     val vm = viewModel { RoomsViewModel(graph.roomsApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
+                    val reviewsVm = viewModel { FeedbackViewModel(graph.roomsApi, graph.passportApi, me.handle) }
+                    val reviews by reviewsVm.state.collectAsStateWithLifecycle()
                     RoomsScreen(
                         state = state,
                         onMine = vm::setMine,
@@ -861,6 +865,18 @@ fun SignedInArea(
                         onLoadMore = vm::loadMore,
                         onOpen = { navController.navigate(RoomRoute(it)) },
                         onCreate = { navController.navigate(CreateRoomRoute) },
+                        reviews = reviews,
+                        reviewActions = FeedbackActions(
+                            onStackOnly = reviewsVm::setStackOnly,
+                            onRetry = reviewsVm::reload,
+                            onTake = reviewsVm::take,
+                            onConfirm = reviewsVm::confirm,
+                            onCancel = reviewsVm::cancel,
+                            onDismissNotice = reviewsVm::dismissNotice,
+                            onOpenRoom = { navController.navigate(RoomRoute(it)) },
+                            isMine = reviewsVm::isMine,
+                            isMyReview = reviewsVm::isMyReview,
+                        ),
                     )
                 }
                 composable<RoomRoute> { backStack ->

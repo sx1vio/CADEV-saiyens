@@ -52,4 +52,22 @@ class RoomsApi(private val http: HttpClient) {
                 setBody(request)
             }
         }
+
+    /** Flux de la stack : demandes de retour et de revue ouvertes des salles publiques (R6). */
+    suspend fun feedbackRequests(tags: List<String>? = null): FeedbackList =
+        apiCall {
+            http.get("api/v1/feedback-requests") {
+                tags?.takeIf { it.isNotEmpty() }?.let { parameter("tags", it.joinToString(",")) }
+                parameter("limit", 50)
+            }
+        }
+
+    suspend fun takeFeedback(id: String): FeedbackRequest =
+        apiCall { http.post("api/v1/feedback-requests/$id/take") { header("Idempotency-Key", newUuid()) } }
+
+    suspend fun confirmFeedback(id: String): FeedbackConfirmation =
+        apiCall { http.post("api/v1/feedback-requests/$id/confirm") { header("Idempotency-Key", newUuid()) } }
+
+    suspend fun cancelFeedback(id: String): FeedbackRequest =
+        apiCall { http.post("api/v1/feedback-requests/$id/cancel") { header("Idempotency-Key", newUuid()) } }
 }
