@@ -67,12 +67,13 @@ Questions auxquelles la plateforme doit répondre :
 
 ### Avant la soumission (15/11/2026, 17:00 GMT), dans l'ordre
 
-- [ ] **1. Acheter sur la console Systalink** (platform.systalink.com/services/create-service) avec le code promo de l’équipe (−40 %) : **serveur cloud à Dakar** (conseil : 2 vCPU / 8 Go) et le nom de domaine. Condition de recevabilité (art. 6.2). — Sylvio, Emmanuel
-- [ ] **2. Héberger et déployer** : secrets du dépôt, `DEPLOY_ENABLED=true`, push sur `main` (voir `infra/README.md`) ; base, SMTP pro Systalink et sauvegarde sur le VPS. — Emmanuel
+- [x] **1. Acheter sur la console Systalink** avec le code promo de l’équipe : `vps-cadev-044` acheté le 09/11/2026, étape « Produit Systalink actif » validée sur la page CADEV (recevabilité, art. 6.2). **Accès à ce VPS pas encore reçus** : les demander au support Systalink (chat de la console, cadev@systalink.com). — Sylvio
+- [x] **1 bis. Deux VPS Systalink de plus** (hors espace CADEV, 1 cœur / 2 Go / 30 Go chacun) installés, sécurisés et vérifiés le 09/11/2026 : `devhub-app` (213.163.192.66) et `devhub-data` (213.163.201.178, PostgreSQL). Tout est dans `infra/README.md`. — Sylvio
+- [ ] **2. Mettre en ligne**, dans l’ordre de `infra/README.md` §8 : clé de lecture du dépôt et clone sur le serveur, secrets `VPS_HOST` / `VPS_SSH_KEY` / `VPS_KNOWN_HOSTS`, **nom de domaine** (DNS vers 213.163.192.66 pour le domaine, `admin.` et `business.`), remplir les `A_REMPLIR` de `/srv/devhub/.env`, puis `DEPLOY_ENABLED=true`. — Sylvio (domaine), Emmanuel
 - [ ] **3. Créer l’application OAuth GitHub de production** et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` ; vérifier `AUTH_FAKE_PROVIDER=false`. — Joachim, Emmanuel
 - [ ] **4. Compte admin de production** par la CLI (`apps/admin/README.md`), puis ouvrir l’onglet **Supervision** et vérifier que tout est vert (connexion de test désactivée, OAuth, SMTP, worker actif). — Sylvio, Emmanuel
 - [ ] **5. Variables restantes** : `BUSINESS_URL` et `BUSINESS_ADDRESS` (portail entreprise, sous-domaine `business.`), `VITE_CONTACT_EMAIL` (page Confidentialité), `PAGESPEED_API_KEY` et `PREFLIGHT_GITHUB_TOKEN` (pré-vol), `APP_RELEASE` rempli automatiquement par le TAG. — Emmanuel, Sylvio
-- [ ] **6. Vérifier l’IP du serveur** dans `SYSTALINK_IP_RANGES` (sinon corriger la variable), puis lancer un pré-vol en déclarant « Serveur cloud » pour la démo. — Sylvio
+- [ ] **6. Badge Systalink** : les IP réelles des VPS (213.163.192.0/22 et 213.163.200.0/22, UpCloud Singapour) sont déjà dans `SYSTALINK_IP_RANGES` du `.env` de production ; une fois en ligne, lancer un pré-vol en déclarant « Serveur cloud » pour la démo. — Sylvio
 - [ ] **7. Tester l’URL publique sur un vrai téléphone**, hors du réseau de l’équipe (et réseau coupé : CDC O1-O3). — Tous
 - [ ] **8. Signatures** : chaque membre remplit lui-même sa ligne dans `docs/soumission.md` §4 (personne ne signe pour un autre). — Chaque membre
 - [ ] **9. Licence** : choisir une licence permissive et ajouter un fichier `LICENSE` (aucun aujourd’hui) ; identifier le contributeur `Sacem270`. — Équipe
@@ -83,7 +84,7 @@ Questions auxquelles la plateforme doit répondre :
 
 - [ ] Pré-vol : faire tourner l’action sur une vraie PR (`prevol.yml`) et vérifier gitleaks, osv-scanner et le commentaire ; remplacer `api-url` par le domaine définitif (04-05/11/2026)
 - [ ] `LLM_API_KEY` plafonnée (sinon la piste IA, les tâches IA et la traduction utilisent le modèle de secours)
-- [ ] Demander à Systalink (cadev@systalink.com) leurs plages IP, un lien de déploiement préparé, un éventuel programme de crédits, et leur plus gros frein pour attirer des développeurs
+- [ ] Demander à Systalink (cadev@systalink.com) les accès de `vps-cadev-044`, si la région de Dakar est possible (nos VPS sont à Singapour), leurs plages IP, un lien de déploiement préparé, un éventuel programme de crédits, et leur plus gros frein pour attirer des développeurs
 - [ ] Connexion GitLab et Google (A2) côté API
 - [ ] Dette technique : 30 avertissements oxlint « fast refresh » (sans effet en production)
 - [ ] Phase 4 : audit du mouvement et revue de code
@@ -176,6 +177,19 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 09/11/2026 — Deux VPS Systalink installés et sécurisés (app + base)
+
+- **Demande de Sylvio** : le VPS payé avec le code promo CADEV (`vps-cadev-044`) a validé l’étape « Produit Systalink actif », mais ses accès n’ont pas été donnés ; deux autres VPS payés sur la Datacloud sont en ligne. Les utiliser pour déployer de façon organisée, bien installer, sécuriser et configurer les deux, faire une doc ordonnée et noter ici. Le nom de domaine viendra à la fin.
+- **Constats** : les deux VPS (plan DEV-1xCPU-2GB, Ubuntu 24.04) s’appellent tous les deux « server-test » dans la console (pas de renommage possible) et les identifiants de la console sont vides ; on entre par les clés `.pem` téléchargées (dossier Musique de Windows), en root. Il y a un réseau privé entre eux (10.10.x.x, 0,6 ms). **Leurs IP appartiennent à UpCloud Singapour** (AS202053) et non à Dakar : à demander à Systalink, et à ne pas affirmer dans le pitch. La troisième clé (`privatekey_153621820.pem`) n’ouvre aucun des deux : très probablement celle de `vps-cadev-044`.
+- **Décision : deux rôles.** `devhub-app` (213.163.192.66) : Caddy, API, worker en Docker. `devhub-data` (213.163.201.178) : PostgreSQL 16 et copies des sauvegardes. Raison : 2 Go chacun ne suffisent pas pour tout sur une machine ; la base ne subit ni les plantages ni les déploiements de l’application ; chaque sauvegarde existe sur deux machines.
+- **Scripts rejouables** dans `infra/scripts/serveurs/` : `socle.sh` (nom de machine, mises à jour de sécurité automatiques, swap 2 Go, administrateur `devops` par clés, SSH durci, fail2ban, pare-feu fermé par défaut), `role-data.sh` (PostgreSQL 16 en TLS avec une autorité privée, accès seulement depuis l’IP privée de l’app, dépôt de sauvegardes en écriture seule), `role-app.sh` (Docker officiel, compte `deploy` dont la clé CI ne peut lancer que `deploy <sha>`, sauvegarde nocturne, ports 80/443), `fermer-root.sh`.
+- **Sécurité vérifiée** : root fermé en SSH, mots de passe refusés ; 5432 fermé depuis Internet ; connexion à la base en TLS 1.3 avec vérification du certificat (`sslmode=verify-full`), testée avec `psql`, `pg` et Prisma ; la clé de la CI refuse toute autre commande et tout tunnel ; la clé de sauvegarde ne peut ni lire ni effacer. Les deux serveurs ont été redémarrés : tout revient seul.
+- **CI** : le job « déploiement Systalink » n’utilise plus `appleboy/ssh-action` (qui ne vérifiait pas l’empreinte du serveur) ; il vérifie l’empreinte (`VPS_KNOWN_HOSTS`) et passe le `GITHUB_TOKEN` du job par l’entrée standard pour tirer les images : aucun jeton GitHub durable sur le serveur. Secrets au niveau du dépôt (pas d’environnement `production`).
+- **Sauvegardes** : `backup.sh` copie maintenant chaque dump chiffré sur devhub-data (30 jours) et note `replicated` dans `status.json`. Testé : sauvegarde, copie, déchiffrement et lecture.
+- **`/srv/devhub/.env`** créé sur devhub-app avec les secrets générés sur place ; `SYSTALINK_IP_RANGES` contient les plages réelles des VPS. Restent les valeurs liées au domaine (`A_REMPLIR`) et l’OAuth GitHub de production.
+- **Pas fait (refusé par le mode automatique)** : ajouter la clé de lecture du dépôt sur GitHub ; la commande est dans `infra/README.md` §8, étape 1, à lancer par Sylvio. Secrets GitHub et `DEPLOY_ENABLED` laissés pour le jour du domaine.
+- **Doc** : `infra/README.md` réécrit en guide ordonné (serveurs, architecture, accès et clés, sécurité, base, sauvegardes, déploiement, mise en ligne pas à pas, dépannage).
 
 ### 09/11/2026 — Dernière passe avant soumission : onboarding, supervision, portail entreprise, mots de passe
 
