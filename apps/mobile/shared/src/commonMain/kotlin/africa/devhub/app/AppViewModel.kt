@@ -161,6 +161,11 @@ class AppViewModel(
         }
     }
 
+    /** La page annoncée par le plan est ouverte : on n'y retourne pas si l'écran est recréé (rotation, thème). */
+    fun startHandled() {
+        _state.update { if (it is AppState.SignedIn && it.start != StartTarget.Home) it.copy(start = StartTarget.Home) else it }
+    }
+
     /** Réglages enregistrés : le profil affiché suit sans tout recharger. */
     fun meUpdated(me: Me) {
         deviceCache?.put(CacheKey.me(), me, Me.serializer())

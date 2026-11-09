@@ -1,5 +1,7 @@
 package africa.devhub.app
 
+import africa.devhub.onboarding.OnboardingProfile
+import africa.devhub.onboarding.StartTarget
 import africa.devhub.testing.FakeAuthBrowser
 import africa.devhub.testing.FakeSecureStore
 import africa.devhub.testing.SESSION_KEY
@@ -135,5 +137,27 @@ class AppViewModelTest {
         val vm = viewModel(graph)
         vm.signInWithEmail("awa@example.test", "faux")
         assertEquals(AppState.SignedOut(error = SignInError.BadCredentials), vm.settled())
+    }
+
+    @Test
+    fun theStartPageAfterOnboardingIsOpenedOnlyOnce() = runTest {
+        val store = FakeSecureStore(mapOf(SESSION_KEY to "tok"))
+        val graph = testGraph(store, dispatcher = main) { request ->
+            when (request.url.encodedPath) {
+                "/api/v1/me" -> json(meJson(codeOfConductAcceptedAt = null))
+                "/api/v1/me/code-of-conduct" -> json("""{"codeOfConductAcceptedAt":"2026-11-06T10:00:00.000Z"}""")
+                else -> error("route inattendue ${request.url}")
+            }
+        }
+        val vm = viewModel(graph)
+        assertIs<AppState.NeedsConduct>(vm.settled())
+
+        vm.completeOnboarding(
+            OnboardingProfile(null, null, emptyList(), null, false, null, emptyList(), null, StartTarget.Certifications),
+        )
+        assertEquals(StartTarget.Certifications, assertIs<AppState.SignedIn>(vm.settled()).start)
+
+        vm.startHandled()
+        assertEquals(StartTarget.Home, assertIs<AppState.SignedIn>(vm.state.value).start)
     }
 }

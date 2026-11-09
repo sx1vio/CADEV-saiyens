@@ -290,6 +290,7 @@ fun SignedInArea(
     graph: AppGraph,
     me: Me,
     start: StartTarget,
+    onStartHandled: () -> Unit,
     onSignOut: () -> Unit,
     onMeUpdated: (Me) -> Unit,
     onAccountDeleted: () -> Unit,
@@ -311,6 +312,7 @@ fun SignedInArea(
             StartTarget.Sos -> navController.navigate(SosRoute)
             StartTarget.Home -> Unit
         }
+        if (start != StartTarget.Home) onStartHandled()
     }
     // Temps réel au premier plan seulement : la connexion est coupée en arrière-plan.
     LifecycleStartEffect(space) {
@@ -739,6 +741,7 @@ fun SignedInArea(
                         onSeeProofs = { navController.navigate(ProofsRoute(handle)) },
                         onEdit = { navController.navigate(SettingsRoute) },
                         onCerts = { navController.navigate(CertsRoute) },
+                        shareUrl = "${graph.config.apiBaseUrl.trimEnd('/')}/u/$handle",
                         onWrite = {
                             scope.launch {
                                 runCatching { graph.messagesApi.start(handle) }
