@@ -395,10 +395,13 @@ fun SignedInArea(
     }
     val go: (Any) -> Unit = { route ->
         scope.launch { drawerState.close() }
-        navController.navigate(route) {
-            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-            launchSingleTop = true
-            restoreState = true
+        if (route == HomeRoute) {
+            navController.popBackStack(HomeRoute, inclusive = false)
+        } else {
+            navController.navigate(route) {
+                popUpTo(navController.graph.findStartDestination().id)
+                launchSingleTop = true
+            }
         }
     }
     val leaderboard = entry?.takeIf { onDiscover }?.toRoute<DiscoverRoute>()?.leaderboard == true
