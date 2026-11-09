@@ -178,6 +178,13 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 10/11/2026 (suite) — Mise en ligne : étapes 1 à 3 faites
+
+- **Sylvio** : « Vasy » (session normale).
+- **Fait et vérifié** : clé de lecture du dépôt ajoutée sur GitHub (« devhub-app (lecture seule) », lecture seule) ; dépôt cloné dans `/srv/devhub` sur devhub-app (`main` à `ae889f5`, `.env` et sauvegardes non suivis par git) ; secrets de la CI `VPS_HOST`, `VPS_SSH_KEY` et `VPS_KNOWN_HOSTS` posés au niveau du dépôt. La CI de `main` est verte.
+- **Bloquant, côté Sylvio** : `GITHUB_CLIENT_ID` et `GITHUB_CLIENT_SECRET` sont encore vides dans `/srv/devhub/.env` (étape 4 : application OAuth de production). `DEPLOY_ENABLED` n’est pas activé tant qu’ils manquent : l’API refuserait de démarrer et le déploiement reviendrait en arrière.
+- Encore vides (facultatifs) : `ADMIN_ALLOWED_IPS`, SMTP, `PREFLIGHT_GITHUB_TOKEN`, `PAGESPEED_API_KEY`, `LLM_API_KEY`.
+
 ### 10/11/2026 — Nom de domaine devafrica.tech : DNS en place, reprise de la mise en ligne
 
 - **Sylvio** a acheté `devafrica.tech` chez name.com (jusqu’au 09/11/2027 ; renouvellement automatique désactivé, 89,99 $ par an : à décider avant l’échéance). Serveurs de noms de name.com gardés.
