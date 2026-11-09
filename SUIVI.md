@@ -69,8 +69,8 @@ Questions auxquelles la plateforme doit répondre :
 
 - [x] **1. Acheter sur la console Systalink** avec le code promo de l’équipe : `vps-cadev-044` acheté le 09/11/2026, étape « Produit Systalink actif » validée sur la page CADEV (recevabilité, art. 6.2). **Accès à ce VPS pas encore reçus** : les demander au support Systalink (chat de la console, cadev@systalink.com). — Sylvio
 - [x] **1 bis. Deux VPS Systalink de plus** (hors espace CADEV, 1 cœur / 2 Go / 30 Go chacun) installés, sécurisés et vérifiés le 09/11/2026 : `devhub-app` (213.163.192.66) et `devhub-data` (213.163.201.178, PostgreSQL). Tout est dans `infra/README.md`. — Sylvio
-- [ ] **2. Mettre en ligne**, dans l’ordre de `infra/README.md` §8 : clé de lecture du dépôt et clone sur le serveur, secrets `VPS_HOST` / `VPS_SSH_KEY` / `VPS_KNOWN_HOSTS`, **nom de domaine** (DNS vers 213.163.192.66 pour le domaine, `admin.` et `business.`), remplir les `A_REMPLIR` de `/srv/devhub/.env`, puis `DEPLOY_ENABLED=true`. — Sylvio (domaine), Emmanuel
-- [ ] **3. Créer l’application OAuth GitHub de production** et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` ; vérifier `AUTH_FAKE_PROVIDER=false`. — Joachim, Emmanuel
+- [ ] **2. Mettre en ligne** sur **devafrica.tech** (domaine, DNS et `.env` faits le 10/11/2026) : suivre « À reprendre à la prochaine session » dans le journal du 10/11/2026 (clé du dépôt, clone, secrets de la CI, OAuth GitHub, `DEPLOY_ENABLED=true`, compte admin). — Claude avec Sylvio
+- [ ] **3. Créer l’application OAuth GitHub de production** (callback `https://devafrica.tech/api/v1/auth/github/callback`) et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` ; vérifier `AUTH_FAKE_PROVIDER=false`. — Joachim, Emmanuel
 - [ ] **4. Compte admin de production** par la CLI (`apps/admin/README.md`), puis ouvrir l’onglet **Supervision** et vérifier que tout est vert (connexion de test désactivée, OAuth, SMTP, worker actif). — Sylvio, Emmanuel
 - [ ] **5. Variables restantes** : `BUSINESS_URL` et `BUSINESS_ADDRESS` (portail entreprise, sous-domaine `business.`), `VITE_CONTACT_EMAIL` (page Confidentialité), `PAGESPEED_API_KEY` et `PREFLIGHT_GITHUB_TOKEN` (pré-vol), `APP_RELEASE` rempli automatiquement par le TAG. — Emmanuel, Sylvio
 - [ ] **6. Badge Systalink** : les IP réelles des VPS (213.163.192.0/22 et 213.163.200.0/22, UpCloud Singapour) sont déjà dans `SYSTALINK_IP_RANGES` du `.env` de production ; une fois en ligne, lancer un pré-vol en déclarant « Serveur cloud » pour la démo. — Sylvio
@@ -178,12 +178,26 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
-### 10/11/2026 — Nom de domaine devafrica.tech
+### 10/11/2026 — Nom de domaine devafrica.tech : DNS en place, reprise de la mise en ligne
 
-- **Sylvio** a acheté `devafrica.tech` chez name.com (jusqu’au 09/11/2027, renouvellement automatique désactivé).
-- **À faire par Sylvio chez name.com** : garder les serveurs de noms de name.com ; quatre enregistrements `A` (TTL 300) vers `213.163.192.66` : hôte vide, `www`, `admin`, `business`.
-- **Fait** : `/srv/devhub/.env` rempli avec le domaine (site, API, `admin.`, `business.`, `MAIL_FROM`), copie de l’ancien fichier gardée sur le serveur ; Caddy redirige `www.devafrica.tech` vers `devafrica.tech` (configuration validée avec les vraies valeurs) ; `infra/README.md` §8 mis à jour (DNS, callback OAuth `https://devafrica.tech/api/v1/auth/github/callback`).
-- **Reste, dans l’ordre** : DNS, clé de lecture du dépôt (§8 étape 1), application OAuth GitHub, secrets de la CI, `DEPLOY_ENABLED=true`, compte admin.
+- **Sylvio** a acheté `devafrica.tech` chez name.com (jusqu’au 09/11/2027 ; renouvellement automatique désactivé, 89,99 $ par an : à décider avant l’échéance). Serveurs de noms de name.com gardés.
+- **DNS fait par Sylvio et vérifié** : quatre enregistrements `A` (TTL 300) vers `213.163.192.66` : `devafrica.tech`, `www`, `admin`, `business` ; les quatre se résolvent bien vers devhub-app.
+- **Fait** : `/srv/devhub/.env` rempli avec le domaine (site et API sur `https://devafrica.tech`, `admin.devafrica.tech`, `business.devafrica.tech`, `MAIL_FROM` en `notifications@devafrica.tech`), copie de l’ancien fichier gardée sur le serveur (`.env.bak-2026-11-09`) ; Caddy redirige `www` vers le domaine nu (configuration validée) ; `infra/README.md` §8 mis à jour.
+- **Sylvio** : « je relance une session normale et tu gères tout ». Le mode automatique avait refusé à Claude d’ajouter des clés et des secrets sur GitHub ; en session normale, Claude le fait avec l’accord de Sylvio.
+
+#### À reprendre à la prochaine session, dans l’ordre (Claude, avec Sylvio)
+
+Accès : `ssh -i ~/.ssh/systalink/devhub-admin devops@213.163.192.66` (app) et `devops@213.163.201.178` (base). Pour commiter : `export PATH=$HOME/.local/node24/bin:$PATH`. Push en HTTPS (`git push https://github.com/sx1vio/CADEV-saiyens.git ...`).
+
+1. **Clé de lecture du dépôt** : `ssh … 'sudo cat /home/deploy/.ssh/github.pub' > /tmp/devhub-app.pub`, puis `gh repo deploy-key add /tmp/devhub-app.pub --title "devhub-app (lecture seule)"`.
+2. **Cloner sur le serveur** : `sudo -u deploy sh -c "cd /srv/devhub && git init -q && git remote add origin git@github.com:sx1vio/CADEV-saiyens.git && git fetch -q origin main && git checkout -q -f main"`.
+3. **Secrets de la CI** (au niveau du dépôt) : `gh secret set VPS_HOST --body 213.163.192.66`, `gh secret set VPS_SSH_KEY < ~/.ssh/systalink/devhub-ci-deploy`, `gh secret set VPS_KNOWN_HOSTS < ~/.ssh/systalink/devhub-app.known_hosts`.
+4. **Application OAuth GitHub de production** (Sylvio, sur github.com/settings/developers → New OAuth App) : Homepage `https://devafrica.tech`, callback `https://devafrica.tech/api/v1/auth/github/callback`. Sylvio colle lui-même `GITHUB_CLIENT_ID` et `GITHUB_CLIENT_SECRET` dans `/srv/devhub/.env` (`ssh -t … 'sudo -u deploy nano /srv/devhub/.env'`) : le secret ne passe pas par le chat. Sans eux, l’API refuse de démarrer.
+5. **Activer le déploiement** : `gh variable set DEPLOY_ENABLED --body true`, puis relancer la CI sur `main` ; suivre les jobs « images Docker » puis « déploiement Systalink » (`deploy.sh` : migrations, `/readyz`, test de `https://devafrica.tech`, retour arrière automatique). Points à surveiller au premier passage : certificats Let’s Encrypt (Caddy, ports 80/443 ouverts), `prisma migrate deploy` dans l’image, mémoire (2 Go + 2 Go de swap).
+6. **Compte admin** de Sylvio par la CLI (`apps/admin/README.md`, section Production), connexion sur `https://admin.devafrica.tech`, onglet **Supervision** tout vert ; vérifier aussi `https://business.devafrica.tech` et la redirection `www`.
+7. **Sauvegarde** : lancer `backup.sh` à la main une fois la base migrée, vérifier `replicated: true` ; pré-vol sur `https://devafrica.tech` en déclarant « Serveur cloud » (badge Systalink : plages déjà dans `.env`).
+8. **Variables restantes** (facultatives) : SMTP, `PAGESPEED_API_KEY`, `PREFLIGHT_GITHUB_TOKEN`, `LLM_API_KEY`, `VITE_CONTACT_EMAIL` ; remplacer `api-url` de l’action pré-vol par `https://devafrica.tech`.
+9. Toujours en attente côté Systalink : accès de `vps-cadev-044` et question de la région de Dakar.
 
 ### 09/11/2026 — Deux VPS Systalink installés et sécurisés (app + base)
 
