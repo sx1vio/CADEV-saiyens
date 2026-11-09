@@ -5,6 +5,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /** Actualité réelle agrégée par l'API (sources publiques, collecte du worker), jamais inventée. */
 @Serializable
@@ -22,7 +25,19 @@ data class NewsItem(
     val publishedAt: String,
     val score: Int = 0,
     val comments: Int = 0,
-)
+    /** Offres : l'entreprise qui recrute. */
+    val author: String? = null,
+    /** Détails propres à la source (offres : `jobType`, `location`, `salary`). */
+    val extra: JsonObject = JsonObject(emptyMap()),
+) {
+    /** Un détail texte de [extra], ou null s'il manque ou s'il est vide. */
+    fun extraText(key: String): String? =
+        (extra[key] as? JsonPrimitive)?.takeIf { it.isString }?.content?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** Une liste de textes de [extra] (outils d'un skill…), vide si elle manque. */
+    fun extraList(key: String): List<String> =
+        (extra[key] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content?.takeIf { c -> c.isNotBlank() } }.orEmpty()
+}
 
 /** GET /api/v1/news/home : la une, les rubriques et les vidéos, en un appel. */
 @Serializable

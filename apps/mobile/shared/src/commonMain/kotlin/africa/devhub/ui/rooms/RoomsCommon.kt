@@ -29,6 +29,9 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,6 +77,31 @@ fun RoomMark(name: String, size: Dp, modifier: Modifier = Modifier) {
     val (bg, fg) = avatarTone(name)
     Box(modifier.size(size).clip(RoundedCornerShape(30)).background(bg), contentAlignment = Alignment.Center) {
         Text(name.take(2), color = fg, style = MaterialTheme.typography.titleMedium, fontSize = (size.value * 0.4f).sp)
+    }
+}
+
+/**
+ * Logo d'une entreprise ou d'un projet : l'image (lue par le proxy du serveur) sur fond blanc, ou le
+ * monogramme tant qu'elle manque, charge mal ou n'existe pas.
+ */
+@Composable
+fun RemoteLogo(url: String?, name: String, size: Dp, modifier: Modifier = Modifier) {
+    var failed by androidx.compose.runtime.remember(url) { androidx.compose.runtime.mutableStateOf(false) }
+    if (url.isNullOrBlank() || failed) {
+        RoomMark(name, size, modifier)
+    } else {
+        Box(
+            modifier.size(size).clip(RoundedCornerShape(8.dp)).background(Color.White).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            africa.devhub.ui.components.RemoteImage(
+                url = url,
+                width = (size.value * 3).toInt(),
+                modifier = Modifier.matchParentSize().padding(4.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                onFailed = { failed = true },
+            )
+        }
     }
 }
 

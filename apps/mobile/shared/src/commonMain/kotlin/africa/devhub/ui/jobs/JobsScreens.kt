@@ -2,9 +2,23 @@ package africa.devhub.ui.jobs
 
 import androidx.compose.foundation.background
 import africa.devhub.ui.theme.successColor
+import africa.devhub.ui.rooms.RemoteLogo
 import africa.devhub.ui.rooms.RoomMark
 import africa.devhub.ui.components.SecondaryPill
+import africa.devhub.news.LiveBoardState
+import africa.devhub.news.NewsItem
+import africa.devhub.resources.jobs_live_linkedin
+import africa.devhub.resources.jobs_live_refresh
+import africa.devhub.resources.jobs_live_sources
+import africa.devhub.resources.jobs_live_title
+import africa.devhub.resources.live_empty
+import africa.devhub.resources.live_failed
+import africa.devhub.resources.live_failed_text
+import africa.devhub.resources.live_open
+import africa.devhub.ui.components.DevHubIcons
+import africa.devhub.ui.passport.agoLabel
 import africa.devhub.ui.components.DevCard
+import africa.devhub.ui.components.StateMessage
 import africa.devhub.ui.components.openWeb
 import africa.devhub.jobs.APPLY_MESSAGE_MAX
 import africa.devhub.jobs.APPLY_MESSAGE_MIN
@@ -98,6 +112,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -143,8 +158,12 @@ fun JobsScreen(
     onRetry: () -> Unit,
     onOpen: (String) -> Unit,
     onApplications: () -> Unit,
+    live: LiveBoardState = LiveBoardState(),
+    onLiveRefresh: () -> Unit = {},
+    onLiveRetry: () -> Unit = {},
 ) {
     val f = state.filters
+    val uriHandler = LocalUriHandler.current
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
@@ -189,6 +208,101 @@ fun JobsScreen(
                 state.items.isEmpty() -> item { EmptyCard(stringResource(Res.string.jobs_empty), Res.drawable.djeli_laptop) }
                 else -> items(state.items, key = { it.id }) { JobCard(it, onOpen) }
             }
+            liveJobItems(live, onLiveRefresh, onLiveRetry) { uriHandler.openWeb(it) }
+        }
+    }
+}
+
+/** Lien de recherche LinkedIn : pas d'API ouverte et collecte interdite, donc un simple lien, comme sur le web. */
+private const val LINKEDIN_SEARCH = "https://www.linkedin.com/jobs/search/?keywords=developer&location=Africa&f_WT=2"
+
+/**
+ * « Offres en direct » : les annonces collectées par l'API chez des sources officielles (Remotive,
+ * Jobicy, Himalayas…), sous les offres de DevHub. Relues seules toutes les 5 minutes.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+private fun androidx.compose.foundation.lazy.LazyListScope.liveJobItems(
+    live: LiveBoardState,
+    onRefresh: () -> Unit,
+    onRetry: () -> Unit,
+    open: (String) -> Unit,
+) {
+    item {
+        Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.Icon(DevHubIcons.Radio, contentDescription = null, tint = successColor, modifier = Modifier.size(18.dp))
+                Text(
+                    stringResource(Res.string.jobs_live_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+            }
+            val sources = live.items.map { it.sourceName }.distinct().size
+            if (sources > 0) {
+                Text(
+                    stringResource(Res.string.jobs_live_sources, sources),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SecondaryPill(stringResource(Res.string.jobs_live_refresh), onRefresh, leading = DevHubIcons.Refresh, enabled = !live.loading)
+                SecondaryPill(stringResource(Res.string.jobs_live_linkedin), { open(LINKEDIN_SEARCH) }, leading = DevHubIcons.ExternalLink)
+            }
+        }
+    }
+    when {
+        live.loading && live.items.isEmpty() -> item { Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) { CircularProgressIndicator() } }
+        live.failed && live.items.isEmpty() -> item {
+            DevCard {
+                StateMessage(
+                    icon = DevHubIcons.WifiOff,
+                    title = stringResource(Res.string.live_failed),
+                    text = stringResource(Res.string.live_failed_text),
+                    isError = true,
+                    onRetry = onRetry,
+                )
+            }
+        }
+        live.items.isEmpty() -> item { DevCard { StateMessage(icon = DevHubIcons.Search, title = stringResource(Res.string.live_empty)) } }
+        else -> items(live.items, key = { it.id }) { LiveJobCard(it) { open(it.url) } }
+    }
+}
+
+/** Offre collectée (`LiveCard` du web) : entreprise, contrat, lieu et salaire ; s'ouvre sur l'annonce d'origine. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LiveJobCard(item: NewsItem, onOpen: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    DevCard(Modifier.clickable(role = Role.Button, onClickLabel = stringResource(Res.string.live_open), onClick = onOpen)) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            RemoteLogo(item.image, item.author ?: item.sourceName, 48.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(item.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    androidx.compose.material3.Icon(
+                        DevHubIcons.ExternalLink,
+                        contentDescription = null,
+                        tint = scheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 8.dp, top = 2.dp).size(16.dp),
+                    )
+                }
+                item.author?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                val tags = listOfNotNull(item.extraText("jobType"), item.extraText("location"))
+                val salary = item.extraText("salary")
+                if (tags.isNotEmpty() || salary != null) {
+                    FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        tags.forEach { Chip(it, scheme.onSurface, scheme.surfaceVariant) }
+                        salary?.let { Chip(it, successColor, successColor.copy(alpha = 0.12f)) }
+                    }
+                }
+                Text(
+                    item.sourceName + " · " + agoLabel(item.publishedAt),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
         }
     }
 }
@@ -225,6 +339,8 @@ private fun Chip(text: String, color: androidx.compose.ui.graphics.Color, backgr
         text,
         style = MaterialTheme.typography.labelMedium,
         color = color,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.background(background, androidx.compose.foundation.shape.RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }

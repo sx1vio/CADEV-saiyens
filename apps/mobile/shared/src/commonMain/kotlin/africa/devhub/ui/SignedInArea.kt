@@ -127,6 +127,7 @@ import africa.devhub.resources.certs_title
 import africa.devhub.resources.skills_title
 import africa.devhub.ui.components.openWeb
 import africa.devhub.ui.news.LiveBoardScreen
+import africa.devhub.ui.news.LiveRefresh
 import androidx.compose.ui.platform.LocalUriHandler
 import africa.devhub.resources.messages_title
 import africa.devhub.resources.news_title
@@ -393,6 +394,8 @@ fun SignedInArea(
             dismissButton = { TextButton(onClick = { confirmSignOut = false }) { Text(stringResource(Res.string.signout_cancel)) } },
         )
     }
+    // Une entrée du tiroir ouvre toujours la racine de sa page : ni pile restaurée (on retombait sur
+    // un détail au lieu de la liste), ni second Accueil empilé. Accueil, lui, dépile jusqu'à sa racine.
     val go: (Any) -> Unit = { route ->
         scope.launch { drawerState.close() }
         if (route == HomeRoute) {
@@ -571,6 +574,7 @@ fun SignedInArea(
                     val state by vm.state.collectAsStateWithLifecycle()
                     val liveVm = viewModel { LiveBoardViewModel(graph.newsApi, "cert") }
                     val live by liveVm.state.collectAsStateWithLifecycle()
+                    LiveRefresh(liveVm::refresh)
                     CertificationsScreen(
                         state = state,
                         live = live,
@@ -591,6 +595,7 @@ fun SignedInArea(
                 composable<SkillsRoute> {
                     val vm = viewModel { LiveBoardViewModel(graph.newsApi, "skill") }
                     val board by vm.state.collectAsStateWithLifecycle()
+                    LiveRefresh(vm::refresh)
                     LiveBoardScreen("skill", board, onCategory = vm::setCategory, onQuery = vm::setQuery, onRetry = vm::reload)
                 }
                 composable<NewsRoute> {
@@ -643,12 +648,18 @@ fun SignedInArea(
                 composable<JobsRoute> {
                     val vm = viewModel { JobsViewModel(graph.jobsApi, space) }
                     val state by vm.state.collectAsStateWithLifecycle()
+                    val liveVm = viewModel { LiveBoardViewModel(graph.newsApi, "job") }
+                    val live by liveVm.state.collectAsStateWithLifecycle()
+                    LiveRefresh(liveVm::refresh)
                     JobsScreen(
                         state = state,
                         onFilters = vm::setFilters,
                         onRetry = vm::reload,
                         onOpen = { navController.navigate(JobRoute(it)) },
                         onApplications = { navController.navigate(ApplicationsRoute) },
+                        live = live,
+                        onLiveRefresh = { liveVm.reload() },
+                        onLiveRetry = liveVm::reload,
                     )
                 }
                 composable<JobRoute> { backStack ->

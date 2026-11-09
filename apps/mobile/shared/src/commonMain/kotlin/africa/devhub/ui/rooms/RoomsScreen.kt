@@ -34,6 +34,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import africa.devhub.ui.components.Badge
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import africa.devhub.ui.passport.agoLabel
+import africa.devhub.ui.components.RemoteImage
+import africa.devhub.ui.components.Initials
+import africa.devhub.resources.room_live
+import africa.devhub.resources.room_by
+import africa.devhub.resources.room_active
 import africa.devhub.ui.components.DevCard
 import africa.devhub.ui.components.DevHubIcons
 import africa.devhub.ui.components.TechTag
@@ -139,6 +147,30 @@ private fun RoomCard(room: RoomSummary, onOpen: (String) -> Unit) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     room.stack.take(4).forEach { TechTag(it.label) }
                 }
+            }
+            // Preuves publiques du projet : en production (URL qui sert le jeton de la salle) et dépôt GitHub.
+            val live = room.deployment?.takeIf { it.status == "verified" }
+            if (live != null || room.repo != null) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (live != null) Badge(stringResource(Res.string.room_live), successColor, DevHubIcons.Check)
+                    room.repo?.let { repo ->
+                        val name = if (repo.fullName.length > 30) repo.fullName.take(29) + "…" else repo.fullName
+                        Badge(name, scheme.onSurfaceVariant, DevHubIcons.GitBranch)
+                    }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.size(24.dp).clip(CircleShape)) {
+                    Initials(room.owner.displayName, 24.dp)
+                    RemoteImage(room.owner.avatarUrl, width = 72, modifier = Modifier.matchParentSize())
+                }
+                Text(
+                    stringResource(Res.string.room_by, room.owner.displayName) + " · " + stringResource(Res.string.room_active, agoLabel(room.lastActivityAt)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
         HorizontalDivider(color = scheme.outlineVariant)

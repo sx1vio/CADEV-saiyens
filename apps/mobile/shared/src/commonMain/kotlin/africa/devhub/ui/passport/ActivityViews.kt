@@ -292,7 +292,7 @@ private fun EventRow(e: GithubEvent, onOpen: (String) -> Unit) {
 
 /** « aujourd'hui », « il y a 3 j », « il y a 2 mois » : l'âge d'un horodatage ISO. */
 @Composable
-private fun agoLabel(iso: String): String {
+internal fun agoLabel(iso: String): String {
     val days = remember(iso) { epochDayOf(iso)?.let { (todayEpochDay() - it).coerceAtLeast(0) } } ?: return ""
     return when {
         days == 0L -> stringResource(Res.string.gh_ago_today)

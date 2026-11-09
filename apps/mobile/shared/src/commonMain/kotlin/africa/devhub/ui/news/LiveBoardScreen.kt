@@ -17,9 +17,17 @@ import africa.devhub.resources.live_open
 import africa.devhub.resources.months
 import africa.devhub.ui.components.DevCard
 import africa.devhub.ui.components.DevHubIcons
-import africa.devhub.ui.components.Pill
 import africa.devhub.ui.components.StateMessage
 import africa.devhub.ui.components.dayMonthYear
+import africa.devhub.ui.components.RemoteImage
+import africa.devhub.ui.components.TechTag
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import africa.devhub.ui.components.openWeb
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -151,53 +159,61 @@ private val SkillTypes = listOf(
     "rules" to Res.string.live_type_rules,
 )
 
+/** Noms d'outils d'IA tels que le web les affiche. */
+private val ToolNames = mapOf("claude" to "Claude Code", "codex" to "Codex", "cursor" to "Cursor", "antigravity" to "Antigravity")
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BoardCard(item: NewsItem, isSkill: Boolean, months: List<String>, onOpen: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
     DevCard(Modifier.clickable(role = Role.Button, onClickLabel = stringResource(Res.string.live_open), onClick = onOpen)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(verticalAlignment = Alignment.Top) {
-                Text(
-                    item.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    DevHubIcons.ExternalLink,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp, top = 2.dp).size(16.dp),
-                )
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Comme sur le web : l'image de la source (avatar GitHub, logo) ou un carré vide qui garde l'alignement.
+            Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(scheme.surfaceVariant)) {
+                RemoteImage(item.image, width = 144, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Fit)
             }
-            if (item.summary.isNotBlank()) {
-                Text(
-                    item.summary,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (isSkill && item.category.isNotBlank()) Pill(item.category, MaterialTheme.colorScheme.primary)
-                Text(
-                    item.sourceName,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                if (isSkill && item.score > 0) {
-                    Icon(DevHubIcons.Star, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
-                    Text(item.score.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else if (!isSkill) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.Top) {
                     Text(
-                        dayMonthYear(item.publishedAt, months),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        item.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontFamily = if (isSkill) FontFamily.Monospace else null,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
                     )
+                    Icon(
+                        DevHubIcons.ExternalLink,
+                        contentDescription = null,
+                        tint = scheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 8.dp, top = 2.dp).size(16.dp),
+                    )
+                }
+                if (item.summary.isNotBlank()) {
+                    Text(item.summary, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                val tags = if (isSkill) listOf(item.category) + item.extraList("tools").map { ToolNames[it] ?: it } else item.extraList("levels") + item.extraList("roles")
+                val shown = tags.filter { it.isNotBlank() }.take(4)
+                if (shown.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        shown.forEach { TechTag(it) }
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        item.sourceName,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = scheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (isSkill && item.score > 0) {
+                        Icon(DevHubIcons.Star, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
+                        Text(item.score.toString(), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                    } else if (!isSkill) {
+                        Text(dayMonthYear(item.publishedAt, months), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                    }
                 }
             }
         }

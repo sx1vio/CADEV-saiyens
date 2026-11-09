@@ -864,4 +864,10 @@
     <string name="passport_cover_desc">Activity on DevHub over the last weeks, one square per day</string>
     <string name="passport_share">Share</string>
     <string name="passport_share_copied">Link copied</string>
+    <string name="jobs_live_title">Live offers · devs in Africa and remote</string>
+    <string name="jobs_live_sources">%1$d official sources</string>
+    <string name="jobs_live_refresh">Refresh</string>
+    <string name="jobs_live_linkedin">Search on LinkedIn</string>
+    <string name="room_active">Active %1$s</string>
+    <string name="room_live">In production</string>
 </resources>
