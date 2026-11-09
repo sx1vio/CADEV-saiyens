@@ -27,6 +27,10 @@ sealed interface PassportState {
         val cachedAt: Long? = null,
         /** Badges de certification publics ; vide si la liste n'a pas pu être lue. */
         val certs: List<UserCertificate> = emptyList(),
+        /** Preuves par jour, pour la grille du bandeau ; vide tant qu'elles n'ont pas été lues. */
+        val proofDays: Map<Long, Int> = emptyMap(),
+        /** Activité GitHub publique ; null si GitHub n'est pas relié, masqué ou injoignable. */
+        val github: GithubActivity? = null,
     ) : PassportState
 }
 
@@ -71,7 +75,7 @@ class PassportViewModel(
                     fetched.value,
                     cachedAt = fetched.cachedAt,
                     certs = runCatching { api.certificates(handle).items }.getOrDefault(emptyList()),
-                )
+                ).also { enrich() }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ApiException) {
@@ -79,6 +83,18 @@ class PassportViewModel(
             } catch (_: Exception) {
                 PassportState.Failed
             }
+        }
+    }
+
+    /** Grille du bandeau et bloc GitHub : lus après le profil, qui s'affiche sans les attendre. */
+    private fun enrich() {
+        viewModelScope.launch {
+            val days = runCatching { proofsPerDay(api.proofs(handle, limit = PROOF_DAYS_PAGE).events) }.getOrNull()
+            if (days != null) _state.update { (it as? PassportState.Loaded)?.copy(proofDays = days) ?: it }
+        }
+        viewModelScope.launch {
+            val github = runCatching { api.githubActivity(handle) }.getOrNull()
+            if (github != null) _state.update { (it as? PassportState.Loaded)?.copy(github = github) ?: it }
         }
     }
 
@@ -111,3 +127,5 @@ class PassportViewModel(
         }
     }
 }
+
+private const val PROOF_DAYS_PAGE = 50

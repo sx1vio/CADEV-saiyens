@@ -26,7 +26,10 @@ import africa.devhub.resources.passport_can_help
 import africa.devhub.resources.passport_certs_none
 import africa.devhub.resources.passport_certs_none_mine
 import africa.devhub.resources.passport_certs_prepare
+import africa.devhub.resources.passport_cover_desc
 import africa.devhub.resources.passport_edit
+import africa.devhub.resources.passport_share
+import africa.devhub.resources.passport_share_copied
 import africa.devhub.resources.passport_failed
 import africa.devhub.resources.passport_help_title
 import africa.devhub.resources.passport_member_since
@@ -137,6 +140,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import africa.devhub.passport.lastDays
+import africa.devhub.ui.theme.successColor
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
@@ -153,6 +163,8 @@ fun PassportScreen(
     onSeeProofs: () -> Unit,
     onEdit: () -> Unit,
     onCerts: () -> Unit,
+    /** Adresse publique du profil, copiée par « Partager ». */
+    shareUrl: String,
     /** Écrire à ce dev (profil d'un autre membre) ; null sur son propre profil. */
     onWrite: (() -> Unit)? = null,
     writeFailed: Boolean = false,
@@ -161,7 +173,7 @@ fun PassportScreen(
         PassportState.Loading -> LoadingScreen()
         PassportState.NotFound -> Message(stringResource(Res.string.passport_not_found), null)
         PassportState.Failed -> Message(stringResource(Res.string.passport_failed), onRetry)
-        is PassportState.Loaded -> Loaded(state, isMine, lang, onRefreshGithub, onSeeProofs, onEdit, onCerts, onWrite, writeFailed)
+        is PassportState.Loaded -> Loaded(state, isMine, lang, onRefreshGithub, onSeeProofs, onEdit, onCerts, shareUrl, onWrite, writeFailed)
     }
 }
 
@@ -190,10 +202,20 @@ private fun Loaded(
     onSeeProofs: () -> Unit,
     onEdit: () -> Unit,
     onCerts: () -> Unit,
+    shareUrl: String,
     onWrite: (() -> Unit)?,
     writeFailed: Boolean,
 ) {
     val passport = state.passport
+    val clipboard = LocalClipboardManager.current
+    var copied by remember { mutableStateOf(false) }
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(2_000)
+            copied = false
+        }
+    }
+    val coverDays = remember(state.proofDays) { lastDays(state.proofDays, todayEpochDay(), 52 * 7) }
     val user = passport.user
     val months = stringArrayResource(Res.array.months)
     var tab by rememberSaveable { mutableStateOf(TAB_OVERVIEW) }
@@ -212,7 +234,7 @@ private fun Loaded(
             Text(stringResource(Res.string.cached_copy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         DevCard {
-            Cover()
+            ProfileCover(coverDays, stringResource(Res.string.passport_cover_desc))
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // La moitié basse de l'avatar est ici ; sa moitié haute remonte sur le bandeau.
                 Row(Modifier.fillMaxWidth().height(52.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -220,11 +242,25 @@ private fun Loaded(
                         Modifier.offset(y = (-26).dp).requiredSize(96.dp).background(MaterialTheme.colorScheme.surface, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) { Initials(user.displayName, size = 88.dp) }
-                    if (isMine) {
-                        SecondaryPill(stringResource(Res.string.passport_edit), onEdit)
-                    } else if (onWrite != null) {
-                        PrimaryPill(stringResource(Res.string.passport_write), onWrite)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (isMine) {
+                            SecondaryPill(stringResource(Res.string.passport_edit), onEdit)
+                        } else if (onWrite != null) {
+                            PrimaryPill(stringResource(Res.string.passport_write), onWrite)
+                        }
+                        ShareButton(stringResource(Res.string.passport_share)) {
+                            clipboard.setText(AnnotatedString(shareUrl))
+                            copied = true
+                        }
                     }
+                }
+                if (copied) {
+                    Text(
+                        stringResource(Res.string.passport_share_copied),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = successColor,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
                 }
                 if (writeFailed) Text(stringResource(Res.string.passport_write_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -296,6 +332,7 @@ private fun Loaded(
                 if (about.isNotEmpty()) Panel(stringResource(Res.string.passport_about)) { Text(about, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 if (passport.projects.isNotEmpty()) Panel(stringResource(Res.string.passport_projects)) { Projects(passport.projects.take(4)) }
                 passport.stats?.let { HelpPanel(it) }
+                state.github?.let { GithubPanel(it) }
                 SkillsPanel(passport.skills, limit = 5)
                 TimelinePanel(passport.stats?.totalXp ?: 0, onSeeProofs)
                 CertsPanel(state.certs, isMine, onCerts)
@@ -335,26 +372,6 @@ private fun Loaded(
             else -> TimelinePanel(passport.stats?.totalXp ?: 0, onSeeProofs)
         }
     }
-}
-
-/** Bandeau sombre du profil : le web y dessine la grille d'activité, ici sa trame discrète. */
-@Composable
-private fun Cover() {
-    Box(
-        Modifier.fillMaxWidth().height(96.dp).background(Color(0xFF111214)).drawBehind {
-            val cell = 11.dp.toPx()
-            val step = cell + 3.dp.toPx()
-            var y = 8.dp.toPx()
-            while (y + cell < size.height) {
-                var x = size.width * 0.38f
-                while (x + cell < size.width) {
-                    drawRoundRect(Color.White.copy(alpha = 0.045f), Offset(x, y), Size(cell, cell), CornerRadius(2.dp.toPx()))
-                    x += step
-                }
-                y += step
-            }
-        },
-    )
 }
 
 @Composable

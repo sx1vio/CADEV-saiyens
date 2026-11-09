@@ -48,11 +48,19 @@ class PassportViewModelTest {
         val paths = mutableListOf<String>()
         val graph = testGraph(dispatcher = main) { request ->
             paths += request.url.encodedPath
-            if (request.url.encodedPath.endsWith("/certificates")) json(CERTIFICATES) else json(passportJson())
+            when {
+                request.url.encodedPath.endsWith("/certificates") -> json(CERTIFICATES)
+                request.url.encodedPath.endsWith("/proofs") -> json(proofsJson(emptyList(), null))
+                request.url.encodedPath.endsWith("/github") -> problem(HttpStatusCode.NotFound, "not_found")
+                else -> json(passportJson())
+            }
         }
         val vm = PassportViewModel(graph.passportApi, "awa-dev").tracked()
         val loaded = assertIs<PassportState.Loaded>(vm.state.value)
-        assertEquals(listOf("/api/v1/u/awa-dev", "/api/v1/u/awa-dev/certificates"), paths)
+        // Le profil et les badges d'abord ; la bannière et le bloc GitHub se chargent ensuite.
+        assertEquals(listOf("/api/v1/u/awa-dev", "/api/v1/u/awa-dev/certificates"), paths.take(2))
+        assertEquals(setOf("/api/v1/u/awa-dev/proofs", "/api/v1/users/awa-dev/github"), paths.drop(2).toSet())
+        assertEquals(null, loaded.github)
         assertEquals("DH-AB12", loaded.certs.single().code)
         assertEquals(42, loaded.passport.stats?.totalXp)
         assertEquals(35, loaded.passport.skills.single().githubSignal)
@@ -91,6 +99,10 @@ class PassportViewModelTest {
                 )
             } else if (request.url.encodedPath.endsWith("/certificates")) {
                 json(CERTIFICATES)
+            } else if (request.url.encodedPath.endsWith("/proofs")) {
+                json(proofsJson(emptyList(), null))
+            } else if (request.url.encodedPath.endsWith("/github")) {
+                problem(HttpStatusCode.NotFound, "not_found")
             } else {
                 loads++
                 json(passportJson(totalXp = 40 + loads))

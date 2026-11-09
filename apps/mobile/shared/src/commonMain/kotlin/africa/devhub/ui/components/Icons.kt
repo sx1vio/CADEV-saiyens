@@ -19,6 +19,7 @@ object DevHubIcons {
     val Cloud: ImageVector = icon("Cloud", "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z")
     val Terminal: ImageVector = icon("Terminal", "M12 19h8m-16-2 6-6-6-6")
     val GitBranch: ImageVector = icon("GitBranch", "M6 3v12M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM3 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM18 9a9 9 0 0 1-9 9")
+    val Share: ImageVector = icon("Share", "M15 5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM15 19a3 3 0 1 0 6 0a3 3 0 1 0 -6 0zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98")
     val Smartphone: ImageVector = icon("Smartphone", "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01")
     val Map: ImageVector = icon("Map", "M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0zM15 5.764v15M9 3.236v15")
     val Home: ImageVector = icon("Home", "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z")

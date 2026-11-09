@@ -22,6 +22,10 @@ class PassportApi(private val http: HttpClient) {
             }
         }
 
+    /** Activité GitHub publique ; 404 quand GitHub n'est pas relié ou l'activité masquée. */
+    suspend fun githubActivity(handle: String): GithubActivity =
+        apiCall { http.get("api/v1/users/${handle.encodeURLPathPart()}/github") }
+
     /** Réimport du profil GitHub (une fois par heure au plus). */
     suspend fun refreshGithub(): MySkills = apiCall { http.post("api/v1/me/github/refresh") }
 }

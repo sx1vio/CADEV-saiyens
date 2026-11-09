@@ -846,4 +846,22 @@
     <string name="onb_plan_skills_t">They arrive in the “For me” tab of Questions.</string>
     <string name="onb_plan_jobs_t">Offers that match you</string>
     <string name="onb_plan_jobs_d">Ranked by your proven skills.</string>
+    <string name="gh_title">On GitHub</string>
+    <string name="gh_public_data">Public data · updated %1$s</string>
+    <string name="gh_repos">Public repos</string>
+    <string name="gh_stars">Stars received</string>
+    <string name="gh_commits">Commits (90 d)</string>
+    <string name="gh_followers">Followers</string>
+    <string name="gh_since">On GitHub since %1$d</string>
+    <string name="gh_calendar">Public activity, last 13 weeks</string>
+    <string name="gh_grid_desc">GitHub activity over the last 13 weeks: %1$d public events</string>
+    <string name="gh_featured">Featured repositories</string>
+    <string name="gh_commits_recent">Recent commits</string>
+    <string name="gh_events_recent">Recent activity</string>
+    <string name="gh_ago_today">today</string>
+    <string name="gh_ago_days">%1$d d ago</string>
+    <string name="gh_ago_months">%1$d mo ago</string>
+    <string name="passport_cover_desc">Activity on DevHub over the last weeks, one square per day</string>
+    <string name="passport_share">Share</string>
+    <string name="passport_share_copied">Link copied</string>
 </resources>
