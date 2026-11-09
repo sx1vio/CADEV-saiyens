@@ -23,6 +23,7 @@ import { DeploymentCard } from '@/components/DeploymentCard';
 import { FeedbackRow, FeedbackSheet } from '@/components/FeedbackRequests';
 import { EmptyState, ErrorState } from '@/components/djeli';
 import { DemoBadge, errorText, RoomIcon, UserLink } from '@/components/domain';
+import { isNotFound } from '@/lib/not-found';
 import { GitHubIcon } from '@/components/icons';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Markdown } from '@/components/ui/code';
@@ -95,8 +96,9 @@ export default function Room() {
   if (error)
     return (
       <div className="mx-auto max-w-3xl p-6">
-        {(error as { code?: string }).code === 'not-found' ? (
+        {isNotFound(error) ? (
           <EmptyState
+            heading
             title={t('room.notFound')}
             action={
               <ButtonLink to="/projets" variant="secondary">

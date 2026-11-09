@@ -14,6 +14,18 @@ Portail des entreprises qui recrutent sur DevHub, servi sur **sa propre adresse*
    (nouvelle, consultée, entretien, recrutée, non retenue). Le dev est notifié à chaque étape
    et suit l'avancement dans « Mes candidatures ».
 
+## Compte et équipe
+
+- **Équipe** : le propriétaire (le compte qui a inscrit l'entreprise) ajoute des recruteurs ; chacun
+  a son propre accès. Le mot de passe provisoire n'est affiché qu'une fois, au propriétaire, qui le
+  transmet ; le recruteur le change dans « Compte et équipe ». Retirer un recruteur ferme aussitôt
+  ses sessions (le compte est désactivé, l'historique reste).
+- **Mot de passe** : changement avec le mot de passe actuel (les autres sessions sont fermées) ;
+  « Mot de passe oublié » envoie un lien valable une heure, à usage unique, dont le jeton est dans
+  le fragment de l'adresse (`#reinitialiser=…`) : il n'atteint jamais un serveur ni un journal.
+- **Tableau de bord** : chiffres des offres, dernières candidatures avec un lien direct vers les
+  candidatures de l'offre.
+
 ## Sécurité
 
 - Comptes recruteurs **séparés** des comptes devs (jamais dans l'annuaire ni le classement).

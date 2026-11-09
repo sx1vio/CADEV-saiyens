@@ -1,7 +1,11 @@
 import { createHash } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import {
+  BadRequestException,
   Body,
   ConflictException,
+  ForbiddenException,
+  Logger,
   Controller,
   Delete,
   Get,
@@ -14,6 +18,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -24,25 +29,35 @@ import { ApiExcludeController } from '@nestjs/swagger';
 import {
   ApplicationStatusRequest,
   type ApplicationView,
+  BusinessInviteRequest,
+  type BusinessInviteResponse,
   BusinessJobInput,
   type BusinessJobView,
   BusinessLoginRequest,
   type BusinessMeView,
+  BusinessPasswordChange,
   BusinessRegisterRequest,
+  type BusinessTeamMember,
   CompanyProfileInput,
   type CompanyView,
+  PasswordForgotRequest,
+  PasswordResetRequest,
+  type RecentApplicationView,
 } from '@devhub/contracts';
 import type { Request, Response } from 'express';
 import { createZodDto } from 'nestjs-zod';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
+import { MAILER, type Mailer } from '../../../infrastructure/mail/mailer';
 import {
   AttemptLimiter,
+  PasswordResets,
   ScryptPasswordHasher,
   baseCookie,
   hashSessionToken,
   newSessionToken,
   readCookie,
+  resetEmail,
 } from '../../identity';
 import {
   BusinessRepository,
@@ -63,6 +78,19 @@ class LoginDto extends createZodDto(BusinessLoginRequest) {}
 class CompanyDto extends createZodDto(CompanyProfileInput) {}
 class JobDto extends createZodDto(BusinessJobInput) {}
 class StatusDto extends createZodDto(ApplicationStatusRequest) {}
+class ForgotDto extends createZodDto(PasswordForgotRequest) {}
+class ResetDto extends createZodDto(PasswordResetRequest) {}
+class PasswordChangeDto extends createZodDto(BusinessPasswordChange) {}
+class InviteDto extends createZodDto(BusinessInviteRequest) {}
+
+/** Mot de passe provisoire lisible : 16 caractères sans ambiguïté (pas de 0/O, 1/l). */
+function provisionalPassword(): string {
+  const alphabet = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return [...randomBytes(16)].map((b) => alphabet[b % alphabet.length]).join('');
+}
+
+const ownerOnly = () =>
+  new ForbiddenException({ code: 'business.owner_only', title: 'Only the owner can do this' });
 
 const cookie = { ...baseCookie, sameSite: 'strict' as const };
 const DUMMY_HASH =
@@ -80,11 +108,14 @@ const notVerified = () =>
 export class BusinessController {
   private readonly limiter = new AttemptLimiter();
   private readonly hasher = new ScryptPasswordHasher();
+  private readonly logger = new Logger(BusinessController.name);
 
   constructor(
     @Inject(ENV) private readonly env: Env,
     private readonly repo: BusinessRepository,
     private readonly sessions: BusinessSessionStore,
+    private readonly resets: PasswordResets,
+    @Inject(MAILER) private readonly mailer: Mailer,
   ) {}
 
   private ipKey(req: Request): string {
@@ -160,6 +191,118 @@ export class BusinessController {
     const token = readCookie(req, BUSINESS_COOKIE);
     if (token) await this.sessions.delete(hashSessionToken(token));
     res.clearCookie(BUSINESS_COOKIE, cookie);
+  }
+
+  /** Mot de passe oublié : toujours 204 (on ne révèle pas quelles adresses ont un compte). */
+  @Post('password/forgot')
+  @HttpCode(204)
+  async forgot(@Body() body: ForgotDto, @Req() req: Request): Promise<void> {
+    assertBusinessChannel(req, this.env);
+    this.guardRate(req);
+    this.limiter.fail(this.ipKey(req));
+    const account = await this.repo.findResettable(body.email);
+    if (!account) return;
+    const token = await this.resets.issue('business', account.id);
+    // Jeton dans le fragment : le portail le lit, il n'atteint jamais un serveur ni un journal.
+    const url = `${new URL(this.env.BUSINESS_URL!).origin}/#reinitialiser=${token}`;
+    try {
+      await this.mailer.send({
+        to: account.email,
+        ...resetEmail({ name: account.name, url, product: 'DevHub Business', formal: true }),
+      });
+    } catch (err) {
+      this.logger.error({ err }, 'E-mail de réinitialisation non envoyé');
+    }
+  }
+
+  @Post('password/reset')
+  @HttpCode(204)
+  async reset(@Body() body: ResetDto, @Req() req: Request): Promise<void> {
+    assertBusinessChannel(req, this.env);
+    this.guardRate(req);
+    // Règle des comptes recruteurs (10 caractères), vérifiée avant de consommer le lien.
+    if (body.password.length < 10)
+      throw new BadRequestException({
+        code: 'validation.failed',
+        title: 'Password too short',
+        errors: [{ path: ['password'], message: '10 caractères au moins' }],
+      });
+    const accountId = await this.resets.consume('business', body.token);
+    if (!accountId) {
+      this.limiter.fail(this.ipKey(req));
+      throw new BadRequestException({
+        code: 'auth.reset_invalid',
+        title: 'This reset link is invalid or has expired',
+      });
+    }
+    await this.repo.setPassword(accountId, await this.hasher.hash(body.password));
+  }
+
+  /** Changer son mot de passe : les autres sessions du compte sont fermées. */
+  @Put('account/password')
+  @HttpCode(204)
+  @UseGuards(BusinessSessionGuard)
+  async changePassword(@Body() body: PasswordChangeDto, @Req() req: BusinessRequest) {
+    this.guardRate(req);
+    const account = await this.repo.findAccount(req.biz!.accountId);
+    if (!account || !(await this.hasher.verify(body.current, account.passwordHash))) {
+      this.limiter.fail(this.ipKey(req));
+      throw new UnauthorizedException({
+        code: 'auth.bad_credentials',
+        title: 'Wrong current password',
+      });
+    }
+    await this.repo.setPassword(account.id, await this.hasher.hash(body.password), req.biz!.idHash);
+  }
+
+  @Get('team')
+  @UseGuards(BusinessSessionGuard)
+  async team(@Req() req: BusinessRequest): Promise<{ data: BusinessTeamMember[] }> {
+    return { data: await this.repo.team(req.biz!.companyId) };
+  }
+
+  /** Le propriétaire ajoute un recruteur ; le mot de passe provisoire n'est montré qu'une fois. */
+  @Post('team')
+  @UseGuards(BusinessSessionGuard)
+  async invite(
+    @Body() body: InviteDto,
+    @Req() req: BusinessRequest,
+  ): Promise<BusinessInviteResponse> {
+    if (req.biz!.role !== 'owner') throw ownerOnly();
+    const password = provisionalPassword();
+    try {
+      const member = await this.repo.addRecruiter(
+        req.biz!.companyId,
+        body,
+        await this.hasher.hash(password),
+      );
+      return { member, password };
+    } catch (e) {
+      if (e instanceof EmailTakenError)
+        throw new ConflictException({
+          code: 'auth.email_taken',
+          title: 'Email already registered',
+        });
+      throw e;
+    }
+  }
+
+  @Delete('team/:id')
+  @HttpCode(204)
+  @UseGuards(BusinessSessionGuard)
+  async removeMember(@Param('id', ParseUUIDPipe) id: string, @Req() req: BusinessRequest) {
+    if (req.biz!.role !== 'owner') throw ownerOnly();
+    if (!(await this.repo.removeRecruiter(req.biz!.companyId, id))) throw notFound();
+  }
+
+  @Get('applications')
+  @UseGuards(BusinessSessionGuard)
+  async recent(
+    @Req() req: BusinessRequest,
+    @Query('limit') limit?: string,
+  ): Promise<{ data: RecentApplicationView[] }> {
+    const take = Math.min(50, Math.max(1, Number(limit) || 8));
+    return { data: await this.repo.recentApplications(req.biz!.companyId, take) };
   }
 
   @Get('me')

@@ -83,6 +83,8 @@ export default function Jobs() {
   }, [jobs, q, active, saved]);
 
   const selected = (jobs ?? []).find((j) => j.id === id) ?? (wide ? list[0] : undefined);
+  // Lien vers une offre retirée ou expirée : on le dit au lieu d'afficher une autre offre sans prévenir.
+  const gone = !!id && !!jobs && !jobs.some((j) => j.id === id);
 
   const toggleFilter = (f: Filter) => {
     const next = active.includes(f) ? active.filter((x) => x !== f) : [...active, f];
@@ -105,7 +107,7 @@ export default function Jobs() {
           Toutes les offres
         </button>
         <div className="rounded-[10px] bg-surface-1">
-          <JobDetail job={selected} />
+          <JobDetail job={selected} alone />
         </div>
       </div>
     );
@@ -119,6 +121,12 @@ export default function Jobs() {
         title="Emplois"
         subtitle="Des offres réelles : publiées par des entreprises vérifiées par DevHub, sélectionnées par l’équipe, ou collectées en direct chez les entreprises qui recrutent en Afrique et à distance."
       >
+        {gone && (
+          <p role="status" className="rounded-[12px] bg-warning-soft px-4 py-3 text-[14px] text-fg">
+            Cette offre n’est plus en ligne : elle a été pourvue ou retirée. Voici les offres du
+            moment.
+          </p>
+        )}
         <form
           onSubmit={(e) => e.preventDefault()}
           className="flex h-12 items-center gap-2.5 rounded-full border border-line-strong bg-canvas px-4"
@@ -304,7 +312,9 @@ function JobRow({ job, active }: { job: JobOffer; active: boolean }) {
   );
 }
 
-function JobDetail({ job }: { job: JobOffer }) {
+/** `alone` : le détail occupe tout l'écran (mobile), son titre devient celui de la page. */
+function JobDetail({ job, alone }: { job: JobOffer; alone?: boolean }) {
+  const Title = alone ? 'h1' : 'h2';
   const saved = usePlatform((s) => s.savedJobs.includes(job.id));
   const toggle = usePlatform((s) => s.toggle);
   const expires = job.expiresAt
@@ -335,7 +345,9 @@ function JobDetail({ job }: { job: JobOffer }) {
               job.company
             )}
           </p>
-          <h2 className="mt-0.5 text-[19px] leading-tight font-semibold text-fg">{job.title}</h2>
+          <Title className="mt-0.5 text-[19px] leading-tight font-semibold text-fg">
+            {job.title}
+          </Title>
           <p className="mt-1 text-[13px] text-subtle">
             Publiée <Ago iso={job.publishedAt} />
             {expires && <> · jusqu’au {expires}</>}

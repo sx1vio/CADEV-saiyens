@@ -1,16 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
 import { uniqueLogin } from './support/session';
 
-/** Étapes 1 à 4 de /bienvenue pour un débutant : niveau, objectifs, cours choisi, rythme. */
+/** Étapes 1 à 4 de /bienvenue pour un débutant : niveau, objectifs, cours choisi, centres d'intérêt. */
 async function walkToProfile(page: Page) {
   const next = page.getByRole('button', { name: 'Continuer' });
   await page.getByRole('button', { name: /Je débute/ }).click();
   await next.click();
-  await page.getByRole('button', { name: /Apprendre à coder/ }).click();
+  await page.getByRole('button', { name: /Prouver mes compétences/ }).click();
   await next.click();
   await page.getByRole('button', { name: /Créer des sites web/ }).click();
   await next.click();
-  await page.getByRole('button', { name: /Régulier/ }).click();
+  await page.getByRole('button', { name: /Développement web/ }).click();
   await next.click();
 }
 
@@ -58,23 +58,24 @@ test('inscription par e-mail puis onboarding jusqu’au cours choisi', async ({ 
   expect(await me.json()).toMatchObject({ email, country: 'CI', githubLinked: false });
 });
 
-/** Un dev confirmé n'apprend pas ici : pas d'étape « rythme », mais « Comment veux-tu aider ? ». */
-test('onboarding d’un dev confirmé : pas de rythme, fuseau dans une liste', async ({ page }) => {
+/** Un dev confirmé ne choisit pas de cours : compétences, puis « Comment veux-tu aider ? ». */
+test('onboarding d’un dev confirmé : compétences, aide, fuseau dans une liste', async ({
+  page,
+}) => {
   const login = uniqueLogin('senior');
   await page.goto(`/api/v1/auth/github?login=${login}&returnTo=${encodeURIComponent('/sos')}`);
   await page.goto('/bienvenue');
   const next = page.getByRole('button', { name: 'Continuer' });
   await page.getByRole('button', { name: /Je suis dev confirmé/ }).click();
   await next.click();
-  await expect(page.getByRole('button', { name: /Apprendre à coder/ })).toHaveCount(0);
   await page.getByRole('button', { name: /Aider d’autres devs/ }).click();
   await next.click();
-  await page.getByRole('button', { name: /^Web/ }).click();
+  await expect(page.getByRole('button', { name: /Créer des sites web/ })).toHaveCount(0);
+  await page.getByRole('button', { name: /Développement web/ }).click();
   for (const name of ['TypeScript', 'React', 'Node.js'])
     await page.getByRole('button', { name, exact: true }).first().click();
   await next.click();
   await expect(page.getByRole('heading', { name: 'Comment veux-tu aider ?' })).toBeVisible();
-  await expect(page.getByText('Tranquille')).toHaveCount(0);
   await next.click();
   const tz = page.getByLabel('Fuseau horaire');
   await expect(tz).toHaveJSProperty('tagName', 'SELECT');

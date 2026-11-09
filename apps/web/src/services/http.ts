@@ -130,12 +130,16 @@ const QUESTION_TAB: Record<QuestionTab, Query> = {
   mine: { mine: true },
 };
 
+/** Session connue du dernier appel à /me : évite les appels réservés aux membres en visiteur. */
+let signedIn = false;
+
 async function session(): Promise<User | null> {
   const me = await get<MeResponse>('/me').catch((e: unknown) => {
     if (e instanceof DomainError && (e.code === 'auth.required' || e.code === 'http.401'))
       return null;
     throw e;
   });
+  signedIn = !!me;
   if (!me) {
     // L'API a répondu (pas une coupure) : sans session, on ne laisse rien du dernier compte.
     await releaseApiReadCache();
@@ -186,6 +190,7 @@ export const httpApi: DevHubApi = {
   loginDemo: async () => unavailable(),
   listDemoAccounts: async () => [],
   logout: async () => {
+    signedIn = false;
     try {
       await post('/auth/logout');
     } finally {
@@ -281,9 +286,11 @@ export const httpApi: DevHubApi = {
     // S7 : un échec de la recherche ne doit jamais empêcher d'afficher la fiche.
     const related = await similar(q.title, id).catch(() => []);
     // S5 : les créneaux ne concernent que l'aidant et l'auteur ; sans session, il n'y en a aucun.
-    const pairs = await get<ListPairSessionsResponse>(`/questions/${id}/pair-sessions`)
-      .then((r) => r.data.map(m.pairSession))
-      .catch(() => []);
+    const pairs = signedIn
+      ? await get<ListPairSessionsResponse>(`/questions/${id}/pair-sessions`)
+          .then((r) => r.data.map(m.pairSession))
+          .catch(() => [])
+      : [];
     return { ...q, similar: related, pairSessions: pairs };
   },
   similarQuestions: (text) => similar(text),

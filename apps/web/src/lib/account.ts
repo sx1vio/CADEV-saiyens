@@ -89,3 +89,22 @@ export async function loginAccount(email: string, password: string) {
   await post('/auth/email/login', { email: email.trim(), password });
   return serverSession();
 }
+
+/** Mot de passe oublié : l'API répond toujours de la même façon, compte existant ou non. */
+export async function requestPasswordReset(email: string) {
+  await post('/auth/email/forgot', { email: email.trim() });
+}
+
+/** Nouveau mot de passe avec le jeton du lien reçu par e-mail ; toutes les sessions sont fermées. */
+export async function resetPassword(token: string, password: string) {
+  try {
+    await post('/auth/email/reset', { token, password });
+  } catch (e) {
+    if (e instanceof AccountError && e.code === 'auth.reset_invalid')
+      throw new AccountError(
+        'Ce lien n’est plus valable : il a déjà servi ou il a plus d’une heure. Demande-en un nouveau.',
+        e.code,
+      );
+    throw e;
+  }
+}

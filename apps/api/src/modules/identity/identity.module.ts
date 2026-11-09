@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
+import { MAILER, SmtpMailer } from '../../infrastructure/mail/mailer';
 import { SignInWithEmail } from './application/sign-in-with-email';
 import { SignInWithGithub } from './application/sign-in-with-github';
 import { AesGcmTokenCipher } from './infrastructure/aes-gcm-token-cipher';
@@ -20,11 +21,14 @@ import { OptionalSessionGuard, SessionGuard } from './http/session.guard';
 import { SessionOrTokenGuard } from './http/api-token.guard';
 import { ApiTokensController } from './http/api-tokens.controller';
 import { PrismaApiTokenStore } from './infrastructure/prisma-api-token.store';
+import { PasswordResets } from './infrastructure/password-resets';
 
 @Module({
   controllers: [AuthController, EmailAuthController, MeController, ApiTokensController],
   providers: [
     AccountDeletion,
+    PasswordResets,
+    { provide: MAILER, useClass: SmtpMailer },
     PrismaIdentityRepository,
     PrismaEmailAccountRepository,
     PrismaSessionStore,
@@ -69,6 +73,8 @@ import { PrismaApiTokenStore } from './infrastructure/prisma-api-token.store';
     },
   ],
   exports: [
+    PasswordResets,
+    MAILER,
     SessionGuard,
     OptionalSessionGuard,
     PrismaApiTokenStore,

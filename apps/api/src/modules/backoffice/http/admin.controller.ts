@@ -54,18 +54,38 @@ export class AdminController {
   async overview(): Promise<AdminOverview> {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const real = { deletedAt: null, isDemo: false };
-    const [users, newUsers7d, questions, answers, rooms, openReports, publishedJobs, draftJobs] =
-      await this.prisma.$transaction([
-        this.prisma.user.count({ where: real }),
-        this.prisma.user.count({ where: { ...real, createdAt: { gte: weekAgo } } }),
-        this.prisma.question.count(),
-        this.prisma.answer.count(),
-        this.prisma.room.count(),
-        this.prisma.report.count({ where: { status: 'open' } }),
-        this.prisma.jobOffer.count({ where: { status: 'published' } }),
-        this.prisma.jobOffer.count({ where: { status: 'draft' } }),
-      ]);
-    return { users, newUsers7d, questions, answers, rooms, openReports, publishedJobs, draftJobs };
+    const [
+      users,
+      newUsers7d,
+      questions,
+      answers,
+      rooms,
+      openReports,
+      publishedJobs,
+      draftJobs,
+      pendingCompanies,
+    ] = await this.prisma.$transaction([
+      this.prisma.user.count({ where: real }),
+      this.prisma.user.count({ where: { ...real, createdAt: { gte: weekAgo } } }),
+      this.prisma.question.count(),
+      this.prisma.answer.count(),
+      this.prisma.room.count(),
+      this.prisma.report.count({ where: { status: 'open' } }),
+      this.prisma.jobOffer.count({ where: { status: 'published' } }),
+      this.prisma.jobOffer.count({ where: { status: 'draft' } }),
+      this.prisma.company.count({ where: { status: 'pending' } }),
+    ]);
+    return {
+      users,
+      newUsers7d,
+      questions,
+      answers,
+      rooms,
+      openReports,
+      publishedJobs,
+      draftJobs,
+      pendingCompanies,
+    };
   }
 
   @Get('jobs')

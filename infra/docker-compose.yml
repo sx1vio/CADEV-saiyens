@@ -33,6 +33,8 @@ services:
     <<: *app
     environment:
       PROCESS_ROLE: http
+      # Version déployée, affichée dans la supervision de l'administration.
+      APP_RELEASE: ${TAG}
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/readyz']
       interval: 10s
@@ -44,6 +46,7 @@ services:
     command: ['node', 'dist/worker.js']
     environment:
       PROCESS_ROLE: worker
+      APP_RELEASE: ${TAG}
     # Y1 : status.check lit le fichier d'état écrit par backup.sh (BACKUP_STATUS_URL).
     volumes:
       - /srv/devhub/backups:/srv/devhub/backups:ro

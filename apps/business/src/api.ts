@@ -3,10 +3,13 @@ import type {
   ApplicationView,
   BusinessJobInput,
   BusinessJobView,
+  BusinessInviteResponse,
   BusinessMeView,
   BusinessRegisterRequest,
+  BusinessTeamMember,
   CompanyProfileInput,
   CompanyView,
+  RecentApplicationView,
 } from '@devhub/contracts';
 
 /** Erreur de l'API au format Problem Details (RFC 9457). */
@@ -64,6 +67,17 @@ export const api = {
     call<{ data: ApplicationView[] }>('GET', `/jobs/${jobId}/applications`),
   setStatus: (id: string, body: ApplicationStatusRequest) =>
     call<void>('PATCH', `/applications/${id}`, body),
+  recentApplications: (limit = 6) =>
+    call<{ data: RecentApplicationView[] }>('GET', `/applications?limit=${limit}`),
+  forgotPassword: (email: string) => call<void>('POST', '/password/forgot', { email }),
+  resetPassword: (token: string, password: string) =>
+    call<void>('POST', '/password/reset', { token, password }),
+  changePassword: (current: string, password: string) =>
+    call<void>('PUT', '/account/password', { current, password }),
+  team: () => call<{ data: BusinessTeamMember[] }>('GET', '/team'),
+  invite: (body: { name: string; email: string }) =>
+    call<BusinessInviteResponse>('POST', '/team', body),
+  removeMember: (id: string) => call<void>('DELETE', `/team/${id}`),
 };
 
 export const isSignedOut = (e: unknown) => e instanceof ApiError && e.status === 404;
@@ -71,6 +85,10 @@ export const isSignedOut = (e: unknown) => e instanceof ApiError && e.status ===
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) {
     if (e.code === 'auth.bad_credentials') return 'E-mail ou mot de passe incorrect.';
+    if (e.code === 'auth.reset_invalid')
+      return 'Ce lien n’est plus valable : il a déjà servi ou il a plus d’une heure. Demandez-en un nouveau.';
+    if (e.code === 'business.owner_only')
+      return 'Seul le propriétaire du compte entreprise peut gérer l’équipe.';
     if (e.code === 'auth.email_taken') return 'Un compte existe déjà avec cette adresse.';
     if (e.code === 'rate_limited') return 'Trop de tentatives. Réessaie dans 15 minutes.';
     if (e.code === 'company.not_verified')

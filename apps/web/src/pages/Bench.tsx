@@ -425,7 +425,7 @@ function NewRequest() {
     return (
       <Page>
         <Card className="p-6 text-center">
-          <p className="text-[15px] text-fg">Connecte-toi pour demander un test.</p>
+          <h1 className="text-[15px] font-normal text-fg">Connecte-toi pour demander un test.</h1>
           <ButtonLink to="/connexion?next=%2Fbanc%2Fnouvelle" variant="primary" className="mt-4">
             Se connecter
           </ButtonLink>

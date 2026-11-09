@@ -70,6 +70,8 @@ Questions auxquelles la plateforme doit répondre :
 - [ ] Pré-vol : essayer l’action GitHub sur un vrai dépôt une fois `main` en ligne (testée seulement en local, sans `jq`) et remplacer `api-url` par le domaine définitif (04/11/2026)
 - [ ] Production : renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule), sinon 60 requêtes GitHub par heure pour tout le serveur (04/11/2026)
 - [ ] Demander à Systalink (cadev@systalink.com) : « Quel est votre plus gros frein pour attirer des développeurs ? » et s'ils permettent de créer des espaces par programme (04/11/2026)
+- [ ] **Chaque membre** remplit sa ligne de signature dans `docs/soumission.md` §4 (09/11/2026)
+- [ ] Production : créer le compte admin par la CLI et vérifier l’onglet **Supervision** tout vert (09/11/2026)
 - [ ] **Avant le 15/11 17:00 GMT** (date repoussée) : suivre la liste de contrôle de [`docs/soumission.md`](docs/soumission.md) (achat Datacloud à Dakar, mise en ligne, OAuth GitHub de production, déclarations signées, envoi) (23/10/2026)
 - [ ] **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue** (dates mises à jour le 04/11/2026)
 - [ ] **Héberger et déployer sur Systalink** (VPS, base, SMTP, sauvegarde ; `DEPLOY_ENABLED=true` dans les variables du dépôt) : prévu à la fin par Sylvio
@@ -167,6 +169,18 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 09/11/2026 — Dernière passe avant soumission : onboarding, supervision, portail entreprise, mots de passe
+
+- **Demande de Sylvio** : écrire les noms de tous dans la déclaration de propriété, faire le compte admin (gestion, supervision), finir le portail entreprise, s'assurer que rien ne casse sur aucun espace, que tout reste dans le thème « la plateforme d'échange africaine, pour les devs, par les devs », et revoir l'onboarding.
+- **Déclaration de propriété** (`docs/soumission.md` §4) : Caleb KPOSSOU, Florent AMAMION, Joachim GOEH-AKUE, Sylvio CHALLA, Emmanuel OKORIE, avec un tableau de signatures que chacun remplit lui-même (personne ne signe pour un autre).
+- **Onboarding refait** : plus de « Je ne code pas (encore) », de « Créer une app avec l'IA », d'objectif du jour, de parcours ni de communautés (retirés le 05/11). Trois niveaux ; objectifs reliés aux vrais espaces (entraide, emplois, certifications, projets, pré-vol, actu) ; les centres d'intérêt choisis remplacent ceux par défaut du fil ; un débutant choisit un cours qui prépare une certification ; un dev confirmé donne ses compétences et sa disponibilité. Arrivée sur l'espace du premier objectif.
+- **Thème** : accroche du site « La plateforme d'échange des devs africains », badge « Par les devs, pour les devs », titre et description HTML et PWA alignés ; « QG », « SOS Dev », « communautés », « vidéos, apprentissage » remplacés partout ; les publications affichent leur sujet (« Intelligence artificielle ») au lieu de « c/ia » et « Rejoindre ».
+- **Bugs corrigés** (audit Playwright de toutes les pages, visiteur, connecté et mobile, base propre) : profil, salle ou question introuvable → « Quelque chose a coincé » au lieu d'un vrai « introuvable » (codes `not_found` de l'API non reconnus) ; lien vers une offre expirée qui affichait une autre offre sans prévenir ; appel réservé aux membres (créneaux de pair programming) fait en visiteur ; cartes Skills qui débordaient sur mobile ; titres `h1` manquants (accueil, 404, offre sur mobile, banc).
+- **Administration, onglet Supervision** : API (démarrage, version déployée `APP_RELEASE`, mémoire, boucle d'événements), trafic HTTP 5 min / 1 h (erreurs, latences p50 et p95, routes lentes, 30 dernières erreurs 500), base (latence, taille, connexions, migrations), worker pg-boss (vivant, files, échecs 24 h), sondes Systalink, réglages de production sans leur valeur (connexion de test = danger), accès. Vue d'ensemble : bloc « À traiter ». Déconnexion accessible sur mobile. Compte admin local créé par la CLI ; procédure de production écrite dans `apps/admin/README.md`.
+- **Mot de passe oublié** (devs inscrits par e-mail et recruteurs) : lien par e-mail, jeton haché à usage unique, valable une heure, dans le fragment de l'adresse, toutes les sessions fermées ensuite ; jamais pour un compte d'administration. Table `password_resets` (migration `20261109120000_password_resets`). Envoi d'e-mails déplacé dans `infrastructure/mail`.
+- **Portail entreprise fini** : équipe de recruteurs (le propriétaire ajoute et retire, mot de passe provisoire montré une fois), changement de mot de passe, dernières candidatures sur le tableau de bord avec lien direct, écrans « mot de passe oublié », déconnexion sur mobile.
+- **Tests** : API 106 → 109 fichiers (supervision, métriques HTTP, récupération de compte et équipe), Playwright du site 20/20 (test « contact » rendu plus précis), parcours réels admin (12 onglets, ordinateur et mobile) et portail entreprise (inscription → validation admin → offre → candidature → équipe) sans erreur.
 
 ### 06/11/2026 — Pré-vol et Banc d’essai reliés à l’hébergement Systalink
 

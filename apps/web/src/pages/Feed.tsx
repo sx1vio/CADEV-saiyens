@@ -89,6 +89,7 @@ export default function Feed() {
           : 'max-w-[1000px]',
       )}
     >
+      <h1 className="sr-only">Accueil</h1>
       <main className="min-w-0">
         <Composer />
         <nav

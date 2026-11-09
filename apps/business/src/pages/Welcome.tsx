@@ -43,8 +43,18 @@ const COUNTRIES: [string, string][] = [
 ];
 
 /** Page d'accueil du portail : promesse, inscription de l'entreprise, connexion. */
-export function Welcome({ onSignedIn }: { onSignedIn: () => void }) {
-  const [mode, setMode] = useState<'register' | 'login'>('register');
+type Mode = 'register' | 'login' | 'forgot' | 'reset';
+
+export function Welcome({
+  onSignedIn,
+  resetToken = null,
+}: {
+  onSignedIn: () => void;
+  /** Jeton du lien « mot de passe oublié » (#reinitialiser=…), lu par App au chargement. */
+  resetToken?: string | null;
+}) {
+  const [mode, setMode] = useState<Mode>(resetToken ? 'reset' : 'register');
+  const [notice, setNotice] = useState<string | null>(null);
   return (
     <div className="min-h-dvh bg-page">
       <header className="mx-auto flex max-w-[1180px] items-center justify-between px-5 py-5">
@@ -107,7 +117,27 @@ export function Welcome({ onSignedIn }: { onSignedIn: () => void }) {
           </ul>
         </section>
         <section className="self-start rounded-2xl border border-line bg-panel p-6 shadow-sm">
-          {mode === 'register' ? <Register onDone={onSignedIn} /> : <Login onDone={onSignedIn} />}
+          {notice && (
+            <p
+              role="status"
+              className="mb-4 rounded-lg bg-good-soft px-3 py-2 text-[13px] text-good"
+            >
+              {notice}
+            </p>
+          )}
+          {mode === 'register' && <Register onDone={onSignedIn} />}
+          {mode === 'login' && <Login onDone={onSignedIn} onForgot={() => setMode('forgot')} />}
+          {mode === 'forgot' && <Forgot onBack={() => setMode('login')} />}
+          {mode === 'reset' && resetToken && (
+            <Reset
+              token={resetToken}
+              onDone={() => {
+                setNotice('Mot de passe changé. Connectez-vous avec le nouveau.');
+                setMode('login');
+              }}
+              onExpired={() => setMode('forgot')}
+            />
+          )}
         </section>
       </main>
     </div>
@@ -294,7 +324,7 @@ function Register({ onDone }: { onDone: () => void }) {
   );
 }
 
-function Login({ onDone }: { onDone: () => void }) {
+function Login({ onDone, onForgot }: { onDone: () => void; onForgot: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -345,6 +375,140 @@ function Login({ onDone }: { onDone: () => void }) {
       <button type="submit" className="btn-primary" disabled={busy}>
         {busy ? 'Connexion…' : 'Se connecter'}
       </button>
+      <button
+        type="button"
+        onClick={onForgot}
+        className="self-center text-[13px] font-medium text-accent hover:underline"
+      >
+        Mot de passe oublié ?
+      </button>
+    </form>
+  );
+}
+
+/** Demande d'un lien de réinitialisation : même réponse que le compte existe ou non. */
+function Forgot({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  if (sent)
+    return (
+      <div className="flex flex-col gap-3" role="status">
+        <h2 className="text-[19px] font-bold">Regardez vos e-mails</h2>
+        <p className="text-[14px] text-muted">
+          Si un compte existe avec <strong className="text-ink">{email}</strong>, un lien vient de
+          partir. Il est valable une heure.
+        </p>
+        <button type="button" className="btn-ghost" onClick={onBack}>
+          Retour à la connexion
+        </button>
+      </div>
+    );
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        setError(null);
+        try {
+          await api.forgotPassword(email.trim());
+          setSent(true);
+        } catch (err) {
+          setError(errorMessage(err));
+        } finally {
+          setBusy(false);
+        }
+      }}
+      className="flex flex-col gap-3.5"
+    >
+      <h2 className="text-[19px] font-bold">Mot de passe oublié</h2>
+      <p className="text-[14px] text-muted">
+        Indiquez l’adresse de votre compte : nous vous envoyons un lien pour en choisir un nouveau.
+      </p>
+      <Row label="E-mail">
+        <input
+          className="field"
+          type="email"
+          required
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </Row>
+      {error && (
+        <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-[13px] text-bad">
+          {error}
+        </p>
+      )}
+      <button type="submit" className="btn-primary" disabled={busy}>
+        {busy ? 'Envoi…' : 'Recevoir le lien'}
+      </button>
+      <button type="button" onClick={onBack} className="self-center text-[13px] text-muted">
+        Retour à la connexion
+      </button>
+    </form>
+  );
+}
+
+/** Nouveau mot de passe depuis le lien reçu ; toutes les sessions du compte sont fermées. */
+function Reset({
+  token,
+  onDone,
+  onExpired,
+}: {
+  token: string;
+  onDone: () => void;
+  onExpired: () => void;
+}) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
+  const [busy, setBusy] = useState(false);
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setError(null);
+        if (password.length < 10) return setError('10 caractères au moins.');
+        setBusy(true);
+        try {
+          await api.resetPassword(token, password);
+          onDone();
+        } catch (err) {
+          setExpired(err instanceof ApiError && err.code === 'auth.reset_invalid');
+          setError(errorMessage(err));
+          setBusy(false);
+        }
+      }}
+      className="flex flex-col gap-3.5"
+    >
+      <h2 className="text-[19px] font-bold">Nouveau mot de passe</h2>
+      <Row label="Nouveau mot de passe (10 caractères au moins)">
+        <input
+          className="field"
+          type="password"
+          required
+          minLength={10}
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </Row>
+      {error && (
+        <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-[13px] text-bad">
+          {error}
+        </p>
+      )}
+      {expired ? (
+        <button type="button" className="btn-primary" onClick={onExpired}>
+          Demander un nouveau lien
+        </button>
+      ) : (
+        <button type="submit" className="btn-primary" disabled={busy}>
+          {busy ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+      )}
     </form>
   );
 }

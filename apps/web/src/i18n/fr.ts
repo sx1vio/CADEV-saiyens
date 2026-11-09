@@ -55,8 +55,8 @@ const fr = {
     shortcut: 'Raccourci',
   },
   nav: {
-    home: 'QG',
-    sos: 'SOS Dev',
+    home: 'Accueil',
+    sos: 'Entraide',
     projects: 'Projets',
     discover: 'Découvrir',
     passport: 'Profil',
@@ -212,7 +212,7 @@ const fr = {
     pillarsTitle: 'Trois gestes, une identité de dev',
     help: 'Aider',
     helpText:
-      "SOS Dev : décris ton erreur, reçois une piste IA, puis l'aide de 3 devs choisis pour leur expérience réelle du problème.",
+      "Entraide : décris ton erreur, reçois une piste IA, puis l'aide de 3 devs choisis pour leur expérience réelle du problème.",
     build: 'Construire',
     buildText:
       'Salles de projet reliées à GitHub : publie des tâches, accueille des contributeurs, avance à plusieurs.',
@@ -346,7 +346,7 @@ const fr = {
     skillsMin: 'Choisis au moins 3 technologies.',
     skillsSearch: 'Filtrer les technologies…',
     intentTitle: 'Tu viens surtout pour…',
-    intentText: "Ton QG s'organise autour de ta réponse. Tu pourras changer d'avis.",
+    intentText: "Ton accueil s'organise autour de ta réponse. Tu pourras changer d'avis.",
     intent: {
       'get-help': 'Être aidé',
       help: 'Aider les autres',
@@ -379,7 +379,7 @@ const fr = {
     conduct4:
       'Jamais de secret (clé, mot de passe, jeton) dans un message : on les masque automatiquement, mais vérifie.',
     accept: "J'accepte le code de conduite",
-    finish: 'Entrer dans mon QG',
+    finish: 'Entrer dans DevHub',
   },
   tour: {
     title: 'Visite guidée',
@@ -393,7 +393,7 @@ const fr = {
       "Chez nous, le djeli garde le savoir et le transmet. Ici, je te montre comment on s'entraide. 60 secondes, promis.",
     s1Title: 'Ton fil',
     s1Text:
-      'L’actu IA et tech, les projets et les discussions de tes communautés. Tous les services sont dans le menu : emplois, certifications, skills IA, vidéos, apprentissage.',
+      'L’actu IA et tech, les questions d’entraide et les projets des devs, selon tes centres d’intérêt. Tous les services sont dans le menu : emplois, certifications, outils IA, pré-vol et banc d’essai.',
     s2Title: 'Bloqué ? Un seul bouton',
     s2Text:
       'Décris ton erreur : une piste arrive tout de suite, puis 3 devs qui ont déjà résolu un problème similaire.',
@@ -414,7 +414,7 @@ const fr = {
     evening: 'Bonsoir, {{name}}',
   },
   home: {
-    title: 'Ton QG',
+    title: 'Ton accueil',
     subtitle: 'Voilà ce qui t’attend aujourd’hui.',
     composer: 'Bloqué sur un bug ? Décris ton erreur…',
     heroTitle: 'Bloqué sur un bug ?',
@@ -447,7 +447,7 @@ const fr = {
     nextLevel: 'Prochain palier : {{level}} en {{tag}}',
   },
   sos: {
-    title: 'SOS Dev',
+    title: 'Entraide',
     subtitle: "Pose ta question, reçois une piste, puis l'aide d'un pair.",
     tabs: {
       'for-me': 'Pour moi',
@@ -776,9 +776,9 @@ const fr = {
     standupNext: 'Prévu',
     standupBlocked: 'Bloqué sur',
     standupBlockedHint:
-      'Si tu es bloqué, on crée une question SOS Dev liée à la salle, stack déjà remplie.',
+      'Si tu es bloqué, on crée une question d’entraide liée à la salle, stack déjà remplie.',
     standupPost: 'Publier le point',
-    askFromStandup: 'Créer la question SOS',
+    askFromStandup: 'Demander de l’aide',
     feedback: 'Demander un retour',
     review: 'Demander une revue de code',
     feedbackSent: 'Demande publiée dans le flux de la stack.',
@@ -1259,7 +1259,7 @@ const fr = {
   notFound: {
     title: 'Page introuvable',
     text: 'Djeli a cherché partout. Cette page n’existe pas (ou plus).',
-    home: 'Retour au QG',
+    home: 'Retour à l’accueil',
   },
   time: { justNow: "à l'instant" },
 };

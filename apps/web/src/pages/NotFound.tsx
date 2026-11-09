@@ -8,6 +8,7 @@ export default function NotFound() {
   return (
     <Page className="max-w-xl py-16">
       <EmptyState
+        heading
         pose="laptop"
         title={t('notFound.title')}
         text={t('notFound.text')}

@@ -39,6 +39,7 @@ test('« Disponible pour une mission » puis message privé depuis le Passport',
     .getByRole('link', { name: new RegExp(moussaLogin) })
     .first()
     .click();
-  await expect(awa.getByText(message)).toBeVisible();
+  // Le message s'affiche en bulle dans la conversation (et en aperçu dans la liste).
+  await expect(awa.locator('p').filter({ hasText: message })).toBeVisible();
   await awa.screenshot({ path: 'test-results/contact-notification.png' });
 });
