@@ -30,6 +30,7 @@ const report: PreflightReport = {
       evidence: [],
     },
   ],
+  architecture: null,
   author: { handle: 'awa-dev', displayName: 'Awa' },
 };
 

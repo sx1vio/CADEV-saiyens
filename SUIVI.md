@@ -178,6 +178,22 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 10/11/2026 (nuit) — Pré-vol v2 : ~100 contrôles, architecture du code ; Boby évalué
+
+- **Demande de Sylvio** : évaluer Boby (hackathon IBM, `~/Projets-perso/Hackaton-IBM-CTN`) pour un agent qui lit le dépôt, l'architecture et le code ; rendre le pré-vol « plus que complet », avec un vrai intérêt par rapport à une simple question à une IA.
+- **Boby** : Python/FastAPI + IBM watsonx (Llama 3.3 70B). Réutilisable en idée (graphe des imports, fichiers critiques, analyse d'impact, « push guardian »), pas en code : autre stack, résolution d'imports naïve (pas d'alias ni de monorepo), calcul du risque quadratique, clone complet du dépôt sur disque sans limite. Idée reprise en TypeScript dans le pré-vol (`domain/architecture.ts`).
+- **Pré-vol v2** (de ~40 à ~100 contrôles, 4 nouvelles catégories : Domaine et e-mails, Référencement et partage, Qualité et architecture, Vie privée) :
+  - **Domaine**, mesuré par connexion directe : certificat (validité, expiration, www), TLS 1.0/1.1 acceptés, HTTP/2, IPv6, CAA, www, SPF, DMARC, DKIM.
+  - **Site** : qualité de la CSP et du HSTS, Permissions-Policy, CORS avec cookies, cookies sans Secure/HttpOnly/SameSite, **base Firebase lisible par tous**, introspection GraphQL, listes de dossiers, pages d'erreur qui fuient (trace, SQL, debug), 12 fichiers sensibles de plus (.git/HEAD, .npmrc, dumps SQL…), contenu mixte, formulaires de mot de passe en HTTP, scripts tiers sans SRI, jeton dans localStorage, security.txt.
+  - **Référencement et partage** : description, titre, Open Graph (aperçu WhatsApp/LinkedIn), canonique, robots.txt (dont « Disallow: / » oublié), sitemap, h1, icônes, soft 404.
+  - **Réseau** : scripts bloquants, polices sans font-display, images JPEG/PNG, images sans lazy ni dimensions, PWA hors ligne, HTTP/3, **coût d'une visite en FCFA** (hypothèse affichée 1 Go ≈ 1 000 FCFA).
+  - **Vie privée** : traceurs (Google Analytics, Meta Pixel, Hotjar, Clarity, TikTok…), domaines tiers, rappel des lois CEDEAO.
+  - **Dépôt** : secrets dans le contenu des fichiers (pas seulement leurs noms), **secrets dans les 20 derniers commits** (avec `PREFLIGHT_GITHUB_TOKEN`), .gitignore, .env.example, registre npm (dépréciés, retard de versions majeures, paquets abandonnés depuis 2 ans, scripts d'installation), plusieurs gestionnaires de paquets, Node/Python en fin de vie, Dockerfile (root, :latest, secret dans ENV, ADD distant, .dockerignore), CI, tests, TypeScript strict, linter, README, activité.
+  - **Architecture** (carte dans le rapport et section Markdown pour l'agent) : type de projet, frameworks, langages, graphe des imports (alias `@/`, monorepos, Python), cycles, fichiers critiques, gros fichiers, fichiers orphelins, TODO, console.log, `any`.
+- **Vérifié sur de vraies cibles** : devafrica.tech + expressjs/express (53 contrôles, 16 s), shadcn-ui/taxonomy (49 contrôles, 35 s : 56 dépendances vulnérables dont une critique, Node 16 en fin de vie, `lib/utils.ts` importé par 66 fichiers). Deux faux positifs corrigés (certificat www séparé chez Caddy, service worker chargé à part). Budget porté à 60 s.
+- **À corriger sur devafrica.tech** (trouvé par le pré-vol v2) : CSP et X-Frame-Options, og:image, robots.txt et sitemap, SPF et DMARC.
+- **Incident** : en créant `preflight-v2.spec.ts`, j'ai écrasé le fichier du même nom (16 tests du 06/11) ; restauré depuis git, nouveaux tests dans `preflight-extended.spec.ts`.
+
 ### 10/11/2026 (soir) — Design system complet, sujets du fil, détail des offres, Djeli animé
 
 - **Demande de Sylvio** : un document de design system et de patterns aussi complet que celui de Gapob (`~/Templates-sites/gapob/BRIEF.md`), pour que quiconque puisse reproduire le style DevHub ; les sujets de l'accueil ne filtrent rien ; lire le détail des offres d'emploi sur DevHub ; une animation fun de Djeli en boucle dans la barre de gauche ; des idées innovantes, même si c'est un gros travail.

@@ -11,9 +11,15 @@ import type {
 } from '@devhub/contracts';
 import { PREFLIGHT_HOURLY_QUOTA, PREFLIGHT_LOAD_HOURLY_QUOTA } from '@devhub/contracts';
 import { repoChecks, siteChecks, siteUnreachableCheck } from '../domain/checks';
+import {
+  architectureChecks,
+  domainChecks,
+  projectChecks,
+  siteExtraChecks,
+} from '../domain/extended-checks';
 import { lighthouseChecks } from '../domain/lighthouse';
 import { concludeLoad, loadChecks } from '../domain/load';
-import type { RepoFacts, SiteFacts } from '../domain/facts';
+import type { DomainFacts, RepoFacts, SiteFacts } from '../domain/facts';
 import { declaredButUnseen, planCheck, systalinkAdvice } from '../domain/hosting';
 import { estimateLoad } from '../domain/network';
 import { countChecks, scoreOf, sortChecks, verdictOf } from '../domain/report';
@@ -36,6 +42,8 @@ export class NothingToCheckError extends Error {
 export interface PreflightProbes {
   site(url: string, signal: AbortSignal): Promise<SiteFacts>;
   repo(fullName: string, signal: AbortSignal): Promise<RepoFacts>;
+  /** Certificat TLS et DNS du domaine. Facultatif : absent, le rapport s'en passe. */
+  domain?(url: string, signal: AbortSignal): Promise<DomainFacts>;
   /** Lighthouse réel (PageSpeed Insights). Facultatif : absent, le rapport s'en passe. */
   lighthouse?(url: string): Promise<PreflightLighthouse>;
   /** Preuve de propriété du domaine de `url` pour ce compte. */
@@ -57,12 +65,19 @@ export interface PreflightStore {
     durationMs: number;
     result: Pick<
       PreflightReport,
-      'checks' | 'metrics' | 'repoSummary' | 'counts' | 'lighthouse' | 'loadTest' | 'systalink'
+      | 'checks'
+      | 'metrics'
+      | 'repoSummary'
+      | 'counts'
+      | 'lighthouse'
+      | 'loadTest'
+      | 'systalink'
+      | 'architecture'
     >;
   }): Promise<string>;
 }
 
-const BUDGET_MS = 45_000;
+const BUDGET_MS = 60_000;
 
 type RunInput = {
   userId: string;
@@ -128,11 +143,14 @@ export class RunPreflight {
   private async execute(input: RunInput, proof: 'well-known' | 'dns' | null) {
     const started = Date.now();
     const signal = AbortSignal.timeout(BUDGET_MS);
-    const [site, repo, lighthouse] = await Promise.all([
+    const [site, repo, lighthouse, domain] = await Promise.all([
       input.url ? this.probes.site(input.url, signal).catch((e: unknown) => e) : null,
       input.repo ? this.probes.repo(input.repo, signal).catch((e: unknown) => e) : null,
       input.url && this.probes.lighthouse
         ? this.probes.lighthouse(input.url).catch(() => null)
+        : null,
+      input.url && this.probes.domain
+        ? this.probes.domain(input.url, signal).catch(() => null)
         : null,
     ]);
 
@@ -178,7 +196,8 @@ export class RunPreflight {
 
     if (siteOk) {
       const s = site as SiteFacts;
-      checks.push(...siteChecks(s));
+      checks.push(...siteChecks(s), ...siteExtraChecks(s));
+      if (domain) checks.push(...domainChecks(domain));
       const load = estimateLoad(s);
       metrics = {
         finalUrl: s.finalUrl,
@@ -195,6 +214,8 @@ export class RunPreflight {
     if (repoOk) {
       const r = repo as RepoFacts;
       checks.push(...repoChecks(r));
+      if (r.project) checks.push(...projectChecks(r.project, this.now()));
+      if (r.architecture) checks.push(...architectureChecks(r.architecture));
       repoSummary = {
         fullName: r.fullName,
         defaultBranch: r.defaultBranch,
@@ -267,6 +288,7 @@ export class RunPreflight {
         lighthouse: lighthouse ?? null,
         loadTest,
         systalink,
+        architecture: repoOk ? ((repo as RepoFacts).architecture ?? null) : null,
         counts: countChecks(sorted),
       },
     });

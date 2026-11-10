@@ -3,6 +3,7 @@ import type {
   CreateApiTokenResponse,
   ListApiTokensResponse,
   ListPreflightResponse,
+  PreflightArchitecture,
   PreflightCheck,
   PreflightLighthouse,
   PreflightLoadTest,
@@ -15,6 +16,11 @@ import type {
 import {
   Accessibility,
   Activity,
+  Boxes,
+  Code2,
+  EyeOff,
+  Network,
+  Search,
   AlertTriangle,
   Bot,
   CheckCircle2,
@@ -145,6 +151,10 @@ const CATEGORY: Record<PreflightCheck['category'], { label: string; icon: typeof
   dependencies: { label: 'Dépendances', icon: Package },
   licences: { label: 'Licences', icon: Scale },
   hosting: { label: 'Hébergement', icon: Server },
+  infra: { label: 'Domaine et e-mails', icon: Network },
+  seo: { label: 'Référencement et partage', icon: Search },
+  quality: { label: 'Qualité et architecture', icon: Code2 },
+  privacy: { label: 'Vie privée', icon: EyeOff },
 };
 
 const STATUS = {
@@ -840,6 +850,9 @@ function ReportView({ id }: { id: string }) {
 
       {data.lighthouse && <LighthouseCard lh={data.lighthouse} />}
       {data.loadTest && <LoadCard lt={data.loadTest} />}
+      {data.architecture && data.architecture.analysedFiles > 0 && (
+        <ArchitectureCard a={data.architecture} />
+      )}
       {data.systalink && data.metrics && (
         <SystalinkCard advice={data.systalink} hosted={data.metrics.hostedOnSystalink} />
       )}
@@ -890,7 +903,8 @@ function ReportView({ id }: { id: string }) {
           )}
           <p className="px-1 text-xs text-subtle">
             L’estimation 3G est un calcul ; l’audit Lighthouse est une vraie mesure faite par Google
-            PageSpeed Insights. Les failles viennent de la base publique OSV.
+            PageSpeed Insights. Les failles viennent de la base publique OSV, les versions du
+            registre npm, le certificat et le DNS d’une connexion directe au domaine.
           </p>
         </aside>
       </div>
@@ -1036,6 +1050,122 @@ function SmallRing({ label, value }: { label: string; value: number | null }) {
       </div>
       <span className="text-center text-[13px] font-medium text-fg">{label}</span>
     </div>
+  );
+}
+
+/** Architecture du dépôt : lue dans le code, graphe des imports entre fichiers. */
+function ArchitectureCard({ a }: { a: PreflightArchitecture }) {
+  const total = a.languages.reduce((n, l) => n + l.bytes, 0) || 1;
+  const COLORS = [
+    '#3178c6',
+    '#f1c232',
+    '#3dd68c',
+    '#e34c26',
+    '#a855f7',
+    '#0ea5e9',
+    '#f97316',
+    '#64748b',
+  ];
+  const stats: [string, string][] = [
+    ['Fichiers de code', a.sourceFiles.toLocaleString('fr-FR')],
+    ['Imports analysés', a.imports.toLocaleString('fr-FR')],
+    ['Fichiers de test', a.testFiles.toLocaleString('fr-FR')],
+    ['Cycles d’imports', String(a.cycles.length)],
+  ];
+  return (
+    <Card className="mt-3 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
+          <Boxes className="size-5 text-accent-text" /> Architecture du projet
+        </h2>
+        <span className="text-[13px] text-muted">
+          {a.kind}
+          {a.frameworks.length ? ` · ${a.frameworks.join(', ')}` : ''}
+        </span>
+      </div>
+      <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+        {a.languages.map((l, i) => (
+          <span
+            key={l.name}
+            style={{ width: `${(l.bytes / total) * 100}%`, background: COLORS[i % COLORS.length] }}
+          />
+        ))}
+      </div>
+      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-muted">
+        {a.languages.map((l, i) => (
+          <li key={l.name} className="inline-flex items-center gap-1.5">
+            <span
+              className="size-2 rounded-full"
+              style={{ background: COLORS[i % COLORS.length] }}
+            />
+            {l.name} {Math.round((l.bytes / total) * 100)} %
+          </li>
+        ))}
+      </ul>
+      <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
+        {stats.map(([k, v]) => (
+          <div key={k} className="bg-surface-1 px-3 py-2.5">
+            <dt className="text-[12.5px] text-muted">{k}</dt>
+            <dd className="text-[16px] font-semibold tabular text-fg">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        {a.hubs.length > 0 && (
+          <div>
+            <p className="text-[13.5px] font-semibold text-fg">Fichiers critiques</p>
+            <p className="text-[12.5px] text-muted">
+              Importés par beaucoup d’autres : à tester en priorité.
+            </p>
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {a.hubs.slice(0, 6).map((h) => (
+                <li key={h.file} className="flex items-center gap-2 text-[13px]">
+                  <span className="min-w-0 flex-1 truncate font-mono text-fg" title={h.file}>
+                    {h.file}
+                  </span>
+                  <span className="shrink-0 rounded-[6px] bg-accent-soft px-1.5 py-0.5 text-[12px] font-semibold text-accent-text tabular">
+                    {h.dependents}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div>
+          <p className="text-[13.5px] font-semibold text-fg">
+            {a.cycles.length ? 'Cycles d’imports' : 'Fichiers les plus longs'}
+          </p>
+          <ul className="mt-2 flex flex-col gap-1.5 text-[13px]">
+            {a.cycles.length
+              ? a.cycles.slice(0, 4).map((c) => (
+                  <li
+                    key={c.join()}
+                    className="truncate font-mono text-warning"
+                    title={c.join(' → ')}
+                  >
+                    {c.join(' → ')}
+                  </li>
+                ))
+              : a.largest.slice(0, 6).map((l) => (
+                  <li key={l.file} className="flex items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate font-mono text-fg" title={l.file}>
+                      {l.file}
+                    </span>
+                    <span className="shrink-0 text-[12px] text-muted tabular">
+                      {l.lines.toLocaleString('fr-FR')} lignes
+                    </span>
+                  </li>
+                ))}
+          </ul>
+        </div>
+      </div>
+      <p className="mt-4 text-[12.5px] text-subtle">
+        {a.analysedFiles.toLocaleString('fr-FR')} fichiers lus sur{' '}
+        {a.sourceFiles.toLocaleString('fr-FR')}
+        {a.todos ? ` · ${a.todos} TODO/FIXME` : ''}
+        {a.orphans.length ? ` · ${a.orphans.length} fichier(s) que rien n’importe` : ''}
+      </p>
+    </Card>
   );
 }
 

@@ -9,6 +9,7 @@ import {
   parseRequirements,
   parseYarnLock,
 } from '../domain/lockfiles';
+import { probeProject } from './project.probe';
 import { pool, type SafeFetcher } from './safe-fetch';
 
 const MAX_LOCKFILE = 12 * 1024 * 1024;
@@ -57,6 +58,9 @@ export async function probeRepo(
     archived: boolean;
     private: boolean;
     license: { spdx_id: string | null } | null;
+    pushed_at?: string | null;
+    stargazers_count?: number;
+    open_issues_count?: number;
   };
   if (repo.private) throw new RepoNotFoundError(fullName);
   const branch = repo.default_branch;
@@ -68,19 +72,19 @@ export async function probeRepo(
     treeRes.status === 200
       ? (JSON.parse(treeRes.body.toString('utf8')) as {
           truncated: boolean;
-          tree: { path: string; type: string }[];
+          tree: { path: string; type: string; size?: number }[];
         })
       : { truncated: true, tree: [] };
   const paths = tree.tree.filter((t) => t.type === 'blob').map((t) => t.path);
 
-  const raw = async (path: string): Promise<string | null> => {
+  const raw = async (path: string, maxBytes = MAX_LOCKFILE): Promise<string | null> => {
     const r = await fetcher
       .get(
         `https://raw.githubusercontent.com/${repo.full_name}/${encodeURIComponent(branch)}/${path
           .split('/')
           .map(encodeURIComponent)
           .join('/')}`,
-        { maxBytes: MAX_LOCKFILE, timeoutMs: 12_000 },
+        { maxBytes, timeoutMs: 12_000 },
       )
       .catch(() => null);
     return r && r.status === 200 ? r.body.toString('utf8') : null;
@@ -163,6 +167,22 @@ export async function probeRepo(
     }
   });
   const checked = licences.filter((l): l is { name: string; licence: string } => l !== null);
+  // Pré-vol v2 : hygiène du projet, secrets dans le contenu et l'historique, registre npm, architecture.
+  const extended = await probeProject(fetcher, {
+    fullName: repo.full_name,
+    branch,
+    meta: repo,
+    tree: tree.tree
+      .filter((t) => t.type === 'blob')
+      .map((t) => ({ path: t.path, size: t.size ?? 0 })),
+    raw,
+    gh,
+    githubToken,
+    pkgText,
+    lockedVersions: lockedVersion,
+    pyDeps: deps.filter((d) => d.ecosystem === 'PyPI').map((d) => d.name),
+  }).catch(() => null);
+
   const copyleftDependencies = checked.filter(
     (l) => isStrongCopyleft(l.licence) || /\b(LGPL|MPL|EPL|CDDL)/i.test(l.licence),
   );
@@ -185,6 +205,7 @@ export async function probeRepo(
     copyleftDependencies,
     licenceLookupFailed: direct.length > 0 && checked.length === 0 && licenceFailures > 0,
     licencesChecked: checked.length,
+    ...(extended ? { project: extended.project, architecture: extended.architecture } : {}),
   };
 }
 

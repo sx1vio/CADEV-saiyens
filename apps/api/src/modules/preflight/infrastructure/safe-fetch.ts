@@ -10,6 +10,8 @@ export interface FetchedResource {
   url: string;
   status: number;
   headers: Record<string, string>;
+  /** En-têtes Set-Cookie, un par cookie (Headers les fusionne sinon). */
+  setCookies: string[];
   /** Début du corps décodé (au plus maxBytes). */
   body: Buffer;
   /** Octets décodés lus (plafonnés à maxBytes). */
@@ -106,6 +108,7 @@ export class SafeFetcher {
         url: url.toString(),
         status: res.status,
         headers,
+        setCookies: res.headers.getSetCookie?.() ?? [],
         body,
         decodedBytes: body.byteLength,
         wireBytes,
