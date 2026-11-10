@@ -134,11 +134,18 @@ const QUESTION_TAB: Record<QuestionTab, Query> = {
 let signedIn = false;
 
 async function session(): Promise<User | null> {
-  const me = await get<MeResponse>('/me').catch((e: unknown) => {
-    if (e instanceof DomainError && (e.code === 'auth.required' || e.code === 'http.401'))
-      return null;
-    throw e;
-  });
+  // /me/session répond 200 avec `user: null` pour un visiteur : pas de 401 au démarrage, que le
+  // navigateur notait comme une erreur dans la console (recette du 10/11/2026, FONC-02).
+  const me = await get<{ user: MeResponse | null }>('/me/session')
+    .then((r) => r.user)
+    .catch((e: unknown) => {
+      if (e instanceof DomainError && (e.code === 'auth.required' || e.code === 'http.401'))
+        return null;
+      // API plus ancienne, sans /me/session : on revient à /me.
+      if (e instanceof DomainError && (e.code === 'not_found' || e.code === 'http.404'))
+        return get<MeResponse>('/me').catch(() => null);
+      throw e;
+    });
   signedIn = !!me;
   if (!me) {
     // L'API a répondu (pas une coupure) : sans session, on ne laisse rien du dernier compte.
