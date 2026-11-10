@@ -306,7 +306,8 @@ function PillarCarousel() {
           );
         })}
       </div>
-      <div className="mt-4 flex items-center justify-center gap-2 md:hidden">
+      {/* Zone cliquable de 24 × 24 px au moins (A11Y-04, WCAG 2.5.8) ; le point visible reste fin. */}
+      <div className="mt-4 flex items-center justify-center md:hidden">
         {PILLARS.map((p, i) => (
           <button
             key={p.title}
@@ -314,11 +315,16 @@ function PillarCarousel() {
             aria-label={`Voir ${p.title}`}
             aria-current={i === active || undefined}
             onClick={() => go(i)}
-            className={cn(
-              'h-2 rounded-full transition-all duration-200',
-              i === active ? 'w-6 bg-fg' : 'w-2 bg-fg/30',
-            )}
-          />
+            className="grid h-6 min-w-6 place-items-center px-1"
+          >
+            <span
+              aria-hidden
+              className={cn(
+                'block h-2 rounded-full transition-all duration-200',
+                i === active ? 'w-6 bg-fg' : 'w-2 bg-fg/30',
+              )}
+            />
+          </button>
         ))}
       </div>
     </>
