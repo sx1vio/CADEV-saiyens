@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /reglages
+Disallow: /bienvenue
+Disallow: /publier
+
+Sitemap: https://devafrica.tech/sitemap.xml
