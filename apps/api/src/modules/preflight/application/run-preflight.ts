@@ -18,6 +18,7 @@ import {
   siteExtraChecks,
 } from '../domain/extended-checks';
 import { lighthouseChecks } from '../domain/lighthouse';
+import { recetteSiteChecks } from '../domain/recette-checks';
 import { concludeLoad, loadChecks } from '../domain/load';
 import type { DomainFacts, RepoFacts, SiteFacts } from '../domain/facts';
 import { declaredButUnseen, planCheck, systalinkAdvice } from '../domain/hosting';
@@ -196,7 +197,7 @@ export class RunPreflight {
 
     if (siteOk) {
       const s = site as SiteFacts;
-      checks.push(...siteChecks(s), ...siteExtraChecks(s));
+      checks.push(...siteChecks(s), ...siteExtraChecks(s), ...recetteSiteChecks(s));
       if (domain) checks.push(...domainChecks(domain));
       const load = estimateLoad(s);
       metrics = {

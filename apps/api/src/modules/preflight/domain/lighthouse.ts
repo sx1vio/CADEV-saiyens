@@ -23,11 +23,19 @@ export function parsePageSpeed(body: unknown): PreflightLighthouse | null {
   if (!Object.keys(cats).length) return null;
   const audit = (id: string) => obj(audits[id]);
 
+  // Lighthouse 13 : la plupart des « opportunités » sont devenues des insights (`*-insight`),
+  // notés par leur gain estimé sur le LCP ou le FCP (metricSavings) plutôt que par overallSavingsMs.
   const opportunities = Object.entries(audits)
     .map(([id, a]) => {
       const d = obj(obj(a).details);
-      const savings = num(d.overallSavingsMs) ?? 0;
-      return d.type === 'opportunity' && savings >= 100
+      const saved = obj(obj(a).metricSavings);
+      const insight = id.endsWith('-insight') && obj(a).score !== 1;
+      const savings = insight
+        ? Math.max(num(saved.LCP) ?? 0, num(saved.FCP) ?? 0)
+        : d.type === 'opportunity'
+          ? (num(d.overallSavingsMs) ?? 0)
+          : 0;
+      return savings >= 100
         ? { id, title: String(obj(a).title ?? id), savingsMs: Math.round(savings) }
         : null;
     })
@@ -45,6 +53,16 @@ export function parsePageSpeed(body: unknown): PreflightLighthouse | null {
     })
     .filter((x): x is { id: string; title: string; items: number } => x !== null)
     .slice(0, 8);
+
+  const consoleErrors = (
+    (obj(audit('errors-in-console').details).items as Json[] | undefined) ?? []
+  )
+    .slice(0, 8)
+    .map((i) => ({
+      source: String(i.source ?? 'console'),
+      description: String(i.description ?? '').slice(0, 200),
+      url: typeof obj(i.sourceLocation).url === 'string' ? String(obj(i.sourceLocation).url) : null,
+    }));
 
   const field = obj(obj(body).loadingExperience);
   const metrics = obj(field.metrics);
@@ -79,6 +97,7 @@ export function parsePageSpeed(body: unknown): PreflightLighthouse | null {
       : null,
     opportunities,
     accessibilityIssues,
+    consoleErrors,
   };
 }
 
@@ -152,17 +171,52 @@ export function lighthouseChecks(lh: PreflightLighthouse): PreflightCheck[] {
     });
   }
   if (lh.field) {
+    // Données terrain (75e percentile, CrUX) : ce sont elles qui font foi pour les Core Web Vitals.
     const f = lh.field;
+    const grades = [
+      grade(f.lcpMs, 2_500, 4_000),
+      grade(f.inpMs, 200, 500),
+      grade(f.cls, 0.1, 0.25),
+    ].filter((g): g is 'pass' | 'warn' | 'fail' => g !== null);
+    const worst = grades.includes('fail') ? 'fail' : grades.includes('warn') ? 'warn' : 'pass';
     out.push({
       id: 'lh.field',
       category: 'performance',
-      status: f.overall === 'SLOW' ? 'warn' : 'info',
+      status: grades.length ? worst : f.overall === 'SLOW' ? 'warn' : 'info',
       title: 'Mesures de vrais visiteurs (Chrome)',
-      detail: `Données réelles des 28 derniers jours : affichage principal ${f.lcpMs !== null ? formatMs(f.lcpMs) : '–'}, réactivité ${f.inpMs !== null ? formatMs(f.inpMs) : '–'}, stabilité ${f.cls !== null ? f.cls.toFixed(2) : '–'}.`,
-      fix: null,
+      detail: `Données réelles des 28 derniers jours, 75e percentile : affichage principal ${f.lcpMs !== null ? formatMs(f.lcpMs) : '–'} (bon ≤ 2,5 s), réactivité ${f.inpMs !== null ? formatMs(f.inpMs) : '–'} (INP, bon ≤ 200 ms), stabilité ${f.cls !== null ? f.cls.toFixed(2) : '–'} (bon ≤ 0,1).`,
+      fix:
+        worst === 'pass' || !grades.length
+          ? null
+          : 'Réactivité lente (INP) : découper les tâches JavaScript longues (scheduler.yield, requestIdleCallback), alléger les gestionnaires de clic et différer les scripts tiers. Affichage lent (LCP) : voir lh.lcp.',
       evidence: [],
     });
   }
+  const errors = lh.consoleErrors ?? [];
+  out.push(
+    errors.length
+      ? {
+          id: 'lh.console_errors',
+          category: 'functional',
+          status: 'warn',
+          title: `${errors.length} erreur(s) dans la console au chargement`,
+          detail:
+            'Le navigateur note des erreurs dès l’ouverture de la page : ressource introuvable, requête refusée, exception JavaScript. Un visiteur ne les voit pas, mais elles cachent souvent une fonction cassée et gênent le diagnostic.',
+          fix: 'Ouvrir la console du navigateur sur la page et corriger chaque ligne. Un appel qui répond 401 pour un visiteur (ex. GET /me) : exposer une route de session qui répond 200 avec `user: null`, ou ne pas l’appeler sans cookie de session.',
+          evidence: errors.map(
+            (e) => `${e.source} · ${e.description}${e.url ? ` (${e.url})` : ''}`,
+          ),
+        }
+      : {
+          id: 'lh.console_errors',
+          category: 'functional',
+          status: 'pass',
+          title: 'Console propre au chargement',
+          detail: 'Aucune erreur écrite dans la console du navigateur pendant l’audit Lighthouse.',
+          fix: null,
+          evidence: [],
+        },
+  );
   const a11y = scoreGrade(lh.scores.accessibility, 90, 70);
   if (a11y) {
     out.push({

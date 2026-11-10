@@ -156,6 +156,51 @@ export interface ExtraSiteFacts {
   http3: boolean;
   fonts: { faces: number; withoutSwap: number; files: number };
   imageFormats: { modern: number; legacy: number };
+  /** Contrôles de recette (10/11/2026) : absents dans les rapports plus anciens. */
+  recette?: RecetteSiteFacts;
+}
+
+/** Une route d'API appelée sans session (GET seulement, jamais d'écriture). */
+export interface AnonymousApiProbe {
+  path: string;
+  status: number;
+  json: boolean;
+  /** Clés de données personnelles ou d'identifiants non vides dans la réponse (noms seuls). */
+  personalKeys: string[];
+  credentialKeys: string[];
+  /** La réponse ne contient que des valeurs vides (ex. `{ "user": null }`). */
+  empty: boolean;
+  /** Le chemin ressemble à une route réservée (me, admin, account, settings…). */
+  privatePath: boolean;
+  poweredBy: string | null;
+}
+
+export interface RecetteSiteFacts {
+  /** Pourquoi la balise viewport bloque le zoom (WCAG 1.4.4), ou null. */
+  zoomBlocked: string | null;
+  /** Champs du manifeste d'installation, null sans manifeste lisible. */
+  manifest: {
+    id: boolean;
+    startUrl: boolean;
+    scope: boolean;
+    themeColor: boolean;
+    icon192: boolean;
+    icon512: boolean;
+    maskable: boolean;
+  } | null;
+  faviconIco: boolean;
+  /** Motifs d'API mis en cache par le service worker (extraits courts). */
+  swApiCache: string[];
+  /** Pages du sitemap appelées une à une : adresse et code HTTP. */
+  pages: { url: string; status: number }[];
+  routes: { sitemap: number; robotsDisallow: number; bundle: number; api: number };
+  /** Exemples de routes de l'application lues dans le JavaScript. */
+  routeSamples: string[];
+  api: AnonymousApiProbe[];
+  /** Route d'API inexistante : réponse par défaut du framework (« Cannot GET », trace…). */
+  apiNotFoundLeak: string | null;
+  /** En-tête X-Powered-By renvoyé par l'API (Express, PHP…), ou null. */
+  apiPoweredBy: string | null;
 }
 
 /** Domaine : certificat TLS et DNS, mesurés directement (pas de service tiers). */
