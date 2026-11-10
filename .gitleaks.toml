@@ -1,9 +1,14 @@
-# Configuration gitleaks (CI, job « secrets + dépendances ») : règles par défaut, plus une exception.
+# Configuration gitleaks (CI « secrets + dépendances » et pré-vol) : règles par défaut, plus des exceptions.
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Faux secrets volontaires des tests du masquage (packages/core/src/secrets)"
+description = "Faux secrets volontaires : tests du masquage, exemple de documentation"
 paths = [
   '''^packages/core/src/secrets/mask\.spec\.ts$''',
+]
+# ee45beb : UUID d'exemple « Idempotency-Key » de docs/architecture/06-api.md, pris pour une clé
+# d'API (generic-api-key). Ce n'est pas un secret ; l'historique de main ne se réécrit pas.
+commits = [
+  "ee45beb397454da981b0290b3e46e30c553f55fa",
 ]

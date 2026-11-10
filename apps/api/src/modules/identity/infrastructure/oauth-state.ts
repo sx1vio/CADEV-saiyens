@@ -7,16 +7,19 @@ export interface OAuthState {
   codeVerifier: string;
   returnTo: string;
   expiresAt: number;
+  /** Défi PKCE de l'application mobile (ADR-0021) ; absent pour le web. */
+  appChallenge?: string;
 }
 
 export const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
-export function newOAuthState(returnTo: string, now: number): OAuthState {
+export function newOAuthState(returnTo: string, now: number, appChallenge?: string): OAuthState {
   return {
     state: randomBytes(24).toString('base64url'),
     codeVerifier: randomBytes(32).toString('base64url'),
     returnTo,
     expiresAt: now + OAUTH_STATE_TTL_MS,
+    ...(appChallenge ? { appChallenge } : {}),
   };
 }
 

@@ -8,3 +8,8 @@ apps/api/src/generated/
 apps/api/prisma/migrations/
 .claude/skills/
 *.pdf
+
+# Applications mobiles : produits de Gradle et de Xcode
+apps/mobile/**/build/
+apps/mobile/.gradle/
+apps/mobile/.kotlin/
