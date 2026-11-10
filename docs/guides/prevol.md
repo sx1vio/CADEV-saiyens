@@ -4,16 +4,30 @@ Le pré-vol vérifie une application déployée et son dépôt GitHub public ava
 
 ## Ce qui est vérifié
 
-| Catégorie   | Contrôles                                                                                                                                                                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sécurité    | `.env` et `.git/config` lisibles, clés dans le JavaScript servi, redirection HTTP → HTTPS, en-têtes de sécurité, cartes de source publiques, version du serveur, secrets publiés dans le dépôt |
-| Réseau lent | premier affichage estimé en « 3G rapide » (1,6 Mbit/s, 562 ms), poids, compression, images, cache, viewport mobile, temps de réponse du serveur                                                |
-| Dépendances | failles connues (base OSV) avec la version corrigée, fichier de verrouillage                                                                                                                   |
-| Licences    | licence du dépôt, dépendances directes GPL, AGPL, LGPL…                                                                                                                                        |
-| Hébergement | application servie depuis les adresses Systalink (`SYSTALINK_IP_RANGES`) ; avec l’offre Systalink déclarée et le test de charge, offre conseillée (`host.plan`)                                |
-| Performance | **Lighthouse mobile réel** (Google PageSpeed Insights) : scores performance, accessibilité, bonnes pratiques, référencement ; LCP, TBT, CLS ; mesures de vrais visiteurs Chrome si disponibles |
-| Charge      | **test de charge** (option) : montée de 2 à 50 visiteurs simultanés, point de rupture, latences p50/p95/p99, erreurs ; domaine prouvé obligatoire                                              |
-| Code (CI)   | avec l'action GitHub : `lint`, `typecheck`, `test`, couverture, `build` ; secrets dans tout l'historique (gitleaks) ; failles des dépendances (osv-scanner) ; Lighthouse sur la machine GitHub |
+| Catégorie   | Contrôles                                                                                                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sécurité    | `.env` et `.git/config` lisibles, clés dans le JavaScript servi, redirection HTTP → HTTPS, en-têtes de sécurité, cartes de source publiques, version du serveur, secrets publiés dans le dépôt                                                                                                    |
+| Réseau lent | premier affichage estimé en « 3G rapide » (1,6 Mbit/s, 562 ms), poids, compression, images, cache, viewport mobile, temps de réponse du serveur                                                                                                                                                   |
+| Dépendances | failles connues (base OSV) avec la version corrigée, fichier de verrouillage                                                                                                                                                                                                                      |
+| Licences    | licence du dépôt, dépendances directes GPL, AGPL, LGPL…                                                                                                                                                                                                                                           |
+| Hébergement | application servie depuis les adresses Systalink (`SYSTALINK_IP_RANGES`) ; avec l’offre Systalink déclarée et le test de charge, offre conseillée (`host.plan`)                                                                                                                                   |
+| Performance | **Lighthouse mobile réel** (Google PageSpeed Insights) : scores performance, accessibilité, bonnes pratiques, référencement ; LCP, TBT, CLS ; mesures de vrais visiteurs Chrome si disponibles                                                                                                    |
+| Charge      | **test de charge** (option) : montée de 2 à 50 visiteurs simultanés, point de rupture, latences p50/p95/p99, erreurs ; domaine prouvé obligatoire                                                                                                                                                 |
+| Fonctionnel | **recette** : pages du sitemap appelées une à une (`func.pages`), routes découvertes dans le sitemap, le robots.txt et le routeur du JavaScript (`func.routes`), erreurs de la console au chargement (`lh.console_errors`)                                                                        |
+| Recette     | routes d'API appelées **sans session** (`sec.anonymous_api`, GET seulement), divulgation de la pile par l'API (`sec.api_disclosure`), zoom bloqué (`a11y.zoom`), langue (`a11y.lang`), manifeste complet (`pwa.manifest`), cache d'API du service worker (`pwa.api_cache`), Brotli (`net.brotli`) |
+| Code (CI)   | avec l'action GitHub : `lint`, `typecheck`, `test`, couverture, `build` ; secrets dans tout l'historique (gitleaks) ; failles des dépendances (osv-scanner) ; Lighthouse sur la machine GitHub                                                                                                    |
+
+## Verdict de recette (GO / NO-GO)
+
+Depuis le 10/11/2026, chaque rapport porte aussi une lecture « recette » (méthode VABF du skill `recette-qa` de l'équipe), recalculée à chaque lecture : les anciens rapports l'ont aussi. Objet `recette` du JSON, section « Recette » du Markdown, carte « Recette » sur `/prevol/:id`.
+
+- **Gravité** de chaque contrôle ouvert : _critique_ (fuite de secret ou de données, contournement d'accès, HTTPS cassé), _majeure_ (fonction ou critère AA dégradé), _mineure_ (confort, bonne pratique). Les informations ne comptent pas.
+- **Sections et poids** (web / PWA) : fonctionnel 25, sécurité 20, accessibilité 15, performance 15, réseau et fiabilité 10, cookies et vie privée 10, PWA 5. Référencement, qualité du code, licences et hébergement restent dans le score du pré-vol, hors barème de recette. Score de section = points des contrôles réussis / points applicables (poids 3, 2 ou 1 ; un avertissement vaut la moitié). Une majeure ouverte plafonne la section à 79, une critique à 49. Une section sans contrôle est exclue.
+- **Gates éliminatoires** : aucun secret exposé ; HTTPS valide et TLS 1.2 minimum ; aucune donnée protégée servie sans connexion ; aucun traceur publicitaire avant consentement ; cloisonnement entre comptes (IDOR), **jamais évaluable de l'extérieur** : la décision est donc toujours marquée « provisoire ».
+- **Décision** : `go` (score ≥ 85, aucune critique, aucune majeure en sécurité ni en accessibilité, aucune gate en échec), `go_with_reservations` (score 70 à 84, aucune critique), `no_go` (une critique, une gate en échec ou un score < 70).
+- **À tester à la main** (`untested`) : IDOR avec deux comptes, parcours connectés et écritures, purge du cache après déconnexion, accessibilité manuelle (clavier, lecteur d'écran, zoom 200 %), Safari et Firefox, et selon le passage : Lighthouse, mesures terrain, charge, dépôt.
+
+Les routes d'API sont appelées en **GET seulement**, 18 au plus, jamais celles qui pourraient avoir un effet (`logout`, `delete`, `reset`, `callback`, OAuth…). Seuls les **noms** des champs sensibles d'une réponse sont relevés, jamais leurs valeurs. Une réponse vide comme `{ "user": null }` n'est pas une fuite.
 
 ## Lighthouse et coûts
 
@@ -137,6 +151,7 @@ Sorties : `score`, `verdict`, `report-url`, `code-checks` (`passed`, `failed`, `
 
 ## Limites connues
 
+- Le verdict de recette est un **projet** : il ne remplace ni le cahier de recette, ni les tests avec des comptes, ni un procès-verbal signé par un humain.
 - Le temps en 3G est un **calcul** à partir des octets et des allers-retours ; l'audit Lighthouse, lui, est une vraie mesure (téléphone et réseau simulés par Google).
 - Le test de charge part d'une seule adresse : une limitation de débit par IP peut le freiner (`load.rate_limited`) alors que de vrais visiteurs, chacun sur son adresse, ne le seraient pas.
 - Seuls les dépôts GitHub **publics** sont lus. En production, renseigner `PREFLIGHT_GITHUB_TOKEN` (jeton GitHub en lecture seule) : sans lui, le serveur entier est limité à 60 requêtes GitHub par heure (2 par pré-vol de dépôt).
