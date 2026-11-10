@@ -15,10 +15,12 @@ async function walkToProfile(page: Page) {
 }
 
 /**
- * BUG-027 : un compte neuf n'a pas encore de pays. L'étape « profil » de /bienvenue doit le dire
- * (« Choisis ton pays ») au lieu d'afficher le premier pays de la liste sans le retenir.
+ * BUG-027 puis 10/11/2026 : un compte neuf n'a pas encore de pays. L'étape « profil » l'affiche
+ * comme « Ne pas préciser » (choix réel, qui laisse continuer) au lieu du premier pays de la liste.
  */
-test('onboarding : le premier pays de la liste se choisit comme les autres', async ({ page }) => {
+test('onboarding : pays « Ne pas préciser » par défaut, le premier pays se choisit', async ({
+  page,
+}) => {
   const login = uniqueLogin('onboarding');
   await page.goto(`/api/v1/auth/github?login=${login}&returnTo=${encodeURIComponent('/sos')}`);
   await page.goto('/bienvenue');
@@ -27,11 +29,28 @@ test('onboarding : le premier pays de la liste se choisit comme les autres', asy
   const country = page.getByLabel('Pays');
   const next = page.getByRole('button', { name: 'Continuer' });
   await expect(country).toHaveValue('');
-  await expect(country.locator('option:checked')).toHaveText('Choisis ton pays');
-  await expect(next).toBeDisabled();
+  await expect(country.locator('option:checked')).toHaveText('Ne pas préciser');
+  await expect(next).toBeEnabled();
 
   await country.selectOption({ label: 'Bénin' });
+  await expect(country).toHaveValue('BJ');
   await expect(next).toBeEnabled();
+});
+
+/** « Passer » saute toutes les questions : il ne reste que les règles, puis l'accueil. */
+test('onboarding : « Passer » mène aux règles puis à l’accueil', async ({ page }) => {
+  const login = uniqueLogin('skip');
+  await page.goto(`/api/v1/auth/github?login=${login}&returnTo=${encodeURIComponent('/sos')}`);
+  await page.goto('/bienvenue');
+  await page.getByRole('button', { name: 'Passer' }).click();
+  await expect(page.getByText('Les règles de la communauté')).toBeVisible();
+  const go = page.getByRole('button', { name: /C’est parti/ });
+  await expect(go).toBeDisabled();
+  await page.getByRole('checkbox').check();
+  await go.click();
+  await page.waitForURL((url) => url.pathname === '/');
+  const me = await page.request.get('/api/v1/me');
+  expect((await me.json()).codeOfConductAcceptedAt).toBeTruthy();
 });
 
 /** Compte par e-mail : inscription, onboarding complet, arrivée sur la préparation du cours choisi. */
