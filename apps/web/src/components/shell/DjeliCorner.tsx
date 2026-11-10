@@ -19,7 +19,8 @@ const TIPS = [
  * Le coin de Djeli, au bas de la barre latérale (demande de Sylvio, 10/11/2026) : une petite
  * scène en boucle de 16 s, quatre moments de 4 s (il code, fête un build, révise, salue). Tout est
  * en CSS (classes `djeli-*` de globals.css) : rien ne tourne en JavaScript ; avec
- * `prefers-reduced-motion`, Djeli reste immobile et salue. Un clic : il saute et donne une astuce.
+ * `prefers-reduced-motion`, Djeli reste immobile et salue. Un clic : il saute et donne une astuce. Compact sous 760 px de haut (écrans
+ * agrandis à 150 %), caché sous 560 px.
  */
 export function DjeliCorner() {
   const me = useSession((s) => s.user);
@@ -49,12 +50,12 @@ export function DjeliCorner() {
   };
 
   return (
-    <div className="djeli-corner relative mx-3 mt-2 hidden h-[96px] shrink-0 items-end gap-2 [@media(min-height:720px)]:flex">
+    <div className="djeli-corner relative mx-3 mt-2 hidden h-[76px] shrink-0 items-end gap-2 [@media(min-height:560px)]:flex [@media(min-height:760px)]:h-[96px]">
       <button
         type="button"
         onClick={poke}
         aria-label="Djeli : une astuce"
-        className="relative size-[84px] shrink-0 cursor-pointer outline-none focus-visible:rounded-[18px] focus-visible:ring-2 focus-visible:ring-white/60"
+        className="relative size-[64px] shrink-0 cursor-pointer [@media(min-height:760px)]:size-[84px] outline-none focus-visible:rounded-[18px] focus-visible:ring-2 focus-visible:ring-white/60"
       >
         <span key={hop} className={hop ? 'djeli-hop absolute inset-0' : 'absolute inset-0'}>
           {scenes.map((s, i) => (
@@ -80,7 +81,10 @@ export function DjeliCorner() {
           ))}
         </span>
       </button>
-      <div className="relative mb-9 min-w-0 flex-1" aria-live="polite">
+      <div
+        className="relative mb-6 min-w-0 flex-1 [@media(min-height:760px)]:mb-9"
+        aria-live="polite"
+      >
         {tip ? (
           <p className="djeli-bubble-static rounded-[12px] rounded-bl-[4px] bg-white px-2.5 py-1.5 text-[11.5px] leading-snug font-medium text-[#1e1f22]">
             {tip}

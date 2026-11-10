@@ -47,7 +47,21 @@ async function boot() {
   );
   // Service worker (O1) : enregistré après le premier rendu, jamais bloquant.
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
-    void import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
+    // Nouvelle version déployée : vérifiée au retour sur l'onglet et toutes les 30 min, puis
+    // installée et rechargée seule (registerType autoUpdate) ; un onglet resté ouvert suit donc.
+    void import('virtual:pwa-register').then(({ registerSW }) =>
+      registerSW({
+        immediate: true,
+        onRegisteredSW(_url, reg) {
+          if (!reg) return;
+          const check = () => void reg.update().catch(() => {});
+          setInterval(check, 30 * 60_000);
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') check();
+          });
+        },
+      }),
+    );
   }
 }
 
