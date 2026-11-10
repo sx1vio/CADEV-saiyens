@@ -10,7 +10,14 @@ import {
   SealCheck,
 } from '@phosphor-icons/react';
 import { ArrowRight, ArrowUpRight, Check, CircleCheck, CircleHelp } from 'lucide-react';
-import { useEffect, useState, type ComponentType, type FormEvent } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type FormEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -28,7 +35,7 @@ import { BrandLogo as TechLogo } from '@/platform/logos';
 import { Ago } from '@/platform/ui';
 import { api } from '@/services';
 import type { PublicLanding } from '@/services/types';
-import { useSession } from '@/stores/app';
+import { useSession, useUI } from '@/stores/app';
 import { VerifyForm } from './CertVerify';
 
 /* ==================================================================
@@ -60,7 +67,7 @@ function SignUpInline({ id, className }: { id: string; className?: string }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Ton adresse e-mail"
-        className="lg-clear h-12 min-w-0 flex-1 rounded-full px-5 text-[15px] text-fg outline-none placeholder:text-muted focus-visible:ring-2 focus-visible:ring-accent"
+        className="lg-clear h-12 w-full min-w-0 shrink-0 rounded-full px-5 text-[15px] text-fg outline-none sm:w-auto sm:flex-1 placeholder:text-muted focus-visible:ring-2 focus-visible:ring-accent"
       />
       <button
         type="submit"
@@ -208,12 +215,118 @@ const SHIP_STEPS = [
   {
     n: '4',
     title: 'En ligne, en Afrique',
-    text: 'Héberge chez Systalink, à Dakar : ta salle de projet affiche la preuve que l’app tourne en production.',
+    text: 'Héberge chez Systalink, l’hébergeur africain : ta salle de projet affiche la preuve que l’app tourne en production.',
     to: '/systalink',
   },
 ];
 
+/**
+ * La page d'accueil publique est toujours sombre (choix de Sylvio, 10/11/2026) : le thème choisi
+ * par le visiteur s'applique de nouveau dès qu'il quitte la page.
+ */
+function useDarkOnly() {
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const force = () => {
+      root.dataset.theme = 'dark';
+      meta?.setAttribute('content', '#0B0B0C');
+    };
+    force();
+    // Un changement de thème fait ailleurs (Ctrl+K, raccourci) ne touche pas cette page.
+    const unsubscribe = useUI.subscribe(force);
+    return () => {
+      unsubscribe();
+      const theme = useUI.getState().theme;
+      root.dataset.theme = theme;
+      meta?.setAttribute('content', theme === 'light' ? '#FFFFFF' : '#0B0B0C');
+    };
+  }, []);
+}
+
+const PILLAR_ICONS: { icon: Icon; tone: string }[] = [
+  { icon: ChatsCircle, tone: 'bg-[#3b82f6]/15 text-[#7fb0ff]' },
+  { icon: Certificate, tone: 'bg-[#f59e0b]/15 text-[#fbbf5a]' },
+  { icon: AirplaneTakeoff, tone: 'bg-[#14b8a6]/15 text-[#4fd1c5]' },
+];
+
+/**
+ * Les trois piliers. Sur mobile, un carrousel qu'on fait glisser (cartes à 84 % de la largeur,
+ * la suivante dépasse) avec un indicateur ; à partir de 768 px, trois colonnes.
+ */
+function PillarCarousel() {
+  const track = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  const onScroll = () => {
+    const el = track.current;
+    if (!el) return;
+    const card = el.firstElementChild as HTMLElement | null;
+    if (!card) return;
+    setActive(Math.round(el.scrollLeft / (card.offsetWidth + 12)));
+  };
+  const go = (i: number) => {
+    const el = track.current;
+    const card = el?.children[i] as HTMLElement | undefined;
+    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft - 16, behavior: 'smooth' });
+  };
+  return (
+    <>
+      <div
+        ref={track}
+        onScroll={onScroll}
+        className="no-scrollbar -mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0"
+      >
+        {PILLARS.map((p, i) => {
+          const head = PILLAR_ICONS[i]!;
+          return (
+            <div
+              key={p.title}
+              className="surface-card flex w-[84%] shrink-0 snap-start flex-col p-6 md:w-auto"
+            >
+              <span className={cn('grid size-11 place-items-center rounded-[14px]', head.tone)}>
+                <head.icon weight="fill" className="size-6" />
+              </span>
+              <h3 className="mt-4 text-[22px] font-bold tracking-[-0.02em] text-fg">{p.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-fg/80">{p.text}</p>
+              <ul className="mt-5 flex flex-col gap-1">
+                {p.links.map((l) => (
+                  <li key={l.label}>
+                    <Link
+                      to={l.to}
+                      className="group flex items-center gap-3 rounded-[12px] px-2 py-2.5 text-[15px] font-semibold text-fg transition-colors hover:bg-surface-2"
+                    >
+                      <l.icon weight="fill" className="size-5 shrink-0" />
+                      <span className="flex-1">{l.label}</span>
+                      <ArrowUpRight className="size-4 opacity-60 transition-opacity group-hover:opacity-100 md:opacity-0" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-4 flex items-center justify-center gap-2 md:hidden">
+        {PILLARS.map((p, i) => (
+          <button
+            key={p.title}
+            type="button"
+            aria-label={`Voir ${p.title}`}
+            aria-current={i === active || undefined}
+            onClick={() => go(i)}
+            className={cn(
+              'h-2 rounded-full transition-all duration-200',
+              i === active ? 'w-6 bg-fg' : 'w-2 bg-fg/30',
+            )}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function Landing() {
+  useDarkOnly();
   const { run: tryDemo, busy } = useTryDemo();
   const [tab, setTab] = useState(0);
   const current = TABS[tab]!;
@@ -318,28 +431,7 @@ export default function Landing() {
         <h2 className="max-w-[760px] text-[34px] leading-[1.06] font-bold tracking-[-0.03em] text-fg sm:text-[48px]">
           Tout ce qu’il faut pour avancer, sans changer d’onglet.
         </h2>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {PILLARS.map((p) => (
-            <div key={p.title} className="surface-card flex flex-col p-6">
-              <h3 className="text-[22px] font-bold tracking-[-0.02em] text-fg">{p.title}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-fg/80">{p.text}</p>
-              <ul className="mt-5 flex flex-col gap-1">
-                {p.links.map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      to={l.to}
-                      className="group flex items-center gap-3 rounded-[12px] px-2 py-2.5 text-[15px] font-semibold text-fg transition-colors hover:bg-surface-2"
-                    >
-                      <l.icon weight="fill" className="size-5 shrink-0" />
-                      <span className="flex-1">{l.label}</span>
-                      <ArrowUpRight className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <PillarCarousel />
       </section>
 
       {/* ---------- Du prompt à la prod vérifiée ---------- */}
@@ -349,23 +441,35 @@ export default function Landing() {
           <h2 className="mt-2 max-w-[760px] text-[34px] leading-[1.06] font-bold tracking-[-0.03em] sm:text-[48px]">
             Ton IA a écrit le code. DevHub vérifie qu’il tient.
           </h2>
-          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SHIP_STEPS.map((s) => (
-              <li key={s.n} className="flex flex-col rounded-[18px] bg-white/[0.06] p-5">
-                <span className="grid size-9 place-items-center rounded-full bg-white text-[15px] font-bold text-[#1e1f22]">
+          {/* Mobile : frise reliée ; à partir de 640 px : cartes en grille. */}
+          <ol className="mt-10 flex flex-col gap-7 sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+            {SHIP_STEPS.map((s, i) => (
+              <li
+                key={s.n}
+                className="relative flex gap-4 sm:flex-col sm:gap-0 sm:rounded-[18px] sm:bg-white/[0.06] sm:p-5"
+              >
+                {i < SHIP_STEPS.length - 1 && (
+                  <span
+                    aria-hidden
+                    className="absolute top-10 -bottom-7 left-[17px] w-0.5 rounded-full bg-gradient-to-b from-[#8ab4ff]/70 to-white/10 sm:hidden"
+                  />
+                )}
+                <span className="relative z-[1] grid size-9 shrink-0 place-items-center rounded-full bg-white text-[15px] font-bold text-[#1e1f22] ring-4 ring-[#1e1f22] sm:ring-0">
                   {s.n}
                 </span>
-                <h3 className="mt-4 text-[18px] font-semibold">{s.title}</h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-white/80">{s.text}</p>
-                {s.to && (
-                  <Link
-                    to={s.to}
-                    className="mt-auto inline-flex items-center gap-1 pt-5 text-[14px] font-semibold text-white hover:underline"
-                  >
-                    Découvrir
-                    <ArrowRight className="size-4" />
-                  </Link>
-                )}
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <h3 className="mt-1.5 text-[18px] font-semibold sm:mt-4">{s.title}</h3>
+                  <p className="mt-2 text-[14px] leading-relaxed text-white/80">{s.text}</p>
+                  {s.to && (
+                    <Link
+                      to={s.to}
+                      className="mt-auto inline-flex items-center gap-1 pt-4 text-[14px] font-semibold text-white hover:underline sm:pt-5"
+                    >
+                      Découvrir
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  )}
+                </div>
               </li>
             ))}
           </ol>

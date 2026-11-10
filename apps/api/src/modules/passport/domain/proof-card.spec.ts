@@ -52,9 +52,12 @@ describe('Proof Card (PR5)', () => {
     expect(fr).toContain('Awa Traoré');
     expect(fr).toContain('@awa · CI');
     expect(fr).toContain('72 · Avancé');
-    expect(fr).toMatch(/1\s240 Proof XP/);
+    expect(fr).toMatch(/>1\s240</);
+    expect(fr).toContain('Proof XP');
     expect(fr).toContain('devhub.africa/u/awa');
-    expect(renderProofCard(passport(), 'en', 'devhub.africa')).toContain('17 devs unblocked');
+    const en = renderProofCard(passport(), 'en', 'devhub.africa');
+    expect(en).toContain('>17<');
+    expect(en).toContain('devs unblocked');
   });
 
   it('confidentialité (PR14) : pays et chiffres masqués n’apparaissent pas', () => {

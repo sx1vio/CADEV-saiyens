@@ -141,7 +141,8 @@ export default function Feed() {
 
       {withFilters && (
         <aside className="hidden lg:block">
-          <div className="sticky top-20 flex flex-col gap-3">
+          {/* Plus haut que l'écran (petite fenêtre, zoom) : le panneau défile seul. */}
+          <div className="sticky top-20 flex max-h-[calc(100dvh-6rem)] flex-col gap-3 overflow-y-auto overscroll-contain rounded-[var(--radius-panel,16px)] pb-2">
             <FeedFilters onHide={() => showFilters(false)} />
           </div>
         </aside>

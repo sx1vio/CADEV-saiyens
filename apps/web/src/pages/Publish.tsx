@@ -101,7 +101,7 @@ export default function Publish() {
         </Field>
 
         <Field label="Sujet">
-          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+          <div className="flex flex-wrap gap-2">
             {COMMUNITIES.map((c) => (
               <button
                 key={c.slug}
@@ -116,7 +116,7 @@ export default function Publish() {
                 )}
               >
                 <CommunityIcon slug={c.slug} size={26} />
-                c/{c.slug}
+                {c.name}
               </button>
             ))}
           </div>

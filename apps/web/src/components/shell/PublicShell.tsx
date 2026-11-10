@@ -1,3 +1,4 @@
+import { BackButton } from './BackButton';
 import {
   Award,
   BarChart3,
@@ -358,11 +359,14 @@ export function PublicShell() {
     setMenu(null);
   }
   const close = () => setMenu(null);
+  // L'accueil public est toujours sombre (Landing) : pas de bouton clair/sombre sur cette page.
+  const themeLocked = pathname === '/';
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
       <header className="dh-glassbar sticky top-0 z-30 text-fg">
         <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-2 px-4 sm:px-6">
+          <BackButton label={false} className="-ml-2" />
           <Link to="/" aria-label={t('app.name')} className="mr-3">
             <Logo />
           </Link>
@@ -387,18 +391,20 @@ export function PublicShell() {
               <span className="flex-1">Rechercher</span>
               <kbd className="rounded border border-line-strong px-1.5 text-[11px]">/</kbd>
             </button>
-            <button
-              type="button"
-              aria-label={t('nav.theme')}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="hidden size-9 place-items-center rounded-full text-fg hover:bg-surface-2 sm:grid"
-            >
-              {theme === 'dark' ? (
-                <Sun className="size-[18px]" />
-              ) : (
-                <Moon className="size-[18px]" />
-              )}
-            </button>
+            {!themeLocked && (
+              <button
+                type="button"
+                aria-label={t('nav.theme')}
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="hidden size-9 place-items-center rounded-full text-fg hover:bg-surface-2 sm:grid"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="size-[18px]" />
+                ) : (
+                  <Moon className="size-[18px]" />
+                )}
+              </button>
+            )}
             <Link
               to="/connexion"
               className="hidden h-9 items-center rounded-full px-3.5 text-[15px] font-medium hover:bg-surface-2 sm:inline-flex"
@@ -467,13 +473,15 @@ export function PublicShell() {
               >
                 {lang === 'fr' ? 'English' : 'Français'}
               </button>
-              <button
-                type="button"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="hover:text-white"
-              >
-                {theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
-              </button>
+              {!themeLocked && (
+                <button
+                  type="button"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="hover:text-white"
+                >
+                  {theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+                </button>
+              )}
             </div>
           </div>
         </div>

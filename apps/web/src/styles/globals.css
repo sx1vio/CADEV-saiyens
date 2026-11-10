@@ -23,6 +23,10 @@
   --bg-rail: #1e1f22;
   --bg-nav: #1e1f22;
   --bg-base: #f2f3f5;
+  /* Carte de l'Afrique : terres bien visibles sur le fond, frontières blanches. */
+  --map-land: #c3cbd8;
+  --map-land-muted: #d7dde6;
+  --map-border: #ffffff;
   --surface-1: #ffffff;
   --surface-2: #ebedef;
   --surface-3: #e3e5e8;
@@ -125,6 +129,9 @@
   --bg-rail: #1e1f22;
   --bg-nav: #1e1f22;
   --bg-base: #313338;
+  --map-land: #5a5e69;
+  --map-land-muted: #464952;
+  --map-border: #1e1f22;
   --surface-1: #2b2d31;
   --surface-2: #383a40;
   --surface-3: #404249;
