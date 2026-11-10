@@ -40,11 +40,14 @@
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
-	# Front (SPA) avec repli sur index.html
+	# Front (SPA) avec repli sur index.html. Copies Brotli écrites au build (NET-01) : Caddy ne
+	# compresse qu'en zstd et gzip, et Safari ne lit pas zstd.
 	handle {
 		root * /srv/www
 		try_files {path} /index.html
-		file_server
+		file_server {
+			precompressed br
+		}
 	}
 }
 
