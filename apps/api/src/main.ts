@@ -8,6 +8,7 @@ import { AppModule } from './app.module';
 import { ENV } from './infrastructure/config/config.module';
 import type { Env } from './infrastructure/config/env';
 import { httpMetricsMiddleware } from './infrastructure/http/http-metrics';
+import { privateCacheMiddleware } from './infrastructure/http/private-cache';
 import { isAdminPath, isBusinessPath } from './modules/identity';
 
 async function bootstrap(): Promise<void> {
@@ -18,6 +19,10 @@ async function bootstrap(): Promise<void> {
 
   // Derrière Caddy : faire confiance au proxy du réseau Docker pour l'IP cliente.
   app.set('trust proxy', 'loopback, uniquelocal');
+  // Pas d'en-tête « X-Powered-By: Express » : il annonce la pile à qui cherche une faille (SEC-01).
+  app.disable('x-powered-by');
+  // Réponses authentifiées jamais mises en cache (SEC-04).
+  app.use(privateCacheMiddleware);
   // Volumes, erreurs et latences pour l'onglet « Supervision » de l'administration.
   app.use(httpMetricsMiddleware);
   // L'application publique peut appeler l'API depuis son origine ; jamais les routes

@@ -58,6 +58,8 @@ function Overlays() {
 }
 import { PublicShell } from '@/components/shell/PublicShell';
 import { useGlobalShortcuts } from '@/components/shell/shortcuts';
+import { useLang } from '@/i18n';
+import { pageTitle } from '@/lib/page-title';
 import { useSession, useUI } from '@/stores/app';
 
 /* Pages chargées à la demande, puis préchargées en arrière-plan (navigation instantanée). */
@@ -120,9 +122,15 @@ function Root() {
   const user = useSession((s) => s.user);
   const location = useLocation();
   useGlobalShortcuts();
+  const lang = useLang();
   useEffect(() => {
     if (user) preloadCorePages();
   }, [user]);
+  // Un titre par page (A11Y-03) ; adresse inconnue : l'écran « introuvable » pose le sien.
+  useEffect(() => {
+    const title = pageTitle(location.pathname, lang);
+    if (title) document.title = title;
+  }, [location.pathname, lang]);
   if (user && !user.codeOfConductAcceptedAt && location.pathname !== '/bienvenue')
     return <Navigate to="/bienvenue" replace />;
   return (

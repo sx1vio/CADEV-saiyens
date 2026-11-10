@@ -49,9 +49,13 @@ export function toProblem(
         ? (response as Record<string, unknown>)
         : {};
     const code = typeof body.code === 'string' ? body.code : (CODE_BY_STATUS[status] ?? 'error');
+    let title = typeof body.title === 'string' ? body.title : exception.message;
+    // Route inconnue : Express répond « Cannot GET /api/v1/… ». Le même titre que pour une route
+    // protégée et masquée, sinon la différence permet de cartographier les routes (SEC-01, SEC-04).
+    if (status === 404 && /^Cannot [A-Z]+ /.test(title)) title = 'Not found';
     return {
       type: ERROR_BASE + code,
-      title: typeof body.title === 'string' ? body.title : exception.message,
+      title,
       status,
       code,
       instance,

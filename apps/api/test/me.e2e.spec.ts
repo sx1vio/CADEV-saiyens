@@ -38,6 +38,23 @@ describe('/me : signaux de confiance (PR11) et code de conduite (M3)', () => {
     await app.close();
   });
 
+  it('GET /me/session : 200 et user null pour un visiteur, sans 401 (FONC-02)', async () => {
+    const anon = await request(app.getHttpServer()).get('/api/v1/me/session').expect(200);
+    expect(anon.body).toEqual({ user: null });
+    const stale = await request(app.getHttpServer())
+      .get('/api/v1/me/session')
+      .set('Cookie', '__Host-sid=jeton-inconnu')
+      .expect(200);
+    expect(stale.body).toEqual({ user: null });
+    const member = await request(app.getHttpServer())
+      .get('/api/v1/me/session')
+      .set('Cookie', cookie)
+      .expect(200);
+    expect(member.body.user.handle).toBe(login);
+    // GET /me garde son contrat pour les autres clients (application mobile).
+    await request(app.getHttpServer()).get('/api/v1/me').expect(401);
+  });
+
   it('expose les signaux de confiance', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/me')

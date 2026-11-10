@@ -30,4 +30,18 @@ describe('toProblem', () => {
     expect(problem.status).toBe(500);
     expect(problem.title).not.toContain('secret');
   });
+
+  it('donne le même titre à une route inconnue qu’à une route masquée (SEC-01)', () => {
+    const unknown = toProblem(
+      new NotFoundException('Cannot GET /api/v1/admin/nope'),
+      '/api/v1/admin/nope',
+    );
+    const hidden = toProblem(
+      new NotFoundException({ code: 'not_found', title: 'Not found' }),
+      '/api/v1/admin/users',
+    );
+    expect(unknown.title).toBe('Not found');
+    expect(unknown.title).toBe(hidden.title);
+    expect(unknown.code).toBe(hidden.code);
+  });
 });

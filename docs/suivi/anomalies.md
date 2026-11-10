@@ -2,7 +2,7 @@
 
 Registre vivant des bugs et des écarts (code, CI, outillage, processus) rencontrés pendant le développement. Il permet à toute l'équipe de voir ce qui est ouvert, qui s'en occupe et **comment** chaque problème a été résolu.
 
-> **Mise à jour en temps réel** : une anomalie trouvée s'ajoute ici (et en issue avec le modèle « bug » si elle demande du travail) ; une anomalie corrigée est mise à jour dans la PR qui la corrige. Dernière mise à jour : **20 octobre 2026**.
+> **Mise à jour en temps réel** : une anomalie trouvée s'ajoute ici (et en issue avec le modèle « bug » si elle demande du travail) ; une anomalie corrigée est mise à jour dans la PR qui la corrige. Dernière mise à jour : **10 novembre 2026** (recette QA de la production, BUG-045 à BUG-060).
 
 ## Sommaire
 
@@ -87,8 +87,63 @@ Modèle à copier :
 | [BUG-042](#bug-042) | Étiquettes détectées : slugs inconnus de l'API, faux Node.js                             | Mineure    | Corrigé | Joachim (session 63)      |
 | [BUG-043](#bug-043) | 06-api.md décrit 23 routes absentes du code sans le signaler                             | Mineure    | Corrigé | Joachim (session bd)      |
 | [BUG-044](#bug-044) | Classement : courbe de progression codée en dur sous le premier pays                     | Mineure    | Corrigé | Joachim (session 7b)      |
+| [BUG-045](#bug-045) | À 320 px, l’en-tête des pages internes déborde                                           | Majeure    | Corrigé | Joachim                   |
+| [BUG-046](#bug-046) | Formulaires de connexion : erreur globale, sans champ ni focus                           | Majeure    | Corrigé | Joachim                   |
+| [BUG-047](#bug-047) | Même titre de document sur toutes les pages                                              | Majeure    | Corrigé | Joachim                   |
+| [BUG-048](#bug-048) | E-mails non configurés (SMTP absent)                                                     | Majeure    | Ouvert  | Responsable infra         |
+| [BUG-049](#bug-049) | Points du carrousel de l’accueil de 8 × 8 px                                             | Mineure    | Corrigé | Joachim                   |
+| [BUG-050](#bug-050) | Pas de lien d’évitement sur les pages publiques                                          | Mineure    | Corrigé | Joachim                   |
+| [BUG-051](#bug-051) | Accueil : LCP 2,7 s et TBT 410 ms (Lighthouse mobile)                                    | Mineure    | Ouvert  | Sylvio (front)            |
+| [BUG-052](#bug-052) | Toute adresse inconnue répond 200 (soft 404)                                             | Mineure    | Corrigé | Joachim                   |
+| [BUG-053](#bug-053) | Erreur 401 dans la console à chaque visite                                               | Mineure    | Corrigé | Joachim                   |
+| [BUG-054](#bug-054) | L’API annonce Express                                                                    | Mineure    | Corrigé | Joachim                   |
+| [BUG-055](#bug-055) | `/me` sans Cache-Control ; 404 distinguables                                             | Mineure    | Corrigé | Joachim                   |
+| [BUG-056](#bug-056) | Pas de security.txt                                                                      | Mineure    | Corrigé | Joachim                   |
+| [BUG-057](#bug-057) | Manifeste sans id, pas de favicon.ico                                                    | Mineure    | Corrigé | Joachim                   |
+| [BUG-058](#bug-058) | Pas de Brotli pour Safari                                                                | Cosmétique | Corrigé | Joachim                   |
+| [BUG-059](#bug-059) | CSP `style-src 'unsafe-inline'`                                                          | Cosmétique | Reporté | Sylvio (front)            |
+| [BUG-060](#bug-060) | Pré-vol : le bundle principal n’était jamais analysé                                     | Mineure    | Corrigé | Joachim                   |
 
 ## Anomalies ouvertes
+
+### BUG-048
+
+| Champ              | Valeur                                                                                                                                                                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Titre              | E-mails non configurés (SMTP absent)                                                                                                                                                                                                                                     |
+| Description        | Observé : la Supervision de l’administration affiche « E-mails (SMTP) : missing ». « Mot de passe oublié », notifications et messages des entreprises n’envoient rien : un compte par e-mail ne peut pas être récupéré (ASVS V6). Attendu : SMTP transactionnel branché. |
+| Gravité            | Majeure                                                                                                                                                                                                                                                                  |
+| Statut             | Ouvert                                                                                                                                                                                                                                                                   |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                              |
+| Correction         | —                                                                                                                                                                                                                                                                        |
+| Correctif appliqué | — Hors code : identifiants SMTP, SPF, DKIM et DMARC, puis rejouer « Mot de passe oublié » ([§2.1](recette-2026-11-10.md#21-e-mails-transactionnels-fonc-03-majeure)).                                                                                                    |
+| Référence          | [Recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                                                                                           |
+
+### BUG-051
+
+| Champ              | Valeur                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Accueil : LCP 2,7 s et TBT 410 ms (Lighthouse mobile)                                                                                                                                                                                                                                                                                                       |
+| Description        | Observé : LCP 2,7 s (« à améliorer »), TBT 410 ms, 84 Ko de JS inutilisé, 2,9 s de travail du thread principal. Attendu : LCP ≤ 2,5 s.                                                                                                                                                                                                                      |
+| Gravité            | Mineure                                                                                                                                                                                                                                                                                                                                                     |
+| Statut             | Ouvert                                                                                                                                                                                                                                                                                                                                                      |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                                                                                                                 |
+| Correction         | —                                                                                                                                                                                                                                                                                                                                                           |
+| Correctif appliqué | — Les logos (40 Ko) sont importés statiquement par `primitives.tsx`, `domain.tsx` et `platform/ui.tsx` : les charger à la demande sur l’accueil seul ne gagne rien. À traiter avec [BUG-024](#bug-024) : découper le bundle principal, différer les sections sous la ligne de flottaison, servir `feed.webp` en taille adaptée (1440 px pour 665 affichés). |
+| Référence          | [Recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                                                                                                                                                                              |
+
+### BUG-059
+
+| Champ              | Valeur                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | CSP `style-src 'unsafe-inline'`                                                                                            |
+| Description        | Observé : la CSP autorise les styles en ligne (ASVS V3). Attendu : nonce ou empreintes si possible.                        |
+| Gravité            | Cosmétique                                                                                                                 |
+| Statut             | Reporté                                                                                                                    |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                |
+| Correction         | —                                                                                                                          |
+| Correctif appliqué | — Exigé par les bibliothèques de styles et de notifications ; risque faible tant que `script-src` reste strict (`'self'`). |
+| Référence          | [Recette du 10/11/2026](recette-2026-11-10.md)                                                                             |
 
 ### BUG-003
 
@@ -119,6 +174,175 @@ Modèle à copier :
 | Référence              | Branche `feat/web-realtime-sync`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 ## Anomalies corrigées
+
+### BUG-045
+
+| Champ              | Valeur                                                                                                                                                                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | À 320 px, l’en-tête des pages internes déborde                                                                                                                                                                                                                                         |
+| Description        | Observé : à 320 px, le conteneur `div.ml-auto` de l’en-tête public fait 347 px et le bouton menu sort de l’écran (WCAG 1.4.10, RGAA 10.11). Attendu : aucune barre de défilement horizontale.                                                                                          |
+| Gravité            | Majeure                                                                                                                                                                                                                                                                                |
+| Statut             | Corrigé                                                                                                                                                                                                                                                                                |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                                            |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                                                                                               |
+| Correctif appliqué | Cause : bouton Retour + logo complet + « S’inscrire » + menu dépassent 320 px. Solution : « S’inscrire » passe dans le menu sous 360 px (`PublicShell.tsx`) ; dans l’en-tête connecté, le mot « DevHub » est masqué sous 400 px, le symbole reste (`BrandLogo` prend `wordClassName`). |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                                                                    |
+
+### BUG-046
+
+| Champ              | Valeur                                                                                                                                                                                                                                                                                              |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Formulaires de connexion : erreur globale, sans champ ni focus                                                                                                                                                                                                                                      |
+| Description        | Observé : envoi vide de /connexion → « Vérifie les champs du formulaire », sans message par champ, sans `aria-invalid` ni `aria-describedby`, focus sur `body` (WCAG 3.3.1, 3.3.3 ; RGAA 11.10). Attendu : chaque champ fautif signalé et focus dessus.                                             |
+| Gravité            | Majeure                                                                                                                                                                                                                                                                                             |
+| Statut             | Corrigé                                                                                                                                                                                                                                                                                             |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                                                         |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                                                                                                            |
+| Correctif appliqué | Cause : validation laissée au serveur, erreur affichée en bloc. Solution : validation par champ côté client sur connexion, inscription et mot de passe oublié ; `<Field>` donne l’id `<champ>-error` ou `<champ>-hint` à son message ; `fieldAria()` et `focusFirstInvalid()` (`lib/form-a11y.ts`). |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                                                                                 |
+
+### BUG-047
+
+| Champ              | Valeur                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Titre              | Même titre de document sur toutes les pages                                                                                                                                                |
+| Description        | Observé : `document.title` identique sur les 18 routes, 404 comprise (WCAG 2.4.2, RGAA 8.6). Attendu : un titre propre à chaque page.                                                      |
+| Gravité            | Majeure                                                                                                                                                                                    |
+| Statut             | Corrigé                                                                                                                                                                                    |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                   |
+| Correctif appliqué | Solution : `lib/page-title.ts` (une table par route, FR et EN, pseudo sur les profils) appliquée par le `Root` du routeur ; l’écran introuvable pose « Page introuvable · DevHub Africa ». |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                        |
+
+### BUG-049
+
+| Champ              | Valeur                                                                                                                  |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Points du carrousel de l’accueil de 8 × 8 px                                                                            |
+| Description        | Observé : Lighthouse `target-size` en échec sur `button.h-2` (WCAG 2.5.8). Attendu : cible de 24 × 24 px au moins.      |
+| Gravité            | Mineure                                                                                                                 |
+| Statut             | Corrigé                                                                                                                 |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                             |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                |
+| Correctif appliqué | Solution : le bouton fait 24 px de haut et de large au moins, le point visible est un `span` intérieur (`Landing.tsx`). |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                     |
+
+### BUG-050
+
+| Champ              | Valeur                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Pas de lien d’évitement sur les pages publiques                                                                                                               |
+| Description        | Observé : la première tabulation mène au logo (WCAG 2.4.1, RGAA 12.7). L’application connectée avait déjà le lien. Attendu : « Aller au contenu » en premier. |
+| Gravité            | Mineure                                                                                                                                                       |
+| Statut             | Corrigé                                                                                                                                                       |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                   |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                      |
+| Correctif appliqué | Solution : composant `SkipLink` dans `PublicShell.tsx`, `main#main` focalisable.                                                                              |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                           |
+
+### BUG-052
+
+| Champ              | Valeur                                                                                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Titre              | Toute adresse inconnue répond 200 (soft 404)                                                                                                                                                     |
+| Description        | Observé : `/qa-inexistante`, `/.env`, `/admin` répondent 200 avec l’écran « Page introuvable », sans `noindex`. Attendu : 404 ou au moins `noindex`.                                             |
+| Gravité            | Mineure                                                                                                                                                                                          |
+| Statut             | Corrigé                                                                                                                                                                                          |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                      |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                         |
+| Correctif appliqué | Solution partielle : l’écran introuvable ajoute `<meta name="robots" content="noindex">` (Google exécute le JavaScript). Un vrai 404 HTTP demanderait la liste des routes dans Caddy : non fait. |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                              |
+
+### BUG-053
+
+| Champ              | Valeur                                                                                                                                                                                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Erreur 401 dans la console à chaque visite                                                                                                                                                                                                                      |
+| Description        | Observé : `GET /api/v1/me` répond 401 au démarrage pour un visiteur ; Lighthouse `errors-in-console`. Attendu : console propre.                                                                                                                                 |
+| Gravité            | Mineure                                                                                                                                                                                                                                                         |
+| Statut             | Corrigé                                                                                                                                                                                                                                                         |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                     |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                                                                        |
+| Correctif appliqué | Solution : `GET /api/v1/me/session` (garde facultative) répond 200 avec `{ user: null }` sans compte ; le front démarre avec, et revient à `/me` si l’API est plus ancienne. `GET /me` garde son 401 pour l’application mobile. Test e2e dans `me.e2e.spec.ts`. |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                                             |
+
+### BUG-054
+
+| Champ              | Valeur                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | L’API annonce Express                                                                                                     |
+| Description        | Observé : en-tête `X-Powered-By: Express` et 404 « Cannot GET /api/v1/… » (OWASP A02:2025). Attendu : pile non annoncée.  |
+| Gravité            | Mineure                                                                                                                   |
+| Statut             | Corrigé                                                                                                                   |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                               |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                  |
+| Correctif appliqué | Solution : `app.disable('x-powered-by')` dans `main.ts` ; le filtre RFC 9457 remplace « Cannot GET … » par « Not found ». |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                       |
+
+### BUG-055
+
+| Champ              | Valeur                                                                                                                                                                                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | `/me` sans Cache-Control ; 404 distinguables                                                                                                                                                                                                                                  |
+| Description        | Observé : `GET /api/v1/me` (e-mail, réglages) sans `Cache-Control` ; « Cannot GET » (route absente) et « Not found » (route masquée) se distinguent et cartographient `/admin` et `/business` (ASVS V14). Attendu : `no-store` sur les réponses privées, un seul message 404. |
+| Gravité            | Mineure                                                                                                                                                                                                                                                                       |
+| Statut             | Corrigé                                                                                                                                                                                                                                                                       |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                                   |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                                                                                      |
+| Correctif appliqué | Solution : middleware `private-cache.ts` : `Cache-Control: private, no-store` sur `/me`, `/admin`, `/business` et toute requête d’API avec cookie de session ou jeton (une route qui pose son propre en-tête le garde) ; même titre 404 (BUG-054).                            |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                                                           |
+
+### BUG-056
+
+| Champ              | Valeur                                                                                                                                                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Pas de security.txt                                                                                                                                                                                                                      |
+| Description        | Observé : `/.well-known/security.txt` renvoie l’écran SPA (RFC 9116). Attendu : un contact et une date d’expiration.                                                                                                                     |
+| Gravité            | Mineure                                                                                                                                                                                                                                  |
+| Statut             | Corrigé                                                                                                                                                                                                                                  |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                              |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                                                 |
+| Correctif appliqué | Solution : plugin Vite `securityTxt` qui écrit le fichier à chaque build (expiration à un an, donc renouvelée à chaque déploiement) ; contact = `VITE_CONTACT_EMAIL` (variable de dépôt `CONTACT_EMAIL`), sinon la page Confidentialité. |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                                      |
+
+### BUG-057
+
+| Champ              | Valeur                                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Manifeste sans id, pas de favicon.ico                                                                                                          |
+| Description        | Observé : le manifeste n’a pas de champ `id` ; `/favicon.ico` renvoie l’écran SPA. Attendu : `id` et vrai favicon.                             |
+| Gravité            | Mineure                                                                                                                                        |
+| Statut             | Corrigé                                                                                                                                        |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                    |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                       |
+| Correctif appliqué | Solution : `"id": "/"` et `"scope": "/"` dans `vite.config.ts` ; `public/favicon.ico` (PNG 16, 32 et 48 px dans un ICO) tiré de `pwa-192.png`. |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                            |
+
+### BUG-058
+
+| Champ              | Valeur                                                                                                                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Titre              | Pas de Brotli pour Safari                                                                                                                                                                                          |
+| Description        | Observé : avec `Accept-Encoding: br, gzip`, le serveur répond en gzip ; Chrome reçoit du zstd, Safari (sans zstd) du gzip. Attendu : Brotli.                                                                       |
+| Gravité            | Cosmétique                                                                                                                                                                                                         |
+| Statut             | Corrigé                                                                                                                                                                                                            |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                        |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                           |
+| Correctif appliqué | Cause : Caddy ne compresse qu’en zstd et gzip. Solution : plugin Vite `precompressBrotli` (copies `.br` qualité 11, `zlib` de Node, sans dépendance) et `file_server { precompressed br }` dans `infra/Caddyfile`. |
+| Référence          | Branche `fix/recette-qa-2026-11-10`, [recette du 10/11/2026](recette-2026-11-10.md)                                                                                                                                |
+
+### BUG-060
+
+| Champ              | Valeur                                                                                                                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Titre              | Pré-vol : le bundle principal n’était jamais analysé                                                                                                                                                                                                                            |
+| Description        | Observé (en intégrant la recette au pré-vol, sur devafrica.tech) : 0 route lue dans le routeur alors que le bundle `index-*.js` en contient 35 ; la recherche de secrets dans le JavaScript servi ne lisait pas non plus ce fichier. Attendu : le bundle principal toujours lu. |
+| Gravité            | Mineure                                                                                                                                                                                                                                                                         |
+| Statut             | Corrigé                                                                                                                                                                                                                                                                         |
+| Détection          | 2026-11-10, recette QA (VABF) de la production, par Joachim                                                                                                                                                                                                                     |
+| Correction         | 2026-11-10, par Joachim (session Claude)                                                                                                                                                                                                                                        |
+| Correctif appliqué | Cause : le quota de 12 scripts analysés se remplissait dans l’ordre où les téléchargements finissaient ; les petits fichiers arrivent avant le gros bundle. Solution : les scripts à lire sont choisis dans l’ordre de la page (`site.probe.ts`).                               |
+| Référence          | Branche `feat/prevol-recette-qa`, [recette du 10/11/2026](recette-2026-11-10.md#5-pré-vol--contrôles-de-recette-intégrés)                                                                                                                                                       |
 
 ### BUG-005
 

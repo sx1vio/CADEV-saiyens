@@ -1,9 +1,75 @@
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig, loadEnv } from 'vite';
+import { brotliCompressSync, constants as zlib } from 'node:zlib';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { API_READ_CACHE, API_READ_PATTERN } from './src/offline/api-cache.ts';
+
+/**
+ * /.well-known/security.txt (RFC 9116 ; recette du 10/11/2026, SEC-02) : où signaler une faille.
+ * Écrit à chaque build, donc l'expiration (un an) se renouvelle à chaque déploiement.
+ */
+function securityTxt(contactEmail: string | undefined): Plugin {
+  return {
+    name: 'devhub-security-txt',
+    apply: 'build',
+    generateBundle() {
+      const expires = new Date(Date.now() + 365 * 86_400_000).toISOString().replace(/\.\d+Z$/, 'Z');
+      const contact = contactEmail
+        ? `mailto:${contactEmail}`
+        : 'https://devafrica.tech/confidentialite';
+      this.emitFile({
+        type: 'asset',
+        fileName: '.well-known/security.txt',
+        source: [
+          `Contact: ${contact}`,
+          `Expires: ${expires}`,
+          'Preferred-Languages: fr, en',
+          'Canonical: https://devafrica.tech/.well-known/security.txt',
+          'Policy: https://devafrica.tech/confidentialite',
+          '',
+        ].join('\n'),
+      });
+    },
+  };
+}
+
+/**
+ * Copies Brotli des fichiers texte (NET-01) : Caddy ne compresse qu'en zstd et gzip, et Safari ne
+ * lit pas zstd. `file_server { precompressed br }` sert ces copies (infra/Caddyfile).
+ */
+function precompressBrotli(): Plugin {
+  let outDir = 'dist';
+  const walk = (dir: string): string[] =>
+    readdirSync(dir).flatMap((f) => {
+      const full = join(dir, f);
+      return statSync(full).isDirectory() ? walk(full) : [full];
+    });
+  return {
+    name: 'devhub-precompress-br',
+    apply: 'build',
+    configResolved(c) {
+      outDir = c.build.outDir;
+    },
+    // Après tous les autres plugins (le service worker est écrit à ce moment-là).
+    closeBundle: {
+      order: 'post',
+      sequential: true,
+      handler() {
+        for (const file of walk(outDir)) {
+          if (!/\.(js|css|html|svg|webmanifest|json|txt|xml)$/.test(file)) continue;
+          const raw = readFileSync(file);
+          if (raw.length < 1024) continue;
+          const br = brotliCompressSync(raw, { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } });
+          if (br.length < raw.length * 0.9) writeFileSync(`${file}.br`, br);
+        }
+      },
+    },
+  };
+}
 
 // Configuration du front DevHub Africa : PWA hors ligne d'abord (CDC §6.5, O1).
 export default defineConfig(({ command, mode }) => {
@@ -22,17 +88,21 @@ export default defineConfig(({ command, mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      securityTxt(loadEnv(mode, process.cwd(), '').VITE_CONTACT_EMAIL || undefined),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: false,
-        includeAssets: ['favicon.svg'],
+        includeAssets: ['favicon.svg', 'favicon.ico'],
         manifest: {
+          // Identité stable de l'application installée, même si start_url change (PWA-01).
+          id: '/',
           name: 'DevHub Africa',
           short_name: 'DevHub',
           description:
             "La plateforme d'échange des développeurs africains, par les devs, pour les devs. Même hors ligne.",
           lang: 'fr',
           start_url: '/',
+          scope: '/',
           display: 'standalone',
           background_color: '#F7F8FA',
           theme_color: '#0E1730',
@@ -104,6 +174,7 @@ export default defineConfig(({ command, mode }) => {
           ],
         },
       }),
+      precompressBrotli(),
     ],
     build: {
       target: 'es2022',

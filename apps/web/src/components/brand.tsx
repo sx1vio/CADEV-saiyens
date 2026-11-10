@@ -46,16 +46,23 @@ export function BrandLogo({
   size = 32,
   onDark,
   className,
+  wordClassName,
 }: {
   size?: number;
   onDark?: boolean;
   className?: string;
+  /** Classes du mot « DevHub » : le masquer sur les écrans très étroits (reflow 320 px, WCAG 1.4.10). */
+  wordClassName?: string;
 }) {
   return (
     <span className={cn('inline-flex items-center gap-2', className)}>
       <BrandMark size={size} />
       <span
-        className={cn('font-bold tracking-[-0.035em]', onDark ? 'text-white' : 'text-fg')}
+        className={cn(
+          'font-bold tracking-[-0.035em]',
+          onDark ? 'text-white' : 'text-fg',
+          wordClassName,
+        )}
         style={{ fontSize: size * 0.62 }}
       >
         Dev<span className={onDark ? 'text-[#5eead4]' : 'brand-hub'}>Hub</span>

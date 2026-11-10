@@ -6,7 +6,10 @@ import { BrandLogo } from '@/components/brand';
 import { Djeli } from '@/components/djeli';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/primitives';
+import { fieldAria } from '@/lib/form-a11y';
 import { AccountError, requestPasswordReset, resetPassword } from '@/lib/account';
+
+const PW_HINT = '8 caractères au moins. Une phrase courte est plus sûre qu’un mot compliqué.';
 
 /**
  * Mot de passe oublié, en deux temps : demander un lien par e-mail, puis choisir un nouveau
@@ -27,11 +30,18 @@ export default function PasswordReset() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Erreur de saisie du champ (A11Y-02) ; `error` reste pour les refus du serveur. */
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
   const ask = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setError('Entre une adresse e-mail valide.');
+    setFieldError(null);
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setFieldError('Entre une adresse e-mail valide (exemple : awa@exemple.com).');
+      document.getElementById('rp-email')?.focus();
+      return;
+    }
     setBusy(true);
     try {
       await requestPasswordReset(email);
@@ -46,7 +56,12 @@ export default function PasswordReset() {
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (password.length < 8) return setError('Le mot de passe doit faire au moins 8 caractères.');
+    setFieldError(null);
+    if (password.length < 8) {
+      setFieldError('Le mot de passe doit faire au moins 8 caractères.');
+      document.getElementById('rp-pw')?.focus();
+      return;
+    }
     setBusy(true);
     try {
       await resetPassword(token, password);
@@ -87,14 +102,11 @@ export default function PasswordReset() {
               Choisis-en un nouveau. Tes autres sessions seront fermées.
             </p>
             <form onSubmit={save} className="mt-7 flex flex-col gap-4" noValidate>
-              <Field
-                label="Nouveau mot de passe"
-                htmlFor="rp-pw"
-                hint="8 caractères au moins. Une phrase courte est plus sûre qu’un mot compliqué."
-              >
+              <Field label="Nouveau mot de passe" htmlFor="rp-pw" hint={PW_HINT} error={fieldError}>
                 <div className="relative">
                   <Input
                     id="rp-pw"
+                    {...fieldAria('rp-pw', fieldError, PW_HINT)}
                     type={show ? 'text' : 'password'}
                     autoComplete="new-password"
                     value={password}
@@ -155,9 +167,10 @@ export default function PasswordReset() {
               Entre l’adresse de ton compte : on t’envoie un lien pour en choisir un nouveau.
             </p>
             <form onSubmit={ask} className="mt-7 flex flex-col gap-4" noValidate>
-              <Field label="E-mail" htmlFor="rp-email">
+              <Field label="E-mail" htmlFor="rp-email" error={fieldError}>
                 <Input
                   id="rp-email"
+                  {...fieldAria('rp-email', fieldError)}
                   type="email"
                   autoComplete="email"
                   value={email}

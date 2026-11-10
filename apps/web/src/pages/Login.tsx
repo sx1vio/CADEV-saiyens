@@ -8,6 +8,7 @@ import { Djeli } from '@/components/djeli';
 import { errorText } from '@/components/domain';
 import { Button } from '@/components/ui/button';
 import { Avatar, Field, Input, TechTag } from '@/components/ui/primitives';
+import { fieldAria, focusFirstInvalid } from '@/lib/form-a11y';
 import { AccountError, loginAccount, registerAccount } from '@/lib/account';
 import { invalidate, useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ function strength(pw: string) {
   if (/^(.)\1+$|^(123|azerty|qwerty|password|motdepasse)/i.test(pw)) s = 0;
   return Math.min(4, s);
 }
+const PW_HINT = '8 caractères au moins. Une phrase courte est plus sûre qu’un mot compliqué.';
 const STRENGTH = ['Trop court', 'Faible', 'Correct', 'Solide', 'Excellent'];
 const STRENGTH_COLOR = ['bg-danger', 'bg-danger', 'bg-warning', 'bg-success', 'bg-success'];
 
@@ -51,6 +53,8 @@ export default function Login() {
   const [accept, setAccept] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Erreurs par champ (A11Y-02) : clé = id du champ. */
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [ghMode, setGhMode] = useState(false);
   const [handle, setHandle] = useState('');
   const [found, setFound] = useState<GitHubImport | null>(null);
@@ -62,6 +66,7 @@ export default function Login() {
   if (mode !== signup) {
     setMode(signup);
     setError(null);
+    setFieldErrors({});
   }
 
   const done = (u: User) => {
@@ -95,10 +100,22 @@ export default function Login() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (signup) {
-      if (name.trim().length < 2) return setError('Indique ton nom (2 caractères au moins).');
-      if (password.length < 8) return setError('Le mot de passe doit faire au moins 8 caractères.');
-      if (!accept) return setError('Accepte les règles de la communauté pour continuer.');
+    // Chaque champ fautif reçoit son message, et le focus va au premier (A11Y-02, WCAG 3.3.1).
+    const errs: Record<string, string> = {};
+    if (signup && name.trim().length < 2)
+      errs['au-name'] = 'Indique ton nom (2 caractères au moins).';
+    if (!email.trim()) errs['au-email'] = 'Indique ton adresse e-mail.';
+    else if (!/^\S+@\S+\.\S+$/.test(email.trim()))
+      errs['au-email'] = 'Cette adresse e-mail n’est pas valide (exemple : awa@exemple.com).';
+    if (!password) errs['au-pw'] = 'Indique ton mot de passe.';
+    else if (signup && password.length < 8)
+      errs['au-pw'] = 'Le mot de passe doit faire au moins 8 caractères.';
+    if (signup && !accept)
+      errs['au-accept'] = 'Accepte les règles de la communauté pour continuer.';
+    setFieldErrors(errs);
+    if (Object.keys(errs).length) {
+      focusFirstInvalid(['au-name', 'au-email', 'au-pw', 'au-accept'], errs);
+      return;
     }
     setBusy(true);
     try {
@@ -249,9 +266,10 @@ export default function Login() {
 
               <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
                 {signup && (
-                  <Field label="Nom" htmlFor="au-name">
+                  <Field label="Nom" htmlFor="au-name" error={fieldErrors['au-name']}>
                     <Input
                       id="au-name"
+                      {...fieldAria('au-name', fieldErrors['au-name'])}
                       autoComplete="name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -259,9 +277,10 @@ export default function Login() {
                     />
                   </Field>
                 )}
-                <Field label="Adresse e-mail" htmlFor="au-email">
+                <Field label="Adresse e-mail" htmlFor="au-email" error={fieldErrors['au-email']}>
                   <Input
                     id="au-email"
+                    {...fieldAria('au-email', fieldErrors['au-email'])}
                     type="email"
                     autoComplete="email"
                     inputMode="email"
@@ -274,15 +293,13 @@ export default function Login() {
                 <Field
                   label="Mot de passe"
                   htmlFor="au-pw"
-                  hint={
-                    signup
-                      ? '8 caractères au moins. Une phrase courte est plus sûre qu’un mot compliqué.'
-                      : undefined
-                  }
+                  error={fieldErrors['au-pw']}
+                  hint={signup ? PW_HINT : undefined}
                 >
                   <div className="relative">
                     <Input
                       id="au-pw"
+                      {...fieldAria('au-pw', fieldErrors['au-pw'], signup ? PW_HINT : undefined)}
                       type={show ? 'text' : 'password'}
                       autoComplete={signup ? 'new-password' : 'current-password'}
                       value={password}
@@ -329,10 +346,12 @@ export default function Login() {
                 {signup && (
                   <label className="flex items-start gap-2.5 text-[13px] text-muted">
                     <input
+                      id="au-accept"
                       type="checkbox"
                       checked={accept}
                       onChange={(e) => setAccept(e.target.checked)}
                       className="mt-0.5 size-4 accent-[var(--accent)]"
+                      {...fieldAria('au-accept', fieldErrors['au-accept'])}
                     />
                     <span>
                       J’accepte les{' '}
@@ -346,6 +365,11 @@ export default function Login() {
                       : bienveillance, entraide honnête, pas de spam.
                     </span>
                   </label>
+                )}
+                {signup && fieldErrors['au-accept'] && (
+                  <p id="au-accept-error" role="alert" className="-mt-2 text-xs text-danger">
+                    {fieldErrors['au-accept']}
+                  </p>
                 )}
                 {error && (
                   <p

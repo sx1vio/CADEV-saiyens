@@ -56,11 +56,15 @@ import {
    ================================================================ */
 
 /** Logo cliquable vers l’accueil. */
-function Logo({ dark = true }: { dark?: boolean }) {
+function Logo({ dark = true, compact = false }: { dark?: boolean; compact?: boolean }) {
   const { t } = useTranslation();
   return (
     <Link to="/" className="flex shrink-0 items-center" aria-label={t('pub.homeAria')}>
-      <BrandLogo size={34} onDark={dark} />
+      <BrandLogo
+        size={34}
+        onDark={dark}
+        wordClassName={compact ? 'max-[399px]:hidden' : undefined}
+      />
     </Link>
   );
 }
@@ -454,7 +458,8 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
           <Menu className="size-5" />
         </button>
         <BackButton label={false} />
-        <Logo dark={false} />
+        {/* Sous 400 px, seul le symbole reste : la barre tient à 320 px sans défiler (A11Y-01). */}
+        <Logo dark={false} compact />
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"

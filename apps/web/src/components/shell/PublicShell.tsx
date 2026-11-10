@@ -33,6 +33,19 @@ import { OfflineBanner } from './network';
 import { AnnouncementBar } from './announcements';
 import { BrandLogo } from '../brand';
 
+/** « Aller au contenu » : invisible jusqu'au premier Tab, mène à <main id="main">. */
+export function SkipLink() {
+  const { t } = useTranslation();
+  return (
+    <a
+      href="#main"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-canvas"
+    >
+      {t('nav.skipToContent')}
+    </a>
+  );
+}
+
 export function Logo({ className, onDark }: { className?: string; onDark?: boolean }) {
   return <BrandLogo size={34} onDark={onDark} className={className} />;
 }
@@ -364,10 +377,12 @@ export function PublicShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
+      {/* Lien d'évitement, premier arrêt de la tabulation (A11Y-05, WCAG 2.4.1, RGAA 12.7). */}
+      <SkipLink />
       <header className="dh-glassbar sticky top-0 z-30 text-fg">
         <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-2 px-4 sm:px-6">
           <BackButton label={false} className="-ml-2" />
-          <Link to="/" aria-label={t('app.name')} className="mr-3">
+          <Link to="/" aria-label={t('app.name')} className="mr-1 shrink-0 sm:mr-3">
             <Logo />
           </Link>
           <nav className="hidden items-center lg:flex" aria-label={t('nav.menu')}>
@@ -411,9 +426,10 @@ export function PublicShell() {
             >
               Se connecter
             </Link>
+            {/* Sous 360 px, « S’inscrire » passe dans le menu : l'en-tête tient à 320 px (A11Y-01, WCAG 1.4.10). */}
             <Link
               to="/inscription"
-              className="lg-tint inline-flex h-9 items-center rounded-full px-4 text-[15px] font-semibold"
+              className="lg-tint hidden h-9 items-center rounded-full px-4 text-[15px] font-semibold min-[360px]:inline-flex"
             >
               S’inscrire
             </Link>
@@ -430,7 +446,7 @@ export function PublicShell() {
         <OfflineBanner />
       </header>
 
-      <main id="main" className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <div className="mx-auto max-w-[1280px] empty:hidden">
           <AnnouncementBar />
         </div>

@@ -28,10 +28,16 @@ import {
   type MeResponse,
   UpdateMeRequestDto,
 } from './me.dto';
-import { type AuthenticatedUser, CurrentUser, SessionGuard } from './session.guard';
+import {
+  type AuthenticatedUser,
+  CurrentUser,
+  OptionalSessionGuard,
+  OptionalUser,
+  SessionGuard,
+} from './session.guard';
 
+// Garde posée route par route : GET /me/session répond aussi aux visiteurs sans compte.
 @Controller('api/v1/me')
-@UseGuards(SessionGuard)
 export class MeController {
   constructor(
     private readonly prisma: PrismaService,
@@ -45,6 +51,7 @@ export class MeController {
    * session et reçoit 401.
    */
   @Delete()
+  @UseGuards(SessionGuard)
   @HttpCode(204)
   async remove(
     @CurrentUser() auth: AuthenticatedUser,
@@ -66,6 +73,7 @@ export class MeController {
   }
 
   @Get()
+  @UseGuards(SessionGuard)
   @ApiOkResponse({ type: MeResponseDto })
   me(@CurrentUser() auth: AuthenticatedUser): Promise<MeResponse> {
     return this.load(auth.userId);
@@ -76,6 +84,7 @@ export class MeController {
    * « je veux apprendre », confidentialité. Ces champs alimentent le matching (§6.2).
    */
   @Patch()
+  @UseGuards(SessionGuard)
   @ApiOkResponse({ type: MeResponseDto })
   async update(
     @CurrentUser() auth: AuthenticatedUser,
@@ -145,6 +154,20 @@ export class MeController {
     return this.load(auth.userId);
   }
 
+  /**
+   * Session courante, ou `{ user: null }` sans compte (recette du 10/11/2026, FONC-02). Le front
+   * démarre avec cet appel : un visiteur ne déclenche plus de 401, que le navigateur affichait
+   * comme une erreur dans la console. GET /me garde son 401 pour les autres clients.
+   */
+  @Get('session')
+  @UseGuards(OptionalSessionGuard)
+  async session(
+    @OptionalUser() auth: AuthenticatedUser | null,
+  ): Promise<{ user: MeResponse | null }> {
+    if (!auth) return { user: null };
+    return { user: await this.load(auth.userId).catch(() => null) };
+  }
+
   private async load(userId: string): Promise<MeResponse> {
     const auth = { userId };
     const u = await this.prisma.user.findUniqueOrThrow({ where: { id: auth.userId } });
@@ -178,6 +201,7 @@ export class MeController {
    * la date de la première acceptation est conservée.
    */
   @Post('code-of-conduct')
+  @UseGuards(SessionGuard)
   @HttpCode(200)
   @ApiOkResponse({ type: CodeOfConductResponseDto })
   async acceptCodeOfConduct(
