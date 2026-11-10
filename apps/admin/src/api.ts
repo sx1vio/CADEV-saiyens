@@ -74,8 +74,7 @@ async function call<T>(
 }
 
 export const api = {
-  signIn: (body: { email: string; password: string; code: string }) =>
-    call<void>('POST', '/session', body),
+  signIn: (body: { email: string; password: string }) => call<void>('POST', '/session', body),
   session: () => call<AdminSessionView>('GET', '/session'),
   signOut: () => call<void>('DELETE', '/session'),
   overview: () => call<AdminOverview>('GET', '/overview'),
@@ -136,7 +135,7 @@ export const isSignedOut = (e: unknown) => e instanceof ApiError && e.status ===
 
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) {
-    if (e.code === 'admin.bad_credentials') return 'E-mail, mot de passe ou code incorrect.';
+    if (e.code === 'admin.bad_credentials') return 'E-mail ou mot de passe incorrect.';
     if (e.code === 'rate_limited') return 'Trop de tentatives. Réessaie dans 15 minutes.';
     if (e.code === 'validation.failed') return 'Certains champs ne sont pas valides.';
     if (e.code === 'admin.super_only') return 'Réservé aux super-administrateurs.';

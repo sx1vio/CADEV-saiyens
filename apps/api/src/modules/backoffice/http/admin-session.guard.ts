@@ -41,7 +41,7 @@ export function assertAdminChannel(req: Request, env: Env): void {
   if (site && site !== 'same-origin' && site !== 'none') throw hidden();
 }
 
-/** Exige une session d'administration valide (double facteur). Sinon : 404. */
+/** Exige une session d'administration valide. Sinon : 404. */
 @Injectable()
 export class AdminSessionGuard implements CanActivate {
   constructor(

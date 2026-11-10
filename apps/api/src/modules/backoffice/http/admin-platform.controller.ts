@@ -44,8 +44,7 @@ import { createZodDto } from 'nestjs-zod';
 import { JOBS } from '../../../infrastructure/jobs/catalog';
 import { JobQueue } from '../../../infrastructure/jobs/job-queue';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { AccountDeletion, AesGcmTokenCipher, ScryptPasswordHasher } from '../../identity';
-import { newTotpSecret, otpauthUrl } from '../domain/totp';
+import { AccountDeletion, ScryptPasswordHasher } from '../../identity';
 import { type AdminRequest, AdminSessionGuard, assertSuper } from './admin-session.guard';
 
 class AdminUsersQueryDto extends createZodDto(AdminUsersQuery) {}
@@ -85,7 +84,6 @@ export class AdminPlatformController {
     private readonly prisma: PrismaService,
     private readonly deletion: AccountDeletion,
     private readonly hasher: ScryptPasswordHasher,
-    private readonly cipher: AesGcmTokenCipher,
     private readonly queue: JobQueue,
   ) {}
 
@@ -831,7 +829,6 @@ export class AdminPlatformController {
         displayName: true,
         email: true,
         adminRole: true,
-        adminTotpSecret: true,
         adminSessions: { orderBy: { createdAt: 'desc' }, take: 1, select: { createdAt: true } },
       },
     });
@@ -842,15 +839,13 @@ export class AdminPlatformController {
         displayName: a.displayName,
         email: a.email,
         role: a.adminRole === 'moderator' ? 'moderator' : 'super',
-        twoFactor: a.adminTotpSecret !== null,
         lastSignInAt: a.adminSessions[0]?.createdAt.toISOString() ?? null,
       })),
     };
   }
 
   /**
-   * Super-admin : crée un compte d'administration (mot de passe et secret du double facteur
-   * montrés une seule fois). Une adresse déjà utilisée par un membre est refusée : un compte
+   * Super-admin : crée un compte d'administration (mot de passe montré une seule fois). Une adresse déjà utilisée par un membre est refusée : un compte
    * d'administration reste un compte de service, séparé des comptes devs.
    */
   @Post('admins')
@@ -862,7 +857,6 @@ export class AdminPlatformController {
     if (await this.prisma.user.findFirst({ where: { email: body.email } }))
       throw new ConflictException({ code: 'auth.email_taken', title: 'Email already used' });
     const password = randomBytes(18).toString('base64url');
-    const secret = newTotpSecret();
     const base =
       body.name
         .normalize('NFKD')
@@ -881,7 +875,6 @@ export class AdminPlatformController {
         isAdmin: true,
         adminRole: body.role,
         passwordHash: await this.hasher.hash(password),
-        adminTotpSecret: Buffer.from(this.cipher.encrypt(secret)),
       },
     });
     await this.audit(
@@ -891,7 +884,7 @@ export class AdminPlatformController {
       user.id,
       `${body.email} · ${body.role}`,
     );
-    return { email: body.email, password, secret, otpauthUrl: otpauthUrl(secret, body.email) };
+    return { email: body.email, password };
   }
 
   /** Super-admin : change le rôle d'un administrateur, ou retire l'accès (role: null). */

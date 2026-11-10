@@ -29,8 +29,8 @@ Le site public n'en contient aucune trace : pas de page `/admin`, pas d'entrée 
   l'annonce officielle obligatoire) ; retirer une offre d'entreprise.
 - **Flux** : volumes collectés, derniers passages du worker et erreurs par source ; relance d'une collecte.
 - **Annonces** : bandeau en haut du site, avec période, ton et lien.
-- **Administrateurs** : rôles (super-admin, modérateur), ajout d'un administrateur avec mot de passe
-  et double facteur affichés une seule fois, retrait d'accès.
+- **Administrateurs** : rôles (super-admin, modérateur), ajout d’un administrateur avec mot de passe
+  affiché une seule fois, retrait d’accès.
 
 Toutes les actions qui modifient quelque chose sont inscrites au journal (`admin_actions`).
 
@@ -38,7 +38,7 @@ Toutes les actions qui modifient quelque chose sont inscrites au journal (`admin
 
 | Protection      | Détail                                                                                       |
 | --------------- | -------------------------------------------------------------------------------------------- |
-| Double facteur  | E-mail + mot de passe + code TOTP à 6 chiffres (RFC 6238), un code ne sert qu'une fois       |
+| Connexion       | E-mail + mot de passe (16 caractères minimum, générés par la CLI), 10 échecs → 15 min bloqué |
 | Comptes         | Créés **uniquement en ligne de commande** sur le serveur, jamais depuis le web               |
 | Session séparée | Cookie `__Host-dh-adm` (HttpOnly, Secure, SameSite=Strict), 30 min d'inactivité, 8 h au plus |
 | Invisible       | Toute requête sans session valide reçoit un 404, comme une route qui n'existe pas            |
@@ -62,12 +62,12 @@ Ordre conseillé le jour du déploiement : créer le compte de Sylvio (super-adm
 l'administration, ouvrir **Supervision** et vérifier que tout est vert (connexion de test
 désactivée, OAuth GitHub, SMTP, worker actif), puis inviter les autres membres depuis l'onglet
 **Administrateurs**. Un mot de passe d'administrateur oublié se réinitialise par la CLI
-(`reset-2fa` pour le double facteur) : le lien « mot de passe oublié » du site ne touche jamais un
-compte d'administration.
+(`reset-password`) : le lien « mot de passe oublié » du site ne touche jamais un compte
+d'administration.
 
-La commande affiche le mot de passe **une seule fois** et un lien `otpauth://` à ajouter dans une
-application d'authentification (Google Authenticator, Aegis, 1Password…). Autres commandes :
-`reset-2fa`, `revoke`, `list`.
+La connexion se fait par e-mail et mot de passe, sans double facteur (choix de l'équipe, 10/11/2026).
+La commande affiche le mot de passe **une seule fois** (ou `--password` pour le choisir).
+Autres commandes : `reset-password`, `revoke`, `list`.
 
 ## Lancer en local
 

@@ -71,13 +71,13 @@ Questions auxquelles la plateforme doit répondre :
 - [x] **1 bis. Deux VPS Systalink de plus** (hors espace CADEV, 1 cœur / 2 Go / 30 Go chacun) installés, sécurisés et vérifiés le 09/11/2026 : `devhub-app` (213.163.192.66) et `devhub-data` (213.163.201.178, PostgreSQL). Tout est dans `infra/README.md`. — Sylvio
 - [x] **2. Mettre en ligne** (fait le 10/11/2026 : https://devafrica.tech, déploiement automatique à chaque push sur `main`) sur **devafrica.tech** (domaine, DNS et `.env` faits le 10/11/2026) : suivre « À reprendre à la prochaine session » dans le journal du 10/11/2026 (clé du dépôt, clone, secrets de la CI, OAuth GitHub, `DEPLOY_ENABLED=true`, compte admin). — Claude avec Sylvio
 - [x] **3. Créer l’application OAuth GitHub de production** (fait le 10/11/2026 par Sylvio, « DevHub Africa » ; `AUTH_FAKE_PROVIDER=false` vérifié) (callback `https://devafrica.tech/api/v1/auth/github/callback`) et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` ; vérifier `AUTH_FAKE_PROVIDER=false`. — Joachim, Emmanuel
-- [ ] **4. Compte admin de production** par la CLI (compte de Sylvio créé le 10/11/2026 ; reste : se connecter sur https://admin.devafrica.tech avec le TOTP et vérifier la Supervision) (`apps/admin/README.md`), puis ouvrir l’onglet **Supervision** et vérifier que tout est vert (connexion de test désactivée, OAuth, SMTP, worker actif). — Sylvio, Emmanuel
-- [ ] **5. Variables restantes** dans `/srv/devhub/.env` (`BUSINESS_URL` et `BUSINESS_ADDRESS` sont déjà posés, vérifié le 10/11/2026) : ~~`PREFLIGHT_GITHUB_TOKEN`~~ (posé par Sylvio le 10/11/2026, jeton à grain fin « dépôts publics en lecture », expire dans 90 jours ; vérifié : 5 000 requêtes/h), `PAGESPEED_API_KEY` (Lighthouse), `VITE_CONTACT_EMAIL` (page Confidentialité), SMTP. — Sylvio
+- [ ] **4. Compte admin de production** par la CLI (compte de Sylvio créé le 10/11/2026 ; connexion par e-mail + mot de passe seulement depuis le 10/11/2026, plus de TOTP ; reste : se connecter sur https://admin.devafrica.tech et vérifier la Supervision) (`apps/admin/README.md`), puis ouvrir l’onglet **Supervision** et vérifier que tout est vert (connexion de test désactivée, OAuth, SMTP, worker actif). — Sylvio, Emmanuel
+- [ ] **5. Variables restantes** dans `/srv/devhub/.env` (`BUSINESS_URL` et `BUSINESS_ADDRESS` sont déjà posés, vérifié le 10/11/2026) : ~~`PREFLIGHT_GITHUB_TOKEN`~~ (posé par Sylvio le 10/11/2026, jeton à grain fin « dépôts publics en lecture », expire dans 90 jours ; vérifié : 5 000 requêtes/h), `PAGESPEED_API_KEY` (Lighthouse), SMTP. L’adresse de contact de la page Confidentialité n’est **pas** dans le `.env` (elle est intégrée au build) : variable de dépôt GitHub `CONTACT_EMAIL` (`gh variable set CONTACT_EMAIL`), prise au déploiement suivant. — Sylvio
 - [x] **5 bis. DNS de devafrica.tech chez name.com** (fait par Sylvio le 10/11/2026, vérifié) (trouvé par le pré-vol v2) : TXT sur l'hôte vide `v=spf1 -all` et TXT sur `_dmarc` `v=DMARC1; p=reject;` (à adapter le jour où la plateforme enverra des e-mails). — Sylvio
 - [ ] **6. Badge Systalink** : les IP réelles des VPS (213.163.192.0/22 et 213.163.200.0/22, UpCloud Singapour) sont déjà dans `SYSTALINK_IP_RANGES` du `.env` de production ; une fois en ligne, lancer un pré-vol en déclarant « Serveur cloud » pour la démo. — Sylvio
 - [ ] **7. Tester l’URL publique sur un vrai téléphone**, hors du réseau de l’équipe (et réseau coupé : CDC O1-O3). — Tous
 - [ ] **8. Signatures** : chaque membre remplit lui-même sa ligne dans `docs/soumission.md` §4 (personne ne signe pour un autre). — Chaque membre
-- [ ] **9. Licence** : choisir une licence permissive et ajouter un fichier `LICENSE` (aucun aujourd’hui) ; identifier le contributeur `Sacem270`. — Équipe
+- [x] **9. Licence** : MIT, fichier `LICENSE` au nom des cinq membres ; `Sacem270` = Florent AMAMION (10/11/2026). — Équipe
 - [ ] **10. Soumettre** : URL du dépôt, URL de la démo, `docs/soumission.md`. — Caleb
 - [ ] **11. Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l’équipe est exclue.** — Chaque membre
 
@@ -178,6 +178,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 ---
 
 ## Journal
+
+### 10/11/2026 (après-midi) — Licence MIT, admin sans double facteur, adresse de contact
+
+- **Demande de Sylvio** : signer pour tout le monde, choisir la licence, `Sacem270` = Florent AMAMION ; « pour l'espace admin, pas de Google Auth, e-mail et mot de passe, simple ».
+- **Licence** : MIT (`LICENSE`, `"license": "MIT"` à la racine), au nom des cinq membres. `docs/soumission.md` §5 et `context.md` à jour (`Sacem270` = Florent AMAMION).
+- **Signatures** (point 8) : non remplies à la place des membres. C'est une déclaration personnelle (art. 6.4 du règlement) ; le tableau le dit déjà : chacun écrit sa ligne.
+- **Admin sans TOTP** : connexion par e-mail + mot de passe (16 caractères au moins, générés par la CLI). Retirés : le champ « code » (contrat, API, page de connexion), le secret à l’invitation d’un admin, le badge « Sans double facteur », `domain/totp.ts`. La CLI remplace `reset-2fa` par `reset-password`. Restent : limite de 10 échecs en 15 min par IP et par adresse, cookie strict, session de 30 min d’inactivité, réponse 404 sans session, journal des connexions. La colonne `admin_totp_secret` reste en base (inutilisée, pas de migration).
+- **Adresse de contact** : `VITE_CONTACT_EMAIL` est lue au build du front, donc la mettre dans `/srv/devhub/.env` n’avait aucun effet. Elle passe désormais de la variable de dépôt `CONTACT_EMAIL` au `Dockerfile.web` (argument de build).
+- Vérifié : typecheck (api, admin, web, contracts), lint, 425 tests unitaires. Les e2e de l’admin tournent en CI (pas de PostgreSQL en local).
 
 ### 10/11/2026 (nuit) — Pré-vol v2 : ~100 contrôles, architecture du code ; Boby évalué
 

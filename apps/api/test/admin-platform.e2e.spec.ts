@@ -6,7 +6,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
-import { totpAt } from '../src/modules/backoffice/domain/totp';
 import { ADMIN_HEADERS, adminSignIn, makeAdmin } from './admin.helper';
 import { applyTestEnv } from './env.fixture';
 import { WRITE_HEADERS, cookieValue, signInAs } from './sign-in.helper';
@@ -250,17 +249,17 @@ describe('administration complète', () => {
       .post('/api/v1/admin/admins')
       .send({ email, name: 'Nouvel Admin' })
       .expect(201);
-    expect(inv.body).toMatchObject({ email, otpauthUrl: expect.stringContaining('otpauth://') });
+    expect(inv.body).toMatchObject({ email, password: expect.any(String) });
 
-    // Le compte invité se connecte avec son mot de passe et son code.
+    // Le compte invité se connecte avec son mot de passe.
     await http()
       .post('/api/v1/admin/session')
       .set(ADMIN_HEADERS)
-      .send({ email, password: inv.body.password, code: totpAt(inv.body.secret, new Date()) })
+      .send({ email, password: inv.body.password })
       .expect(204);
     const list = await as(superAdm).get('/api/v1/admin/admins').expect(200);
     const invited = list.body.data.find((a: { email: string }) => a.email === email);
-    expect(invited).toMatchObject({ role: 'moderator', twoFactor: true });
+    expect(invited).toMatchObject({ role: 'moderator' });
 
     await as(superAdm).post('/api/v1/admin/admins').send({ email, name: 'Doublon' }).expect(409);
     await as(modAdm)

@@ -3,18 +3,16 @@ import { randomBytes } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ConfigModule, ENV } from '../../infrastructure/config/config.module';
-import type { Env } from '../../infrastructure/config/env';
+import { ConfigModule } from '../../infrastructure/config/config.module';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { AesGcmTokenCipher, ScryptPasswordHasher } from '../identity';
-import { newTotpSecret, otpauthUrl } from './domain/totp';
+import { ScryptPasswordHasher } from '../identity';
 
 /*
  * Comptes de l'espace d'administration : la SEULE façon d'en créer. À lancer sur le serveur.
  *
  *   pnpm --filter @devhub/api admin create --email admin@exemple.com --name "Prénom Nom"
- *   pnpm --filter @devhub/api admin reset-2fa --email admin@exemple.com
+ *   pnpm --filter @devhub/api admin reset-password --email admin@exemple.com
  *   pnpm --filter @devhub/api admin revoke --email admin@exemple.com
  *   pnpm --filter @devhub/api admin list
  *
@@ -42,8 +40,6 @@ async function main(): Promise<void> {
   });
   const app = await NestFactory.createApplicationContext(AdminCliModule, { logger: ['error'] });
   const prisma = app.get(PrismaService);
-  const env = app.get<Env>(ENV);
-  const cipher = new AesGcmTokenCipher(env.TOKEN_ENCRYPTION_KEY);
   const hasher = new ScryptPasswordHasher();
   const email = values.email?.trim().toLowerCase();
 
@@ -53,13 +49,12 @@ async function main(): Promise<void> {
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('--email valide requis');
         const password = values.password ?? randomBytes(18).toString('base64url');
         if (password.length < 16) fail('mot de passe trop court (16 caractères minimum)');
-        const secret = newTotpSecret();
         const existing = await prisma.user.findFirst({ where: { email, deletedAt: null } });
         const data = {
           isAdmin: true,
           adminRole: 'super',
           passwordHash: await hasher.hash(password),
-          adminTotpSecret: Buffer.from(cipher.encrypt(secret)),
+          adminTotpSecret: null,
         };
         if (existing) {
           await prisma.user.update({ where: { id: existing.id }, data });
@@ -88,24 +83,22 @@ async function main(): Promise<void> {
         await prisma.adminSession.deleteMany({ where: { user: { email } } });
         console.log(`\nCompte administrateur prêt : ${email}`);
         if (!values.password) console.log(`Mot de passe (affiché une seule fois) : ${password}`);
-        console.log('\nDouble facteur : ajoute ce compte dans ton application d’authentification');
-        console.log('(Google Authenticator, Aegis, 1Password…) avec ce lien ou ce secret :\n');
-        console.log(`  ${otpauthUrl(secret, email)}`);
-        console.log(`  Secret : ${secret.replace(/(.{4})/g, '$1 ').trim()}\n`);
+        console.log('Connexion : e-mail + mot de passe sur l’espace d’administration.\n');
         break;
       }
-      case 'reset-2fa': {
+      case 'reset-password': {
         if (!email) fail('--email requis');
         const user = await prisma.user.findFirst({ where: { email, isAdmin: true } });
         if (!user) fail('aucun administrateur avec cette adresse');
-        const secret = newTotpSecret();
+        const password = values.password ?? randomBytes(18).toString('base64url');
+        if (password.length < 16) fail('mot de passe trop court (16 caractères minimum)');
         await prisma.user.update({
           where: { id: user.id },
-          data: { adminTotpSecret: Buffer.from(cipher.encrypt(secret)) },
+          data: { passwordHash: await hasher.hash(password) },
         });
         await prisma.adminSession.deleteMany({ where: { userId: user.id } });
-        console.log(`\nNouveau secret pour ${email} (anciennes sessions fermées) :\n`);
-        console.log(`  ${otpauthUrl(secret, email)}\n`);
+        console.log(`\nNouveau mot de passe pour ${email} (anciennes sessions fermées).`);
+        if (!values.password) console.log(`Mot de passe (affiché une seule fois) : ${password}\n`);
         break;
       }
       case 'revoke': {
@@ -121,17 +114,15 @@ async function main(): Promise<void> {
       case 'list': {
         const admins = await prisma.user.findMany({
           where: { isAdmin: true, deletedAt: null },
-          select: { email: true, handle: true, adminTotpSecret: true },
+          select: { email: true, handle: true, adminRole: true },
         });
         for (const a of admins)
-          console.log(
-            `${a.email ?? '(sans e-mail)'}  @${a.handle}  2FA : ${a.adminTotpSecret ? 'oui' : 'NON'}`,
-          );
+          console.log(`${a.email ?? '(sans e-mail)'}  @${a.handle}  ${a.adminRole ?? 'super'}`);
         if (!admins.length) console.log('Aucun administrateur.');
         break;
       }
       default:
-        fail('commande attendue : create | reset-2fa | revoke | list');
+        fail('commande attendue : create | reset-password | revoke | list');
     }
   } finally {
     await app.close();

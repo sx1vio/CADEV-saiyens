@@ -8,7 +8,7 @@ const ROLES: Record<AdminRole, string> = {
   moderator: 'Modérateur : comptes, contenus, entreprises, offres, annonces',
 };
 
-/** Équipe d'administration : rôles, invitation avec double facteur, retrait d'accès. */
+/** Équipe d'administration : rôles, invitation, retrait d'accès. */
 export function Admins({
   me,
   role,
@@ -54,8 +54,8 @@ export function Admins({
   return (
     <section>
       <PageHeader title="Administrateurs">
-        Chaque compte d’administration a son mot de passe et son double facteur. Les comptes
-        d’administration sont séparés des comptes devs.
+        Chaque compte d’administration a son propre mot de passe. Les comptes d’administration sont
+        séparés des comptes devs.
       </PageHeader>
       <ul className="flex flex-col gap-2">
         {rows?.map((a) => (
@@ -69,7 +69,6 @@ export function Admins({
                 <Badge tone={a.role === 'super' ? 'brand' : 'muted'}>
                   {a.role === 'super' ? 'Super-admin' : 'Modérateur'}
                 </Badge>
-                {!a.twoFactor && <Badge tone="bad">Sans double facteur</Badge>}
                 {a.handle === me && <Badge tone="good">Toi</Badge>}
               </p>
               <p className="text-[13px] text-muted">
@@ -111,15 +110,6 @@ export function Admins({
                 <code className="rounded bg-white px-1.5 py-0.5 select-all">
                   {created.password}
                 </code>
-              </p>
-              <p className="mt-1">
-                Secret du double facteur :{' '}
-                <code className="rounded bg-white px-1.5 py-0.5 select-all">
-                  {created.secret.replace(/(.{4})/g, '$1 ').trim()}
-                </code>
-              </p>
-              <p className="mt-1 break-all text-[12.5px] text-muted">
-                Lien à ouvrir dans l’application d’authentification : {created.otpauthUrl}
               </p>
               <button type="button" className="btn-ghost mt-3 h-9" onClick={() => setCreated(null)}>
                 J’ai transmis, masquer
