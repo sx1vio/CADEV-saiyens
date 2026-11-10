@@ -153,6 +153,8 @@ jobs:
           context: .
           file: infra/Dockerfile.web
           push: true
+          build-args: |
+            VITE_CONTACT_EMAIL=${{ vars.CONTACT_EMAIL }}
           tags: ${{ env.IMAGE_PREFIX }}/web:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
