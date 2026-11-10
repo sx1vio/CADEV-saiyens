@@ -7,6 +7,8 @@ export const PreflightStatus = z.enum(['pass', 'warn', 'fail', 'info']);
 export type PreflightStatus = z.infer<typeof PreflightStatus>;
 
 export const PreflightCategory = z.enum([
+  /** Recette : pages et routes qui répondent, console propre (smoke test). */
+  'functional',
   'security',
   'network',
   'performance',
@@ -186,8 +188,80 @@ export const PreflightLighthouse = z.object({
   accessibilityIssues: z.array(
     z.object({ id: z.string(), title: z.string(), items: z.number().int() }),
   ),
+  /** Erreurs écrites dans la console du navigateur au chargement (audit errors-in-console). */
+  consoleErrors: z
+    .array(z.object({ source: z.string(), description: z.string(), url: z.string().nullable() }))
+    .default([]),
 });
 export type PreflightLighthouse = z.infer<typeof PreflightLighthouse>;
+
+/* ─────────── Recette (méthode VABF : verdict GO / NO-GO, gates, score par section) ─────────── */
+
+/** Sections du barème de recette (poids web / PWA : 25, 20, 15, 15, 10, 10, 5). */
+export const RecetteSectionKey = z.enum([
+  'functional',
+  'security',
+  'accessibility',
+  'performance',
+  'network',
+  'privacy',
+  'platform',
+]);
+export type RecetteSectionKey = z.infer<typeof RecetteSectionKey>;
+
+export const RecetteSeverity = z.enum(['critical', 'major', 'minor']);
+export type RecetteSeverity = z.infer<typeof RecetteSeverity>;
+
+/**
+ * go : score ≥ 85, aucune critique, aucune majeure en sécurité et accessibilité, gates passées ;
+ * go_with_reservations : score 70-84, aucune critique ; no_go : une critique, une gate en échec
+ * ou un score < 70.
+ */
+export const RecetteDecision = z.enum(['go', 'go_with_reservations', 'no_go']);
+export type RecetteDecision = z.infer<typeof RecetteDecision>;
+
+export const PreflightRecette = z.object({
+  decision: RecetteDecision,
+  /** Au moins une gate n'a pas pu être évaluée de l'extérieur (IDOR…) : décision à confirmer. */
+  provisional: z.boolean(),
+  /** Score pondéré sur les sections applicables. */
+  score: z.number().int().min(0).max(100),
+  sections: z.array(
+    z.object({
+      key: RecetteSectionKey,
+      weight: z.number().int(),
+      /** null : aucun contrôle de cette section dans ce pré-vol (exclue du calcul). */
+      score: z.number().int().nullable(),
+      /** Plafond appliqué : 49 (critique ouverte) ou 79 (majeure ouverte). */
+      cap: z.number().int().nullable(),
+      checks: z.number().int(),
+      critical: z.number().int(),
+      major: z.number().int(),
+      minor: z.number().int(),
+    }),
+  ),
+  /** Gates éliminatoires : une seule en échec suffit à refuser. */
+  gates: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      status: z.enum(['pass', 'fail', 'untested']),
+      checks: z.array(z.string()),
+    }),
+  ),
+  /** Anomalies ouvertes, les plus graves d'abord (réserves du procès-verbal). */
+  issues: z.array(
+    z.object({
+      checkId: z.string(),
+      severity: RecetteSeverity,
+      section: RecetteSectionKey,
+      title: z.string(),
+    }),
+  ),
+  /** Ce que le pré-vol ne peut pas vérifier : à recetter à la main. */
+  untested: z.array(z.string()),
+});
+export type PreflightRecette = z.infer<typeof PreflightRecette>;
 
 /** Un palier du test de charge : N visiteurs simultanés pendant quelques secondes. */
 export const PreflightLoadStage = z.object({
@@ -280,6 +354,8 @@ export const PreflightReport = z.object({
   systalink: PreflightSystalinkAdvice.nullable(),
   /** Architecture du dépôt ; null sans dépôt (ou pour un ancien rapport). */
   architecture: PreflightArchitecture.nullable().default(null),
+  /** Lecture « recette » des contrôles, recalculée à chaque lecture (aussi pour les anciens rapports). */
+  recette: PreflightRecette.nullable().default(null),
   checks: z.array(PreflightCheck),
   author: z.object({ handle: z.string(), displayName: z.string() }),
 });

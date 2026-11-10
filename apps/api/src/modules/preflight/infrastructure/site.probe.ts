@@ -1,7 +1,25 @@
 import { inCidr, maskSecrets } from '@devhub/core';
-import type { AssetFact, ExtraSiteFacts, SiteFacts } from '../domain/facts';
+import type {
+  AnonymousApiProbe,
+  AssetFact,
+  ExtraSiteFacts,
+  RecetteSiteFacts,
+  SiteFacts,
+} from '../domain/facts';
 import { looksExposed, scanHtml, sourceMapRef } from '../domain/html';
 import { errorLeak, parseCookie, scanPageMeta } from '../domain/page';
+import {
+  analyseJson,
+  apiDefaultNotFound,
+  apiTargets,
+  isPrivateApiPath,
+  manifestDetail,
+  robotsDisallow,
+  routesInCode,
+  sitemapLocs,
+  swApiCache,
+  zoomBlocked,
+} from '../domain/recette-page';
 import { pool, type FetchedResource, type SafeFetcher } from './safe-fetch';
 
 const MAX_HTML = 2 * 1024 * 1024;
@@ -53,6 +71,14 @@ const CLIENT_SECRET_KINDS = new Set([
 
 export class SiteUnreachableError extends Error {}
 
+interface JsFindings {
+  serviceWorker: boolean;
+  tokenInLocalStorage: boolean;
+  firebase: Set<string>;
+  routes: Set<string>;
+  api: Set<string>;
+}
+
 const text = (r: FetchedResource) => r.body.toString('utf8');
 const isHtml = (r: FetchedResource) =>
   /text\/html/i.test(r.headers['content-type'] ?? '') ||
@@ -63,6 +89,7 @@ export async function probeSite(
   fetcher: SafeFetcher,
   url: string,
   systalinkRanges: string[],
+  opts: { owned?: boolean } = {},
 ): Promise<SiteFacts> {
   const page = await fetcher.get(url, { maxBytes: MAX_HTML, timeoutMs: 12_000 }).catch((e) => {
     throw new SiteUnreachableError(e instanceof Error ? e.message : 'unreachable');
@@ -73,17 +100,30 @@ export async function probeSite(
   const scan = scanHtml(html, page.url);
 
   const wanted = scan.assets.slice(0, MAX_ASSETS);
-  let jsScanned = 0;
+  // Scripts analysés choisis dans l'ordre de la page, pas dans l'ordre où ils finissent d'arriver :
+  // sinon les petits fichiers remplissent le quota et le bundle principal, le plus lourd et le
+  // plus riche (secrets, routes), n'était jamais lu.
+  const toScan = new Set(
+    wanted
+      .filter((a) => a.type === 'script')
+      .slice(0, MAX_JS_SCANNED)
+      .map((a) => a.url),
+  );
   const clientSecrets: SiteFacts['clientSecrets'] = [];
   const mapUrls: string[] = [];
-  const js = { serviceWorker: false, tokenInLocalStorage: false, firebase: new Set<string>() };
+  const js: JsFindings = {
+    serviceWorker: false,
+    tokenInLocalStorage: false,
+    firebase: new Set<string>(),
+    routes: new Set<string>(),
+    api: new Set<string>(),
+  };
   const fonts = { faces: 0, withoutSwap: 0, files: 0 };
 
   const fetched = await pool(wanted, 6, async (a): Promise<AssetFact | null> => {
     try {
       const r = await fetcher.get(a.url, { maxBytes: MAX_ASSET, timeoutMs: 8_000 });
-      if (a.type === 'script' && r.status < 400 && jsScanned < MAX_JS_SCANNED) {
-        jsScanned++;
+      if (a.type === 'script' && r.status < 400 && toScan.has(a.url)) {
         const code = text(r);
         for (const kind of maskSecrets(code).kinds) {
           if (CLIENT_SECRET_KINDS.has(kind)) clientSecrets.push({ kind, file: r.url });
@@ -97,6 +137,10 @@ export async function probeSite(
           /https:\/\/[a-z0-9-]+(?:-default-rtdb)?\.(?:firebaseio\.com|[a-z0-9-]+\.firebasedatabase\.app)/gi,
         ))
           js.firebase.add(m[0].toLowerCase());
+        // Recette : routes de l'application et adresses d'API écrites dans le code.
+        const found = routesInCode(code);
+        found.routes.forEach((r) => js.routes.add(r));
+        found.api.forEach((a) => js.api.add(a));
       }
       if (a.type === 'style' && r.status < 400) {
         const css = text(r);
@@ -178,7 +222,12 @@ export async function probeSite(
     httpRedirectsToHttps = null;
   }
 
-  const extra = await probeExtras(fetcher, page, final, html, probePath, js, fonts, fetched);
+  // La preuve porte sur le domaine demandé : après une redirection vers un autre hôte, ce n'est
+  // plus le site de l'auteur, la matrice d'API ne tourne pas.
+  const sameHost = final.host.toLowerCase() === new URL(url).host.toLowerCase();
+  const extra = await probeExtras(fetcher, page, final, html, probePath, js, fonts, fetched, {
+    owned: (opts.owned ?? false) && sameHost,
+  });
 
   return {
     requestedUrl: url,
@@ -217,9 +266,10 @@ async function probeExtras(
     maxBytes?: number,
     extra?: Parameters<SafeFetcher['get']>[1],
   ) => Promise<FetchedResource | null>,
-  js: { serviceWorker: boolean; tokenInLocalStorage: boolean; firebase: Set<string> },
+  js: JsFindings,
   fonts: ExtraSiteFacts['fonts'],
   assets: (AssetFact | null)[],
+  scope: { owned: boolean },
 ): Promise<ExtraSiteFacts> {
   const meta = scanPageMeta(html, page.url);
   const probeId = `devhub-preflight-${Date.now().toString(36)}`;
@@ -271,9 +321,9 @@ async function probeExtras(
     : false;
   const sitemapRes = await probePath(
     sitemaps[0] ? new URL(sitemaps[0]).pathname : '/sitemap.xml',
-    4096,
+    256 * 1024,
     {
-      maxBytes: 4096,
+      maxBytes: 256 * 1024,
       maxRedirects: 2,
     },
   );
@@ -367,13 +417,22 @@ async function probeExtras(
       imageFormats.legacy++;
   }
 
+  const sitemapOk =
+    !!sitemapRes && sitemapRes.status === 200 && /<urlset|<sitemapindex/i.test(text(sitemapRes));
+  const recette = await probeRecette(fetcher, final, html, probePath, js, {
+    sitemapXml: sitemapOk ? text(sitemapRes!) : null,
+    robotsText,
+    manifestRaw: manifestRes && manifestRes.status === 200 ? text(manifestRes) : null,
+    pageUrl: page.url,
+    owned: scope.owned,
+  });
+
   return {
     page: meta,
     cookies: page.setCookies.map(parseCookie).filter((c) => c.name),
     cors,
     robots: { present: robotsText !== null, disallowAll, sitemaps },
-    sitemap:
-      !!sitemapRes && sitemapRes.status === 200 && /<urlset|<sitemapindex/i.test(text(sitemapRes)),
+    sitemap: sitemapOk,
     securityTxt:
       !!securityTxt && securityTxt.status === 200 && /^\s*contact\s*:/im.test(text(securityTxt)),
     notFound: notFoundRes
@@ -390,5 +449,98 @@ async function probeExtras(
     http3: /\bh3(-\d+)?=/.test(page.headers['alt-svc'] ?? ''),
     fonts,
     imageFormats,
+    recette,
+  };
+}
+
+/**
+ * Recette (10/11/2026, skill recette-qa) : pages du sitemap, routes d'API appelées sans session
+ * (GET seulement, jamais d'écriture ni de route à effet), manifeste, service worker, zoom.
+ * Une quarantaine de requêtes au plus, en lecture.
+ */
+async function probeRecette(
+  fetcher: SafeFetcher,
+  final: URL,
+  html: string,
+  probePath: (
+    path: string,
+    maxBytes?: number,
+    extra?: Parameters<SafeFetcher['get']>[1],
+  ) => Promise<FetchedResource | null>,
+  js: JsFindings,
+  ctx: {
+    sitemapXml: string | null;
+    robotsText: string | null;
+    manifestRaw: string | null;
+    pageUrl: string;
+    owned: boolean;
+  },
+): Promise<RecetteSiteFacts> {
+  const locs = ctx.sitemapXml ? sitemapLocs(ctx.sitemapXml, final.origin, ctx.pageUrl) : [];
+  // Matrice des routes d'API en anonyme : seulement sur un domaine prouvé (comme le test de charge).
+  const targets = ctx.owned ? apiTargets([...js.api]) : [];
+  const missing = `/api/devhub-preflight-${Date.now().toString(36)}`;
+
+  const [pages, api, notFound, favicon, sw] = await Promise.all([
+    pool(locs, 4, async (u) => {
+      try {
+        const r = await fetcher.get(u, { maxBytes: 2048, timeoutMs: 8_000, maxRedirects: 3 });
+        return { url: u, status: r.status };
+      } catch {
+        return { url: u, status: 0 };
+      }
+    }),
+    pool(targets, 4, async (path): Promise<AnonymousApiProbe | null> => {
+      const r = await probePath(path, 32 * 1024, {
+        maxBytes: 32 * 1024,
+        headers: { Accept: 'application/json' },
+      });
+      if (!r) return null;
+      const body = text(r);
+      const looksJson = /json/i.test(r.headers['content-type'] ?? '') && !isHtml(r);
+      const a = looksJson && r.status === 200 ? analyseJson(body) : null;
+      return {
+        path,
+        status: r.status,
+        json: looksJson,
+        personalKeys: a?.personalKeys ?? [],
+        credentialKeys: a?.credentialKeys ?? [],
+        empty: a?.empty ?? true,
+        privatePath: isPrivateApiPath(path),
+        poweredBy: r.headers['x-powered-by'] ?? null,
+      };
+    }),
+    probePath(missing, 8192),
+    probePath('/favicon.ico', 1024),
+    js.serviceWorker ? probePath('/sw.js', 512 * 1024) : Promise.resolve(null),
+  ]);
+
+  const swCode = sw && sw.status === 200 && !isHtml(sw) ? text(sw) : '';
+  const probes = api.filter((a): a is AnonymousApiProbe => a !== null);
+  return {
+    zoomBlocked: zoomBlocked(html),
+    manifest: ctx.manifestRaw ? manifestDetail(ctx.manifestRaw) : null,
+    faviconIco:
+      !!favicon &&
+      favicon.status === 200 &&
+      !isHtml(favicon) &&
+      /image|icon|octet/i.test(favicon.headers['content-type'] ?? 'image'),
+    swApiCache: swCode ? swApiCache(swCode) : [],
+    pages,
+    routes: {
+      sitemap: locs.length,
+      robotsDisallow: ctx.robotsText ? robotsDisallow(ctx.robotsText).length : 0,
+      bundle: js.routes.size,
+      api: js.api.size,
+    },
+    routeSamples: [...js.routes].slice(0, 8),
+    api: probes,
+    apiMatrix: ctx.owned ? 'done' : 'needs_proof',
+    apiPoweredBy:
+      notFound?.headers['x-powered-by'] ?? probes.find((a) => a.poweredBy)?.poweredBy ?? null,
+    apiNotFoundLeak:
+      notFound && notFound.status >= 400 && !isHtml(notFound)
+        ? apiDefaultNotFound(text(notFound))
+        : null,
   };
 }

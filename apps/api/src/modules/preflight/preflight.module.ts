@@ -28,7 +28,8 @@ import { PREFLIGHT_LOAD_LIMITS } from '@devhub/contracts';
       inject: [PreflightRepository, ENV],
       useFactory: (store: PreflightRepository, env: Env) => {
         const probes: PreflightProbes = {
-          site: (url, signal) => probeSite(new SafeFetcher(signal), url, env.SYSTALINK_IP_RANGES),
+          site: (url, signal, opts) =>
+            probeSite(new SafeFetcher(signal), url, env.SYSTALINK_IP_RANGES, opts),
           domain: (url, signal) => probeDomain(new SafeFetcher(signal), url),
           repo: (repo, signal) =>
             probeRepo(new SafeFetcher(signal), repo, env.PREFLIGHT_GITHUB_TOKEN),

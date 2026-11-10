@@ -3,6 +3,7 @@ import type { PreflightListItem, PreflightReport } from '@devhub/contracts';
 import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type { PreflightStore } from '../application/run-preflight';
+import { recetteOf } from '../domain/recette';
 
 type Stored = Pick<PreflightReport, 'checks' | 'metrics' | 'repoSummary' | 'counts'> &
   Partial<Pick<PreflightReport, 'lighthouse' | 'loadTest' | 'systalink' | 'architecture'>>;
@@ -38,7 +39,7 @@ export class PreflightRepository implements PreflightStore {
     });
     if (!r) return null;
     const result = r.result as unknown as Stored;
-    return {
+    const base = {
       id: r.id,
       url: r.url,
       repo: r.repo,
@@ -56,6 +57,8 @@ export class PreflightRepository implements PreflightStore {
       checks: result.checks,
       author: { handle: r.user.handle, displayName: r.user.displayName },
     };
+    // Lecture « recette » recalculée à chaque lecture : elle vaut aussi pour les anciens rapports.
+    return { ...base, recette: recetteOf(base) };
   }
 
   async listMine(userId: string): Promise<PreflightListItem[]> {

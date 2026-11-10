@@ -8,6 +8,7 @@ import type {
   PreflightLighthouse,
   PreflightLoadTest,
   PreflightOwnership,
+  PreflightRecette,
   PreflightReport,
   PreflightSystalinkAdvice,
   PreflightVerdict,
@@ -27,6 +28,7 @@ import {
   ChevronDown,
   Clipboard,
   ClipboardCheck,
+  ClipboardList,
   Download,
   Gauge,
   GitBranch,
@@ -143,6 +145,7 @@ const VERDICT: Record<PreflightVerdict, { label: string; tone: 'success' | 'warn
   };
 
 const CATEGORY: Record<PreflightCheck['category'], { label: string; icon: typeof ShieldCheck }> = {
+  functional: { label: 'Fonctionnel', icon: ClipboardList },
   security: { label: 'Sécurité', icon: ShieldCheck },
   network: { label: 'Réseau lent', icon: Gauge },
   performance: { label: 'Performance', icon: Gauge },
@@ -848,6 +851,7 @@ function ReportView({ id }: { id: string }) {
         </div>
       )}
 
+      {data.recette && <RecetteCard r={data.recette} />}
       {data.lighthouse && <LighthouseCard lh={data.lighthouse} />}
       {data.loadTest && <LoadCard lt={data.loadTest} />}
       {data.architecture && data.architecture.analysedFiles > 0 && (
@@ -1165,6 +1169,119 @@ function ArchitectureCard({ a }: { a: PreflightArchitecture }) {
         {a.todos ? ` · ${a.todos} TODO/FIXME` : ''}
         {a.orphans.length ? ` · ${a.orphans.length} fichier(s) que rien n’importe` : ''}
       </p>
+    </Card>
+  );
+}
+
+const DECISION: Record<
+  PreflightRecette['decision'],
+  { label: string; tone: 'success' | 'warning' | 'danger' }
+> = {
+  go: { label: 'GO', tone: 'success' },
+  go_with_reservations: { label: 'GO sous réserves', tone: 'warning' },
+  no_go: { label: 'NO-GO', tone: 'danger' },
+};
+const SECTION: Record<PreflightRecette['sections'][number]['key'], string> = {
+  functional: 'Fonctionnel',
+  security: 'Sécurité',
+  accessibility: 'Accessibilité',
+  performance: 'Performance',
+  network: 'Réseau',
+  privacy: 'Vie privée',
+  platform: 'PWA',
+};
+const SEVERITY: Record<PreflightRecette['issues'][number]['severity'], string> = {
+  critical: 'Critique',
+  major: 'Majeure',
+  minor: 'Mineure',
+};
+
+/**
+ * Lecture « recette » du pré-vol (méthode VABF, skill recette-qa) : verdict GO / NO-GO, gates
+ * éliminatoires, score par section, réserves et ce qui reste à tester à la main.
+ */
+function RecetteCard({ r }: { r: PreflightRecette }) {
+  const decision = DECISION[r.decision];
+  const top = r.issues.filter((i) => i.severity !== 'minor').slice(0, 6);
+  return (
+    <Card className="mt-3 p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
+          <ClipboardList className="size-[18px]" /> Recette
+        </h2>
+        <Badge tone={decision.tone}>
+          {decision.label}
+          {r.provisional ? ' · provisoire' : ''}
+        </Badge>
+        <span className="ml-auto text-[13px] text-muted tabular">
+          score de recette {r.score}/100
+        </span>
+      </div>
+      <p className="mt-1.5 text-[13px] text-muted">
+        GO à 85 et plus, sans critique ni majeure en sécurité ou accessibilité. NO-GO dès une
+        critique, une gate en échec ou un score sous 70.
+      </p>
+
+      <ul className="mt-4 grid gap-1.5 sm:grid-cols-2">
+        {r.gates.map((g) => (
+          <li key={g.id} className="flex items-start gap-2 text-[13.5px] text-fg">
+            {g.status === 'pass' ? (
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-label="passée" />
+            ) : g.status === 'fail' ? (
+              <XCircle className="mt-0.5 size-4 shrink-0 text-danger" aria-label="en échec" />
+            ) : (
+              <Info className="mt-0.5 size-4 shrink-0 text-subtle" aria-label="non évaluée" />
+            )}
+            <span>
+              {g.label}
+              {g.status === 'untested' && (
+                <span className="text-subtle"> · à tester à la main</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4 lg:grid-cols-7">
+        {r.sections.map((sec) => (
+          <div key={sec.key} className="bg-surface-1 px-3 py-2.5">
+            <dt className="text-[12.5px] text-muted">
+              {SECTION[sec.key]} <span className="text-subtle">· {sec.weight}</span>
+            </dt>
+            <dd className="text-[16px] font-semibold tabular text-fg">
+              {sec.score === null ? <span className="text-subtle">–</span> : sec.score}
+            </dd>
+            {sec.cap !== null && <dd className="text-[11.5px] text-warning">plafond {sec.cap}</dd>}
+          </div>
+        ))}
+      </dl>
+
+      {top.length > 0 && (
+        <ul className="mt-4 flex flex-col gap-1.5">
+          {top.map((i) => (
+            <li key={i.checkId} className="flex min-w-0 items-baseline gap-2 text-[13.5px]">
+              <Badge tone={i.severity === 'critical' ? 'danger' : 'warning'}>
+                {SEVERITY[i.severity]}
+              </Badge>
+              <span className="min-w-0 truncate text-fg">{i.title}</span>
+              <code className="ml-auto shrink-0 font-mono text-[12px] text-subtle">
+                {i.checkId}
+              </code>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <details className="mt-4 text-[13px]">
+        <summary className="cursor-pointer font-medium text-fg">
+          À tester à la main ({r.untested.length})
+        </summary>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+          {r.untested.map((u) => (
+            <li key={u}>{u}</li>
+          ))}
+        </ul>
+      </details>
     </Card>
   );
 }

@@ -244,6 +244,46 @@ describe('pré-vol avec test de charge', () => {
     ).rejects.toBeInstanceOf(OwnershipRequiredError);
   });
 
+  it('ne prévient la sonde du site que si le domaine est prouvé (matrice d’API de la recette)', async () => {
+    const seen: (boolean | undefined)[] = [];
+    const probesFor = (proof: 'dns' | null): PreflightProbes => ({
+      site: async (_u, _s, opts) => {
+        seen.push(opts?.owned);
+        throw new Error('injoignable');
+      },
+      repo: async () => {
+        throw new Error('x');
+      },
+      classify: () => 'site_unreachable',
+      ownership: async () => proof,
+    });
+    for (const proof of ['dns', null] as const)
+      await new RunPreflight(probesFor(proof), store())
+        .run({ userId: 'u1', url: 'https://app.exemple.sn', repo: null })
+        .catch(() => undefined);
+    expect(seen).toEqual([true, false]);
+  });
+
+  it('jamais de test de charge sur un autre hôte atteint par redirection', async () => {
+    let loaded = false;
+    const probes: PreflightProbes = {
+      site: async () => ({ ...site, finalUrl: 'https://site-d-un-autre.test/' }) as SiteFacts,
+      repo: async () => {
+        throw new Error('x');
+      },
+      classify: () => 'other',
+      ownership: async () => 'dns',
+      loadTest: async () => {
+        loaded = true;
+        return [];
+      },
+    };
+    await new RunPreflight(probes, store())
+      .run({ userId: 'u1', url: 'https://app.exemple.sn', repo: null, loadTest: true })
+      .catch(() => undefined);
+    expect(loaded).toBe(false);
+  });
+
   it('offre Systalink déclarée + rupture : conseil de taille dans le rapport', async () => {
     const saved = store();
     const probes = {

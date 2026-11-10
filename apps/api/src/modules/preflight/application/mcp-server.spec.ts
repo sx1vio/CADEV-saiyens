@@ -31,6 +31,7 @@ const report: PreflightReport = {
     },
   ],
   architecture: null,
+  recette: null,
   author: { handle: 'awa-dev', displayName: 'Awa' },
 };
 

@@ -18,6 +18,7 @@ import {
   siteExtraChecks,
 } from '../domain/extended-checks';
 import { lighthouseChecks } from '../domain/lighthouse';
+import { recetteSiteChecks } from '../domain/recette-checks';
 import { concludeLoad, loadChecks } from '../domain/load';
 import type { DomainFacts, RepoFacts, SiteFacts } from '../domain/facts';
 import { declaredButUnseen, planCheck, systalinkAdvice } from '../domain/hosting';
@@ -40,7 +41,11 @@ export class NothingToCheckError extends Error {
 }
 
 export interface PreflightProbes {
-  site(url: string, signal: AbortSignal): Promise<SiteFacts>;
+  /**
+   * `owned` : l'auteur a prouvé qu'il contrôle le domaine. Sans preuve, la sonde ne lance pas la
+   * matrice des routes d'API en anonyme (elle servirait à repérer le site d'un autre).
+   */
+  site(url: string, signal: AbortSignal, opts?: { owned?: boolean }): Promise<SiteFacts>;
   repo(fullName: string, signal: AbortSignal): Promise<RepoFacts>;
   /** Certificat TLS et DNS du domaine. Facultatif : absent, le rapport s'en passe. */
   domain?(url: string, signal: AbortSignal): Promise<DomainFacts>;
@@ -117,9 +122,15 @@ export class RunPreflight {
       proof = await this.probes.ownership(input.userId, input.url);
       if (!proof) throw new OwnershipRequiredError();
     }
+    // Preuve de propriété aussi sans test de charge : elle ouvre la matrice d'API de la recette.
+    const owned =
+      proof ??
+      (input.url && this.probes.ownership
+        ? await this.probes.ownership(input.userId, input.url).catch(() => null)
+        : null);
     this.running.add(input.userId);
     try {
-      return await this.execute(input, proof);
+      return await this.execute(input, proof, owned !== null);
     } finally {
       this.running.delete(input.userId);
     }
@@ -140,11 +151,11 @@ export class RunPreflight {
     }
   }
 
-  private async execute(input: RunInput, proof: 'well-known' | 'dns' | null) {
+  private async execute(input: RunInput, proof: 'well-known' | 'dns' | null, owned = false) {
     const started = Date.now();
     const signal = AbortSignal.timeout(BUDGET_MS);
     const [site, repo, lighthouse, domain] = await Promise.all([
-      input.url ? this.probes.site(input.url, signal).catch((e: unknown) => e) : null,
+      input.url ? this.probes.site(input.url, signal, { owned }).catch((e: unknown) => e) : null,
       input.repo ? this.probes.repo(input.repo, signal).catch((e: unknown) => e) : null,
       input.url && this.probes.lighthouse
         ? this.probes.lighthouse(input.url).catch(() => null)
@@ -196,7 +207,7 @@ export class RunPreflight {
 
     if (siteOk) {
       const s = site as SiteFacts;
-      checks.push(...siteChecks(s), ...siteExtraChecks(s));
+      checks.push(...siteChecks(s), ...siteExtraChecks(s), ...recetteSiteChecks(s));
       if (domain) checks.push(...domainChecks(domain));
       const load = estimateLoad(s);
       metrics = {
@@ -244,8 +255,11 @@ export class RunPreflight {
     let loadTest: PreflightLoadTest | null = null;
     if (input.loadTest && siteOk && proof) {
       const target = (site as SiteFacts).finalUrl;
+      // Preuve faite pour l'hôte demandé : jamais de charge sur un autre hôte atteint par redirection.
+      const sameHost =
+        new URL(target).host.toLowerCase() === new URL(input.url!).host.toLowerCase();
       const loadStarted = Date.now();
-      const stages = await this.runLoad(input.userId, target);
+      const stages = sameHost ? await this.runLoad(input.userId, target) : null;
       if (stages?.length) {
         loadTest = {
           url: target,
