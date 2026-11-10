@@ -264,6 +264,26 @@ describe('pré-vol avec test de charge', () => {
     expect(seen).toEqual([true, false]);
   });
 
+  it('jamais de test de charge sur un autre hôte atteint par redirection', async () => {
+    let loaded = false;
+    const probes: PreflightProbes = {
+      site: async () => ({ ...site, finalUrl: 'https://site-d-un-autre.test/' }) as SiteFacts,
+      repo: async () => {
+        throw new Error('x');
+      },
+      classify: () => 'other',
+      ownership: async () => 'dns',
+      loadTest: async () => {
+        loaded = true;
+        return [];
+      },
+    };
+    await new RunPreflight(probes, store())
+      .run({ userId: 'u1', url: 'https://app.exemple.sn', repo: null, loadTest: true })
+      .catch(() => undefined);
+    expect(loaded).toBe(false);
+  });
+
   it('offre Systalink déclarée + rupture : conseil de taille dans le rapport', async () => {
     const saved = store();
     const probes = {

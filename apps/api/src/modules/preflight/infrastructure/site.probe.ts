@@ -222,8 +222,11 @@ export async function probeSite(
     httpRedirectsToHttps = null;
   }
 
+  // La preuve porte sur le domaine demandé : après une redirection vers un autre hôte, ce n'est
+  // plus le site de l'auteur, la matrice d'API ne tourne pas.
+  const sameHost = final.host.toLowerCase() === new URL(url).host.toLowerCase();
   const extra = await probeExtras(fetcher, page, final, html, probePath, js, fonts, fetched, {
-    owned: opts.owned ?? false,
+    owned: (opts.owned ?? false) && sameHost,
   });
 
   return {

@@ -255,8 +255,11 @@ export class RunPreflight {
     let loadTest: PreflightLoadTest | null = null;
     if (input.loadTest && siteOk && proof) {
       const target = (site as SiteFacts).finalUrl;
+      // Preuve faite pour l'hôte demandé : jamais de charge sur un autre hôte atteint par redirection.
+      const sameHost =
+        new URL(target).host.toLowerCase() === new URL(input.url!).host.toLowerCase();
       const loadStarted = Date.now();
-      const stages = await this.runLoad(input.userId, target);
+      const stages = sameHost ? await this.runLoad(input.userId, target) : null;
       if (stages?.length) {
         loadTest = {
           url: target,
