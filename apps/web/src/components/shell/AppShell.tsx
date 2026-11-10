@@ -1,3 +1,4 @@
+import { BackButton } from './BackButton';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   ChevronDown,
@@ -387,6 +388,7 @@ function TopBar() {
   return (
     <header className="dh-glassbar sticky top-0 z-30">
       <div className="flex h-14 items-center gap-3 px-6">
+        <BackButton className="-ml-2" />
         <button
           type="button"
           onClick={() => setPalette(true)}
@@ -449,6 +451,7 @@ function MobileTop({ onMenu }: { onMenu: () => void }) {
         >
           <Menu className="size-5" />
         </button>
+        <BackButton label={false} />
         <Logo dark={false} />
         <div className="ml-auto flex items-center gap-1">
           <button

@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Briefcase,
+  CircleSlash,
   Award,
   Check,
   Container,
@@ -34,12 +35,12 @@ import { Field, Input } from '@/components/ui/primitives';
 import { useLang } from '@/i18n';
 import { COUNTRIES } from '@/lib/geo';
 import { invalidate, useQuery } from '@/lib/query';
-import { cn } from '@/lib/utils';
+import { cn, storageGet } from '@/lib/utils';
 import { COURSE_META, courseMeta } from '@/platform/data/courses/meta';
 import { COMMUNITIES } from '@/platform/data/feed';
 import { usePlatform } from '@/platform/store';
 import { api, type AvailabilityStatus, type Lang, type User } from '@/services';
-import { useSession } from '@/stores/app';
+import { useSession, useUI } from '@/stores/app';
 
 type Level = 'beginner' | 'junior' | 'senior';
 type Goal = 'get-help' | 'help' | 'job' | 'certify' | 'project' | 'ship' | 'news';
@@ -134,10 +135,15 @@ const STEP_COPY: Record<StepId, { q: string; hint: string; pose: DjeliPose }> = 
  * Les étapes suivent le niveau : un débutant choisit un cours ; un dev qui a déjà des projets
  * renseigne ses compétences et dit comment il veut aider.
  */
-function flowFor(level: Level | null): StepId[] {
+function flowFor(level: Level | 'unset' | null): StepId[] {
   if (level === 'beginner') return ['level', 'goals', 'course', 'interests', 'where', 'plan'];
+  // Niveau non précisé : ni cours ni disponibilité à demander.
+  if (level === 'unset') return ['level', 'goals', 'interests', 'where', 'plan'];
   return ['level', 'goals', 'interests', 'help', 'where', 'plan'];
 }
+
+/** « Ne pas préciser » : toujours possible, à chaque question (demande de Sylvio, 10/11/2026). */
+const UNSET = 'unset' as const;
 
 const browserTz = () => {
   try {
@@ -159,13 +165,16 @@ export default function Onboarding() {
   const { data: passport } = useQuery(`passport:${me.handle}`, () => api.getPassport(me.handle));
 
   const [step, setStep] = useState(0);
-  const [level, setLevel] = useState<Level | null>(null);
+  const [level, setLevel] = useState<Level | typeof UNSET | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [goalsUnset, setGoalsUnset] = useState(false);
   const [interests, setInterests] = useState<string[]>([]);
+  const [interestsUnset, setInterestsUnset] = useState(false);
+  const [skillsUnset, setSkillsUnset] = useState(false);
   const [skillIds, setSkillIds] = useState<string[]>([]);
   const [filter, setFilter] = useState('');
   const [course, setCourse] = useState<string | null>(null);
-  const [avail, setAvail] = useState<AvailabilityStatus>(me.availability.status);
+  const [avail, setAvail] = useState<AvailabilityStatus | typeof UNSET>(me.availability.status);
   const [mission, setMission] = useState(me.availability.forMission);
   const [country, setCountry] = useState(me.country);
   const [city, setCity] = useState(me.city);
@@ -174,6 +183,8 @@ export default function Onboarding() {
   );
   const [languages, setLanguages] = useState<Lang[]>(me.languages.length ? me.languages : [lang]);
   const [accepted, setAccepted] = useState(false);
+  /** « Passer » : on saute les questions, il ne reste que les règles à accepter. */
+  const [skipped, setSkipped] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Compétences pré-cochées depuis le profil dès qu'il arrive (mise à jour pendant le rendu).
@@ -184,18 +195,20 @@ export default function Onboarding() {
   }
 
   const experienced = level === 'junior' || level === 'senior';
-  const flow = flowFor(level);
+  const flow = skipped ? (['plan'] as StepId[]) : flowFor(level);
   const id = flow[step]!;
   const canNext: boolean = {
     level: !!level,
-    goals: goals.length > 0,
+    goals: goals.length > 0 || goalsUnset,
     course: !!course,
-    interests: interests.length > 0 && (!experienced || skillIds.length >= 3),
+    interests:
+      (interests.length > 0 || interestsUnset) &&
+      (!experienced || skillIds.length >= 3 || skillsUnset),
     help: true,
-    where: !!country && languages.length > 0,
+    where: true,
     plan: accepted,
   }[id];
-  const chosenCourse = courseMeta(course);
+  const chosenCourse = course === UNSET ? undefined : courseMeta(course);
 
   // Première page après l'onboarding : l'espace qui répond au premier objectif choisi.
   const first = useMemo(() => {
@@ -229,10 +242,10 @@ export default function Onboarding() {
         .filter(Boolean) as string[];
       if (experienced && slugs.length) await api.setMySkills(slugs);
       const profile = {
-        country,
+        country: country || '',
         city,
         timezone,
-        languages,
+        languages: languages.length ? languages : [lang],
         intent,
         canHelpWith: experienced ? skillIds.slice(0, 6) : [],
         wantsToLearn: [],
@@ -243,7 +256,7 @@ export default function Onboarding() {
           ...(goals.includes('job') ? ['team' as const] : []),
         ],
         availability: {
-          status: experienced ? avail : 'today',
+          status: experienced && avail !== UNSET ? avail : me.availability.status,
           slots: [],
           forMission: experienced && mission,
         },
@@ -252,17 +265,25 @@ export default function Onboarding() {
         ...profile,
         codeOfConductAcceptedAt: new Date().toISOString(),
       });
-      applyOnboarding({ interests, course: level === 'beginner' ? course : null });
+      applyOnboarding({
+        interests,
+        course: level === 'beginner' && course !== UNSET ? course : null,
+      });
       setUser(u);
       invalidate('');
       nav(first, { replace: true });
+      // Première arrivée : la visite guidée démarre seule, une fois l'application affichée.
+      if (!storageGet('dh-tour-done')) window.setTimeout(() => useUI.getState().startTour(), 700);
     } catch (e) {
       toast.error(errorText(t, e));
       setBusy(false);
     }
   };
 
-  const s = STEP_COPY[id];
+  const s =
+    skipped && id === 'plan'
+      ? { ...STEP_COPY.plan, hint: 'Une seule étape avant d’entrer : les règles.' }
+      : STEP_COPY[id];
   const toggle = <T,>(list: T[], v: T) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 
@@ -287,6 +308,18 @@ export default function Onboarding() {
         <span className="text-[13px] font-medium text-subtle tabular-nums">
           {step + 1}/{flow.length}
         </span>
+        {!skipped && id !== 'plan' && (
+          <button
+            type="button"
+            onClick={() => {
+              setSkipped(true);
+              setStep(0);
+            }}
+            className="h-9 shrink-0 rounded-full px-3 text-[14px] font-semibold text-muted hover:bg-surface-2 hover:text-fg"
+          >
+            Passer
+          </button>
+        )}
       </header>
 
       <main id="main" className="mx-auto flex w-full max-w-[760px] flex-1 flex-col px-5 pb-6">
@@ -326,6 +359,14 @@ export default function Onboarding() {
                     </span>
                   </Choice>
                 ))}
+                <Unset
+                  on={level === UNSET}
+                  onClick={() => {
+                    setLevel(UNSET);
+                    setStep(0);
+                  }}
+                  className="sm:min-h-[96px]"
+                />
               </div>
             )}
 
@@ -335,7 +376,10 @@ export default function Onboarding() {
                   <Choice
                     key={g.id}
                     on={goals.includes(g.id)}
-                    onClick={() => setGoals(toggle(goals, g.id))}
+                    onClick={() => {
+                      setGoals(toggle(goals, g.id));
+                      setGoalsUnset(false);
+                    }}
                     className="items-center gap-3 px-4 py-3.5"
                     check="center"
                   >
@@ -343,6 +387,13 @@ export default function Onboarding() {
                     <span className="text-[15px] font-medium text-fg">{g.title}</span>
                   </Choice>
                 ))}
+                <Unset
+                  on={goalsUnset}
+                  onClick={() => {
+                    setGoalsUnset(!goalsUnset);
+                    setGoals([]);
+                  }}
+                />
               </div>
             )}
 
@@ -369,6 +420,11 @@ export default function Onboarding() {
                     </span>
                   </Choice>
                 ))}
+                <Unset
+                  on={course === UNSET}
+                  onClick={() => setCourse(UNSET)}
+                  label="Je choisirai plus tard"
+                />
               </div>
             )}
 
@@ -381,7 +437,10 @@ export default function Onboarding() {
                       <Choice
                         key={c.slug}
                         on={interests.includes(c.slug)}
-                        onClick={() => setInterests(toggle(interests, c.slug))}
+                        onClick={() => {
+                          setInterests(toggle(interests, c.slug));
+                          setInterestsUnset(false);
+                        }}
                         className="items-center gap-3 px-4 py-3.5"
                         check="center"
                       >
@@ -390,6 +449,13 @@ export default function Onboarding() {
                       </Choice>
                     );
                   })}
+                  <Unset
+                    on={interestsUnset}
+                    onClick={() => {
+                      setInterestsUnset(!interestsUnset);
+                      setInterests([]);
+                    }}
+                  />
                 </div>
                 {experienced && (
                   <div className="flex flex-col gap-3">
@@ -410,16 +476,31 @@ export default function Onboarding() {
                         className="pl-10"
                       />
                     </div>
-                    <TagGrid value={skillIds} onChange={setSkillIds} filter={filter} />
-                    <p
-                      className={cn(
-                        'text-[13px]',
-                        skillIds.length >= 3 ? 'text-success' : 'text-subtle',
-                      )}
-                    >
-                      {skillIds.length >= 3 && <Check className="mr-1 inline size-4" />}
-                      {skillIds.length} sélectionnée{skillIds.length > 1 ? 's' : ''}
-                    </p>
+                    <TagGrid
+                      value={skillIds}
+                      onChange={(v) => {
+                        setSkillIds(v);
+                        if (v.length) setSkillsUnset(false);
+                      }}
+                      filter={filter}
+                    />
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p
+                        className={cn(
+                          'text-[13px]',
+                          skillIds.length >= 3 ? 'text-success' : 'text-subtle',
+                        )}
+                      >
+                        {skillIds.length >= 3 && <Check className="mr-1 inline size-4" />}
+                        {skillIds.length} sélectionnée{skillIds.length > 1 ? 's' : ''}
+                      </p>
+                      <Unset
+                        on={skillsUnset}
+                        onClick={() => setSkillsUnset(!skillsUnset)}
+                        label="Ne pas préciser mes compétences"
+                        className="py-2.5"
+                      />
+                    </div>
                   </div>
                 )}
               </>
@@ -427,7 +508,7 @@ export default function Onboarding() {
 
             {id === 'help' && (
               <div className="flex flex-col gap-3">
-                <div className="grid gap-2.5 sm:grid-cols-3">
+                <div className="grid gap-2.5 sm:grid-cols-2">
                   {(
                     [
                       ['now', 'Disponible maintenant', 'bg-success'],
@@ -445,6 +526,7 @@ export default function Onboarding() {
                       <span className="text-[14.5px] font-medium text-fg">{label}</span>
                     </Choice>
                   ))}
+                  <Unset on={avail === UNSET} onClick={() => setAvail(UNSET)} />
                 </div>
                 <label className="flex cursor-pointer items-start gap-3 rounded-[16px] border border-line-strong p-4">
                   <input
@@ -474,15 +556,14 @@ export default function Onboarding() {
                       value={country ?? ''}
                       onChange={(e) => {
                         setCountry(e.target.value);
+                        if (!e.target.value) return;
                         const c = COUNTRIES.find((x) => x.code === e.target.value);
                         if (c) setTimezone(c.tz);
                       }}
                       className="h-11 rounded-[12px] border border-line bg-inset px-3 text-[15px] text-fg"
                     >
                       {/* BUG-027 : sans pays connu, un choix vide explicite plutôt qu'un « Bénin » non retenu */}
-                      <option value="" disabled>
-                        {t('onboarding.countryPlaceholder')}
-                      </option>
+                      <option value="">Ne pas préciser</option>
                       {COUNTRIES.map((c) => (
                         <option key={c.code} value={c.code}>
                           {c[lang]}
@@ -502,7 +583,7 @@ export default function Onboarding() {
                 <Field label="Fuseau horaire" htmlFor="ob-tz">
                   <TimezoneSelect id="ob-tz" value={timezone} onChange={setTimezone} />
                 </Field>
-                <Field label="Langues dans lesquelles tu peux échanger">
+                <Field label="Langues dans lesquelles tu peux échanger" optional="facultatif">
                   <div className="flex gap-2">
                     {(['fr', 'en'] as Lang[]).map((l) => (
                       <Choice
@@ -524,64 +605,75 @@ export default function Onboarding() {
 
             {id === 'plan' && (
               <>
-                <ol className="flex flex-col divide-y divide-line overflow-hidden rounded-[18px] border border-line-strong">
-                  {level === 'beginner' && chosenCourse && (
+                {skipped ? (
+                  <p className="text-[15px] leading-relaxed text-muted">
+                    Tu pourras compléter ton profil, tes centres d’intérêt et tes compétences à tout
+                    moment dans les réglages.
+                  </p>
+                ) : (
+                  <ol className="flex flex-col divide-y divide-line overflow-hidden rounded-[18px] border border-line-strong">
+                    {level === 'beginner' && chosenCourse && (
+                      <PlanRow
+                        icon={chosenCourse.icon}
+                        title={`Cours « ${chosenCourse.title} »`}
+                        text="Des leçons de quelques minutes, puis l’examen de la certification DevHub qu’un recruteur peut vérifier."
+                      />
+                    )}
                     <PlanRow
-                      icon={chosenCourse.icon}
-                      title={`Cours « ${chosenCourse.title} »`}
-                      text="Des leçons de quelques minutes, puis l’examen de la certification DevHub qu’un recruteur peut vérifier."
+                      icon={Newspaper}
+                      title="Ton fil d’actualité"
+                      text={
+                        interests.length
+                          ? `L’actu et les publications des devs sur : ${interests
+                              .map((c) => COMMUNITIES.find((x) => x.slug === c)?.name ?? c)
+                              .join(', ')}.`
+                          : 'L’actu tech et IA et les publications des devs, sur tous les sujets.'
+                      }
                     />
-                  )}
-                  <PlanRow
-                    icon={Newspaper}
-                    title="Ton fil d’actualité"
-                    text={`L’actu et les publications des devs sur : ${interests
-                      .map((c) => COMMUNITIES.find((x) => x.slug === c)?.name ?? c)
-                      .join(', ')}.`}
-                  />
-                  {(goals.includes('get-help') || level === 'beginner') && (
-                    <PlanRow
-                      icon={LifeBuoy}
-                      title="De l’aide quand tu bloques"
-                      text="« Je suis bloqué » : une piste tout de suite, puis des devs qui ont déjà résolu ce problème."
-                    />
-                  )}
-                  {experienced && goals.includes('help') && (
-                    <PlanRow
-                      icon={HandHelping}
-                      title="Les questions que tu sais résoudre"
-                      text="Chaque réponse validée te rapporte des Proof XP, visibles sur ton profil."
-                    />
-                  )}
-                  {goals.includes('job') && (
-                    <PlanRow
-                      icon={Briefcase}
-                      title="Des offres qui te correspondent"
-                      text="Tu postules avec ton profil : compétences prouvées, projets et certifications."
-                    />
-                  )}
-                  {goals.includes('certify') && level !== 'beginner' && (
-                    <PlanRow
-                      icon={Award}
-                      title="Des certifications vérifiables"
-                      text="Examens corrigés par le serveur et code public que tout recruteur peut vérifier."
-                    />
-                  )}
-                  {goals.includes('project') && (
-                    <PlanRow
-                      icon={Rocket}
-                      title="Ton projet, avec d’autres devs"
-                      text="Une salle de projet reliée à GitHub pour présenter ton travail et trouver du renfort."
-                    />
-                  )}
-                  {goals.includes('ship') && (
-                    <PlanRow
-                      icon={PlaneTakeoff}
-                      title="Pré-vol et banc d’essai"
-                      text="Une vérification complète avant la mise en ligne, puis des tests sur de vrais téléphones."
-                    />
-                  )}
-                </ol>
+                    {(goals.includes('get-help') || level === 'beginner') && (
+                      <PlanRow
+                        icon={LifeBuoy}
+                        title="De l’aide quand tu bloques"
+                        text="« Je suis bloqué » : une piste tout de suite, puis des devs qui ont déjà résolu ce problème."
+                      />
+                    )}
+                    {experienced && goals.includes('help') && (
+                      <PlanRow
+                        icon={HandHelping}
+                        title="Les questions que tu sais résoudre"
+                        text="Chaque réponse validée te rapporte des Proof XP, visibles sur ton profil."
+                      />
+                    )}
+                    {goals.includes('job') && (
+                      <PlanRow
+                        icon={Briefcase}
+                        title="Des offres qui te correspondent"
+                        text="Tu postules avec ton profil : compétences prouvées, projets et certifications."
+                      />
+                    )}
+                    {goals.includes('certify') && level !== 'beginner' && (
+                      <PlanRow
+                        icon={Award}
+                        title="Des certifications vérifiables"
+                        text="Examens corrigés par le serveur et code public que tout recruteur peut vérifier."
+                      />
+                    )}
+                    {goals.includes('project') && (
+                      <PlanRow
+                        icon={Rocket}
+                        title="Ton projet, avec d’autres devs"
+                        text="Une salle de projet reliée à GitHub pour présenter ton travail et trouver du renfort."
+                      />
+                    )}
+                    {goals.includes('ship') && (
+                      <PlanRow
+                        icon={PlaneTakeoff}
+                        title="Pré-vol et banc d’essai"
+                        text="Une vérification complète avant la mise en ligne, puis des tests sur de vrais téléphones."
+                      />
+                    )}
+                  </ol>
+                )}
                 <div className="rounded-[18px] bg-surface-1 p-5">
                   <h2 className="text-[16px] font-semibold text-fg">Les règles de la communauté</h2>
                   <ul className="mt-3 flex flex-col gap-2 text-[14.5px] text-fg">
@@ -615,8 +707,13 @@ export default function Onboarding() {
             <Button
               variant="ghost"
               icon={<ArrowLeft />}
-              onClick={() => setStep(step - 1)}
-              disabled={step === 0}
+              onClick={() => {
+                if (skipped) {
+                  setSkipped(false);
+                  setStep(0);
+                } else setStep(step - 1);
+              }}
+              disabled={step === 0 && !skipped}
             >
               Retour
             </Button>
@@ -709,5 +806,30 @@ function Choice({
         </span>
       )}
     </button>
+  );
+}
+
+/** « Ne pas préciser » : présent à chaque question de l'onboarding. */
+function Unset({
+  on,
+  onClick,
+  label = 'Ne pas préciser',
+  className,
+}: {
+  on: boolean;
+  onClick: () => void;
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <Choice
+      on={on}
+      onClick={onClick}
+      className={cn('items-center gap-3 border-dashed px-4 py-3.5', className)}
+      check="center"
+    >
+      <CircleSlash className="size-5 shrink-0 text-muted" />
+      <span className="text-[15px] font-medium text-muted">{label}</span>
+    </Choice>
   );
 }

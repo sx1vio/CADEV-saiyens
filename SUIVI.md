@@ -178,6 +178,20 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 10/11/2026 (après la mise en ligne) — Retours de Sylvio sur le site en ligne
+
+- **Demande de Sylvio** (captures du site en ligne) : accueil public toujours sombre, sans bouton clair/sombre ; responsive et forme mobile ; sections de l'accueil qui ne soient pas de simples bandes empilées sur mobile ; « Ne pas préciser » partout et bouton « Passer » dans l'onboarding ; filtres du fil qu'on ne peut pas faire défiler ; carte de l'Afrique invisible en clair et à peine visible en sombre ; bouton retour en haut de toutes les pages ; visite guidée absente après l'inscription ; refonte de la Proof Card et de l'accueil du portail entreprise ; idées pour innover et rapporter à Systalink.
+- **Accueil public** : toujours sombre, quel que soit le thème du visiteur (y compris par Ctrl+K) ; bouton de thème retiré de l'en-tête et du pied de page sur cette page seulement ; le thème choisi revient sur les autres pages.
+- **Mobile de l'accueil** : les trois piliers deviennent un carrousel à faire glisser (carte suivante visible, indicateur à points) avec une icône colorée par pilier ; les quatre étapes « Du prompt à la prod » deviennent une frise reliée ; le champ e-mail du héros n'est plus écrasé (bug `flex-1` en colonne). « À Dakar » retiré de l'étape Systalink (les serveurs sont à Singapour).
+- **Onboarding** : « Ne pas préciser » à chaque question (niveau, objectifs, cours, centres d'intérêt, compétences, disponibilité, pays ; langues facultatives) ; bouton **Passer** dans l'en-tête, qui mène directement aux règles (seule étape obligatoire) ; la **visite guidée démarre seule** à l'arrivée après l'onboarding (le déclencheur avait disparu avec la refonte).
+- **Bouton Retour** en haut de toutes les pages (application et site public), sauf l'accueil : page précédente, ou page parente si on arrive par un lien (`components/shell/BackButton.tsx`).
+- **Fil** : le panneau des filtres a une hauteur maximale et défile seul. **Publier** : sujets affichés par leur nom (« Intelligence artificielle ») au lieu de `c/ia`, sur plusieurs lignes.
+- **Carte de l'Afrique** : couleurs dédiées (`--map-land`, `--map-border`) bien visibles en clair et en sombre ; paliers mélangés à la couleur des terres.
+- **Proof Card** refaite dans la charte DevHub : halos bleu et turquoise, logo, pastille « Developer Passport », avatar à anneau dégradé, compétences dans un panneau avec barres en dégradé, chiffres en tuiles, pied « Par les devs, pour les devs ».
+- **Portail entreprise** : Poppins (au lieu d'IBM Plex) et boutons arrondis comme DevHub ; accueil refait (bandeau sombre aux couleurs de la marque, formulaire en carte flottante, 4 étapes, fonctionnalités en tuiles colorées, pied de page) ; vérifié en 375 et 1440 px.
+- **Profil** : chiffres en 2 × 2 sur mobile (libellés coupés).
+- **Vérifié** : 17 pages de l'application en 375 px sans débordement ni erreur ; typecheck, lint, tests web (66) et API (421), builds web et portail OK.
+
 ### 10/11/2026 (suite) — Mise en ligne : étapes 1 à 3 faites
 
 - **Sylvio** : « Vasy » (session normale).

@@ -20,11 +20,13 @@ export function bucket(value: number, max: number): 0 | 1 | 2 | 3 | 4 {
   return ratio > 0.75 ? 4 : ratio > 0.5 ? 3 : ratio > 0.25 ? 2 : 1;
 }
 
+// Palier 0 : la couleur des terres (--map-land), nettement visible sur le fond en clair comme en
+// sombre ; les paliers suivants mélangent l'accent à cette couleur, jamais au fond de la page.
 const FILL = [
-  'fill-surface-2',
-  'fill-accent/25',
-  'fill-accent/45',
-  'fill-accent/70',
+  'fill-[var(--map-land)]',
+  'fill-[color-mix(in_oklab,var(--accent)_38%,var(--map-land))]',
+  'fill-[color-mix(in_oklab,var(--accent)_58%,var(--map-land))]',
+  'fill-[color-mix(in_oklab,var(--accent)_80%,var(--map-land))]',
   'fill-accent',
 ] as const;
 
@@ -70,8 +72,8 @@ export function AfricaMap({
               key={`neutral-${i}`}
               d={s.d}
               aria-hidden
-              className="fill-surface-1 stroke-line"
-              strokeWidth={0.6}
+              className="fill-[var(--map-land-muted)] stroke-[var(--map-border)]"
+              strokeWidth={0.8}
             />
           );
         }
@@ -101,7 +103,7 @@ export function AfricaMap({
             }
             className={cn(
               FILL[level],
-              'stroke-canvas transition-[fill] outline-none',
+              'stroke-[var(--map-border)] transition-[fill] outline-none',
               interactive && 'cursor-pointer hover:fill-accent-hover focus-visible:stroke-fg',
               selected === code && 'stroke-fg',
             )}

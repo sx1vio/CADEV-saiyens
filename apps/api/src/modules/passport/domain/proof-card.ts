@@ -9,21 +9,25 @@ export type CardLang = 'fr' | 'en';
 
 const TEXT = {
   fr: {
-    kicker: 'Developer Passport · DevHub Africa',
+    kicker: 'Developer Passport',
     demo: 'Compte démo',
     xp: 'Proof XP',
     unblocked: 'devs débloqués',
     verified: 'contributions vérifiées',
     noSkills: 'Compétences en cours de preuve',
+    skillsTitle: 'COMPÉTENCES PROUVÉES PAR LE CODE',
+    tagline: 'Par les devs, pour les devs',
     level: { beginner: 'Débutant', confirmed: 'Confirmé', advanced: 'Avancé', expert: 'Expert' },
   },
   en: {
-    kicker: 'Developer Passport · DevHub Africa',
+    kicker: 'Developer Passport',
     demo: 'Demo account',
     xp: 'Proof XP',
     unblocked: 'devs unblocked',
     verified: 'verified contributions',
     noSkills: 'Skills being proven',
+    skillsTitle: 'SKILLS PROVEN BY CODE',
+    tagline: 'By devs, for devs',
     level: { beginner: 'Beginner', confirmed: 'Confirmed', advanced: 'Advanced', expert: 'Expert' },
   },
 } as const;
@@ -51,63 +55,94 @@ const initials = (name: string) =>
 const number = (n: number, lang: CardLang) => n.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US');
 
 /**
- * SVG de la carte. `siteHost` : domaine affiché en pied de carte (ex. devhub.africa).
+ * SVG de la carte. `siteHost` : domaine affiché en pied de carte (ex. devafrica.tech).
  * Aucun appel réseau (pas d'avatar distant) : la carte se génère même hors connexion du serveur.
+ * Charte DevHub (refonte du 10/11/2026) : tons sombres façon Discord, dégradé bleu → turquoise du
+ * logo, compétences dans un panneau, chiffres en tuiles.
  */
 export function renderProofCard(p: PassportResponse, lang: CardLang, siteHost: string): string {
   const t = TEXT[lang];
   const u = p.user;
+  const W = CARD.width;
   const parts: string[] = [];
 
-  // Identité
+  // En-tête : logo (pastille dégradée + mot « DevHub ») et type de document
   parts.push(
-    `<circle cx="140" cy="200" r="64" fill="#1f2937"/>`,
-    `<text x="140" y="222" text-anchor="middle" font-size="56" font-weight="700" fill="#f9fafb">${text(initials(u.displayName), 2)}</text>`,
-    `<text x="240" y="190" font-size="54" font-weight="700" fill="#f9fafb">${text(u.displayName, 26)}</text>`,
-    `<text x="240" y="240" font-size="30" fill="#9ca3af">@${text(u.handle, 30)}${u.country ? ` · ${text(u.country, 3)}` : ''}</text>`,
+    `<rect x="64" y="52" width="48" height="48" rx="14" fill="url(#brand)"/>`,
+    `<text x="88" y="84" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">&lt;/&gt;</text>`,
+    `<text x="128" y="88" font-size="32" font-weight="700" fill="#f2f3f5">Dev<tspan fill="#5eead4">Hub</tspan></text>`,
+    `<rect x="${W - 64 - 300}" y="56" width="300" height="40" rx="20" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.14"/>`,
+    `<text x="${W - 64 - 150}" y="83" text-anchor="middle" font-size="19" font-weight="700" fill="#c9cdd3" letter-spacing="0.5">${text(t.kicker, 30)}</text>`,
+  );
+
+  // Identité : avatar à anneau dégradé, nom, pseudo et pays
+  parts.push(
+    `<circle cx="132" cy="196" r="62" fill="none" stroke="url(#brand)" stroke-width="5"/>`,
+    `<circle cx="132" cy="196" r="54" fill="#2b2d31"/>`,
+    `<text x="132" y="215" text-anchor="middle" font-size="48" font-weight="700" fill="#f2f3f5">${text(initials(u.displayName), 2)}</text>`,
+    `<text x="226" y="192" font-size="50" font-weight="700" fill="#ffffff">${text(u.displayName, 26)}</text>`,
+    `<text x="228" y="236" font-size="26" fill="#b5bac1">@${text(u.handle, 30)}${u.country ? ` · ${text(u.country, 3)}` : ''}</text>`,
   );
   if (u.isDemo) {
     parts.push(
-      `<rect x="900" y="60" width="240" height="48" rx="24" fill="#78350f"/>`,
-      `<text x="1020" y="92" text-anchor="middle" font-size="24" font-weight="700" fill="#fde68a">${text(t.demo, 16)}</text>`,
+      `<rect x="${W - 64 - 220}" y="172" width="220" height="44" rx="22" fill="#78350f"/>`,
+      `<text x="${W - 64 - 110}" y="202" text-anchor="middle" font-size="22" font-weight="700" fill="#fde68a">${text(t.demo, 16)}</text>`,
     );
   }
 
   // Compétences : 3 au plus, score et niveau calculés (jamais saisis)
   const skills = p.skills.slice(0, 3);
+  parts.push(
+    `<rect x="64" y="276" width="${W - 128}" height="200" rx="26" fill="#1e1f22" stroke="#ffffff" stroke-opacity="0.08"/>`,
+    `<text x="96" y="316" font-size="18" font-weight="700" fill="#949ba4" letter-spacing="1.5">${text(t.skillsTitle, 40)}</text>`,
+  );
   if (skills.length === 0) {
-    parts.push(`<text x="80" y="340" font-size="30" fill="#9ca3af">${text(t.noSkills, 50)}</text>`);
+    parts.push(`<text x="96" y="392" font-size="28" fill="#b5bac1">${text(t.noSkills, 50)}</text>`);
   }
   skills.forEach((s, i) => {
-    const y = 330 + i * 62;
-    const width = Math.round((Math.max(0, Math.min(100, s.score)) / 100) * 420);
+    const y = 368 + i * 44;
+    const track = 520;
+    const width = Math.max(14, Math.round((Math.max(0, Math.min(100, s.score)) / 100) * track));
     parts.push(
-      `<text x="80" y="${y}" font-size="30" font-weight="700" fill="#f9fafb">${text(s.tag.label, 20)}</text>`,
-      `<rect x="420" y="${y - 22}" width="420" height="18" rx="9" fill="#1f2937"/>`,
-      `<rect x="420" y="${y - 22}" width="${width}" height="18" rx="9" fill="#22c55e"/>`,
-      `<text x="860" y="${y}" font-size="26" fill="#d1d5db">${s.score} · ${text(t.level[s.level], 12)}</text>`,
+      `<text x="96" y="${y}" font-size="26" font-weight="700" fill="#f2f3f5">${text(s.tag.label, 18)}</text>`,
+      `<rect x="400" y="${y - 17}" width="${track}" height="16" rx="8" fill="#2b2d31"/>`,
+      `<rect x="400" y="${y - 17}" width="${width}" height="16" rx="8" fill="url(#bar)"/>`,
+      `<text x="${W - 96}" y="${y}" text-anchor="end" font-size="23" fill="#dbdee1">${s.score} · ${text(t.level[s.level], 12)}</text>`,
     );
   });
 
-  // Chiffres : seulement si la personne ne les a pas masqués (stats = null sinon)
+  // Chiffres en tuiles : seulement si la personne ne les a pas masqués (stats = null sinon)
   if (p.stats) {
-    const facts = [
-      `${number(p.stats.totalXp, lang)} ${t.xp}`,
-      `${number(p.stats.answersAccepted, lang)} ${t.unblocked}`,
-      `${number(p.stats.contributionsVerified, lang)} ${t.verified}`,
+    const facts: [string, string][] = [
+      [number(p.stats.totalXp, lang), t.xp],
+      [number(p.stats.answersAccepted, lang), t.unblocked],
+      [number(p.stats.contributionsVerified, lang), t.verified],
     ];
-    parts.push(
-      `<text x="80" y="540" font-size="28" fill="#e5e7eb">${text(facts.join('  ·  '), 70)}</text>`,
-    );
+    const tileW = (W - 128 - 2 * 20) / 3;
+    facts.forEach(([n, label], i) => {
+      const x = 64 + i * (tileW + 20);
+      parts.push(
+        `<rect x="${x}" y="496" width="${tileW}" height="78" rx="20" fill="#1e1f22" stroke="#ffffff" stroke-opacity="0.08"/>`,
+        `<text x="${x + 26}" y="545" font-size="32" font-weight="700" fill="#ffffff">${text(n, 10)}</text>`,
+        `<text x="${x + 26 + Math.max(1, n.length) * 20 + 12}" y="543" font-size="19" fill="#b5bac1">${text(label, 24)}</text>`,
+      );
+    });
   }
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${CARD.width}" height="${CARD.height}" viewBox="0 0 ${CARD.width} ${CARD.height}" font-family="${FONT}">`,
-    `<rect width="${CARD.width}" height="${CARD.height}" fill="#0b0f14"/>`,
-    `<rect width="${CARD.width}" height="10" fill="#22c55e"/>`,
-    `<text x="80" y="92" font-size="26" fill="#9ca3af">${text(t.kicker, 50)}</text>`,
+    `<defs>`,
+    `<linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient>`,
+    `<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient>`,
+    `<radialGradient id="glowA" cx="0.88" cy="0.05" r="0.55"><stop offset="0" stop-color="#2563eb" stop-opacity="0.45"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient>`,
+    `<radialGradient id="glowB" cx="0.05" cy="1" r="0.5"><stop offset="0" stop-color="#14b8a6" stop-opacity="0.22"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></radialGradient>`,
+    `</defs>`,
+    `<rect width="${W}" height="${CARD.height}" fill="#111214"/>`,
+    `<rect width="${W}" height="${CARD.height}" fill="url(#glowA)"/>`,
+    `<rect width="${W}" height="${CARD.height}" fill="url(#glowB)"/>`,
     ...parts,
-    `<text x="80" y="595" font-size="24" fill="#6b7280">${text(`${siteHost}/u/${u.handle}`, 70)}</text>`,
+    `<text x="64" y="608" font-size="20" fill="#949ba4">${text(`${siteHost}/u/${u.handle}`, 60)}</text>`,
+    `<text x="${W - 64}" y="608" text-anchor="end" font-size="20" fill="#949ba4">${text(t.tagline, 50)}</text>`,
     `</svg>`,
   ].join('\n');
 }

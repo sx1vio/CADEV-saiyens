@@ -252,7 +252,7 @@ export default function Passport() {
                 </div>
               )}
             </div>
-            <dl className="grid grid-cols-4 gap-px self-end overflow-hidden rounded-[10px] border border-line bg-line text-center lg:w-[420px]">
+            <dl className="grid grid-cols-2 gap-px sm:grid-cols-4 self-end overflow-hidden rounded-[10px] border border-line bg-line text-center lg:w-[420px]">
               {(
                 [
                   ['Proof XP', formatNumber(p.totalXp, lang)],

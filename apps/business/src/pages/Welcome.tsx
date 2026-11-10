@@ -57,92 +57,159 @@ export function Welcome({
   const [notice, setNotice] = useState<string | null>(null);
   return (
     <div className="min-h-dvh bg-page">
-      <header className="mx-auto flex max-w-[1180px] items-center justify-between px-5 py-5">
-        <p className="text-[17px] font-bold">
-          DevHub <span className="text-accent">Business</span>
-        </p>
-        <button
-          type="button"
-          className="btn-ghost h-9"
-          onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-        >
-          {mode === 'login' ? 'Créer un compte' : 'Se connecter'}
-        </button>
-      </header>
-      <main className="mx-auto grid max-w-[1180px] gap-10 px-5 pt-6 pb-16 lg:grid-cols-[1fr_460px]">
-        <section>
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand">
-            <Sparkles className="size-4" /> Gratuit pendant le lancement
-          </p>
-          <h1 className="mt-4 text-[34px] leading-[1.1] font-bold tracking-tight sm:text-[44px]">
-            Recrutez des devs africains aux compétences prouvées.
-          </h1>
-          <p className="mt-4 max-w-xl text-[16px] text-muted">
-            Sur DevHub, chaque dev a un Passport : ses compétences sont calculées à partir de son
-            code sur GitHub et de l’aide réelle qu’il apporte à la communauté. Publiez vos offres,
-            recevez des candidatures avec ce Passport, suivez-les jusqu’à l’embauche.
-          </p>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-            {[
-              [
-                ShieldCheck,
-                'Entreprises vérifiées',
-                'Chaque entreprise est validée par l’équipe DevHub : les devs savent que l’offre est réelle.',
-              ],
-              [
-                BadgeCheck,
-                'Compétences prouvées',
-                'Score par technologie, Proof XP, dépôts GitHub : plus fiable qu’un CV déclaratif.',
-              ],
-              [
-                Briefcase,
-                'Offres publiées en direct',
-                'Une fois validée, votre entreprise publie sans attendre. Vos offres apparaissent sur DevHub Emplois.',
-              ],
-              [
-                Users,
-                'Candidatures suivies',
-                'Consultée, entretien, retenue : le dev voit l’avancement, vous gardez l’historique.',
-              ],
-            ].map(([Icon, title, text]) => {
-              const I = Icon as typeof ShieldCheck;
-              return (
-                <li key={title as string} className="rounded-xl border border-line bg-panel p-4">
-                  <I className="size-5 text-accent" />
-                  <p className="mt-2 font-semibold">{title as string}</p>
-                  <p className="mt-1 text-[13.5px] text-muted">{text as string}</p>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-        <section className="self-start rounded-2xl border border-line bg-panel p-6 shadow-sm">
-          {notice && (
-            <p
-              role="status"
-              className="mb-4 rounded-lg bg-good-soft px-3 py-2 text-[13px] text-good"
-            >
-              {notice}
+      {/* Bandeau sombre aux couleurs de DevHub (Poppins, halos bleu et turquoise du logo) */}
+      <div className="relative overflow-hidden bg-[#111214] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_90%_0%,rgba(37,99,235,0.45),transparent_70%),radial-gradient(50%_70%_at_0%_100%,rgba(20,184,166,0.22),transparent_70%)]"
+        />
+        <header className="relative mx-auto flex max-w-[1180px] items-center justify-between px-5 py-5">
+          <a href={SITE_URL} className="flex items-center gap-2.5">
+            <span className="grid size-9 place-items-center rounded-[11px] bg-gradient-to-br from-[#3b82f6] to-[#2dd4bf] text-[13px] font-bold">
+              &lt;/&gt;
+            </span>
+            <span className="text-[17px] font-bold whitespace-nowrap sm:text-[18px]">
+              Dev<span className="text-[#5eead4]">Hub</span>{' '}
+              <span className="hidden font-medium text-white/70 min-[400px]:inline">Business</span>
+            </span>
+          </a>
+          <button
+            type="button"
+            className="inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[14px] font-semibold whitespace-nowrap text-white ring-1 ring-white/25 hover:ring-white/60 sm:px-5"
+            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+          >
+            {mode === 'login' ? 'Créer un compte' : 'Se connecter'}
+          </button>
+        </header>
+        <main className="relative mx-auto grid max-w-[1180px] gap-10 px-5 pt-8 pb-16 lg:grid-cols-[1fr_460px] lg:pb-24">
+          <section className="lg:pt-6">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-[13px] font-semibold text-white ring-1 ring-white/15">
+              <Sparkles className="size-4 text-[#5eead4]" /> Gratuit pendant le lancement
             </p>
-          )}
-          {mode === 'register' && <Register onDone={onSignedIn} />}
-          {mode === 'login' && <Login onDone={onSignedIn} onForgot={() => setMode('forgot')} />}
-          {mode === 'forgot' && <Forgot onBack={() => setMode('login')} />}
-          {mode === 'reset' && resetToken && (
-            <Reset
-              token={resetToken}
-              onDone={() => {
-                setNotice('Mot de passe changé. Connectez-vous avec le nouveau.');
-                setMode('login');
-              }}
-              onExpired={() => setMode('forgot')}
-            />
-          )}
-        </section>
-      </main>
+            <h1 className="mt-5 text-[36px] leading-[1.05] font-bold tracking-[-0.03em] sm:text-[54px]">
+              Recrutez des devs africains aux compétences{' '}
+              <span className="bg-gradient-to-r from-[#7fb0ff] to-[#5eead4] bg-clip-text text-transparent">
+                prouvées
+              </span>
+              .
+            </h1>
+            <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-white/75 sm:text-[17px]">
+              Sur DevHub, chaque dev a un Passport : ses compétences sont calculées à partir de son
+              code sur GitHub et de l’aide réelle qu’il apporte à la communauté. Publiez vos offres,
+              recevez des candidatures avec ce Passport, suivez-les jusqu’à l’embauche.
+            </p>
+            <ol className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-3">
+              {STEPS.map((step, i) => (
+                <li
+                  key={step}
+                  className="flex flex-col gap-2 rounded-2xl bg-white/[0.06] p-3 ring-1 ring-white/10 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3"
+                >
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white text-[14px] font-bold text-[#111214]">
+                    {i + 1}
+                  </span>
+                  <span className="text-[13px] leading-snug font-medium text-white/90 sm:text-[14px]">
+                    {step}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+          <section className="self-start rounded-[24px] bg-panel p-6 text-ink shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] sm:p-7">
+            {notice && (
+              <p
+                role="status"
+                className="mb-4 rounded-lg bg-good-soft px-3 py-2 text-[13px] text-good"
+              >
+                {notice}
+              </p>
+            )}
+            {mode === 'register' && <Register onDone={onSignedIn} />}
+            {mode === 'login' && <Login onDone={onSignedIn} onForgot={() => setMode('forgot')} />}
+            {mode === 'forgot' && <Forgot onBack={() => setMode('login')} />}
+            {mode === 'reset' && resetToken && (
+              <Reset
+                token={resetToken}
+                onDone={() => {
+                  setNotice('Mot de passe changé. Connectez-vous avec le nouveau.');
+                  setMode('login');
+                }}
+                onExpired={() => setMode('forgot')}
+              />
+            )}
+          </section>
+        </main>
+      </div>
+
+      <section className="mx-auto max-w-[1180px] px-5 py-16 sm:py-20">
+        <p className="text-[14px] font-semibold text-brand">Pourquoi DevHub Business</p>
+        <h2 className="mt-2 max-w-[720px] text-[30px] leading-[1.1] font-bold tracking-[-0.025em] sm:text-[40px]">
+          Moins de CV à trier, plus de preuves à lire.
+        </h2>
+        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(({ icon: Icon, title, text, tone }) => (
+            <li
+              key={title}
+              className="flex gap-4 rounded-[20px] border border-line bg-panel p-5 transition-shadow hover:shadow-[0_18px_40px_-24px_rgba(11,18,32,0.35)] sm:flex-col sm:gap-0 sm:p-6"
+            >
+              <span className={`grid size-12 shrink-0 place-items-center rounded-[14px] ${tone}`}>
+                <Icon className="size-6" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[17px] font-semibold sm:mt-5">{title}</span>
+                <span className="mt-1.5 block text-[14px] leading-relaxed text-muted sm:mt-2">
+                  {text}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-[1180px] flex-col gap-2 px-5 py-6 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} DevHub · La plateforme d’échange des devs africains</p>
+          <a href={SITE_URL} className="font-semibold text-ink hover:underline">
+            Aller sur DevHub
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
+
+const STEPS = [
+  'Inscrivez votre entreprise',
+  'L’équipe DevHub la vérifie',
+  'Publiez vos offres en direct',
+  'Suivez chaque candidature',
+];
+
+const FEATURES = [
+  {
+    icon: ShieldCheck,
+    title: 'Entreprises vérifiées',
+    text: 'Chaque entreprise est validée par l’équipe DevHub : les devs savent que l’offre est réelle.',
+    tone: 'bg-[#e8efff] text-[#2563eb]',
+  },
+  {
+    icon: BadgeCheck,
+    title: 'Compétences prouvées',
+    text: 'Score par technologie, Proof XP, dépôts GitHub : plus fiable qu’un CV déclaratif.',
+    tone: 'bg-[#dcfaf5] text-[#0d9488]',
+  },
+  {
+    icon: Briefcase,
+    title: 'Offres publiées en direct',
+    text: 'Une fois validée, votre entreprise publie sans attendre. Vos offres apparaissent sur DevHub Emplois.',
+    tone: 'bg-[#fdf3e2] text-[#b45309]',
+  },
+  {
+    icon: Users,
+    title: 'Candidatures suivies',
+    text: 'Consultée, entretien, retenue : le dev voit l’avancement, vous gardez l’historique.',
+    tone: 'bg-[#f1e8ff] text-[#7c3aed]',
+  },
+];
 
 function Row({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
