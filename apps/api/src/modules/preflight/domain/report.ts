@@ -5,6 +5,7 @@ import type {
   PreflightVerdict,
 } from '@devhub/contracts';
 import { SYSTALINK_LABEL } from './hosting';
+import { DECISION_LABEL, recetteOf, SECTION_LABEL, SEVERITY_LABEL } from './recette';
 import { formatBytes, formatMs } from './network';
 
 export function countChecks(checks: PreflightCheck[]): Record<PreflightStatus, number> {
@@ -29,6 +30,7 @@ export function verdictOf(checks: PreflightCheck[]): PreflightVerdict {
 const STATUS_ORDER: Record<PreflightStatus, number> = { fail: 0, warn: 1, info: 2, pass: 3 };
 const CATEGORY_ORDER = [
   'security',
+  'functional',
   'load',
   'dependencies',
   'performance',
@@ -57,6 +59,7 @@ const VERDICT_LABEL: Record<PreflightVerdict, string> = {
 };
 
 const CATEGORY_LABEL: Record<string, string> = {
+  functional: 'Fonctionnel (recette)',
   security: 'Sécurité',
   dependencies: 'Dépendances',
   network: 'Réseau lent et téléphones',
@@ -113,6 +116,8 @@ export function toMarkdown(report: PreflightReport, links: { page: string; json:
     '- Explique chaque changement en une phrase et cite l’identifiant du contrôle (ex. `net.compression`).',
     '- Une fois le code redéployé, demande à l’auteur de relancer le pré-vol pour confirmer.',
   ];
+
+  out.push('', ...recetteBlock(report));
 
   if (fail.length) out.push('', `## À corriger (${fail.length})`, '', fail.map(block).join('\n\n'));
   if (warn.length)
@@ -217,4 +222,48 @@ export function toMarkdown(report: PreflightReport, links: { page: string; json:
     '',
   );
   return out.join('\n');
+}
+
+/**
+ * Lecture « recette » (méthode VABF) : décision, gates éliminatoires, score par section, réserves
+ * et ce qui reste à tester à la main. Un projet de verdict : un humain le valide.
+ */
+function recetteBlock(report: PreflightReport): string[] {
+  const r = report.recette ?? recetteOf(report);
+  const gate = { pass: 'passée', fail: '**en échec**', untested: 'non évaluée' } as const;
+  const lines = [
+    '## Recette (verdict GO / NO-GO)',
+    '',
+    `**${DECISION_LABEL[r.decision]}${r.provisional ? ' (provisoire)' : ''}** · score de recette ${r.score}/100 · ${r.issues.filter((i) => i.severity === 'critical').length} critique(s), ${r.issues.filter((i) => i.severity === 'major').length} majeure(s), ${r.issues.filter((i) => i.severity === 'minor').length} mineure(s).`,
+    '',
+    'Règle : GO à 85 et plus sans critique ni majeure en sécurité ou accessibilité ; NO-GO dès une critique, une gate en échec ou un score sous 70. Une majeure plafonne sa section à 79, une critique à 49.',
+    '',
+    '| Gate éliminatoire | État |',
+    '| --- | --- |',
+    ...r.gates.map(
+      (g) =>
+        `| ${g.label} | ${gate[g.status]}${g.status === 'fail' ? ` (${g.checks.map((c) => `\`${c}\``).join(', ')})` : ''} |`,
+    ),
+    '',
+    '| Section | Poids | Score | Critiques | Majeures | Mineures |',
+    '| --- | --- | --- | --- | --- | --- |',
+    ...r.sections.map(
+      (s) =>
+        `| ${SECTION_LABEL[s.key]} | ${s.weight} | ${s.score === null ? 'non testée' : `${s.score}${s.cap ? ` (plafond ${s.cap})` : ''}`} | ${s.critical} | ${s.major} | ${s.minor} |`,
+    ),
+  ];
+  if (r.issues.length)
+    lines.push(
+      '',
+      'Réserves, les plus graves d’abord :',
+      ...r.issues
+        .slice(0, 15)
+        .map((i) => `- ${SEVERITY_LABEL[i.severity]} · \`${i.checkId}\` · ${i.title}`),
+    );
+  lines.push(
+    '',
+    'À tester à la main (hors de portée d’une sonde sans compte) :',
+    ...r.untested.map((u) => `- ${u}`),
+  );
+  return lines;
 }
