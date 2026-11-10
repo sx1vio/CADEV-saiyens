@@ -148,12 +148,12 @@ Détail et suppléants : [organisation de l'équipe](docs/equipe/organisation.md
 | Membre            | GitHub                                | Rôle                                   | Modules possédés                                  |
 | ----------------- | ------------------------------------- | -------------------------------------- | ------------------------------------------------- |
 | Caleb KPOSSOU     | `Caleb20072` (commits : `Neme6X-dev`) | Back-end · Produit et pitch (rôle 1)   | `identity`, `passport`, `reputation`, `discovery` |
-| AMAMION Florent   | à confirmer                           | Back-end temps réel et synchronisation | `sos`, `matching`, `notifications`, `sync`        |
+| AMAMION Florent   | `Sacem270`                            | Back-end temps réel et synchronisation | `sos`, `matching`, `notifications`, `sync`        |
 | Joachim GOEH-AKUE | `chim31`                              | Back-end · IA et intégrations (rôle 5) | `ai`, `github`, `rooms`                           |
 | Sylvio CHALLA     | `sx1vio`                              | Front-end et hors ligne (rôle 3)       | `apps/web`, design, moteur hors ligne             |
 | Emmanuel OKORIE   | à confirmer                           | DevOps et sécurité (rôle 4)            | `moderation`, `platform`, `infra/`                |
 
-Le collaborateur GitHub `Sacem270` n'est rattaché à aucun membre connu : à identifier.
+Le collaborateur GitHub `Sacem270` est Florent AMAMION (confirmé le 10/11/2026).
 
 **Agents IA** : Claude Code est utilisé par plusieurs membres, avec les skills partagés de [`.claude/skills/`](.claude/skills/). Un agent suit les mêmes règles qu'un humain : lire ce fichier, une branche par sujet, PR relue par un humain de l'équipe.
 

@@ -13,7 +13,7 @@ import { JobsController } from './http/jobs.controller';
 import { AdminSessionStore } from './infrastructure/admin-session.store';
 import { JobOffersRepository } from './infrastructure/job-offers.repository';
 
-// Espace d'administration (apps/admin) : session séparée à double facteur, offres d'emploi,
+// Espace d'administration (apps/admin) : session séparée, offres d'emploi,
 // tableau de bord. Les comptes administrateurs se créent uniquement par la CLI (cli.ts).
 @Module({
   imports: [IdentityModule],

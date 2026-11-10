@@ -72,7 +72,7 @@ export class AdminAuthController {
       // Une seule réponse, quelle que soit l'étape qui a échoué.
       throw new UnauthorizedException({
         code: 'admin.bad_credentials',
-        title: 'Wrong email, password or code',
+        title: 'Wrong email or password',
       });
     }
     res.cookie(ADMIN_COOKIE, result.token, { ...adminCookie, expires: result.expiresAt });

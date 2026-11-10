@@ -5,6 +5,9 @@ RUN corepack enable
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile
+# Adresse de contact publiée sur la page Confidentialité (variable de dépôt CONTACT_EMAIL en CI).
+ARG VITE_CONTACT_EMAIL=
+ENV VITE_CONTACT_EMAIL=$VITE_CONTACT_EMAIL
 RUN pnpm --filter @devhub/web... build
 # Espace d'administration : build à part, servi sur sa propre adresse (ADMIN_ADDRESS).
 RUN pnpm --filter @devhub/admin... build

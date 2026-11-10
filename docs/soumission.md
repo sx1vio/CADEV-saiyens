@@ -161,5 +161,5 @@ sa ligne (personne ne signe pour un autre).
 ## 5. Points à trancher par l'équipe
 
 - **Vote des pairs** : prévoir qui rappelle le 15/11 au soir que les **cinq** membres votent avant le 16/11 23:59.
-- **Licence du projet** : le dépôt n'a pas de fichier `LICENSE`. Le règlement ne l'exige pas, mais la question peut être posée au jury. À décider avant la soumission, si l'équipe veut en mettre une.
-- **Contributeur `Sacem270`** : auteur des PR #151 à #154, non rattaché à un membre connu (`context.md`, section 6). À identifier pour la déclaration de propriété.
+- **Licence du projet** : MIT (fichier `LICENSE`, 10/11/2026), au nom des cinq membres. Permissive et compatible avec toutes les licences des composants de la section 2 ; elle n'empêche pas Systalink ni l'équipe d'exploiter DevHub.
+- **Contributeur `Sacem270`** : c'est Florent AMAMION (PR #151 à #154 et application mobile #194), confirmé par Sylvio le 10/11/2026.

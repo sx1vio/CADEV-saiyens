@@ -1,13 +1,12 @@
 import { z } from 'zod';
 
-// Espace d'administration : application à part (apps/admin), session à part, double facteur.
+// Espace d'administration : application à part (apps/admin), session à part.
 // Toutes les routes /api/v1/admin/* répondent 404 sans session d'administration valide.
 
-/** POST /api/v1/admin/session : e-mail, mot de passe et code à 6 chiffres de l'application d'authentification. */
+/** POST /api/v1/admin/session : e-mail et mot de passe d'un compte créé par la CLI ou un super-admin. */
 export const AdminLoginRequest = z.object({
   email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
   password: z.string().min(1).max(200),
-  code: z.string().regex(/^\d{6}$/),
 });
 export type AdminLoginRequest = z.infer<typeof AdminLoginRequest>;
 
@@ -312,12 +311,11 @@ export const AdminAccountView = z.object({
   displayName: z.string(),
   email: z.string().nullable(),
   role: AdminRole,
-  twoFactor: z.boolean(),
   lastSignInAt: z.iso.datetime().nullable(),
 });
 export type AdminAccountView = z.infer<typeof AdminAccountView>;
 
-/** POST /api/v1/admin/admins (super-admin) : le mot de passe et le secret sont montrés une seule fois. */
+/** POST /api/v1/admin/admins (super-admin) : le mot de passe est montré une seule fois. */
 export const AdminInviteRequest = z.object({
   email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
   name: z.string().trim().min(2).max(80),
@@ -328,8 +326,6 @@ export type AdminInviteRequest = z.infer<typeof AdminInviteRequest>;
 export const AdminInviteResponse = z.object({
   email: z.string(),
   password: z.string(),
-  otpauthUrl: z.string(),
-  secret: z.string(),
 });
 export type AdminInviteResponse = z.infer<typeof AdminInviteResponse>;
 

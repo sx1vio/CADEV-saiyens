@@ -1,12 +1,11 @@
-import { KeyRound, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { api, errorMessage } from '../api';
 
-/** Connexion : e-mail, mot de passe et code à 6 chiffres de l'application d'authentification. */
+/** Connexion : e-mail et mot de passe. */
 export function Login({ onSignedIn }: { onSignedIn: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -15,11 +14,11 @@ export function Login({ onSignedIn }: { onSignedIn: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      await api.signIn({ email, password, code });
+      await api.signIn({ email, password });
       onSignedIn();
     } catch (err) {
       setError(errorMessage(err));
-      setCode('');
+      setPassword('');
     } finally {
       setBusy(false);
     }
@@ -60,24 +59,6 @@ export function Login({ onSignedIn }: { onSignedIn: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           className="field mt-1.5"
         />
-        <label className="mt-4 block text-[13px] font-semibold" htmlFor="code">
-          Code de l’application d’authentification
-        </label>
-        <div className="relative mt-1.5">
-          <KeyRound className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
-          <input
-            id="code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="\d{6}"
-            maxLength={6}
-            required
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            className="field pl-9 font-mono tracking-[0.3em]"
-            placeholder="000000"
-          />
-        </div>
         {error && (
           <p role="alert" className="mt-4 rounded-lg bg-bad-soft px-3 py-2 text-[13px] text-bad">
             {error}

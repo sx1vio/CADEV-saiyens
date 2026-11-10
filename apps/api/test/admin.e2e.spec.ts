@@ -6,7 +6,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module';
 import { ProblemDetailsFilter } from '../src/infrastructure/http/problem-details.filter';
 import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
-import { totpAt } from '../src/modules/backoffice/domain/totp';
 import { ADMIN_HEADERS, type AdminAccount, adminSignIn, makeAdmin } from './admin.helper';
 import { applyTestEnv } from './env.fixture';
 import { APP_ORIGIN, WRITE_HEADERS, signInAs } from './sign-in.helper';
@@ -84,12 +83,8 @@ describe('espace d’administration', () => {
       .expect(404);
   });
 
-  it('connexion : depuis l’origine du site → 404 ; mauvais code → 401 ; bon code → cookie strict', async () => {
-    const body = {
-      email: admin.email,
-      password: admin.password,
-      code: totpAt(admin.secret, new Date()),
-    };
+  it('connexion : depuis l’origine du site → 404 ; mauvais mot de passe → 401 ; bon → cookie strict', async () => {
+    const body = { email: admin.email, password: admin.password };
     await request(app.getHttpServer())
       .post('/api/v1/admin/session')
       .set(WRITE_HEADERS)
@@ -98,14 +93,9 @@ describe('espace d’administration', () => {
     const wrong = await request(app.getHttpServer())
       .post('/api/v1/admin/session')
       .set(ADMIN_HEADERS)
-      .send({ ...body, code: body.code === '000000' ? '111111' : '000000' })
-      .expect(401);
-    expect(wrong.body.code).toBe('admin.bad_credentials');
-    await request(app.getHttpServer())
-      .post('/api/v1/admin/session')
-      .set(ADMIN_HEADERS)
       .send({ ...body, password: 'pas le bon mot de passe' })
       .expect(401);
+    expect(wrong.body.code).toBe('admin.bad_credentials');
 
     const ok = await request(app.getHttpServer())
       .post('/api/v1/admin/session')
@@ -117,13 +107,6 @@ describe('espace d’administration', () => {
     expect(raw).toMatch(/HttpOnly/i);
     expect(raw).toMatch(/SameSite=Strict/i);
     adminCookie = `__Host-dh-adm=${/__Host-dh-adm=([^;]+)/.exec(raw)![1]}`;
-
-    // Le même code ne sert pas deux fois.
-    await request(app.getHttpServer())
-      .post('/api/v1/admin/session')
-      .set(ADMIN_HEADERS)
-      .send(body)
-      .expect(401);
 
     const me = await asAdmin('get', '/api/v1/admin/session').expect(200);
     expect(me.body.handle).toBe(adminHandle);
