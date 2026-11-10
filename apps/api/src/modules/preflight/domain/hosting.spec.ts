@@ -147,6 +147,7 @@ describe('rapport Markdown', () => {
           loadTest: breaksAt20,
         }),
         checks: [],
+        architecture: null,
         author: { handle: 'awa', displayName: 'Awa' },
       },
       { page: 'https://x/prevol/1', json: 'https://x/api/v1/preflight/1' },

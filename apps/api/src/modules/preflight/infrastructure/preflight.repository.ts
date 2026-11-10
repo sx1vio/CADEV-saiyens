@@ -5,7 +5,7 @@ import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type { PreflightStore } from '../application/run-preflight';
 
 type Stored = Pick<PreflightReport, 'checks' | 'metrics' | 'repoSummary' | 'counts'> &
-  Partial<Pick<PreflightReport, 'lighthouse' | 'loadTest' | 'systalink'>>;
+  Partial<Pick<PreflightReport, 'lighthouse' | 'loadTest' | 'systalink' | 'architecture'>>;
 
 @Injectable()
 export class PreflightRepository implements PreflightStore {
@@ -52,6 +52,7 @@ export class PreflightRepository implements PreflightStore {
       lighthouse: result.lighthouse ?? null,
       loadTest: result.loadTest ?? null,
       systalink: result.systalink ?? null,
+      architecture: result.architecture ?? null,
       checks: result.checks,
       author: { handle: r.user.handle, displayName: r.user.displayName },
     };

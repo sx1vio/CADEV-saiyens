@@ -8,6 +8,7 @@ import { PreflightController } from './http/preflight.controller';
 import { PreflightRepository } from './infrastructure/preflight.repository';
 import { GithubRateLimitedError, probeRepo, RepoNotFoundError } from './infrastructure/repo.probe';
 import { SafeFetcher, UnsafeTargetError } from './infrastructure/safe-fetch';
+import { probeDomain } from './infrastructure/domain.probe';
 import { probeSite, SiteUnreachableError } from './infrastructure/site.probe';
 import { probeLighthouse } from './infrastructure/lighthouse.probe';
 import { httpHit, runLoadStages } from './infrastructure/load-runner';
@@ -28,6 +29,7 @@ import { PREFLIGHT_LOAD_LIMITS } from '@devhub/contracts';
       useFactory: (store: PreflightRepository, env: Env) => {
         const probes: PreflightProbes = {
           site: (url, signal) => probeSite(new SafeFetcher(signal), url, env.SYSTALINK_IP_RANGES),
+          domain: (url, signal) => probeDomain(new SafeFetcher(signal), url),
           repo: (repo, signal) =>
             probeRepo(new SafeFetcher(signal), repo, env.PREFLIGHT_GITHUB_TOKEN),
           lighthouse: (url) => probeLighthouse(url, env.PAGESPEED_API_KEY),

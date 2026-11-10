@@ -34,6 +34,10 @@ const CATEGORY_ORDER = [
   'performance',
   'network',
   'accessibility',
+  'infra',
+  'quality',
+  'privacy',
+  'seo',
   'licences',
   'hosting',
 ];
@@ -61,6 +65,10 @@ const CATEGORY_LABEL: Record<string, string> = {
   load: 'Tenue à la charge',
   licences: 'Licences',
   hosting: 'Hébergement',
+  infra: 'Domaine, HTTPS et e-mails',
+  seo: 'Référencement et partage',
+  quality: 'Qualité du code et architecture',
+  privacy: 'Vie privée',
 };
 
 function block(c: PreflightCheck): string {
@@ -179,6 +187,27 @@ export function toMarkdown(report: PreflightReport, links: { page: string; json:
       '',
       `github.com/${r.fullName} (branche ${r.defaultBranch}) · licence ${r.licence ?? 'aucune'} · ${r.dependencies} dépendances (${r.ecosystems.join(', ') || 'aucun écosystème reconnu'}) · ${r.vulnerablePackages} avec des failles connues`,
     );
+  }
+  if (report.architecture && report.architecture.analysedFiles > 0) {
+    const a = report.architecture;
+    out.push(
+      '',
+      '## Architecture du projet',
+      '',
+      `${a.kind}${a.frameworks.length ? ` · ${a.frameworks.join(', ')}` : ''} · ${a.sourceFiles} fichiers de code (${a.analysedFiles} lus) · ${a.imports} imports · ${a.testFiles} fichiers de test · langages : ${a.languages.map((l) => l.name).join(', ')}`,
+    );
+    if (a.hubs.length)
+      out.push(
+        '',
+        'Fichiers critiques (les modifier avec prudence, les tester en priorité) :',
+        ...a.hubs.map((h) => `- \`${h.file}\` · importé par ${h.dependents} fichiers`),
+      );
+    if (a.cycles.length)
+      out.push(
+        '',
+        'Cycles d’imports à casser :',
+        ...a.cycles.map((c) => `- ${c.map((f) => `\`${f}\``).join(' → ')}`),
+      );
   }
   out.push(
     '',

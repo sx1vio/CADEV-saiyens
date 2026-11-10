@@ -15,6 +15,14 @@ export const PreflightCategory = z.enum([
   'dependencies',
   'licences',
   'hosting',
+  /** Domaine : certificat TLS, DNS, IPv6, e-mails (SPF, DKIM, DMARC). */
+  'infra',
+  /** Référencement et aperçus de partage (WhatsApp, LinkedIn, X). */
+  'seo',
+  /** Qualité du projet : tests, CI, Docker, runtime, architecture du code. */
+  'quality',
+  /** Vie privée : traceurs, cookies, données envoyées à des tiers. */
+  'privacy',
 ]);
 export type PreflightCategory = z.infer<typeof PreflightCategory>;
 
@@ -223,6 +231,33 @@ export const PreflightOwnership = z.object({
 });
 export type PreflightOwnership = z.infer<typeof PreflightOwnership>;
 
+/** Architecture du dépôt, calculée en lisant le code (graphe des imports entre fichiers). */
+export const PreflightArchitecture = z.object({
+  /** Projet : « Monorepo », « Application web », « API », « Full-stack »… */
+  kind: z.string(),
+  frameworks: z.array(z.string()),
+  totalFiles: z.number().int(),
+  sourceFiles: z.number().int(),
+  /** Fichiers source lus pour le graphe (plafonné). */
+  analysedFiles: z.number().int(),
+  languages: z.array(
+    z.object({ name: z.string(), files: z.number().int(), bytes: z.number().int() }),
+  ),
+  imports: z.number().int(),
+  /** Groupes de fichiers qui s'importent en boucle. */
+  cycles: z.array(z.array(z.string())),
+  /** Fichiers dont dépendent le plus d'autres fichiers : les modifier touche tout le projet. */
+  hubs: z.array(z.object({ file: z.string(), dependents: z.number().int() })),
+  largest: z.array(z.object({ file: z.string(), lines: z.number().int() })),
+  /** Fichiers source que rien n'importe (hors points d'entrée). */
+  orphans: z.array(z.string()),
+  testFiles: z.number().int(),
+  todos: z.number().int(),
+  consoleLogs: z.number().int(),
+  anyTypes: z.number().int(),
+});
+export type PreflightArchitecture = z.infer<typeof PreflightArchitecture>;
+
 export const PreflightReport = z.object({
   id: z.uuid(),
   url: z.string().nullable(),
@@ -243,6 +278,8 @@ export const PreflightReport = z.object({
   loadTest: PreflightLoadTest.nullable(),
   /** Conseil d'hébergement Systalink ; null pour un pré-vol du dépôt seul. */
   systalink: PreflightSystalinkAdvice.nullable(),
+  /** Architecture du dépôt ; null sans dépôt (ou pour un ancien rapport). */
+  architecture: PreflightArchitecture.nullable().default(null),
   checks: z.array(PreflightCheck),
   author: z.object({ handle: z.string(), displayName: z.string() }),
 });
