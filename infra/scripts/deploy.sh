@@ -37,9 +37,17 @@ for _ in $(seq 1 30); do
   sleep 2
 done
 
+# Test de l'URL publique, avec plusieurs essais : au premier démarrage (ou à un nouveau
+# sous-domaine), Caddy met quelques secondes à obtenir le certificat Let's Encrypt.
 smoke() {
   local base="https://${SITE_ADDRESS:-localhost}"
-  curl -fsS "$base/" >/dev/null && curl -fsS "$base/api/v1/status" >/dev/null
+  for _ in $(seq 1 24); do
+    if curl -fsS --max-time 10 "$base/" >/dev/null && curl -fsS --max-time 10 "$base/api/v1/status" >/dev/null; then
+      return 0
+    fi
+    sleep 5
+  done
+  return 1
 }
 
 if [[ "${READY:-0}" == 1 ]] && smoke; then
