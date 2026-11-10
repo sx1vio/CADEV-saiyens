@@ -111,9 +111,14 @@ export class ReadNews {
   }
 
   async list(query: NewsQuery): Promise<NewsItem[]> {
-    const items = await this.repo.list(query);
+    const items = (await this.repo.list(query)).map(light);
     // Les offres déjà stockées repassent par le filtre des métiers du logiciel (il a été resserré).
     return query.kind === 'job' ? items.filter((i) => keepJob(i.source, i.title)) : items;
+  }
+
+  /** Détail d'un élément (offre d'emploi lue sur DevHub), description complète comprise. */
+  async get(id: string): Promise<NewsItem | null> {
+    return this.repo.get(id);
   }
 
   async sources(): Promise<SourceInfo[]> {
@@ -186,4 +191,14 @@ export class ReadNews {
     const [newsItems, lastIngest] = await Promise.all([this.repo.count(), this.repo.lastRun()]);
     return { newsItems, lastIngest };
   }
+}
+
+/** Les listes n'envoient pas la description complète des offres (lue seulement dans le détail). */
+function light(item: NewsItem): NewsItem {
+  if (!('description' in item.extra)) return item;
+  const { description, ...extra } = item.extra;
+  return {
+    ...item,
+    extra: { ...extra, hasDescription: typeof description === 'string' && description.length > 0 },
+  };
 }

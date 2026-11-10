@@ -1,5 +1,6 @@
 import { ExternalLink, Radio, RefreshCw, Search, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { fetchNews, img, type NewsItem } from './news';
@@ -154,11 +155,15 @@ function LiveCard({ item }: { item: NewsItem }) {
       : item.kind === 'skill'
         ? [item.category, ...asList(x.tools).map((t) => TOOL_NAME[t] ?? t)]
         : [...asList(x.levels), ...asList(x.roles)];
+  // Les offres d'emploi s'ouvrent sur DevHub (description complète) ; le reste chez l'éditeur.
+  const inside = item.kind === 'job';
+  const Card = inside ? Link : 'a';
+  const props = inside
+    ? { to: `/emplois/direct/${item.id}` }
+    : { href: item.url, target: '_blank', rel: 'noopener noreferrer' };
   return (
-    <a
-      href={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Card
+      {...(props as { to: string })}
       className="group flex h-full gap-3 rounded-[10px] bg-surface-1 p-4 transition-colors hover:bg-surface-2"
     >
       {item.image ? (
@@ -179,7 +184,7 @@ function LiveCard({ item }: { item: NewsItem }) {
           )}
         >
           {item.title}
-          <ExternalLink className="ml-1 inline size-3 text-subtle" aria-hidden />
+          {!inside && <ExternalLink className="ml-1 inline size-3 text-subtle" aria-hidden />}
         </h3>
         {item.kind === 'job' && item.author && (
           <p className="mt-0.5 text-[13px] text-muted">{item.author}</p>
@@ -215,6 +220,6 @@ function LiveCard({ item }: { item: NewsItem }) {
           )}
         </p>
       </div>
-    </a>
+    </Card>
   );
 }

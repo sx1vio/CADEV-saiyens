@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanText, decode, firstImage } from './text';
+import { cleanText, decode, firstImage, htmlToText } from './text';
 
 describe('decode', () => {
   it('décode les entités nommées et numériques', () => {
@@ -23,5 +23,20 @@ describe('firstImage', () => {
   it("ne garde qu'une image absolue en http(s)", () => {
     expect(firstImage('<img src="https://a.b/c.jpg">')).toBe('https://a.b/c.jpg');
     expect(firstImage('<img src="/relative.png">')).toBeNull();
+  });
+});
+describe('htmlToText (description des offres)', () => {
+  it('garde paragraphes, titres et puces, sans aucune balise', () => {
+    const out = htmlToText(
+      '<h3>About us</h3><p>We build <b>payments</b>.</p><ul><li>Node.js</li><li>Postgres</li></ul><script>alert(1)</script>',
+    );
+    expect(out).toBe('About us\n\nWe build payments.\n\n• Node.js\n• Postgres');
+    expect(out).not.toContain('<');
+  });
+
+  it('décode le HTML échappé (Greenhouse) et coupe les textes trop longs', () => {
+    expect(htmlToText('&lt;p&gt;Remote &amp;amp; Africa&lt;/p&gt;')).toBe('Remote & Africa');
+    expect(htmlToText(`<p>${'mot '.repeat(50)}</p>`, 40).endsWith('…')).toBe(true);
+    expect(htmlToText(null)).toBe('');
   });
 });

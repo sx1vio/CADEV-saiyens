@@ -1,4 +1,14 @@
-import { BadGatewayException, Controller, Get, Header, Inject, Query, Res } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Controller,
+  Get,
+  Header,
+  Inject,
+  NotFoundException,
+  Param,
+  Query,
+  Res,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -44,6 +54,15 @@ export class NewsController {
   @Header('Cache-Control', 'public, max-age=120')
   async list(@Query() q: ListQueryDto) {
     return { items: await this.read.list(q) };
+  }
+
+  /** Détail d'un élément (offre d'emploi lue sur DevHub sans quitter le site). */
+  @Get('news/item/:id')
+  @Header('Cache-Control', 'public, max-age=300')
+  async item(@Param('id') id: string) {
+    const item = /^[0-9a-f]{24}$/.test(id) ? await this.read.get(id) : null;
+    if (!item) throw new NotFoundException({ code: 'not_found', title: 'Item not found' });
+    return item;
   }
 
   @Get('videos')

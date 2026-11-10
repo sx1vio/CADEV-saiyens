@@ -11,6 +11,7 @@
 @import '@fontsource/poppins/400.css';
 @import '@fontsource/poppins/500.css';
 @import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
 
 /* Système de design v3 (05/11/2026) : neutres « encre », cartes posées sur un fond gris (réseau
    professionnel), un seul accent bleu de la marque, vert réservé à ce qui est vivant ou vérifié.
@@ -1312,4 +1313,250 @@
 }
 .lp-press:active {
   transform: scale(0.97);
+}
+
+/* ---------- Le coin de Djeli (barre latérale) : boucle de 16 s, quatre scènes de 4 s ---------- */
+@keyframes djeli-slot {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  3%,
+  22% {
+    opacity: 1;
+    transform: none;
+  }
+  25%,
+  100% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+.djeli-scene {
+  position: absolute;
+  inset: 0;
+}
+.djeli-t0,
+.djeli-t1,
+.djeli-t2,
+.djeli-t3 {
+  animation: djeli-slot 16s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+  pointer-events: none;
+}
+.djeli-t1 {
+  animation-delay: 4s;
+}
+.djeli-t2 {
+  animation-delay: 8s;
+}
+.djeli-t3 {
+  animation-delay: 12s;
+}
+@keyframes djeli-type {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1.5px);
+  }
+}
+@keyframes djeli-jump {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-10px) rotate(-4deg);
+  }
+  60% {
+    transform: translateY(0) rotate(3deg);
+  }
+}
+@keyframes djeli-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes djeli-wave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-6deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+.djeli-pose {
+  transform-origin: 50% 90%;
+}
+.djeli-pose-0 {
+  animation: djeli-type 0.35s ease-in-out infinite;
+}
+.djeli-pose-1 {
+  animation: djeli-jump 1s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.djeli-pose-2 {
+  animation: djeli-sway 2.4s ease-in-out infinite;
+}
+.djeli-pose-3 {
+  animation: djeli-wave 1.2s ease-in-out infinite;
+}
+@keyframes djeli-glyph {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), -40px) scale(1.05);
+  }
+}
+.djeli-glyph {
+  position: absolute;
+  top: 46%;
+  left: 52%;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: #7fb0ff;
+  animation: djeli-glyph 1.6s ease-out infinite;
+}
+.djeli-glyph-0 {
+  --dx: 14px;
+}
+.djeli-glyph-1 {
+  --dx: -16px;
+  color: #5eead4;
+  animation-delay: 0.4s;
+}
+.djeli-glyph-2 {
+  --dx: 22px;
+  color: #fbbf5a;
+  animation-delay: 0.8s;
+}
+.djeli-glyph-3 {
+  --dx: -6px;
+  animation-delay: 1.2s;
+}
+@keyframes djeli-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(280deg);
+  }
+}
+.djeli-confetti {
+  position: absolute;
+  top: 34%;
+  left: 46%;
+  width: 5px;
+  height: 8px;
+  border-radius: 1.5px;
+  animation: djeli-burst 1.2s ease-out infinite;
+}
+.djeli-confetti-0 {
+  --dx: -30px;
+  --dy: -26px;
+  background: #3b82f6;
+}
+.djeli-confetti-1 {
+  --dx: 28px;
+  --dy: -30px;
+  background: #2dd4bf;
+  animation-delay: 0.15s;
+}
+.djeli-confetti-2 {
+  --dx: -36px;
+  --dy: 4px;
+  background: #fbbf24;
+  animation-delay: 0.3s;
+}
+.djeli-confetti-3 {
+  --dx: 34px;
+  --dy: 2px;
+  background: #f472b6;
+  animation-delay: 0.45s;
+}
+.djeli-confetti-4 {
+  --dx: -10px;
+  --dy: -38px;
+  background: #a78bfa;
+  animation-delay: 0.6s;
+}
+.djeli-confetti-5 {
+  --dx: 14px;
+  --dy: -36px;
+  background: #ffffff;
+  animation-delay: 0.75s;
+}
+@keyframes djeli-idea {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.6);
+  }
+  25%,
+  80% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.djeli-idea {
+  position: absolute;
+  top: -4px;
+  right: 4px;
+  font-size: 18px;
+  animation: djeli-idea 2s ease-in-out infinite;
+}
+@keyframes djeli-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-16px);
+  }
+}
+.djeli-hop {
+  animation: djeli-hop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.djeli-bubble {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .djeli-corner *,
+  .djeli-corner *::before,
+  .djeli-corner *::after {
+    animation: none !important;
+  }
+  .djeli-t0,
+  .djeli-t1,
+  .djeli-t2 {
+    opacity: 0;
+  }
+  .djeli-t3 {
+    opacity: 1;
+  }
+  .djeli-glyph,
+  .djeli-confetti,
+  .djeli-idea {
+    display: none;
+  }
 }

@@ -122,6 +122,14 @@ export class PrismaNewsRepository implements NewsRepository {
       WHERE kind NOT IN ('release', 'skill') AND source <> 'microsoft-learn' AND published_at < now() - make_interval(days => ${days}::int)`;
   }
 
+  async get(id: string): Promise<NewsItem | null> {
+    const rows = await this.prisma.$queryRaw<Row[]>`
+      SELECT id, kind, source, source_name, category, lang, title, summary, url, image, author,
+             published_at, score, comments, extra
+      FROM news_items WHERE id = ${id} LIMIT 1`;
+    return rows[0] ? toItem(rows[0]) : null;
+  }
+
   async list(q: NewsQuery): Promise<NewsItem[]> {
     const where = [NOT_NOISE];
     if (q.category) where.push(Prisma.sql`category = ${q.category}`);

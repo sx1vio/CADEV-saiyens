@@ -65,9 +65,7 @@ export function Welcome({
         />
         <header className="relative mx-auto flex max-w-[1180px] items-center justify-between px-5 py-5">
           <a href={SITE_URL} className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-[11px] bg-gradient-to-br from-[#3b82f6] to-[#2dd4bf] text-[13px] font-bold">
-              &lt;/&gt;
-            </span>
+            <BrandMark />
             <span className="text-[17px] font-bold whitespace-nowrap sm:text-[18px]">
               Dev<span className="text-[#5eead4]">Hub</span>{' '}
               <span className="hidden font-medium text-white/70 min-[400px]:inline">Business</span>
@@ -577,5 +575,25 @@ function Reset({
         </button>
       )}
     </form>
+  );
+}
+
+/** Symbole DevHub (même tracé que apps/web/src/components/brand.tsx). */
+function BrandMark() {
+  return (
+    <svg viewBox="0 0 100 80" width={38} height={30} aria-hidden className="shrink-0">
+      <defs>
+        <linearGradient id="dh-mark" x1="0" y1="0.75" x2="1" y2="0.25">
+          <stop offset="0" stopColor="#0a6cff" />
+          <stop offset="0.5" stopColor="#10b0f0" />
+          <stop offset="1" stopColor="#20e2b4" />
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke="url(#dh-mark)" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M35 21 12 40l17 14" strokeWidth="9" />
+        <path d="M65 26l23 14-21 16" strokeWidth="9" />
+        <path d="M19 65c10 7 21 4 25-8l10-34c4-11 15-14 25-7" strokeWidth="8" />
+      </g>
+    </svg>
   );
 }

@@ -20,6 +20,8 @@ export interface NewsRepository {
   purgeOlderThan(days: number): Promise<void>;
 
   list(query: NewsQuery): Promise<NewsItem[]>;
+  /** Un élément par son identifiant (détail d'une offre d'emploi), avec tout son `extra`. */
+  get(id: string): Promise<NewsItem | null>;
   latest(
     filter: {
       kind: NewsItem['kind'];
