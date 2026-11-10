@@ -11,7 +11,9 @@ import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
-import { ALLOW_API_TOKEN, bearerToken } from './api-token.guard';
+import { API_TOKEN_PREFIX, MOBILE_CLIENT } from '@devhub/contracts';
+import { ALLOW_API_TOKEN } from './api-token.guard';
+import { bearerToken } from './bearer';
 import { SESSION_COOKIE, readCookie } from './cookies';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -79,8 +81,21 @@ export class OriginGuard implements CanActivate {
     }
     if (req.headers.origin === this.appOrigin && req.headers['x-devhub-client'] === 'web')
       return true;
+    // Application mobile (ADR-0021) : la session voyage dans « Authorization: Bearer », qu'un
+    // navigateur n'ajoute jamais de lui-même et que CORS refuse aux autres origines : pas de CSRF.
+    if (isMobileRequest(req)) return true;
     throw new ForbiddenException({ code: 'csrf.origin_rejected', title: 'Origin not allowed' });
   }
+}
+
+/** Requête de l'application mobile : session en Bearer (pas un jeton d'API) et client déclaré. */
+export function isMobileRequest(req: Request): boolean {
+  const token = bearerToken(req);
+  return (
+    !!token &&
+    !token.startsWith(API_TOKEN_PREFIX) &&
+    req.headers['x-devhub-client'] === MOBILE_CLIENT
+  );
 }
 
 /** Routes de l'espace d'administration (apps/admin). */

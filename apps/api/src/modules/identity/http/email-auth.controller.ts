@@ -15,7 +15,10 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { MobileTokenResponse } from '@devhub/contracts';
 import type { Request, Response } from 'express';
+import { createZodDto } from 'nestjs-zod';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
 import { MAILER, type Mailer } from '../../../infrastructure/mail/mailer';
@@ -37,6 +40,13 @@ import {
   PasswordForgotRequestDto,
   PasswordResetRequestDto,
 } from './email-auth.dto';
+import { AllowCrossOrigin } from './origin.guard';
+
+class MobileTokenResponseDto extends createZodDto(MobileTokenResponse) {}
+
+function toMobileToken(result: SignInResult): MobileTokenResponse {
+  return { sessionToken: result.sessionToken, expiresAt: result.sessionExpiresAt.toISOString() };
+}
 
 // Inscription et connexion par e-mail. Réponse 204 et cookie de session, comme le retour
 // d'OAuth ; le front relit GET /me. Écritures : X-DevHub-Client exigé (OriginGuard global).
@@ -62,10 +72,51 @@ export class EmailAuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
+    this.open(res, await this.signUp(body, req));
+  }
+
+  @Post('login')
+  @HttpCode(204)
+  async login(
+    @Body() body: EmailLoginRequestDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    this.open(res, await this.signIn(body, req));
+  }
+
+  /**
+   * Variantes de l'application mobile (ADR-0021) : la session revient dans la réponse, pour
+   * « Authorization: Bearer », jamais en cookie. Sans cookie posé, une page tierce ne peut ni
+   * lire la réponse (CORS) ni connecter le navigateur à un autre compte : pas de contrôle d'origine.
+   */
+  @Post('register/mobile')
+  @HttpCode(201)
+  @AllowCrossOrigin()
+  @ApiOkResponse({ type: MobileTokenResponseDto })
+  async registerMobile(
+    @Body() body: EmailRegisterRequestDto,
+    @Req() req: Request,
+  ): Promise<MobileTokenResponse> {
+    return toMobileToken(await this.signUp(body, req));
+  }
+
+  @Post('login/mobile')
+  @HttpCode(200)
+  @AllowCrossOrigin()
+  @ApiOkResponse({ type: MobileTokenResponseDto })
+  async loginMobile(
+    @Body() body: EmailLoginRequestDto,
+    @Req() req: Request,
+  ): Promise<MobileTokenResponse> {
+    return toMobileToken(await this.signIn(body, req));
+  }
+
+  private async signUp(body: EmailRegisterRequestDto, req: Request): Promise<SignInResult> {
     const context = this.context(req);
     this.guard(context);
     try {
-      this.open(res, await this.auth.signUp(body, context));
+      return await this.auth.signUp(body, context);
     } catch (err) {
       if (err instanceof EmailTakenError) {
         // Compte comme un échec : sinon on pourrait sonder librement les adresses inscrites
@@ -79,20 +130,14 @@ export class EmailAuthController {
     }
   }
 
-  @Post('login')
-  @HttpCode(204)
-  async login(
-    @Body() body: EmailLoginRequestDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
+  private async signIn(body: EmailLoginRequestDto, req: Request): Promise<SignInResult> {
     const context = this.context(req);
     this.guard(context);
     try {
       const result = await this.auth.signIn(body.email, body.password, context);
       if (await this.sessions.rejectIfSuspended(result.userId))
         throw new ForbiddenException({ code: 'auth.suspended', title: 'Account suspended' });
-      this.open(res, result);
+      return result;
     } catch (err) {
       if (err instanceof BadCredentialsError) {
         this.limiter.fail(context.ipHash ?? 'unknown');

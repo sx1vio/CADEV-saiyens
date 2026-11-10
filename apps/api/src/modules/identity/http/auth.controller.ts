@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -9,24 +10,38 @@ import {
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { MobileTokenRequest, MobileTokenResponse } from '@devhub/contracts';
 import type { Request, Response } from 'express';
+import { createZodDto } from 'nestjs-zod';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
 import { SignInWithGithub } from '../application/sign-in-with-github';
 import type { GithubOAuthProvider } from '../domain/ports';
 import {
   OAUTH_STATE_TTL_MS,
+  type OAuthState,
   codeChallenge,
   newOAuthState,
   openOAuthState,
   safeReturnTo,
   sealOAuthState,
 } from '../infrastructure/oauth-state';
+import {
+  isCodeChallenge,
+  openMobileHandoff,
+  sealMobileHandoff,
+} from '../infrastructure/mobile-handoff';
 import { PrismaSessionStore } from '../infrastructure/prisma-session.store';
 import { OAUTH_STATE_COOKIE, SESSION_COOKIE, baseCookie, readCookie } from './cookies';
+import { AllowCrossOrigin } from './origin.guard';
 import { type AuthenticatedUser, CurrentUser, SessionGuard } from './session.guard';
+
+class MobileTokenRequestDto extends createZodDto(MobileTokenRequest) {}
+class MobileTokenResponseDto extends createZodDto(MobileTokenResponse) {}
 
 export const GITHUB_OAUTH_PROVIDER = Symbol('GITHUB_OAUTH_PROVIDER');
 
@@ -52,7 +67,24 @@ export class AuthController {
     @Query('login') loginHint: string | undefined,
     @Res() res: Response,
   ): void {
-    const state = newOAuthState(safeReturnTo(returnTo), Date.now());
+    this.authorize(res, newOAuthState(safeReturnTo(returnTo), Date.now()), loginHint);
+  }
+
+  /**
+   * Connexion depuis l'application mobile (ADR-0021) : ouverte dans le navigateur système,
+   * avec le défi PKCE de l'application. Le retour se fait par MOBILE_REDIRECT_URI.
+   */
+  @Get('github/mobile')
+  startMobile(
+    @Query('challenge') challenge: unknown,
+    @Query('login') loginHint: string | undefined,
+    @Res() res: Response,
+  ): void {
+    if (!isCodeChallenge(challenge)) return this.failMobile(res, 'invalid_request');
+    this.authorize(res, newOAuthState('/', Date.now(), challenge), loginHint);
+  }
+
+  private authorize(res: Response, state: OAuthState, loginHint: string | undefined): void {
     res.cookie(OAUTH_STATE_COOKIE, sealOAuthState(state, this.env.SESSION_SECRET), {
       ...baseCookie,
       maxAge: OAUTH_STATE_TTL_MS,
@@ -79,9 +111,11 @@ export class AuthController {
     const sealed = readCookie(req, OAUTH_STATE_COOKIE);
     res.clearCookie(OAUTH_STATE_COOKIE, baseCookie);
 
-    if (error) return this.fail(res, error === 'access_denied' ? 'access_denied' : 'github_error');
     const oauth = openOAuthState(sealed, state, this.env.SESSION_SECRET, Date.now());
-    if (!oauth || !code) return this.fail(res, 'invalid_state');
+    const fail = (reason: string) =>
+      oauth?.appChallenge ? this.failMobile(res, reason) : this.fail(res, reason);
+    if (error) return fail(error === 'access_denied' ? 'access_denied' : 'github_error');
+    if (!oauth || !code) return fail('invalid_state');
 
     try {
       const identity = await this.github.exchange(code, oauth.codeVerifier, this.redirectUri);
@@ -94,7 +128,19 @@ export class AuthController {
               .slice(0, 32)
           : null,
       });
-      if (await this.sessions.rejectIfSuspended(result.userId)) return this.fail(res, 'suspended');
+      if (await this.sessions.rejectIfSuspended(result.userId)) return fail('suspended');
+      if (oauth.appChallenge) {
+        const handoff = sealMobileHandoff(
+          {
+            sessionToken: result.sessionToken,
+            sessionExpiresAt: result.sessionExpiresAt.toISOString(),
+          },
+          oauth.appChallenge,
+          this.env.SESSION_SECRET,
+          Date.now(),
+        );
+        return this.redirectMobile(res, { code: handoff });
+      }
       res.cookie(SESSION_COOKIE, result.sessionToken, {
         ...baseCookie,
         expires: result.sessionExpiresAt,
@@ -102,8 +148,32 @@ export class AuthController {
       res.redirect(302, new URL(oauth.returnTo, this.env.APP_URL).toString());
     } catch (err) {
       this.logger.error({ err }, 'Connexion GitHub échouée');
-      this.fail(res, 'github_unavailable');
+      fail('github_unavailable');
     }
+  }
+
+  /**
+   * Échange du code de retour mobile contre le jeton de session. Sans cookie ni origine web :
+   * c'est le secret PKCE de l'application qui fait la preuve, d'où l'exemption d'OriginGuard.
+   */
+  @Post('mobile/token')
+  @HttpCode(200)
+  @AllowCrossOrigin()
+  @ApiOkResponse({ type: MobileTokenResponseDto })
+  mobileToken(@Body() body: MobileTokenRequestDto): MobileTokenResponse {
+    const handoff = openMobileHandoff(
+      body.code,
+      body.codeVerifier,
+      this.env.SESSION_SECRET,
+      Date.now(),
+    );
+    if (!handoff) {
+      throw new UnauthorizedException({
+        code: 'auth.invalid_code',
+        title: 'Invalid or expired sign-in code',
+      });
+    }
+    return { sessionToken: handoff.sessionToken, expiresAt: handoff.sessionExpiresAt };
   }
 
   @Post('logout')
@@ -115,6 +185,16 @@ export class AuthController {
   ): Promise<void> {
     await this.sessions.revoke(auth.sessionIdHash);
     res.clearCookie(SESSION_COOKIE, baseCookie);
+  }
+
+  private failMobile(res: Response, reason: string): void {
+    this.redirectMobile(res, { error: reason });
+  }
+
+  private redirectMobile(res: Response, params: Record<string, string>): void {
+    const url = new URL(this.env.MOBILE_REDIRECT_URI);
+    for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
+    res.redirect(302, url.toString());
   }
 
   private fail(res: Response, reason: string): void {

@@ -1,0 +1,8 @@
+<resources>
+    <!-- Bleu nuit du fond d'icône du web (pwa-512.png). -->
+    <color name="icon_background">#0B1735</color>
+    <color name="window_background">#EBEDEF</color>
+    <style name="Theme.DevHub" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

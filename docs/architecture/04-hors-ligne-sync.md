@@ -278,6 +278,10 @@ Route `/synchronisation`. Lecture directe de la table `outbox` : type, heure, ap
 - **À la déconnexion** : suppression de la base Dexie de l'utilisateur, du cache TanStack Query persisté et des entrées runtime du service worker qui concernent l'API. Si des actions sont en attente, on prévient avant de les perdre.
 - La file est **propre à un utilisateur** (`userId`) : si un autre compte se connecte sur le même appareil, il ne voit ni n'envoie les actions du précédent.
 
+## 9 bis. Applications mobiles
+
+Les applications Android et iOS appliquent le même contrat (file d'actions, `opId` en `Idempotency-Key`, `POST /sync`, `client:<uuid>`, masquage avant mise en file, effacement à la déconnexion). Leurs choix propres sont dans l'[ADR-0021](../adr/0021-applications-mobiles-kmp.md) § 4 bis.
+
 ## 10. Tests du hors ligne
 
 | Niveau          | Ce qu'on teste                                                                                                                                                              | Outil                                                                 |

@@ -78,6 +78,13 @@ export const EnvSchema = z
     ADMIN_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
     // Portail entreprise (apps/business), servi sur sa propre origine. Absent : désactivé.
     BUSINESS_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+    // Applications mobiles (ADR-0021) : adresse de retour après la connexion GitHub. Schéma
+    // personnalisé seulement (RFC 8252) : jamais http(s), qui ouvrirait une redirection.
+    MOBILE_REDIRECT_URI: z
+      .preprocess((v) => (v === undefined || v === '' ? 'devhub://auth/callback' : v), z.url())
+      .refine((v) => !/^https?:/i.test(v), {
+        message: 'MOBILE_REDIRECT_URI doit utiliser un schéma propre à l’application',
+      }),
     // Plages CIDR IPv4 autorisées à ouvrir l'administration (séparées par des virgules). Vide : toutes.
     ADMIN_ALLOWED_IPS: z.preprocess(
       (v) => (v === undefined ? '' : v),

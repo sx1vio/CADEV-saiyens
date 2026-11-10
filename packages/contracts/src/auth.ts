@@ -37,3 +37,28 @@ export const PasswordResetRequest = z
   })
   .strict();
 export type PasswordResetRequest = z.infer<typeof PasswordResetRequest>;
+
+/**
+ * Applications mobiles (ADR-0021). La connexion GitHub s'ouvre dans le navigateur système
+ * (GET /api/v1/auth/github/mobile?challenge=…), puis revient dans l'application par
+ * `devhub://auth/callback?code=…`. L'application échange ce code, avec le secret PKCE qu'elle
+ * seule détient, contre un jeton de session porté ensuite par « Authorization: Bearer ».
+ */
+export const MOBILE_CLIENT = 'mobile';
+
+const Base64Url = z.string().regex(/^[A-Za-z0-9_-]+$/);
+
+export const MobileTokenRequest = z
+  .object({
+    code: Base64Url.min(16).max(2048),
+    // RFC 7636 : 43 à 128 caractères
+    codeVerifier: Base64Url.min(43).max(128),
+  })
+  .strict();
+export type MobileTokenRequest = z.infer<typeof MobileTokenRequest>;
+
+export const MobileTokenResponse = z.object({
+  sessionToken: z.string(),
+  expiresAt: z.iso.datetime(),
+});
+export type MobileTokenResponse = z.infer<typeof MobileTokenResponse>;
