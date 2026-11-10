@@ -237,7 +237,8 @@ function Composer() {
 /** Centre d'intérêt → rubriques de l'actualité collectée. */
 const TOPIC_NEWS: Record<string, string[]> = {
   ia: ['ia'],
-  web: ['dev', 'tech'],
+  // « tech » = high-tech grand public (consoles, drones) : hors sujet pour le développement web.
+  web: ['dev'],
   mobile: ['mobile', 'apple', 'google', 'samsung'],
   backend: ['dev', 'cloud'],
   devops: ['cloud', 'dev'],
