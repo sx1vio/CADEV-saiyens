@@ -51,7 +51,7 @@ const API_RE = /["'`](\/api\/[a-z0-9][\w\-/.]*)["'`?]/gi;
 
 /** GET qui pourrait avoir un effet même sans session : jamais appelé par le pré-vol. */
 const UNSAFE =
-  /logout|log-out|signout|sign-out|delete|remove|destroy|reset|unsubscribe|confirm|verify|callback|webhook|oauth|auth\/(github|google|gitlab)/i;
+  /log-?out|sign-?out|delete|remove|destroy|reset|unsubscribe|subscribe|confirm|verify|validate|callback|webhook|oauth|auth\/(github|google|gitlab)|activate|deactivate|approve|accept|reject|decline|cancel|invite|publish|unpublish|archive|restore|cron|trigger|run|exec|sync|purge|clear|flush|send|notify|export|import|upload|download|generate|refresh|revoke|rotate|toggle|enable|disable|ban|block|follow|like|vote|buy|pay|checkout|charge|refund|order|book/i;
 
 export function routesInCode(code: string): { routes: string[]; api: string[] } {
   const routes = new Set<string>();

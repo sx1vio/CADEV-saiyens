@@ -27,7 +27,7 @@ Depuis le 10/11/2026, chaque rapport porte aussi une lecture « recette » (mét
 - **Décision** : `go` (score ≥ 85, aucune critique, aucune majeure en sécurité ni en accessibilité, aucune gate en échec), `go_with_reservations` (score 70 à 84, aucune critique), `no_go` (une critique, une gate en échec ou un score < 70).
 - **À tester à la main** (`untested`) : IDOR avec deux comptes, parcours connectés et écritures, purge du cache après déconnexion, accessibilité manuelle (clavier, lecteur d'écran, zoom 200 %), Safari et Firefox, et selon le passage : Lighthouse, mesures terrain, charge, dépôt.
 
-Les routes d'API sont appelées en **GET seulement**, 18 au plus, jamais celles qui pourraient avoir un effet (`logout`, `delete`, `reset`, `callback`, OAuth…). Seuls les **noms** des champs sensibles d'une réponse sont relevés, jamais leurs valeurs. Une réponse vide comme `{ "user": null }` n'est pas une fuite.
+La matrice des routes d'API en anonyme ne tourne que sur un **domaine prouvé** (même preuve que le test de charge : fichier `.well-known/devhub-verify.txt` ou DNS TXT) ; sans preuve, `sec.anonymous_api` reste une information et la gate « aucune donnée protégée servie sans connexion » est non évaluée. Les routes sont appelées en **GET seulement**, 18 au plus, jamais celles qui pourraient avoir un effet (`logout`, `delete`, `reset`, `publish`, `invite`, `cron`, `send`, `export`, paiement, OAuth…). Seuls les **noms** des champs sensibles d'une réponse sont relevés, jamais leurs valeurs. Une réponse vide comme `{ "user": null }` n'est pas une fuite.
 
 ## Lighthouse et coûts
 

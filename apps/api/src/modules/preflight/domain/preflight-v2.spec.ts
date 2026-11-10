@@ -244,6 +244,26 @@ describe('pré-vol avec test de charge', () => {
     ).rejects.toBeInstanceOf(OwnershipRequiredError);
   });
 
+  it('ne prévient la sonde du site que si le domaine est prouvé (matrice d’API de la recette)', async () => {
+    const seen: (boolean | undefined)[] = [];
+    const probesFor = (proof: 'dns' | null): PreflightProbes => ({
+      site: async (_u, _s, opts) => {
+        seen.push(opts?.owned);
+        throw new Error('injoignable');
+      },
+      repo: async () => {
+        throw new Error('x');
+      },
+      classify: () => 'site_unreachable',
+      ownership: async () => proof,
+    });
+    for (const proof of ['dns', null] as const)
+      await new RunPreflight(probesFor(proof), store())
+        .run({ userId: 'u1', url: 'https://app.exemple.sn', repo: null })
+        .catch(() => undefined);
+    expect(seen).toEqual([true, false]);
+  });
+
   it('offre Systalink déclarée + rupture : conseil de taille dans le rapport', async () => {
     const saved = store();
     const probes = {

@@ -115,7 +115,20 @@ export function recetteSiteChecks(site: SiteFacts): C[] {
   }
 
   // ── Sécurité : routes d'API appelées sans session ──
-  if (r.api.length) {
+  if (r.apiMatrix === 'needs_proof') {
+    out.push(
+      check({
+        id: 'sec.anonymous_api',
+        category: 'security',
+        status: 'info',
+        title: 'Routes d’API en anonyme : domaine à prouver',
+        detail:
+          'Le pré-vol appelle les routes d’API sans session (GET seulement) pour vérifier qu’aucune donnée réservée n’en sort. Il ne le fait que sur un domaine dont l’auteur a prouvé le contrôle : sinon l’outil servirait à repérer le site d’un autre.',
+        fix: 'Publier https://<domaine>/.well-known/devhub-verify.txt (ou l’enregistrement DNS TXT) donné sur /prevol, section « Ajouter un test de charge », puis relancer le pré-vol.',
+        evidence: [],
+      }),
+    );
+  } else if (r.api.length) {
     const ok200 = r.api.filter((a) => a.status === 200 && a.json && !a.empty);
     const critical = ok200.filter(
       (a) => a.credentialKeys.length || (a.privatePath && a.personalKeys.length),

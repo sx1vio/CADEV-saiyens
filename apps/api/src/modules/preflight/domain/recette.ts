@@ -158,7 +158,8 @@ function gates(checks: Check[]): PreflightRecette['gates'] {
   const byId = new Map(checks.map((c) => [c.id, c]));
   return GATES.map((g) => {
     if (g.untested) return { id: g.id, label: g.label, status: 'untested' as const, checks: [] };
-    const present = g.checks.filter((id) => byId.has(id));
+    // Une information (ex. matrice d'API non lancée, domaine non prouvé) ne vaut pas un passage.
+    const present = g.checks.filter((id) => byId.has(id) && byId.get(id)!.status !== 'info');
     if (!present.length)
       return { id: g.id, label: g.label, status: 'untested' as const, checks: [] };
     const failing = present.filter((id) => {

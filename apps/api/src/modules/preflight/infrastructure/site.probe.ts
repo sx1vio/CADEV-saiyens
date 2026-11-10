@@ -89,6 +89,7 @@ export async function probeSite(
   fetcher: SafeFetcher,
   url: string,
   systalinkRanges: string[],
+  opts: { owned?: boolean } = {},
 ): Promise<SiteFacts> {
   const page = await fetcher.get(url, { maxBytes: MAX_HTML, timeoutMs: 12_000 }).catch((e) => {
     throw new SiteUnreachableError(e instanceof Error ? e.message : 'unreachable');
@@ -221,7 +222,9 @@ export async function probeSite(
     httpRedirectsToHttps = null;
   }
 
-  const extra = await probeExtras(fetcher, page, final, html, probePath, js, fonts, fetched);
+  const extra = await probeExtras(fetcher, page, final, html, probePath, js, fonts, fetched, {
+    owned: opts.owned ?? false,
+  });
 
   return {
     requestedUrl: url,
@@ -263,6 +266,7 @@ async function probeExtras(
   js: JsFindings,
   fonts: ExtraSiteFacts['fonts'],
   assets: (AssetFact | null)[],
+  scope: { owned: boolean },
 ): Promise<ExtraSiteFacts> {
   const meta = scanPageMeta(html, page.url);
   const probeId = `devhub-preflight-${Date.now().toString(36)}`;
@@ -417,6 +421,7 @@ async function probeExtras(
     robotsText,
     manifestRaw: manifestRes && manifestRes.status === 200 ? text(manifestRes) : null,
     pageUrl: page.url,
+    owned: scope.owned,
   });
 
   return {
@@ -465,10 +470,12 @@ async function probeRecette(
     robotsText: string | null;
     manifestRaw: string | null;
     pageUrl: string;
+    owned: boolean;
   },
 ): Promise<RecetteSiteFacts> {
   const locs = ctx.sitemapXml ? sitemapLocs(ctx.sitemapXml, final.origin, ctx.pageUrl) : [];
-  const targets = apiTargets([...js.api]);
+  // Matrice des routes d'API en anonyme : seulement sur un domaine prouvé (comme le test de charge).
+  const targets = ctx.owned ? apiTargets([...js.api]) : [];
   const missing = `/api/devhub-preflight-${Date.now().toString(36)}`;
 
   const [pages, api, notFound, favicon, sw] = await Promise.all([
@@ -525,6 +532,7 @@ async function probeRecette(
     },
     routeSamples: [...js.routes].slice(0, 8),
     api: probes,
+    apiMatrix: ctx.owned ? 'done' : 'needs_proof',
     apiPoweredBy:
       notFound?.headers['x-powered-by'] ?? probes.find((a) => a.poweredBy)?.poweredBy ?? null,
     apiNotFoundLeak:

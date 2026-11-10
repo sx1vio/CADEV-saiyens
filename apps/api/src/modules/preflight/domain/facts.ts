@@ -197,6 +197,8 @@ export interface RecetteSiteFacts {
   /** Exemples de routes de l'application lues dans le JavaScript. */
   routeSamples: string[];
   api: AnonymousApiProbe[];
+  /** done : matrice d'API lancée ; needs_proof : domaine non prouvé, aucune route appelée. */
+  apiMatrix?: 'done' | 'needs_proof';
   /** Route d'API inexistante : réponse par défaut du framework (« Cannot GET », trace…). */
   apiNotFoundLeak: string | null;
   /** En-tête X-Powered-By renvoyé par l'API (Express, PHP…), ou null. */

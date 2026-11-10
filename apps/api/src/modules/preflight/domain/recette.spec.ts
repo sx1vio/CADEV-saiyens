@@ -220,6 +220,31 @@ describe('contrôles de recette', () => {
     expect(r.gates.find((g) => g.id === 'gate.anonymous_access')?.status).toBe('fail');
   });
 
+  it('sans preuve de propriété, aucune route d’API n’est appelée et la gate reste non évaluée', () => {
+    const out = recetteSiteChecks(site(recetteFacts({ api: [], apiMatrix: 'needs_proof' })));
+    expect(byId(out, 'sec.anonymous_api')).toMatchObject({ status: 'info' });
+    const r = recetteOf(report(out));
+    expect(r.gates.find((g) => g.id === 'gate.anonymous_access')?.status).toBe('untested');
+  });
+
+  it('ne garde aucune route à effet, même nommée autrement que logout', () => {
+    const t = apiTargets([
+      '/api/v1/invite',
+      '/api/v1/jobs/publish',
+      '/api/v1/cron/run',
+      '/api/v1/export',
+      '/api/v1/rooms',
+    ]);
+    expect(
+      t.filter(
+        (p) =>
+          !p.startsWith('/api/v1/rooms') &&
+          !/^\/api\/(v1\/)?(me|user|users|admin|account|profile|settings)/.test(p),
+      ),
+    ).toEqual([]);
+    expect(t).toContain('/api/v1/rooms');
+  });
+
   it('une session vide (`{ user: null }`) n’est pas une fuite', () => {
     const out = recetteSiteChecks(
       site(

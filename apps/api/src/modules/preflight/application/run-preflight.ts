@@ -41,7 +41,11 @@ export class NothingToCheckError extends Error {
 }
 
 export interface PreflightProbes {
-  site(url: string, signal: AbortSignal): Promise<SiteFacts>;
+  /**
+   * `owned` : l'auteur a prouvé qu'il contrôle le domaine. Sans preuve, la sonde ne lance pas la
+   * matrice des routes d'API en anonyme (elle servirait à repérer le site d'un autre).
+   */
+  site(url: string, signal: AbortSignal, opts?: { owned?: boolean }): Promise<SiteFacts>;
   repo(fullName: string, signal: AbortSignal): Promise<RepoFacts>;
   /** Certificat TLS et DNS du domaine. Facultatif : absent, le rapport s'en passe. */
   domain?(url: string, signal: AbortSignal): Promise<DomainFacts>;
@@ -118,9 +122,15 @@ export class RunPreflight {
       proof = await this.probes.ownership(input.userId, input.url);
       if (!proof) throw new OwnershipRequiredError();
     }
+    // Preuve de propriété aussi sans test de charge : elle ouvre la matrice d'API de la recette.
+    const owned =
+      proof ??
+      (input.url && this.probes.ownership
+        ? await this.probes.ownership(input.userId, input.url).catch(() => null)
+        : null);
     this.running.add(input.userId);
     try {
-      return await this.execute(input, proof);
+      return await this.execute(input, proof, owned !== null);
     } finally {
       this.running.delete(input.userId);
     }
@@ -141,11 +151,11 @@ export class RunPreflight {
     }
   }
 
-  private async execute(input: RunInput, proof: 'well-known' | 'dns' | null) {
+  private async execute(input: RunInput, proof: 'well-known' | 'dns' | null, owned = false) {
     const started = Date.now();
     const signal = AbortSignal.timeout(BUDGET_MS);
     const [site, repo, lighthouse, domain] = await Promise.all([
-      input.url ? this.probes.site(input.url, signal).catch((e: unknown) => e) : null,
+      input.url ? this.probes.site(input.url, signal, { owned }).catch((e: unknown) => e) : null,
       input.repo ? this.probes.repo(input.repo, signal).catch((e: unknown) => e) : null,
       input.url && this.probes.lighthouse
         ? this.probes.lighthouse(input.url).catch(() => null)
