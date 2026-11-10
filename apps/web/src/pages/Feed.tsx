@@ -280,7 +280,11 @@ function ForYou() {
         .flatMap(([, v]) => v),
       ...home.data.videos,
       ...more,
-    ].filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
+    ]
+      .filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)))
+      // Sujet précis choisi : toute l'actualité suit ce sujet (à la une, vidéos et suite du
+      // défilement compris) ; « Montre ton projet » n'a pas d'actualité, seulement des publications.
+      .filter((i) => !topic || wanted.has(i.category));
     const mine = (posts.data?.data ?? []).filter(
       (p) => topics.length === 0 || topics.includes(p.community),
     );

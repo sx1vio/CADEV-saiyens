@@ -68,9 +68,11 @@ export function renderProofCard(p: PassportResponse, lang: CardLang, siteHost: s
 
   // En-tête : logo (pastille dégradée + mot « DevHub ») et type de document
   parts.push(
-    `<rect x="64" y="52" width="48" height="48" rx="14" fill="url(#brand)"/>`,
-    `<text x="88" y="84" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">&lt;/&gt;</text>`,
-    `<text x="128" y="88" font-size="32" font-weight="700" fill="#f2f3f5">Dev<tspan fill="#5eead4">Hub</tspan></text>`,
+    // Symbole DevHub (components/brand.tsx) : chevrons liés par un S, dégradé bleu → turquoise
+    `<g transform="translate(64 56) scale(0.5)" fill="none" stroke="url(#mark)" stroke-linecap="round" stroke-linejoin="round">`,
+    `<path d="M35 21 12 40l17 14" stroke-width="9"/><path d="M65 26l23 14-21 16" stroke-width="9"/><path d="M19 65c10 7 21 4 25-8l10-34c4-11 15-14 25-7" stroke-width="8"/>`,
+    `</g>`,
+    `<text x="122" y="88" font-size="32" font-weight="700" fill="#f2f3f5">Dev<tspan fill="#5eead4">Hub</tspan></text>`,
     `<rect x="${W - 64 - 300}" y="56" width="300" height="40" rx="20" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.14"/>`,
     `<text x="${W - 64 - 150}" y="83" text-anchor="middle" font-size="19" font-weight="700" fill="#c9cdd3" letter-spacing="0.5">${text(t.kicker, 30)}</text>`,
   );
@@ -132,6 +134,7 @@ export function renderProofCard(p: PassportResponse, lang: CardLang, siteHost: s
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${CARD.width}" height="${CARD.height}" viewBox="0 0 ${CARD.width} ${CARD.height}" font-family="${FONT}">`,
     `<defs>`,
+    `<linearGradient id="mark" x1="0" y1="0.75" x2="1" y2="0.25"><stop offset="0" stop-color="#0a6cff"/><stop offset="0.5" stop-color="#10b0f0"/><stop offset="1" stop-color="#20e2b4"/></linearGradient>`,
     `<linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient>`,
     `<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient>`,
     `<radialGradient id="glowA" cx="0.88" cy="0.05" r="0.55"><stop offset="0" stop-color="#2563eb" stop-opacity="0.45"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient>`,

@@ -73,6 +73,11 @@ export async function fetchNews(params: {
   return (await get<{ items: NewsItem[] }>(`/api/v1/news?${q}`)).items;
 }
 
+/** Un élément avec tout son détail (description complète d'une offre d'emploi). */
+export async function fetchNewsItem(id: string): Promise<NewsItem> {
+  return get<NewsItem>(`/api/v1/news/item/${encodeURIComponent(id)}`);
+}
+
 export async function fetchVideos(params: {
   category?: string;
   lang?: Lang;

@@ -1,3 +1,4 @@
+import { DjeliCorner } from './DjeliCorner';
 import { BackButton } from './BackButton';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
@@ -363,6 +364,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </button>
       </div>
 
+      {!onNavigate && <DjeliCorner />}
       {me ? (
         <UserCard onNavigate={onNavigate} />
       ) : (

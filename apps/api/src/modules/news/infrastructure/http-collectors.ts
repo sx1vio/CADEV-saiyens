@@ -13,7 +13,7 @@ import {
   type FeedSource,
   type JobBoard,
 } from '../domain/sources';
-import { cleanText, decode, firstImage } from '../domain/text';
+import { cleanText, decode, firstImage, htmlToText } from '../domain/text';
 import { fetchJson, fetchText } from './http';
 import { collectSkills } from './skill-collectors';
 
@@ -341,6 +341,7 @@ async function collectRemotive(): Promise<CollectedNews[]> {
         jobType: j.job_type,
         salary: j.salary || null,
         tags: j.tags,
+        description: htmlToText(j.description),
       },
     }));
 }
@@ -355,6 +356,7 @@ interface JobicyJob {
   jobGeo: string;
   jobLevel: string;
   jobExcerpt: string;
+  jobDescription?: string;
   pubDate: string;
   salaryMin?: number;
   salaryMax?: number;
@@ -388,6 +390,7 @@ async function collectJobicy(): Promise<CollectedNews[]> {
           ? `${j.salaryMin}-${j.salaryMax ?? j.salaryMin} ${j.salaryCurrency ?? ''}/${j.salaryPeriod ?? ''}`.trim()
           : null,
         tags: j.jobIndustry,
+        description: htmlToText(j.jobDescription ?? j.jobExcerpt),
       },
     }));
 }
@@ -410,13 +413,15 @@ async function boardJobs(b: JobBoard): Promise<BoardJob[]> {
         location: { name: string };
         first_published?: string;
         updated_at: string;
+        content?: string;
       }[];
-    }>(`https://boards-api.greenhouse.io/v1/boards/${b.slug}/jobs`);
+    }>(`https://boards-api.greenhouse.io/v1/boards/${b.slug}/jobs?content=true`);
     return d.jobs.map((j) => ({
       title: j.title,
       location: j.location.name,
       url: j.absolute_url,
       publishedAt: new Date(j.first_published ?? j.updated_at),
+      extra: { description: htmlToText(j.content) },
     }));
   }
   const d = await fetchJson<{
@@ -429,6 +434,8 @@ async function boardJobs(b: JobBoard): Promise<BoardJob[]> {
       isListed: boolean;
       employmentType?: string;
       workplaceType?: string;
+      descriptionPlain?: string;
+      descriptionHtml?: string;
     }[];
   }>(`https://api.ashbyhq.com/posting-api/job-board/${b.slug}`);
   return d.jobs
@@ -438,7 +445,13 @@ async function boardJobs(b: JobBoard): Promise<BoardJob[]> {
       location: [j.location, ...(j.secondaryLocations ?? []).map((s) => s.location)].join(', '),
       url: j.jobUrl,
       publishedAt: new Date(j.publishedAt),
-      extra: { jobType: j.employmentType, workplace: j.workplaceType },
+      extra: {
+        jobType: j.employmentType,
+        workplace: j.workplaceType,
+        description: j.descriptionHtml
+          ? htmlToText(j.descriptionHtml)
+          : (j.descriptionPlain ?? '').slice(0, 12_000),
+      },
     }));
 }
 
@@ -456,7 +469,7 @@ async function collectBoard(b: JobBoard): Promise<CollectedNews[]> {
       category: 'dev' as const,
       lang: 'en' as const,
       title: decode(j.title),
-      summary: '',
+      summary: typeof j.extra?.description === 'string' ? cleanText(j.extra.description, 240) : '',
       url: j.url,
       image: null,
       author: b.name,
@@ -469,6 +482,7 @@ async function collectBoard(b: JobBoard): Promise<CollectedNews[]> {
 interface HimalayasJob {
   title: string;
   excerpt: string;
+  description?: string;
   companyName: string;
   companyLogo: string;
   employmentType: string;
@@ -511,6 +525,7 @@ async function collectHimalayas(): Promise<CollectedNews[]> {
           ? `${j.minSalary}-${j.maxSalary ?? j.minSalary} ${j.currency ?? ''}`.trim()
           : null,
         tags: j.categories.slice(0, 3),
+        description: htmlToText(j.description ?? j.excerpt),
       },
     }));
 }
@@ -532,7 +547,11 @@ async function collectMyJobMag(): Promise<CollectedNews[]> {
       image: null,
       author: null,
       publishedAt: new Date(it.isoDate ?? it.pubDate ?? Date.now()),
-      extra: { location: 'Nigeria', african: true },
+      extra: {
+        location: 'Nigeria',
+        african: true,
+        description: htmlToText(it.contentEncoded ?? it.content),
+      },
     }));
 }
 

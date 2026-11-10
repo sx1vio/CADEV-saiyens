@@ -70,6 +70,7 @@ const pages = {
   post: () => import('@/pages/PostPage'),
   publish: () => import('@/pages/Publish'),
   jobs: () => import('@/pages/Jobs'),
+  jobDirect: () => import('@/pages/JobDirect'),
   company: () => import('@/pages/CompanyPage'),
   messages: () => import('@/pages/Messages'),
   privacy: () => import('@/pages/Privacy'),
@@ -248,6 +249,7 @@ export const router = createBrowserRouter([
         },
       },
       { path: 'emplois', lazy: lazy('jobs') },
+      { path: 'emplois/direct/:id', lazy: lazy('jobDirect') },
       { path: 'emplois/:id', lazy: lazy('jobs') },
       { path: 'entreprises/:slug', lazy: lazy('company') },
       ...['messages', 'messages/:id'].map((path) => ({
