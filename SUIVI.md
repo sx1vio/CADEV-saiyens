@@ -179,6 +179,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 11/11/2026 — Travail de Joachim récupéré, déjà en production
+
+- **Récupéré** — Joachim (chim31) a fusionné deux PR sur `main` le 10/11 au soir :
+  - **#197** `fix/recette-qa-2026-11-10` : suites de la recette QA du 10/11 (77/100, GO sous réserves). Accessibilité (en-tête à 320 px, erreurs sous chaque champ, un titre par page, « Aller au contenu »), `GET /api/v1/me/session` en 200 sans compte, plus de `X-Powered-By`, `Cache-Control: no-store` sur les routes privées, `security.txt`, `favicon.ico`, manifeste PWA, Brotli dans Caddy. Détail : `docs/suivi/recette-2026-11-10.md`.
+  - **#198** `feat/prevol-recette-qa` : le pré-vol rend un **verdict de recette** (GO / GO sous réserves / NO-GO), avec gates éliminatoires, score par section et 10 nouveaux contrôles (pages du sitemap, routes, erreurs console, API en anonyme, Brotli, zoom, manifeste…). Correctif BUG-060 : le bundle principal n'était jamais analysé. Guide : `docs/guides/prevol.md`.
+- **Déploiement** — Déjà fait automatiquement : CI verte, version `fa96f2b` en ligne depuis le 10/11 à 23 h 32. Vérifié en public : `security.txt` en 200, Brotli actif, accueil, admin et portail entreprise en 200.
+- **Reste hors code** (cf. #197) : SMTP + SPF/DKIM/DMARC (anomalie majeure FONC-03), `PAGESPEED_API_KEY`, `LLM_API_KEY`, SSL Labs, variable `CONTACT_EMAIL`.
+- **Non fusionné** — `fix/deps-osv-2026-11-10` (Neme6X-dev, failles npm relevées par le pré-vol) : CI verte, en attente.
+
 ### 10/11/2026 (après-midi) — Licence MIT, admin sans double facteur, adresse de contact
 
 - **Demande de Sylvio** : signer pour tout le monde, choisir la licence, `Sacem270` = Florent AMAMION ; « pour l'espace admin, pas de Google Auth, e-mail et mot de passe, simple ».
