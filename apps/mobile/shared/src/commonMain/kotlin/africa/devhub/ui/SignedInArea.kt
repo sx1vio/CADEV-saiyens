@@ -16,6 +16,20 @@ import africa.devhub.resources.signout_pending
 import africa.devhub.resources.signout_cancel
 import africa.devhub.resources.sign_out
 import africa.devhub.ui.components.AppDrawer
+import africa.devhub.ui.components.CreateAction
+import africa.devhub.ui.components.CreateSheet
+import africa.devhub.ui.components.MainTab
+import africa.devhub.ui.components.SearchSheet
+import africa.devhub.ui.components.WebTabBar
+import africa.devhub.ui.components.WebTopBar
+import africa.devhub.resources.create_sheet_app
+import africa.devhub.resources.create_sheet_app_hint
+import africa.devhub.resources.create_sheet_ask
+import africa.devhub.resources.create_sheet_ask_hint
+import africa.devhub.resources.create_sheet_post
+import africa.devhub.resources.create_sheet_post_hint
+import africa.devhub.resources.create_sheet_room
+import africa.devhub.resources.create_sheet_room_hint
 import africa.devhub.ui.components.DrawerEntry
 import africa.devhub.ui.components.DrawerGroup
 import androidx.compose.material3.AlertDialog
@@ -382,6 +396,9 @@ fun SignedInArea(
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var confirmSignOut by remember { mutableStateOf(false) }
+    // Feuilles de l'en-tête et de la barre d'onglets, comme le web mobile.
+    var showCreate by remember { mutableStateOf(false) }
+    var showSearch by remember { mutableStateOf(false) }
     if (confirmSignOut) {
         AlertDialog(
             onDismissRequest = { confirmSignOut = false },
@@ -462,6 +479,50 @@ fun SignedInArea(
         FeedRoute::class, ConversationsRoute::class, RulesRoute::class, SosRoute::class, RoomsRoute::class,
         NotificationsRoute::class, PreflightRoute::class, BenchRoute::class, DevMapRoute::class,
     ).any { destination?.hasRoute(it) == true } || onOwnProfile
+    val onHome = destination?.hasRoute<HomeRoute>() == true
+    // En-tête et barre d'onglets du web sur l'accueil et les écrans racine ; flèche retour ailleurs.
+    val webChrome = onHome || isRoot
+    val selectedTab = when {
+        onHome -> MainTab.Home
+        destination?.hasRoute<JobsRoute>() == true -> MainTab.Jobs
+        destination?.hasRoute<CertsRoute>() == true -> MainTab.Certs
+        onPreflight -> MainTab.Preflight
+        else -> null
+    }
+    if (showCreate) {
+        val createActions = listOf(
+            CreateAction(stringResource(Res.string.create_sheet_post), stringResource(Res.string.create_sheet_post_hint), DevHubIcons.PenSquare) {
+                showCreate = false
+                navController.navigate(CreatePostRoute)
+            },
+            CreateAction(stringResource(Res.string.create_sheet_ask), stringResource(Res.string.create_sheet_ask_hint), DevHubIcons.Zap) {
+                showCreate = false
+                navController.navigate(AskRoute)
+            },
+            CreateAction(stringResource(Res.string.create_sheet_room), stringResource(Res.string.create_sheet_room_hint), DevHubIcons.FolderPlus) {
+                showCreate = false
+                navController.navigate(CreateRoomRoute)
+            },
+            CreateAction(stringResource(Res.string.create_sheet_app), stringResource(Res.string.create_sheet_app_hint), DevHubIcons.PlaneTakeoff) {
+                showCreate = false
+                go(PreflightRoute)
+            },
+        )
+        CreateSheet(createActions, onDismiss = { showCreate = false })
+    }
+    if (showSearch) {
+        val searchEntries = groups.flatMap { it.entries } + listOf(
+            DrawerEntry("messages", stringResource(Res.string.messages_title), DevHubIcons.Chat) { navController.navigate(ConversationsRoute) },
+            DrawerEntry("alerts", stringResource(Res.string.nav_notifications), DevHubIcons.Bell) { navController.navigate(NotificationsRoute) },
+            DrawerEntry("questions", stringResource(Res.string.nav_questions), DevHubIcons.Help) { go(SosRoute) },
+            DrawerEntry("news", stringResource(Res.string.news_title), DevHubIcons.News) { go(NewsRoute) },
+            DrawerEntry("settings", stringResource(Res.string.home_settings), DevHubIcons.Settings) { go(SettingsRoute) },
+        )
+        SearchSheet(
+            entries = searchEntries.map { e -> DrawerEntry(e.key, e.label, e.icon) { showSearch = false; e.onClick() } },
+            onDismiss = { showSearch = false },
+        )
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = true,
@@ -483,7 +544,27 @@ fun SignedInArea(
     ) {
     Scaffold(
         topBar = {
-            if (nestedTitle != null) {
+            if (webChrome) {
+                Column {
+                    WebTopBar(
+                        me = me,
+                        unread = unread,
+                        onMenu = { scope.launch { drawerState.open() } },
+                        onSearch = { showSearch = true },
+                        onMessages = { navController.navigate(ConversationsRoute) { launchSingleTop = true } },
+                        onAlerts = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
+                        onProfile = { go(PassportRoute(me.handle)) },
+                    )
+                    // Titre de la page sous l'en-tête, comme le titre en tête des pages du web.
+                    if (!onHome && !onCerts && nestedTitle != null) {
+                        Text(
+                            stringResource(nestedTitle),
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 4.dp),
+                        )
+                    }
+                }
+            } else if (nestedTitle != null) {
                 TopAppBar(
                     title = { if (!onCerts) Text(stringResource(nestedTitle), style = MaterialTheme.typography.titleMedium) },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -522,6 +603,22 @@ fun SignedInArea(
                 )
             }
         },
+        bottomBar = {
+            if (webChrome) {
+                WebTabBar(
+                    selected = selectedTab,
+                    onSelect = { tab ->
+                        when (tab) {
+                            MainTab.Home -> go(HomeRoute)
+                            MainTab.Jobs -> go(JobsRoute)
+                            MainTab.Certs -> go(CertsRoute)
+                            MainTab.Preflight -> go(PreflightRoute)
+                        }
+                    },
+                    onCreate = { showCreate = true },
+                )
+            }
+        },
         containerColor = androidx.compose.ui.graphics.Color.Transparent,
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
@@ -553,6 +650,7 @@ fun SignedInArea(
                             onAlerts = { navController.navigate(NotificationsRoute) },
                             onMessages = { navController.navigate(ConversationsRoute) },
                             onQuestions = { navController.navigate(SosRoute) },
+                            onTest = { navController.navigate(BenchNewRoute) },
                         ),
                         onCommunity = feedVm::setCommunity,
                         onReload = {

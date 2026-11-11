@@ -896,4 +896,20 @@
     <string name="fb_err_offline">Il faut une connexion. Réessaie une fois en ligne.</string>
     <string name="fb_err_generic">Ça n’a pas marché. Réessaie.</string>
     <string name="fb_open_room">Ouvrir le projet %1$s</string>
+    <!-- Interface identique au web mobile (11/11/2026) -->
+    <string name="tab_certs">Certifs</string>
+    <string name="create_sheet">Créer</string>
+    <string name="create_sheet_post">Publier un post</string>
+    <string name="create_sheet_post_hint">Visible par tes abonnés et tes centres d’intérêt</string>
+    <string name="create_sheet_ask">Je suis bloqué</string>
+    <string name="create_sheet_ask_hint">Demander de l’aide</string>
+    <string name="create_sheet_room">Ouvrir un projet</string>
+    <string name="create_sheet_room_hint">Trouver des contributeurs</string>
+    <string name="create_sheet_app">Lancer un pré-vol</string>
+    <string name="create_sheet_app_hint">Vérifier qu’une app tient en production</string>
+    <string name="search_title">Rechercher</string>
+    <string name="search_placeholder">Une page, un service…</string>
+    <string name="search_empty">Aucun résultat.</string>
+    <string name="home_my_topics">Mes sujets</string>
+    <string name="home_composer_test">Faire tester</string>
 </resources>

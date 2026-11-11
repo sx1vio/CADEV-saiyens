@@ -896,4 +896,20 @@
     <string name="fb_err_offline">This needs a connection. Try again when you’re back online.</string>
     <string name="fb_err_generic">That didn’t work. Try again.</string>
     <string name="fb_open_room">Open the project %1$s</string>
+    <!-- Interface identique au web mobile (11/11/2026) -->
+    <string name="tab_certs">Certs</string>
+    <string name="create_sheet">Create</string>
+    <string name="create_sheet_post">Publish a post</string>
+    <string name="create_sheet_post_hint">Seen by your followers and interests</string>
+    <string name="create_sheet_ask">I’m stuck</string>
+    <string name="create_sheet_ask_hint">Ask for help</string>
+    <string name="create_sheet_room">Open a project</string>
+    <string name="create_sheet_room_hint">Find contributors</string>
+    <string name="create_sheet_app">Run a preflight</string>
+    <string name="create_sheet_app_hint">Check an app holds up in production</string>
+    <string name="search_title">Search</string>
+    <string name="search_placeholder">A page, a service…</string>
+    <string name="search_empty">No results.</string>
+    <string name="home_my_topics">My topics</string>
+    <string name="home_composer_test">Get it tested</string>
 </resources>

@@ -18,6 +18,9 @@ import africa.devhub.resources.feed_watch
 import africa.devhub.resources.home_composer_blocked
 import africa.devhub.resources.home_composer_project
 import africa.devhub.resources.home_composer_prompt
+import africa.devhub.resources.home_composer_test
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import africa.devhub.resources.feed_comments
 import africa.devhub.resources.post_score
 import africa.devhub.ui.community.communityLabel
@@ -59,11 +62,12 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Barre de publication : avatar, invitation à écrire, puis les deux actions rapides. */
 @Composable
-fun Composer(name: String, onCompose: () -> Unit, onAsk: () -> Unit) {
+@OptIn(ExperimentalLayoutApi::class)
+fun Composer(name: String, onCompose: () -> Unit, onAsk: () -> Unit, onTest: () -> Unit, avatar: @Composable () -> Unit = { Initials(name, size = 48.dp) }) {
     DevCard {
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Initials(name, size = 48.dp)
+                avatar()
                 Surface(
                     onClick = onCompose,
                     shape = CircleShape,
@@ -82,9 +86,11 @@ fun Composer(name: String, onCompose: () -> Unit, onAsk: () -> Unit) {
                     }
                 }
             }
-            Row(Modifier.fillMaxWidth()) {
-                FeedAction(DevHubIcons.Zap, stringResource(Res.string.home_composer_blocked), onAsk, Modifier.weight(1f))
-                FeedAction(DevHubIcons.Folder, stringResource(Res.string.home_composer_project), onCompose, Modifier.weight(1f))
+            // Trois raccourcis du web : ils passent à la ligne sur un écran étroit, centrés.
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)) {
+                FeedAction(DevHubIcons.Zap, stringResource(Res.string.home_composer_blocked), onAsk)
+                FeedAction(DevHubIcons.Folder, stringResource(Res.string.home_composer_project), onCompose)
+                FeedAction(DevHubIcons.Smartphone, stringResource(Res.string.home_composer_test), onTest)
             }
         }
     }

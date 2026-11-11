@@ -1,5 +1,9 @@
 package africa.devhub.ui.home
 
+import africa.devhub.ui.components.UserAvatar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import africa.devhub.resources.home_my_topics
 import africa.devhub.community.COMMUNITY_SLUGS
 import africa.devhub.community.FeedState
 import africa.devhub.community.PostView
@@ -7,35 +11,9 @@ import africa.devhub.me.Me
 import africa.devhub.news.NewsItem
 import africa.devhub.news.NewsState
 import africa.devhub.resources.Res
-import africa.devhub.resources.nav_notifications
 import africa.devhub.resources.community_all
-import africa.devhub.resources.home_certs
-import africa.devhub.resources.home_certs_detail
-import africa.devhub.resources.home_community
-import africa.devhub.resources.home_community_detail
-import africa.devhub.resources.home_discover
-import africa.devhub.resources.home_discover_detail
-import africa.devhub.resources.home_group_account
-import africa.devhub.resources.home_group_community
-import africa.devhub.resources.home_group_explore
 import africa.devhub.resources.home_headlines
-import africa.devhub.resources.home_jobs
-import africa.devhub.resources.home_jobs_detail
-import africa.devhub.resources.home_leaderboard
-import africa.devhub.resources.home_leaderboard_detail
-import africa.devhub.resources.home_menu
-import africa.devhub.resources.messages_title
 import africa.devhub.resources.nav_questions
-import africa.devhub.resources.home_messages
-import africa.devhub.resources.home_messages_detail
-import africa.devhub.resources.home_news
-import africa.devhub.resources.home_news_detail
-import africa.devhub.resources.home_rules
-import africa.devhub.resources.home_rules_detail
-import africa.devhub.resources.home_settings
-import africa.devhub.resources.home_settings_detail
-import africa.devhub.resources.home_skills
-import africa.devhub.resources.home_skills_detail
 import africa.devhub.resources.home_tab_for_you
 import africa.devhub.resources.home_tab_news
 import africa.devhub.resources.home_talks
@@ -45,18 +23,11 @@ import africa.devhub.resources.home_topic_dev
 import africa.devhub.resources.months
 import africa.devhub.resources.news_failed
 import africa.devhub.resources.news_videos
-import africa.devhub.resources.sign_out
-import africa.devhub.resources.signout_cancel
-import africa.devhub.resources.signout_pending
-import africa.devhub.resources.signout_title
 import africa.devhub.ui.community.communityLabel
-import africa.devhub.ui.components.BrandLogo
 import africa.devhub.ui.components.DevCard
 import africa.devhub.ui.components.DevHubIcons
 import africa.devhub.ui.components.FilterChip
-import africa.devhub.ui.components.NavRow
 import africa.devhub.ui.components.RowDivider
-import africa.devhub.ui.components.SectionTitle
 import africa.devhub.ui.components.StateMessage
 import africa.devhub.ui.components.UnderlineTabs
 import androidx.compose.foundation.clickable
@@ -65,38 +36,26 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -110,6 +69,7 @@ class HomeLinks(
     val onAlerts: () -> Unit,
     val onMessages: () -> Unit,
     val onQuestions: () -> Unit,
+    val onTest: () -> Unit,
 )
 
 /** Une ligne du fil « Pour toi » : une actualité ou une publication, triées par date. */
@@ -183,35 +143,28 @@ fun HomeScreen(
     val loading = if (tab == 0) news.loading && feed.loading && home == null && feed.items.isEmpty() else news.loading && home == null
     val failed = if (tab == 0) news.failed && feed.failed && forYou.isEmpty() else news.failed && home == null
 
-    Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-    // En-tête fixe, comme la barre des autres écrans : le menu reste à la même place (à gauche) et ne défile pas.
-    Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = links.onMenu) {
-            Icon(DevHubIcons.Menu, contentDescription = stringResource(Res.string.home_menu))
-        }
-        BrandLogo(height = 28.dp, modifier = Modifier.weight(1f))
-        IconButton(onClick = links.onMessages) {
-            Icon(DevHubIcons.Chat, contentDescription = stringResource(Res.string.messages_title))
-        }
-        IconButton(onClick = links.onAlerts) {
-            BadgedBox(badge = { if (unread > 0) Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
-                Icon(DevHubIcons.Bell, contentDescription = stringResource(Res.string.nav_notifications))
-            }
-        }
-    }
+    // L'en-tête (menu, recherche, messages, alertes, avatar) est celui de la coque, comme sur le web.
+    Column(Modifier.fillMaxSize()) {
     Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item { Composer(me.displayName, links.onCompose, links.onAsk) }
+            item { Composer(me.displayName, links.onCompose, links.onAsk, links.onTest, avatar = { UserAvatar(me, 48) }) }
             item {
                 Column {
                     UnderlineTabs(
-                        labels = listOf(stringResource(Res.string.home_tab_for_you), stringResource(Res.string.home_tab_news), stringResource(Res.string.nav_questions)),
-                        selected = tab,
-                        onSelect = { if (it == 2) links.onQuestions() else tab = it },
+                        // Ordre du web : Pour toi, Questions, Actualité.
+                        labels = listOf(stringResource(Res.string.home_tab_for_you), stringResource(Res.string.nav_questions), stringResource(Res.string.home_tab_news)),
+                        selected = if (tab == 0) 0 else 2,
+                        onSelect = {
+                            when (it) {
+                                1 -> links.onQuestions()
+                                2 -> tab = 1
+                                else -> tab = 0
+                            }
+                        },
                         indicator = MaterialTheme.colorScheme.onSurface,
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -290,7 +243,7 @@ private fun NewsEntry(item: NewsItem, label: (NewsItem) -> String?, months: List
 @Composable
 private fun TopicChips(selected: String, onSelect: (String) -> Unit) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { FilterChip(selected == TOPIC_ALL, { onSelect(TOPIC_ALL) }, { Text(stringResource(Res.string.community_all)) }) }
+        item { FilterChip(selected == TOPIC_ALL, { onSelect(TOPIC_ALL) }, { Text(stringResource(Res.string.home_my_topics)) }) }
         item { FilterChip(selected == TOPIC_HEADLINES, { onSelect(TOPIC_HEADLINES) }, { Text(stringResource(Res.string.home_headlines)) }) }
         items(COMMUNITY_SLUGS) { slug -> FilterChip(selected == slug, { onSelect(slug) }, { Text(stringResource(communityLabel(slug))) }) }
     }
