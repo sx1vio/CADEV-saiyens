@@ -185,7 +185,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 - **Label DevHub Ready** — domaine prouvé + verdict de recette GO → label public (`/label/:domaine`), badge SVG pour le README (`/api/v1/labels/:domaine/badge.svg`), section « Applications DevHub Ready » sur le Passport, 10 Proof XP (`preflight_ready`) une fois par domaine. Le label suit le dernier pré-vol prouvé et expire 30 jours après le dernier GO. Migration `20261111180000_preflight_labels`.
 - **Correctifs prêts** — `fixes` dans le rapport : fichiers complets (en-têtes de sécurité, security.txt, robots, sitemap, .gitignore, CI avec le pré-vol…) et extraits. Bouton « Proposer sur GitHub » : éditeur de github.com prérempli, la PR se crée en un clic, sans aucun droit d'écriture pour DevHub (OAuth toujours en lecture seule). Aussi dans le Markdown lu par l'agent IA.
 - **Tests** — `fixes.spec.ts`, `test/preflight-labels.e2e.spec.ts` (sans preuve, GO, XP unique, NO-GO, badge, domaine invalide).
-- **Retour de Sylvio** — landing : présenter les applications mobiles (« bientôt »), landing « très pro ». À faire ensuite, avec l'interface mobile identique au web mobile.
+- **Landing** — nouvelle section « DevHub dans ta poche, même sans réseau » (`components/landing/MobileApps.tsx`) : applications Android et iOS annoncées « bientôt », quatre atouts (hors ligne d'abord, alertes en direct, légère en 3G, compte protégé), deux téléphones dessinés en code qui reprennent l'interface mobile réelle (en-tête, carte de publication, onglets, barre flottante), rappel de l'installation PWA. L'étape « Pré-vol » de la frise cite les correctifs prêts et le label. Vérifiée en capture à 1440 px et 390 px.
 
 ### 11/11/2026 (soir) — Serveur MCP de toute la plateforme
 

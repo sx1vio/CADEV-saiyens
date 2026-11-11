@@ -25,6 +25,7 @@ import shotCerts from '@/assets/product/certs.webp';
 import shotFeed from '@/assets/product/feed.webp';
 import shotPrevol from '@/assets/product/prevol.webp';
 import { Djeli } from '@/components/djeli';
+import { MobileAppsSection } from '@/components/landing/MobileApps';
 import { errorText } from '@/components/domain';
 import { Avatar, Skeleton } from '@/components/ui/primitives';
 import { countryName } from '@/lib/geo';
@@ -203,7 +204,7 @@ const SHIP_STEPS = [
   {
     n: '2',
     title: 'Pré-vol',
-    text: 'Secrets exposés, premier affichage en 3G, failles connues, licences, Lighthouse mobile, montée en charge. Aussi en action GitHub et en serveur MCP.',
+    text: 'Secrets exposés, premier affichage en 3G, failles connues, Lighthouse mobile, montée en charge, avec les fichiers de correction prêts. Verdict GO : ton app reçoit le label DevHub Ready.',
     to: '/prevol',
   },
   {
@@ -538,6 +539,8 @@ export default function Landing() {
           </ul>
         </div>
       </section>
+
+      <MobileAppsSection />
 
       <StatsSection />
 
