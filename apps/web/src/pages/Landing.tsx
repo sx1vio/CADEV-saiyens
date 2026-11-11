@@ -25,6 +25,7 @@ import shotCerts from '@/assets/product/certs.webp';
 import shotFeed from '@/assets/product/feed.webp';
 import shotPrevol from '@/assets/product/prevol.webp';
 import { Djeli } from '@/components/djeli';
+import { McpSection } from '@/components/landing/McpSection';
 import { MobileAppsSection } from '@/components/landing/MobileApps';
 import { errorText } from '@/components/domain';
 import { Avatar, Skeleton } from '@/components/ui/primitives';
@@ -482,6 +483,8 @@ export default function Landing() {
           </ol>
         </div>
       </section>
+
+      <McpSection />
 
       {/* ---------- Certifications vérifiables ---------- */}
       <section className="mx-auto grid max-w-[1120px] items-center gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1fr]">

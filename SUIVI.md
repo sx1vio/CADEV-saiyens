@@ -179,6 +179,11 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 — Landing : section « Ton agent IA, branché sur DevHub »
+
+- **Question de Sylvio** — y a-t-il un espace sur la landing pour expliquer le MCP ? Non : il n'était cité qu'en passant dans la frise du pré-vol. Ajout d'une section dédiée (`components/landing/McpSection.tsx`, après « Du prompt à la prod vérifiée ») : ce que l'agent peut faire, agents compatibles, la commande `claude mcp add` et un exemple d'échange (pré-vol 74 → correctifs → 92 · GO · DevHub Ready), signalé comme exemple ; bouton « Créer mon jeton ». Vérifiée en capture.
+- **App mobile** — `:androidApp:lintDebug` et `:androidApp:assembleDebug` passent en local sur la version finale (connexion, onboarding).
+
 ### 11/11/2026 (nuit, fin) — App mobile : même interface que le web mobile
 
 - **Demande de Sylvio** — « que l'app mobile ait la même interface exactement que la version mobile du site web : connexion, inscription, onboarding… ».
