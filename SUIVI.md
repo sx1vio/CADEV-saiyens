@@ -186,6 +186,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
   - **#198** `feat/prevol-recette-qa` : le pré-vol rend un **verdict de recette** (GO / GO sous réserves / NO-GO), avec gates éliminatoires, score par section et 10 nouveaux contrôles (pages du sitemap, routes, erreurs console, API en anonyme, Brotli, zoom, manifeste…). Correctif BUG-060 : le bundle principal n'était jamais analysé. Guide : `docs/guides/prevol.md`.
 - **Déploiement** — Déjà fait automatiquement : CI verte, version `fa96f2b` en ligne depuis le 10/11 à 23 h 32. Vérifié en public : `security.txt` en 200, Brotli actif, accueil, admin et portail entreprise en 200.
 - **Reste hors code** (cf. #197) : SMTP + SPF/DKIM/DMARC (anomalie majeure FONC-03), `PAGESPEED_API_KEY`, `LLM_API_KEY`, SSL Labs, variable `CONTACT_EMAIL`.
+- **Bug corrigé** — « Continuer avec GitHub » tournait sans fin. Au retour (`/connexion?oauth=ok`), `Login.tsx` appelait `api.importGitHub`, qui en mode http relance l'OAuth ; GitHub, déjà autorisé, revenait aussitôt : boucle de redirections (présente depuis le 25/10, pas liée à Joachim). Le retour lit maintenant directement la session ouverte par l'API.
 - **Non fusionné** — `fix/deps-osv-2026-11-10` (Neme6X-dev, failles npm relevées par le pré-vol) : CI verte, en attente.
 
 ### 10/11/2026 (après-midi) — Licence MIT, admin sans double facteur, adresse de contact

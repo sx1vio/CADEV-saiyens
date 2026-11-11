@@ -13,7 +13,7 @@ import { AccountError, loginAccount, registerAccount } from '@/lib/account';
 import { invalidate, useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { BrandLogo as TechLogo } from '@/platform/logos';
-import { authProviders, fetchMe, githubSignInUrl, type Provider } from '@/platform/auth';
+import { authProviders, githubSignInUrl, type Provider } from '@/platform/auth';
 import { api, type GitHubImport, type User } from '@/services';
 import { useSession } from '@/stores/app';
 
@@ -87,8 +87,11 @@ export default function Login() {
     setBusy(true);
     void (async () => {
       try {
-        const me = await fetchMe();
-        done(await api.signUpWithGitHub(await api.importGitHub(me.handle)));
+        // On lit la session, sans repasser par importGitHub : en mode http, il relance l'OAuth,
+        // et GitHub, déjà autorisé, revient aussitôt ici (boucle sans fin, vue le 11/11/2026).
+        const me = await api.getSession();
+        if (!me) throw new Error('session introuvable');
+        done(me);
       } catch (err) {
         toast.error(errorText(t, err));
         setBusy(false);
