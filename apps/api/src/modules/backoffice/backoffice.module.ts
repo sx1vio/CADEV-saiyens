@@ -6,6 +6,7 @@ import { AdminAuth } from './infrastructure/admin-auth';
 import { AdminAuthController } from './http/admin-auth.controller';
 import { AdminController } from './http/admin.controller';
 import { AdminMonitoringController } from './http/admin-monitoring.controller';
+import { AdminContentController } from './http/admin-content.controller';
 import { AdminPlatformController } from './http/admin-platform.controller';
 import { AnnouncementsController } from './http/announcements.controller';
 import { AdminSessionGuard } from './http/admin-session.guard';
@@ -19,6 +20,7 @@ import { JobOffersRepository } from './infrastructure/job-offers.repository';
   imports: [IdentityModule],
   controllers: [
     AdminAuthController,
+    AdminContentController,
     AdminController,
     AdminMonitoringController,
     AdminPlatformController,

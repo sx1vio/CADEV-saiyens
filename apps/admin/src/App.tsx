@@ -4,6 +4,7 @@ import {
   Briefcase,
   Building2,
   FileText,
+  Newspaper,
   Gauge,
   HeartPulse,
   KeyRound,
@@ -22,6 +23,7 @@ import { Admins } from './pages/Admins';
 import { Announcements } from './pages/Announcements';
 import { Companies } from './pages/Companies';
 import { Content } from './pages/Content';
+import { Editorial } from './pages/Editorial';
 import { Feeds } from './pages/Feeds';
 import { Jobs } from './pages/Jobs';
 import { Login } from './pages/Login';
@@ -38,6 +40,7 @@ type Tab =
   | 'activity'
   | 'users'
   | 'content'
+  | 'editorial'
   | 'moderation'
   | 'companies'
   | 'jobs'
@@ -50,6 +53,7 @@ const TABS: { id: Tab; label: string; icon: typeof Gauge }[] = [
   { id: 'systalink', label: 'Systalink', icon: Server },
   { id: 'activity', label: 'Activité', icon: ActivityIcon },
   { id: 'users', label: 'Utilisateurs', icon: UsersIcon },
+  { id: 'editorial', label: 'Actus et skills', icon: Newspaper },
   { id: 'content', label: 'Contenus', icon: FileText },
   { id: 'moderation', label: 'Signalements', icon: ShieldAlert },
   { id: 'companies', label: 'Entreprises', icon: Building2 },
@@ -151,6 +155,7 @@ export function App() {
         {tab === 'moderation' && <Moderation onError={onError} />}
         {tab === 'activity' && <Activity onError={onError} />}
         {tab === 'users' && <Users role={session.role} onError={onError} />}
+        {tab === 'editorial' && <Editorial onError={onError} />}
         {tab === 'content' && <Content onError={onError} />}
         {tab === 'feeds' && <Feeds onError={onError} />}
         {tab === 'announcements' && <Announcements onError={onError} />}

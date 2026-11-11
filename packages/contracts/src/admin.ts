@@ -400,3 +400,101 @@ export const AdminSystalinkView = z.object({
   certificates: z.number().int(),
 });
 export type AdminSystalinkView = z.infer<typeof AdminSystalinkView>;
+
+/* ---------------- Contenus éditoriaux (11/11/2026) ----------------
+ * Actualités, vidéos, skills IA, dépôts, versions, certifications et offres collectés : tout ce
+ * que montrent le fil, l'actualité, les skills et les certifications. L'administration ajoute un
+ * contenu à partir de son lien, le modifie, le retire ou le remet en ligne. */
+
+export const ADMIN_NEWS_KINDS = [
+  'article',
+  'video',
+  'skill',
+  'repo',
+  'release',
+  'cert',
+  'job',
+  'hn',
+  'devto',
+] as const;
+export const AdminNewsKind = z.enum(ADMIN_NEWS_KINDS);
+export type AdminNewsKind = z.infer<typeof AdminNewsKind>;
+
+/** Rubriques du fil (catégorie d'un contenu). */
+export const ADMIN_NEWS_CATEGORIES = [
+  'ia',
+  'dev',
+  'tech',
+  'mobile',
+  'cloud',
+  'securite',
+  'afrique',
+  'apple',
+  'google',
+  'samsung',
+] as const;
+
+export const AdminNewsQuery = z.object({
+  kind: AdminNewsKind.optional(),
+  q: z.string().trim().max(100).optional(),
+  state: z.enum(['all', 'visible', 'hidden', 'curated']).default('all'),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  offset: z.coerce.number().int().min(0).max(10_000).default(0),
+});
+export type AdminNewsQuery = z.infer<typeof AdminNewsQuery>;
+
+export const AdminNewsItem = z.object({
+  id: z.string(),
+  kind: AdminNewsKind,
+  source: z.string(),
+  sourceName: z.string(),
+  category: z.string(),
+  lang: z.enum(['fr', 'en']),
+  title: z.string(),
+  summary: z.string(),
+  url: z.string(),
+  image: z.string().nullable(),
+  publishedAt: z.iso.datetime(),
+  hidden: z.boolean(),
+  /** Ajouté ou modifié par l'administration : la collecte ne le touche plus. */
+  curated: z.boolean(),
+});
+export type AdminNewsItem = z.infer<typeof AdminNewsItem>;
+
+export const AdminNewsListResponse = z.object({
+  data: z.array(AdminNewsItem),
+  total: z.number().int(),
+});
+export type AdminNewsListResponse = z.infer<typeof AdminNewsListResponse>;
+
+const HttpsLink = z.url({ protocol: /^https$/ }).max(1000);
+
+export const AdminNewsPreviewRequest = z.object({ url: HttpsLink });
+export type AdminNewsPreviewRequest = z.infer<typeof AdminNewsPreviewRequest>;
+
+/** Brouillon lu sur la page du lien (Open Graph) : l'administrateur le corrige avant d'enregistrer. */
+export const AdminNewsPreview = z.object({
+  url: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  image: z.string().nullable(),
+  sourceName: z.string(),
+  lang: z.enum(['fr', 'en']),
+  publishedAt: z.iso.datetime().nullable(),
+  /** Déjà en base : l'enregistrer le remplace. */
+  existingId: z.string().nullable(),
+});
+export type AdminNewsPreview = z.infer<typeof AdminNewsPreview>;
+
+export const AdminNewsInput = z.object({
+  url: HttpsLink,
+  kind: AdminNewsKind,
+  category: z.string().trim().min(2).max(20),
+  lang: z.enum(['fr', 'en']),
+  title: z.string().trim().min(3).max(400),
+  summary: z.string().trim().max(2000).default(''),
+  image: HttpsLink.nullable().default(null),
+  sourceName: z.string().trim().min(1).max(80),
+  publishedAt: z.iso.datetime().nullable().default(null),
+});
+export type AdminNewsInput = z.infer<typeof AdminNewsInput>;

@@ -42,7 +42,7 @@ const toItem = (r: Row): NewsItem => ({
 });
 
 /** Contenus commerciaux sans intérêt pour des devs (promos, « bons plans »). */
-const NOT_NOISE = Prisma.sql`title !~* '(\\mdeals?\\M|prime day|black friday|% off|\\mcoupon|bon plan|bons plans|soldes|promo |code promo|meilleures offres|best .* deals)'`;
+const NOT_NOISE = Prisma.sql`hidden_at IS NULL AND title !~* '(\\mdeals?\\M|prime day|black friday|% off|\\mcoupon|bon plan|bons plans|soldes|promo |code promo|meilleures offres|best .* deals)'`;
 
 const langIs = (lang?: LangFilter) =>
   lang === 'fr' || lang === 'en' ? Prisma.sql`AND lang = ${lang}::"Lang"` : Prisma.empty;
@@ -57,7 +57,17 @@ export class PrismaNewsRepository implements NewsRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async upsert(rows: CollectedNews[]): Promise<number> {
+    // Un contenu retouché par l'administration n'est plus réécrit par la collecte.
+    const curated = new Set(
+      (
+        await this.prisma.newsItem.findMany({
+          where: { url: { in: rows.map((r) => r.url) }, curatedAt: { not: null } },
+          select: { url: true },
+        })
+      ).map((r) => r.url),
+    );
     for (const r of rows) {
+      if (curated.has(r.url)) continue;
       const data = {
         title: r.title.slice(0, 400),
         summary: r.summary,
@@ -119,14 +129,15 @@ export class PrismaNewsRepository implements NewsRepository {
     // (sa date est celle de la dernière modification d'une certification, pas une date de publication).
     await this.prisma.$executeRaw`
       DELETE FROM news_items
-      WHERE kind NOT IN ('release', 'skill') AND source <> 'microsoft-learn' AND published_at < now() - make_interval(days => ${days}::int)`;
+      WHERE kind NOT IN ('release', 'skill') AND source <> 'microsoft-learn' AND curated_at IS NULL
+        AND published_at < now() - make_interval(days => ${days}::int)`;
   }
 
   async get(id: string): Promise<NewsItem | null> {
     const rows = await this.prisma.$queryRaw<Row[]>`
       SELECT id, kind, source, source_name, category, lang, title, summary, url, image, author,
              published_at, score, comments, extra
-      FROM news_items WHERE id = ${id} LIMIT 1`;
+      FROM news_items WHERE id = ${id} AND hidden_at IS NULL LIMIT 1`;
     return rows[0] ? toItem(rows[0]) : null;
   }
 
@@ -176,7 +187,7 @@ export class PrismaNewsRepository implements NewsRepository {
     const column = Prisma.raw(since.column === 'fetched_at' ? 'fetched_at' : 'published_at');
     const rows = await this.prisma.$queryRaw<Row[]>`
       SELECT * FROM news_items
-      WHERE kind = ${kind}::"NewsKind" AND ${column} > now() - make_interval(hours => ${since.hours}::int)
+      WHERE kind = ${kind}::"NewsKind" AND hidden_at IS NULL AND ${column} > now() - make_interval(hours => ${since.hours}::int)
       ORDER BY score DESC LIMIT ${limit}`;
     return rows.map(toItem);
   }

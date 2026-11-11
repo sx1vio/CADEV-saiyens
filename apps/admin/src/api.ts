@@ -9,6 +9,10 @@ import type {
   AdminInviteRequest,
   AdminInviteResponse,
   AdminMonitoringView,
+  AdminNewsInput,
+  AdminNewsItem,
+  AdminNewsListResponse,
+  AdminNewsPreview,
   AdminRole,
   AdminStats,
   AdminSystalinkView,
@@ -111,6 +115,14 @@ export const api = {
   updateAnnouncement: (id: string, body: AnnouncementInput) =>
     call<AnnouncementView>('PUT', `/announcements/${id}`, body),
   deleteAnnouncement: (id: string) => call<void>('DELETE', `/announcements/${id}`),
+  news: (p: { kind?: string; q?: string; state?: string; offset?: number }) =>
+    call<AdminNewsListResponse>('GET', `/news?${qs(p)}`),
+  newsPreview: (url: string) => call<AdminNewsPreview>('POST', '/news/preview', { url }),
+  createNews: (body: AdminNewsInput) => call<AdminNewsItem>('POST', '/news', body),
+  updateNews: (id: string, body: AdminNewsInput) => call<AdminNewsItem>('PUT', `/news/${id}`, body),
+  hideNews: (id: string) => call<AdminNewsItem>('POST', `/news/${id}/hide`),
+  restoreNews: (id: string) => call<AdminNewsItem>('POST', `/news/${id}/restore`),
+  deleteNews: (id: string) => call<void>('DELETE', `/news/${id}`),
   admins: () => call<{ data: AdminAccountView[] }>('GET', '/admins'),
   inviteAdmin: (body: AdminInviteRequest) => call<AdminInviteResponse>('POST', '/admins', body),
   setAdminRole: (id: string, role: AdminRole | null) =>

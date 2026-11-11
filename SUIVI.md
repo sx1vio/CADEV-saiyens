@@ -179,6 +179,14 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 11/11/2026 (nuit, suite) — Admin : gérer les actus, skills et vidéos
+
+- **Demande de Sylvio** — « depuis l'admin on doit pouvoir ajouter, retirer, modifier les trucs de la plateforme : les skills, les actus (grâce au lien), etc. »
+- **Admin, onglet « Actus et skills »** — tout ce que montrent le fil, l'actualité, les skills IA et les certifications (table `news_items`) : ajout à partir d'un lien (la page est lue, anti-SSRF : titre, résumé, image, site, langue, date préremplis et corrigeables), modification, retrait, remise en ligne, suppression des seuls ajouts manuels. Filtres par type (actualité, vidéo, skill IA, dépôt, version, certification, offre), état et recherche.
+- **Protection** — migration `20261111200000_news_curation` : `hidden_at` (retiré : invisible partout, la collecte ne le remet pas) et `curated_at` (ajouté ou modifié par l'admin : ni réécrit ni purgé par la collecte). Chaque action va au journal d'administration.
+- **API** — `GET/POST /api/v1/admin/news`, `POST /admin/news/preview`, `PUT/DELETE /admin/news/:id`, `POST /admin/news/:id/hide|restore`. Caddy relaie aussi `/api/v1/img` sur le domaine admin (aperçus d'images sous la CSP de l'admin).
+- **Tests** — `link-preview.spec.ts` (Open Graph, apostrophes, images http refusées), `test/admin-content.e2e.spec.ts` (accès, ajout, protection contre la collecte, retrait, remise en ligne, journal, suppression, aperçu anti-SSRF).
+
 ### 11/11/2026 (nuit) — Pré-vol : label « DevHub Ready » et correctifs prêts
 
 - **Demande de Sylvio** — pistes 1 et 3 retenues : un label vérifiable, et la correction en un clic.
