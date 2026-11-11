@@ -241,6 +241,62 @@ describe('contrôles du pré-vol v2', () => {
     expect(byId(c, 'net.data_cost')?.title).toMatch(/FCFA/);
   });
 
+  it('script bloquant : signalé s’il pèse, ignoré s’il est minuscule (thème avant rendu)', () => {
+    const page = scanPageMeta(
+      '<html><head><title>x</title><script src="/theme-init.js"></script><script src="/lib.js"></script></head><body></body></html>',
+      'https://a.test/',
+    );
+    const asset = (url: string, bytes: number) => ({
+      url,
+      type: 'script',
+      status: 200,
+      bytes,
+      encoded: true,
+      cacheControl: 'public, max-age=31536000',
+    });
+    const run = (assets: object[]) =>
+      siteExtraChecks({
+        finalUrl: 'https://a.test/',
+        status: 200,
+        headers: {},
+        html: { bytes: 1000, encoded: true, hasViewport: true, lang: 'fr', title: 'x' },
+        assets,
+        extra: {
+          page,
+          cookies: [],
+          cors: null,
+          robots: { present: true, disallowAll: false, sitemaps: [] },
+          sitemap: true,
+          securityTxt: true,
+          notFound: { status: 404, leak: null },
+          manifest: null,
+          serviceWorker: false,
+          tokenInLocalStorage: false,
+          openFirebase: [],
+          firebaseChecked: 0,
+          graphqlIntrospection: null,
+          directoryListing: [],
+          apiDocs: [],
+          http3: false,
+          fonts: { faces: 0, withoutSwap: 0, files: 0 },
+          imageFormats: { modern: 0, legacy: 0 },
+        },
+      } as unknown as SiteFacts);
+    const both = byId(
+      run([asset('https://a.test/theme-init.js', 458), asset('https://a.test/lib.js', 90_000)]),
+      'net.blocking_scripts',
+    );
+    expect(both?.evidence).toEqual(['https://a.test/lib.js']);
+    expect(
+      byId(
+        run([asset('https://a.test/theme-init.js', 458), asset('https://a.test/lib.js', 1200)]),
+        'net.blocking_scripts',
+      ),
+    ).toBeUndefined();
+    // Taille inconnue (non téléchargé) : on signale par prudence.
+    expect(byId(run([]), 'net.blocking_scripts')?.evidence).toHaveLength(2);
+  });
+
   it('projet et architecture : secrets, runtime en fin de vie, pas de tests, cycles', () => {
     const p: ProjectFacts = {
       pushedAt: '2026-11-01T00:00:00Z',

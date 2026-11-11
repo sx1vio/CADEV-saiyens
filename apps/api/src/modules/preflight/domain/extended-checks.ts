@@ -253,6 +253,9 @@ export function domainChecks(d: DomainFacts): C[] {
 
 /* ═══════════════════════════ Site : sécurité, référencement, vie privée ═══════════════════════════ */
 
+/** Au-dessous, un script bloquant de <head> est un petit script de démarrage, pas un frein. */
+export const TINY_BLOCKING_SCRIPT_BYTES = 2048;
+
 export function siteExtraChecks(site: SiteFacts): C[] {
   const x = site.extra;
   if (!x) return [];
@@ -740,17 +743,26 @@ export function siteExtraChecks(site: SiteFacts): C[] {
   );
 
   // ── Réseau et données mobiles ──
-  if (p.blockingScripts.length) {
+  // Un script minuscule (thème, configuration) qui doit s'exécuter avant le premier rendu ne coûte
+  // qu'un aller-retour, pas des secondes d'écran blanc : le passer en defer rendrait le mauvais
+  // thème une fraction de seconde. On ne signale que les scripts de plus de 2 Ko, ou de taille
+  // inconnue (non téléchargés par la sonde). Vu sur devafrica.tech (/theme-init.js, 458 octets).
+  const sizeOf = new Map(site.assets.map((a) => [a.url, a.bytes]));
+  const blocking = p.blockingScripts.filter((u) => {
+    const bytes = sizeOf.get(u);
+    return bytes === undefined || bytes > TINY_BLOCKING_SCRIPT_BYTES;
+  });
+  if (blocking.length) {
     out.push(
       check({
         id: 'net.blocking_scripts',
         category: 'network',
         status: 'warn',
-        title: `${p.blockingScripts.length} script(s) bloquent l’affichage`,
+        title: `${blocking.length} script(s) bloquent l’affichage`,
         detail:
           'Ces scripts sont dans <head> sans async ni defer : rien ne s’affiche tant qu’ils ne sont pas téléchargés et exécutés. En 3G, plusieurs secondes d’écran blanc.',
         fix: 'Ajouter defer (ou async pour un script indépendant comme une mesure d’audience) à ces balises <script src>, ou les charger en type="module".',
-        evidence: p.blockingScripts,
+        evidence: blocking,
       }),
     );
   }

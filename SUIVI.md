@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 — Pré-vol de devafrica.tech : cache du thème, petits scripts bloquants
+
+- **Retour de Sylvio** (capture du pré-vol de devafrica.tech) — deux points sur `/theme-init.js` : pas de cache, script bloquant.
+- **Cache** — Caddy sert `/theme-init.js` avec `Cache-Control: public, max-age=86400, stale-while-revalidate=604800` (un jour, le seuil de `net.caching`).
+- **Pré-vol corrigé** (choix de Sylvio : corriger le pré-vol plutôt que le site) — `net.blocking_scripts` ignore les scripts de 2 Ko au plus (`TINY_BLOCKING_SCRIPT_BYTES`) : un petit script de démarrage (thème, configuration) doit s'exécuter avant le rendu et ne coûte qu'un aller-retour ; un script de taille inconnue reste signalé. Test ajouté dans `preflight-extended.spec.ts`.
+
 ### 12/11/2026 — Landing : section « Ton agent IA, branché sur DevHub »
 
 - **Question de Sylvio** — y a-t-il un espace sur la landing pour expliquer le MCP ? Non : il n'était cité qu'en passant dans la frise du pré-vol. Ajout d'une section dédiée (`components/landing/McpSection.tsx`, après « Du prompt à la prod vérifiée ») : ce que l'agent peut faire, agents compatibles, la commande `claude mcp add` et un exemple d'échange (pré-vol 74 → correctifs → 92 · GO · DevHub Ready), signalé comme exemple ; bouton « Créer mon jeton ». Vérifiée en capture.
