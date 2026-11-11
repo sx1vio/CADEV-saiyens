@@ -298,6 +298,8 @@ model ApiToken {
   name       String
   tokenHash  String    @unique @map("token_hash")
   hint       String
+  /// « preflight » (routes du pré-vol) ou « platform » (toute l'API sauf compte, jetons, admin).
+  scope      String    @default("preflight")
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
   lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz
 

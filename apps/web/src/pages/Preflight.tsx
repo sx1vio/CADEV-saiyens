@@ -1,5 +1,6 @@
 import type {
   ApiTokenItem,
+  ApiTokenScope,
   CreateApiTokenResponse,
   ListApiTokensResponse,
   ListPreflightResponse,
@@ -104,7 +105,8 @@ const preflightApi = {
   mine: () => call<ListPreflightResponse>('GET', '/preflight'),
   markdownUrl: (id: string) => `/api/v1/preflight/${id}/report.md`,
   tokens: () => call<ListApiTokensResponse>('GET', '/me/tokens'),
-  createToken: (name: string) => call<CreateApiTokenResponse>('POST', '/me/tokens', { name }),
+  createToken: (name: string, scope: ApiTokenScope) =>
+    call<CreateApiTokenResponse>('POST', '/me/tokens', { name, scope }),
   revokeToken: (id: string) => call<void>('DELETE', `/me/tokens/${id}`),
 };
 
@@ -470,6 +472,7 @@ function ConnectAgents() {
   const [busy, setBusy] = useState(false);
   const [fresh, setFresh] = useState<string | null>(null);
   const [tab, setTab] = useState<(typeof AGENT_TABS)[number]>('Claude Code');
+  const [scope, setScope] = useState<ApiTokenScope>('platform');
   const origin = window.location.origin;
   const token = fresh ?? 'dh_pat_TON_JETON';
   const items = tokens.data?.items ?? [];
@@ -478,7 +481,10 @@ function ConnectAgents() {
     e.preventDefault();
     setBusy(true);
     try {
-      const created = await preflightApi.createToken(name.trim() || 'Mon agent');
+      const created = await preflightApi.createToken(
+        name.trim() || (scope === 'platform' ? 'Mon agent IA' : 'Ma CI'),
+        scope,
+      );
       setFresh(created.token);
       setName('');
       setQueryData<ListApiTokensResponse>('preflight:tokens', (old) => ({
@@ -510,7 +516,8 @@ function ConnectAgents() {
 
   const snippets: Record<(typeof AGENT_TABS)[number], { intro: string; code: string }> = {
     'Claude Code': {
-      intro: 'Dans le terminal de ton projet, puis demande : « lance un pré-vol et corrige ».',
+      intro:
+        'Dans le terminal de ton projet, puis demande : « lance un pré-vol et corrige », « trouve-moi une offre React et prépare ma candidature », « réponds aux questions sans réponse sur Laravel ».',
       code: `claude mcp add --transport http devhub ${origin}/api/v1/mcp \\\n  --header "Authorization: Bearer ${token}"`,
     },
     'Cursor et autres': {
@@ -557,8 +564,10 @@ jobs:
         <Plug /> Brancher ton agent IA et ta CI
       </h2>
       <p className="mb-3 text-[13px] text-muted">
-        Ton agent lance le pré-vol lui-même, lit le rapport et corrige (serveur MCP). Ta CI contrôle
-        le code et refuse une mise en production qui casse quelque chose.
+        Le serveur MCP de DevHub branche ton agent IA (Claude Code, Cursor, Codex…) sur la
+        plateforme : il lance le pré-vol et corrige, cherche des offres et prépare tes candidatures,
+        répond aux questions d’entraide, publie tes avancées, suit tes projets et tes messages. Ta
+        CI contrôle le code et refuse une mise en production qui casse quelque chose.
       </p>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="min-w-0 p-5">
@@ -592,9 +601,35 @@ jobs:
           <p className="label-caps flex items-center gap-2 [&_svg]:size-4">
             <KeyRound /> Jetons d’accès
           </p>
-          <p className="text-xs text-muted">
-            Un jeton ne sert qu’au pré-vol, au nom de ton compte, dans la limite de 10 par heure.
-          </p>
+          <div role="radiogroup" aria-label="Portée du jeton" className="flex flex-col gap-1.5">
+            {(
+              [
+                [
+                  'platform',
+                  'Toute la plateforme',
+                  'Ton agent agit en ton nom : pré-vol, entraide, fil, emplois, projets, messages. Jamais ton compte ni tes jetons.',
+                ],
+                ['preflight', 'Pré-vol seulement', 'Pour la CI : lancer et lire des pré-vols.'],
+              ] as const
+            ).map(([value, label, hint]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={scope === value}
+                onClick={() => setScope(value)}
+                className={cn(
+                  'rounded-[8px] border px-3 py-2 text-left transition-colors',
+                  scope === value
+                    ? 'border-accent bg-accent-soft'
+                    : 'border-line hover:border-line-strong',
+                )}
+              >
+                <span className="block text-[13px] font-medium text-fg">{label}</span>
+                <span className="block text-xs text-muted">{hint}</span>
+              </button>
+            ))}
+          </div>
           <form onSubmit={create} className="flex gap-2">
             <Input
               aria-label="Nom du jeton"
@@ -625,6 +660,16 @@ jobs:
               {items.map((t) => (
                 <li key={t.id} className="flex items-center gap-2 text-[13px]">
                   <span className="min-w-0 flex-1 truncate text-fg">{t.name}</span>
+                  <span
+                    className={cn(
+                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                      t.scope === 'platform'
+                        ? 'bg-accent-soft text-accent-text'
+                        : 'bg-surface-2 text-muted',
+                    )}
+                  >
+                    {t.scope === 'platform' ? 'Plateforme' : 'Pré-vol'}
+                  </span>
                   <span className="font-mono text-xs text-subtle">…{t.hint}</span>
                   <span className="hidden text-xs text-subtle sm:inline">
                     {t.lastUsedAt

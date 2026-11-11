@@ -1,4 +1,5 @@
 import {
+  type ApiTokenScope,
   CreatePreflightRequest,
   type PreflightListItem,
   type PreflightReport,
@@ -9,6 +10,16 @@ import {
 import { z } from 'zod';
 import { toMarkdown } from '../domain/report';
 import {
+  type ApiCaller,
+  buildPath,
+  describeTool,
+  PLATFORM_TOOLS,
+  restArgs,
+  resultText,
+  toBody,
+  toQuery,
+} from './platform-tools';
+import {
   LoadTestBusyError,
   LoadTestNeedsUrlError,
   LoadTestQuotaError,
@@ -18,9 +29,20 @@ import {
   PreflightQuotaError,
 } from './run-preflight';
 
-// Serveur MCP du pré-vol (transport « Streamable HTTP », mode sans état, réponses JSON) :
+// Serveur MCP de DevHub Africa (transport « Streamable HTTP », mode sans état, réponses JSON) :
 // l'agent IA du développeur (Claude Code, Cursor, Codex…) lance un pré-vol, lit le rapport et
-// corrige le projet, sans quitter son éditeur. Spécification : modelcontextprotocol.io.
+// corrige le projet sans quitter son éditeur. Avec un jeton de portée « platform » (11/11/2026),
+// il agit aussi sur toute la plateforme en son nom : entraide, fil, emplois, projets, messages,
+// banc d'essai (platform-tools.ts), plus un accès direct à l'API (call_api).
+// Spécification : modelcontextprotocol.io.
+
+/** Qui appelle le serveur MCP : jeton de portée pré-vol ou plateforme, et accès à l'API. */
+export interface McpCaller {
+  userId: string;
+  scope: ApiTokenScope;
+  /** Appel de l'API au nom de l'appelant ; absent : outils plateforme indisponibles. */
+  api?: ApiCaller;
+}
 
 export const MCP_PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
 
@@ -48,6 +70,17 @@ interface JsonRpcRequest {
 type JsonRpcResponse =
   | { jsonrpc: '2.0'; id: string | number | null; result: unknown }
   | { jsonrpc: '2.0'; id: string | number | null; error: { code: number; message: string } };
+
+const PLATFORM_INSTRUCTIONS = [
+  'Tu agis aussi sur DevHub Africa, la plateforme d’échange des devs africains, au nom du dev :',
+  'entraide (list_questions, ask_question, answer_question), fil (list_posts, create_post),',
+  'actualité tech (list_news), emplois (list_jobs, apply_job), projets (list_projects,',
+  'take_task, submit_task), messages privés, notifications, banc d’essai sur vrais téléphones.',
+  'Avant toute action visible par d’autres (publier, répondre, postuler, envoyer un message),',
+  'montre le texte au dev et attends son accord. call_api donne accès aux autres routes de',
+  'l’API (/api/v1), avec les mêmes droits que le dev, sauf son compte, ses jetons et',
+  'l’administration.',
+].join(' ');
 
 const INSTRUCTIONS = [
   'DevHub Africa Pré-vol : vérifie une application déployée (HTTPS) et son dépôt GitHub public',
@@ -116,6 +149,41 @@ const TOOLS = [
   },
 ];
 
+const CALL_API_TOOL = {
+  name: 'call_api',
+  title: 'Appeler l’API DevHub',
+  description:
+    'Appelle directement une route de l’API DevHub Africa (/api/v1/…) au nom du dev, pour ce que les autres outils ne couvrent pas. path est relatif à /api/v1 (ex. « /tags », « /rooms/k3x9p2 »). Mêmes droits que le dev ; le compte, les jetons et l’administration restent fermés.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      method: { type: 'string', enum: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'] },
+      path: { type: 'string', description: 'Chemin sous /api/v1, commençant par « / ».' },
+      query: {
+        type: 'object',
+        additionalProperties: { type: 'string' },
+        description: 'Paramètres de requête.',
+      },
+      body: { type: 'object', description: 'Corps JSON des écritures.' },
+    },
+    required: ['method', 'path'],
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+};
+
+const CallApiArgs = z.object({
+  method: z.enum(['GET', 'POST', 'PATCH', 'PUT', 'DELETE']),
+  // Chemin relatif, sans « .. », sans hôte ni double barre : on reste sous /api/v1.
+  path: z
+    .string()
+    .max(300)
+    .regex(/^\/[A-Za-z0-9\-._~%:@/]*$/)
+    .refine((p) => !p.includes('..') && !p.includes('//')),
+  query: z.record(z.string(), z.string()).optional(),
+  body: z.record(z.string(), z.unknown()).optional(),
+});
+
 const GetArgs = z.object({ id: z.uuid() });
 
 /** Message d'erreur d'un pré-vol, à l'intention de l'agent. */
@@ -148,14 +216,17 @@ export class PreflightMcpServer {
   constructor(private readonly deps: McpDeps) {}
 
   /** Traite un message JSON-RPC ; null pour une notification (aucune réponse attendue). */
-  async handle(message: unknown, userId: string): Promise<JsonRpcResponse | null> {
+  /** `caller` : pseudo-compte seul (portée pré-vol) ou appelant complet. */
+  async handle(message: unknown, caller: string | McpCaller): Promise<JsonRpcResponse | null> {
+    const who: McpCaller =
+      typeof caller === 'string' ? { userId: caller, scope: 'preflight' } : caller;
     if (!isRequest(message)) {
       return { jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Invalid Request' } };
     }
     if (message.id === undefined) return null; // notifications/initialized, notifications/cancelled…
     const id = message.id;
     try {
-      const result = await this.dispatch(message, userId);
+      const result = await this.dispatch(message, who);
       if (result === undefined) {
         return { jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not found' } };
       }
@@ -168,7 +239,11 @@ export class PreflightMcpServer {
     }
   }
 
-  private async dispatch(req: JsonRpcRequest, userId: string): Promise<unknown> {
+  private platform(who: McpCaller): boolean {
+    return who.scope === 'platform' && !!who.api;
+  }
+
+  private async dispatch(req: JsonRpcRequest, who: McpCaller): Promise<unknown> {
     switch (req.method) {
       case 'initialize': {
         const asked = req.params?.protocolVersion;
@@ -179,26 +254,45 @@ export class PreflightMcpServer {
               : MCP_PROTOCOL_VERSIONS[1],
           capabilities: { tools: { listChanged: false } },
           serverInfo: {
-            name: 'devhub-preflight',
-            title: 'DevHub Africa — Pré-vol',
+            name: 'devhub',
+            title: 'DevHub Africa',
             version: this.deps.version,
           },
-          instructions: INSTRUCTIONS,
+          instructions: this.platform(who)
+            ? `${INSTRUCTIONS}\n\n${PLATFORM_INSTRUCTIONS}`
+            : INSTRUCTIONS,
         };
       }
       case 'ping':
         return {};
       case 'tools/list':
-        return { tools: TOOLS };
+        return {
+          tools: this.platform(who)
+            ? [...TOOLS, ...PLATFORM_TOOLS.map(describeTool), CALL_API_TOOL]
+            : TOOLS,
+        };
       case 'tools/call':
-        return this.callTool(req.params ?? {}, userId);
+        return this.callTool(req.params ?? {}, who);
       default:
         return undefined;
     }
   }
 
-  private async callTool(params: Record<string, unknown>, userId: string) {
+  private async callTool(params: Record<string, unknown>, who: McpCaller) {
+    const userId = who.userId;
     const args = (params.arguments ?? {}) as Record<string, unknown>;
+    const platformTool = PLATFORM_TOOLS.find((t) => t.name === params.name);
+    if (platformTool || params.name === 'call_api') {
+      if (!this.platform(who)) {
+        return text(
+          'Cet outil demande un jeton DevHub de portée « Plateforme » (le tien ne donne accès qu’au pré-vol). Crée-le sur DevHub, page Pré-vol, section « Brancher ton agent IA ».',
+          true,
+        );
+      }
+      return platformTool
+        ? this.runPlatformTool(platformTool, args, who.api!)
+        : this.callApi(args, who.api!);
+    }
     switch (params.name) {
       case 'run_preflight': {
         const parsed = CreatePreflightRequest.safeParse(args);
@@ -244,6 +338,44 @@ export class PreflightMcpServer {
       default:
         throw new InvalidParams(`Unknown tool: ${String(params.name)}`);
     }
+  }
+
+  private async runPlatformTool(
+    tool: (typeof PLATFORM_TOOLS)[number],
+    args: Record<string, unknown>,
+    api: ApiCaller,
+  ) {
+    const path = buildPath(tool, args);
+    if (path === null) {
+      return text(`Paramètre manquant : ${Object.keys(tool.params ?? {}).join(', ')}.`, true);
+    }
+    const rest = restArgs(tool, args);
+    const res = await api(
+      tool.method === 'GET'
+        ? { method: 'GET', path, query: toQuery(rest) }
+        : { method: tool.method, path, body: toBody(tool, rest) },
+    );
+    const out = resultText(res.status, res.body);
+    return text(out.text, out.isError);
+  }
+
+  private async callApi(args: Record<string, unknown>, api: ApiCaller) {
+    const parsed = CallApiArgs.safeParse(args);
+    if (!parsed.success) {
+      return text(
+        'Paramètres invalides : method (GET, POST…) et path relatif à /api/v1 (ex. « /tags »).',
+        true,
+      );
+    }
+    const { method, path, query, body } = parsed.data;
+    const res = await api({
+      method,
+      path,
+      query,
+      body: method === 'GET' ? undefined : (body ?? {}),
+    });
+    const out = resultText(res.status, res.body);
+    return text(out.text, out.isError);
   }
 
   private async reportText(id: string) {

@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { API_TOKEN_PREFIX, type ApiTokenItem } from '@devhub/contracts';
+import { API_TOKEN_PREFIX, type ApiTokenItem, type ApiTokenScope } from '@devhub/contracts';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { hashSessionToken } from '../application/session-token';
 
@@ -14,18 +14,23 @@ export function newApiToken(): string {
 export interface ActiveApiToken {
   id: string;
   userId: string;
+  scope: ApiTokenScope;
 }
+
+const asScope = (s: string): ApiTokenScope => (s === 'platform' ? 'platform' : 'preflight');
 
 const toItem = (t: {
   id: string;
   name: string;
   hint: string;
+  scope: string;
   createdAt: Date;
   lastUsedAt: Date | null;
 }): ApiTokenItem => ({
   id: t.id,
   name: t.name,
   hint: t.hint,
+  scope: asScope(t.scope),
   createdAt: t.createdAt.toISOString(),
   lastUsedAt: t.lastUsedAt?.toISOString() ?? null,
 });
@@ -46,10 +51,14 @@ export class PrismaApiTokenStore {
     return this.prisma.apiToken.count({ where: { userId } });
   }
 
-  async create(userId: string, name: string): Promise<ApiTokenItem & { token: string }> {
+  async create(
+    userId: string,
+    name: string,
+    scope: ApiTokenScope = 'preflight',
+  ): Promise<ApiTokenItem & { token: string }> {
     const token = newApiToken();
     const row = await this.prisma.apiToken.create({
-      data: { userId, name, tokenHash: hashSessionToken(token), hint: token.slice(-4) },
+      data: { userId, name, scope, tokenHash: hashSessionToken(token), hint: token.slice(-4) },
     });
     return { ...toItem(row), token };
   }
@@ -68,12 +77,12 @@ export class PrismaApiTokenStore {
         tokenHash: hashSessionToken(token),
         user: { deletedAt: null, suspendedAt: null },
       },
-      select: { id: true, userId: true, lastUsedAt: true },
+      select: { id: true, userId: true, scope: true, lastUsedAt: true },
     });
     if (!row) return null;
     if (!row.lastUsedAt || now.getTime() - row.lastUsedAt.getTime() > TOUCH_INTERVAL_MS) {
       await this.prisma.apiToken.update({ where: { id: row.id }, data: { lastUsedAt: now } });
     }
-    return { id: row.id, userId: row.userId };
+    return { id: row.id, userId: row.userId, scope: asScope(row.scope) };
   }
 }

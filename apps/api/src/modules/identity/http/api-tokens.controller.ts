@@ -50,7 +50,7 @@ export class ApiTokensController {
         title: `At most ${MAX_API_TOKENS} API tokens`,
       });
     }
-    return this.tokens.create(auth.userId, body.name);
+    return this.tokens.create(auth.userId, body.name, body.scope);
   }
 
   @Delete(':id')

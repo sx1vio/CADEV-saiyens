@@ -179,6 +179,15 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 11/11/2026 (soir) — Serveur MCP de toute la plateforme
+
+- **Demande de Sylvio** — « que la plateforme DevHub ait un MCP, pour permettre aux devs d'en faire ce qu'ils veulent, le connecter à leur IA, faire tout un tas d'actions ».
+- **Jetons à portée** — `api_tokens.scope` (`preflight` ou `platform`, migration `20261111120000_api_token_scope`). Un jeton « Toute la plateforme » ouvre l'API au nom du titulaire ; aucun jeton n'ouvre `/me/tokens`, `DELETE /me`, `/auth`, `/admin`, `/business`, `/sync`, `/events` (règle centrale `identity/http/platform-token.ts`). Les jetons existants restent « Pré-vol ».
+- **MCP** — `/api/v1/mcp` sert désormais 40 outils avec un jeton plateforme : entraide, fil, actualité, emplois et candidatures, projets et tâches, messages, notifications, banc d'essai, certifications, plus `call_api` (accès direct à `/api/v1`). Schémas générés depuis les contrats zod ; chaque outil appelle la vraie route par la boucle locale avec le jeton de l'appelant (mêmes gardes, quotas, modération). Guide : `docs/guides/mcp.md`.
+- **Web** — `/prevol`, « Brancher ton agent IA » : choix de la portée à la création, badge Plateforme / Pré-vol sur chaque jeton, exemples de demandes.
+- **Tests** — `platform-tools.spec.ts`, `test/mcp-platform.e2e.spec.ts` (portée, routes fermées, appels réels via MCP) ; suite API : 701 tests, un seul échec instable connu (`leaderboard-map`, passe seul).
+- **Recevabilité** — Sylvio a acheté le serveur sur la plateforme Systalink : « Produit Systalink actif » est validé sur la page CADEV (4/5, reste la démo).
+
 ### 11/11/2026 — Travail de Joachim récupéré, déjà en production
 
 - **Récupéré** — Joachim (chim31) a fusionné deux PR sur `main` le 10/11 au soir :

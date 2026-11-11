@@ -63,8 +63,8 @@ Sans test de charge, aucune offre n'est conseillée. La déclaration ne remplace
 
 Sur `/prevol`, section « Brancher ton agent IA et ta CI » : donner un nom, **Créer**, copier le jeton (`dh_pat_…`), affiché une seule fois.
 
-- Un jeton n'ouvre **que** les routes du pré-vol (`POST /api/v1/preflight`, `GET /api/v1/preflight`, `POST /api/v1/mcp`), au nom de son titulaire, dans le même quota de 10 pré-vols par heure.
-- Il ne permet ni de lire le profil ni de créer d'autres jetons. Cinq jetons au plus par personne ; suppression d'un clic.
+- Deux portées (11/11/2026) : **Pré-vol seulement** n'ouvre que les routes du pré-vol (`POST /api/v1/preflight`, `GET /api/v1/preflight`, `POST /api/v1/mcp`) ; **Toute la plateforme** ouvre toute l'API et tous les outils du serveur MCP (voir [`mcp.md`](mcp.md)). Même quota de 10 pré-vols par heure.
+- Aucun jeton ne permet de créer d'autres jetons, de supprimer le compte ni d'entrer dans l'administration. Cinq jetons au plus par personne ; suppression d'un clic.
 - Seule l'empreinte SHA-256 est stockée (`api_tokens`). Les jetons sont supprimés avec le compte, et refusés si le compte est suspendu.
 
 ## Depuis l'agent IA (serveur MCP)

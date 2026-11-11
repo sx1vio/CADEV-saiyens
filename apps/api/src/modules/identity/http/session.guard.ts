@@ -7,14 +7,18 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { SESSION_TTL_MS, hashSessionToken } from '../application/session-token';
-import { API_TOKEN_PREFIX } from '@devhub/contracts';
+import { API_TOKEN_PREFIX, type ApiTokenScope } from '@devhub/contracts';
+import { PrismaApiTokenStore } from '../infrastructure/prisma-api-token.store';
 import { PrismaSessionStore } from '../infrastructure/prisma-session.store';
 import { bearerToken } from './bearer';
 import { SESSION_COOKIE, baseCookie, readCookie } from './cookies';
+import { authenticatePlatformToken, hasApiToken } from './platform-token';
 
 export interface AuthenticatedUser {
   userId: string;
   sessionIdHash: string;
+  /** Requête portée par un jeton d'API personnel (absent pour une session). */
+  tokenScope?: ApiTokenScope;
 }
 
 type AuthenticatedRequest = Request & { auth?: AuthenticatedUser };
@@ -42,10 +46,18 @@ export function readSessionToken(
 /** Exige une session valide (cookie ou Bearer) ; à poser sur les routes « Connecté ». */
 @Injectable()
 export class SessionGuard implements CanActivate {
-  constructor(private readonly sessions: PrismaSessionStore) {}
+  constructor(
+    private readonly sessions: PrismaSessionStore,
+    private readonly tokens: PrismaApiTokenStore,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    // Jeton d'API « platform » (agent IA, scripts) : au nom de son titulaire, hors routes du compte.
+    if (hasApiToken(req)) {
+      req.auth = await authenticatePlatformToken(req, this.tokens);
+      return true;
+    }
     const found = readSessionToken(req);
     if (!found) throw unauthorized();
 
@@ -75,10 +87,17 @@ export class SessionGuard implements CanActivate {
  */
 @Injectable()
 export class OptionalSessionGuard implements CanActivate {
-  constructor(private readonly sessions: PrismaSessionStore) {}
+  constructor(
+    private readonly sessions: PrismaSessionStore,
+    private readonly tokens: PrismaApiTokenStore,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    if (hasApiToken(req)) {
+      req.auth = await authenticatePlatformToken(req, this.tokens);
+      return true;
+    }
     const found = readSessionToken(req);
     if (!found) return true;
     const session = await this.sessions.findActive(hashSessionToken(found.token), new Date());

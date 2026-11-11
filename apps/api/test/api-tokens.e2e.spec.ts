@@ -67,7 +67,8 @@ describe('Jetons d’API et serveur MCP du pré-vol', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'x' })
       .expect(403);
-    await http().get('/api/v1/me').set('Authorization', `Bearer ${token}`).expect(401);
+    const me = await http().get('/api/v1/me').set('Authorization', `Bearer ${token}`).expect(403);
+    expect(me.body.code).toBe('auth.token_scope');
 
     const init = await mcp({
       jsonrpc: '2.0',
@@ -75,7 +76,7 @@ describe('Jetons d’API et serveur MCP du pré-vol', () => {
       method: 'initialize',
       params: { protocolVersion: '2025-06-18', capabilities: {} },
     }).expect(200);
-    expect(init.body.result.serverInfo.name).toBe('devhub-preflight');
+    expect(init.body.result.serverInfo.name).toBe('devhub');
     await mcp({ jsonrpc: '2.0', method: 'notifications/initialized' }).expect(202);
     const tools = await mcp({ jsonrpc: '2.0', id: 2, method: 'tools/list' }).expect(200);
     expect(tools.body.result.tools).toHaveLength(3);

@@ -14,6 +14,8 @@ import type { Env } from '../../../infrastructure/config/env';
 import { API_TOKEN_PREFIX, MOBILE_CLIENT } from '@devhub/contracts';
 import { ALLOW_API_TOKEN } from './api-token.guard';
 import { bearerToken } from './bearer';
+import { isAdminPath, isBusinessPath } from './paths';
+import { hasApiToken } from './platform-token';
 import { SESSION_COOKIE, readCookie } from './cookies';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -60,6 +62,9 @@ export class OriginGuard implements CanActivate {
       ])
     )
       return true;
+    // Jeton d'API « platform » sur une route ordinaire : même raisonnement, pas de CSRF possible.
+    // SessionGuard vérifie ensuite sa portée et refuse les routes du compte et des jetons.
+    if (hasApiToken(req) && !isAdminPath(req.path) && !isBusinessPath(req.path)) return true;
     if (isAdminPath(req.path)) {
       if (
         this.adminOrigin &&
@@ -98,10 +103,4 @@ export function isMobileRequest(req: Request): boolean {
   );
 }
 
-/** Routes de l'espace d'administration (apps/admin). */
-export const isAdminPath = (path: string): boolean =>
-  path === '/api/v1/admin' || path.startsWith('/api/v1/admin/');
-
-/** Routes du portail entreprise (apps/business). */
-export const isBusinessPath = (path: string): boolean =>
-  path === '/api/v1/business' || path.startsWith('/api/v1/business/');
+export { isAdminPath, isBusinessPath } from './paths';

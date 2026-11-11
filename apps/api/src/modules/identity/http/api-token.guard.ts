@@ -43,11 +43,15 @@ export class SessionOrTokenGuard implements CanActivate {
         title: 'Invalid or revoked API token',
       });
     }
-    req.auth = { userId: found.userId, sessionIdHash: `api-token:${found.id}` };
+    req.auth = {
+      userId: found.userId,
+      sessionIdHash: `api-token:${found.id}`,
+      tokenScope: found.scope,
+    };
     return true;
   }
 }
 
-/** Session ou jeton d'API personnel ; à réserver aux routes du pré-vol. */
+/** Session ou jeton d'API personnel de toute portée ; à réserver aux routes du pré-vol et au MCP. */
 export const AllowApiToken = () =>
   applyDecorators(SetMetadata(ALLOW_API_TOKEN, true), UseGuards(SessionOrTokenGuard));
