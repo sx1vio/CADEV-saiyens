@@ -53,7 +53,7 @@ import {
   BadgeCheck,
   GitPullRequest,
 } from 'lucide-react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain';
@@ -461,7 +461,7 @@ function Launcher() {
         </section>
       )}
 
-      {user && <ConnectAgents />}
+      {user ? <ConnectAgents /> : <AgentTeaser />}
     </Page>
   );
 }
@@ -470,7 +470,44 @@ function Launcher() {
 
 const AGENT_TABS = ['Claude Code', 'Cursor et autres', 'GitHub Actions'] as const;
 
+/** Lien « Créer mon jeton » de la landing : connexion, puis retour ici, sur cette section. */
+const AGENT_SECTION_PATH = '/prevol#agent';
+
+/** Visiteur : ce que fait le serveur MCP, et la connexion qui ramène à la création du jeton. */
+function AgentTeaser() {
+  return (
+    <section id="agent" className="mt-8 scroll-mt-24">
+      <Card className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-accent-soft text-accent-text [&_svg]:size-5">
+          <Plug />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold text-fg">Brancher ton agent IA (serveur MCP)</p>
+          <p className="mt-0.5 text-[13.5px] text-muted">
+            Claude Code, Cursor ou Codex lance le pré-vol et corrige, cherche des offres, répond aux
+            questions et publie en ton nom. Connecte-toi pour créer ton jeton d’accès.
+          </p>
+        </div>
+        <ButtonLink
+          to={`/connexion?next=${encodeURIComponent(AGENT_SECTION_PATH)}`}
+          variant="primary"
+        >
+          Se connecter pour créer mon jeton
+        </ButtonLink>
+      </Card>
+    </section>
+  );
+}
+
 function ConnectAgents() {
+  // Arrivée par « Créer mon jeton » (landing) : la section s'affiche directement.
+  useEffect(() => {
+    if (window.location.hash === '#agent')
+      window.setTimeout(
+        () => document.getElementById('agent')?.scrollIntoView({ behavior: 'smooth' }),
+        150,
+      );
+  }, []);
   const tokens = useQuery('preflight:tokens', () => preflightApi.tokens());
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
@@ -563,7 +600,7 @@ jobs:
   };
 
   return (
-    <section className="mt-8">
+    <section id="agent" className="mt-8 scroll-mt-24">
       <h2 className="label-caps mb-1 flex items-center gap-2 [&_svg]:size-4">
         <Plug /> Brancher ton agent IA et ta CI
       </h2>

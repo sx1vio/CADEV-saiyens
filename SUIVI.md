@@ -179,6 +179,11 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 — « Créer mon jeton » mène vraiment au jeton
+
+- **Retour de Sylvio** — le bouton « Créer mon jeton » de la landing tombait sur `/prevol` sans rien montrer : la création de jeton n'apparaît qu'une fois connecté, en bas de la page.
+- **Correction** — le bouton passe par la connexion (`/connexion?next=/prevol#agent`) puis fait défiler jusqu'à la section « Brancher ton agent IA » (`id="agent"`). Un visiteur de `/prevol` voit aussi une carte « Brancher ton agent IA (serveur MCP) » avec le même lien.
+
 ### 12/11/2026 — Pré-vol de devafrica.tech : cache du thème, petits scripts bloquants
 
 - **Retour de Sylvio** (capture du pré-vol de devafrica.tech) — deux points sur `/theme-init.js` : pas de cache, script bloquant.
