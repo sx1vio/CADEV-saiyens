@@ -6,6 +6,7 @@ import {
   ChartBar,
   Compass,
   DeviceMobile,
+  Plugs,
   FolderSimple,
   House,
   HardDrives,
@@ -66,6 +67,7 @@ export const CREATE_NAV: NavEntry[] = [
     icon: AirplaneTakeoff,
   },
   { to: '/banc', label: 'navEntry.testbench', short: 'navEntry.testbench', icon: DeviceMobile },
+  { to: '/mcp', label: 'navEntry.mcp', short: 'navEntry.mcpShort', icon: Plugs },
 ];
 
 /** Hors barre latérale, accessibles par la recherche (Ctrl K). */

@@ -117,6 +117,8 @@ const en: Dict = {
     ship: 'Ship',
     map: 'Developer map',
     testbench: 'Test bench',
+    mcp: 'AI agents (MCP)',
+    mcpShort: 'AI agents',
     profile: 'Profile',
     explore: 'Grow',
     create: 'Create',

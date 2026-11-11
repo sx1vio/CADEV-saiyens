@@ -60,6 +60,7 @@ import { PageHeader } from '@/components/domain';
 import { Button, ButtonLink, Spinner } from '@/components/ui/button';
 import { Badge, Card, Field, IconChip, Input, Select, Skeleton } from '@/components/ui/primitives';
 import { DeployToSystalink } from '@/components/systalink';
+import { CodeBlock } from '@/components/agents/CodeBlock';
 import { setQueryData, useQuery } from '@/lib/query';
 import { SYSTALINK_HOSTING_GROUPS, SYSTALINK_HOSTING_LABEL } from '@/lib/systalink-offers';
 import { cn } from '@/lib/utils';
@@ -461,19 +462,14 @@ function Launcher() {
         </section>
       )}
 
-      {user ? <ConnectAgents /> : <AgentTeaser />}
+      <AgentTeaser />
     </Page>
   );
 }
 
-/* ---------------- Brancher l'agent IA et la CI ---------------- */
+/* ---------------- Brancher l'agent IA (page /mcp) ---------------- */
 
-const AGENT_TABS = ['Claude Code', 'Cursor et autres', 'GitHub Actions'] as const;
-
-/** Lien « Créer mon jeton » de la landing : connexion, puis retour ici, sur cette section. */
-const AGENT_SECTION_PATH = '/prevol#agent';
-
-/** Visiteur : ce que fait le serveur MCP, et la connexion qui ramène à la création du jeton. */
+/** Le serveur MCP et les jetons ont leur page : /mcp. Ici, un rappel et le lien. */
 function AgentTeaser() {
   return (
     <section id="agent" className="mt-8 scroll-mt-24">
@@ -482,287 +478,17 @@ function AgentTeaser() {
           <Plug />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[15px] font-semibold text-fg">Brancher ton agent IA (serveur MCP)</p>
+          <p className="text-[15px] font-semibold text-fg">Brancher ton agent IA et ta CI</p>
           <p className="mt-0.5 text-[13.5px] text-muted">
-            Claude Code, Cursor ou Codex lance le pré-vol et corrige, cherche des offres, répond aux
-            questions et publie en ton nom. Connecte-toi pour créer ton jeton d’accès.
+            Claude Code, Cursor ou Codex lance le pré-vol et corrige ; ta CI le lance à chaque push.
+            Jetons, configuration et outils : tout est sur la page Agents IA.
           </p>
         </div>
-        <ButtonLink
-          to={`/connexion?next=${encodeURIComponent(AGENT_SECTION_PATH)}`}
-          variant="primary"
-        >
-          Se connecter pour créer mon jeton
+        <ButtonLink to="/mcp" variant="primary">
+          Agents IA et MCP
         </ButtonLink>
       </Card>
     </section>
-  );
-}
-
-function ConnectAgents() {
-  // Arrivée par « Créer mon jeton » (landing) : la section s'affiche directement.
-  useEffect(() => {
-    if (window.location.hash === '#agent')
-      window.setTimeout(
-        () => document.getElementById('agent')?.scrollIntoView({ behavior: 'smooth' }),
-        150,
-      );
-  }, []);
-  const tokens = useQuery('preflight:tokens', () => preflightApi.tokens());
-  const [name, setName] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [fresh, setFresh] = useState<string | null>(null);
-  const [tab, setTab] = useState<(typeof AGENT_TABS)[number]>('Claude Code');
-  const [scope, setScope] = useState<ApiTokenScope>('platform');
-  const origin = window.location.origin;
-  const token = fresh ?? 'dh_pat_TON_JETON';
-  const items = tokens.data?.items ?? [];
-
-  async function create(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const created = await preflightApi.createToken(
-        name.trim() || (scope === 'platform' ? 'Mon agent IA' : 'Ma CI'),
-        scope,
-      );
-      setFresh(created.token);
-      setName('');
-      setQueryData<ListApiTokensResponse>('preflight:tokens', (old) => ({
-        items: [created, ...(old?.items ?? [])],
-      }));
-    } catch (err) {
-      const code = err instanceof DomainError ? err.code : '';
-      toast.error(
-        code === 'api_token.limit'
-          ? 'Cinq jetons au plus : supprime-en un avant d’en créer un autre.'
-          : 'Création du jeton impossible. Réessaie.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function revoke(t: ApiTokenItem) {
-    try {
-      await preflightApi.revokeToken(t.id);
-      setQueryData<ListApiTokensResponse>('preflight:tokens', (old) => ({
-        items: (old?.items ?? []).filter((i) => i.id !== t.id),
-      }));
-      toast.success(`Jeton « ${t.name} » supprimé.`);
-    } catch {
-      toast.error('Suppression impossible. Réessaie.');
-    }
-  }
-
-  const snippets: Record<(typeof AGENT_TABS)[number], { intro: string; code: string }> = {
-    'Claude Code': {
-      intro:
-        'Dans le terminal de ton projet, puis demande : « lance un pré-vol et corrige », « trouve-moi une offre React et prépare ma candidature », « réponds aux questions sans réponse sur Laravel ».',
-      code: `claude mcp add --transport http devhub ${origin}/api/v1/mcp \\\n  --header "Authorization: Bearer ${token}"`,
-    },
-    'Cursor et autres': {
-      intro:
-        'Dans .cursor/mcp.json (ou la configuration MCP de ton éditeur : Windsurf, VS Code, Codex…).',
-      code: JSON.stringify(
-        {
-          mcpServers: {
-            devhub: {
-              url: `${origin}/api/v1/mcp`,
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          },
-        },
-        null,
-        2,
-      ),
-    },
-    'GitHub Actions': {
-      intro:
-        'À chaque push : lint, types, tests et build de ton projet, puis le pré-vol, avec le rapport dans le résumé du job. Gratuit sur les dépôts publics. Mets le jeton dans le secret DEVHUB_TOKEN.',
-      code: `# .github/workflows/prevol.yml
-name: Pré-vol
-on: [push, pull_request]
-jobs:
-  prevol:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - uses: sx1vio/CADEV-saiyens/actions/prevol@main
-        with:
-          token: \${{ secrets.DEVHUB_TOKEN }}
-          url: https://monapp.sn      # ton application en ligne
-          api-url: ${origin}
-          fail-on: fix                # fix | review | never`,
-    },
-  };
-
-  return (
-    <section id="agent" className="mt-8 scroll-mt-24">
-      <h2 className="label-caps mb-1 flex items-center gap-2 [&_svg]:size-4">
-        <Plug /> Brancher ton agent IA et ta CI
-      </h2>
-      <p className="mb-3 text-[13px] text-muted">
-        Le serveur MCP de DevHub branche ton agent IA (Claude Code, Cursor, Codex…) sur la
-        plateforme : il lance le pré-vol et corrige, cherche des offres et prépare tes candidatures,
-        répond aux questions d’entraide, publie tes avancées, suit tes projets et tes messages. Ta
-        CI contrôle le code et refuse une mise en production qui casse quelque chose.
-      </p>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card className="min-w-0 p-5">
-          <div role="tablist" className="mb-3 flex flex-wrap gap-2">
-            {AGENT_TABS.map((t) => (
-              <button
-                key={t}
-                type="button"
-                role="tab"
-                aria-selected={tab === t}
-                onClick={() => setTab(t)}
-                className={cn(
-                  'rounded-full px-3 py-1 text-[13px] transition-colors',
-                  tab === t ? 'bg-accent-soft text-accent-text' : 'text-muted hover:text-fg',
-                )}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-          <p className="mb-2 text-[13px] text-muted">{snippets[tab].intro}</p>
-          <CodeBlock code={snippets[tab].code} />
-          {!fresh && (
-            <p className="mt-2 text-xs text-subtle">
-              Remplace dh_pat_TON_JETON par un jeton créé dans « Jetons d’accès ».
-            </p>
-          )}
-        </Card>
-
-        <Card className="flex min-w-0 flex-col gap-3 p-5">
-          <p className="label-caps flex items-center gap-2 [&_svg]:size-4">
-            <KeyRound /> Jetons d’accès
-          </p>
-          <div role="radiogroup" aria-label="Portée du jeton" className="flex flex-col gap-1.5">
-            {(
-              [
-                [
-                  'platform',
-                  'Toute la plateforme',
-                  'Ton agent agit en ton nom : pré-vol, entraide, fil, emplois, projets, messages. Jamais ton compte ni tes jetons.',
-                ],
-                ['preflight', 'Pré-vol seulement', 'Pour la CI : lancer et lire des pré-vols.'],
-              ] as const
-            ).map(([value, label, hint]) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={scope === value}
-                onClick={() => setScope(value)}
-                className={cn(
-                  'rounded-[8px] border px-3 py-2 text-left transition-colors',
-                  scope === value
-                    ? 'border-accent bg-accent-soft'
-                    : 'border-line hover:border-line-strong',
-                )}
-              >
-                <span className="block text-[13px] font-medium text-fg">{label}</span>
-                <span className="block text-xs text-muted">{hint}</span>
-              </button>
-            ))}
-          </div>
-          <form onSubmit={create} className="flex gap-2">
-            <Input
-              aria-label="Nom du jeton"
-              placeholder="Claude Code, CI…"
-              maxLength={60}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={busy}
-            />
-            <Button type="submit" variant="primary" size="md" disabled={busy}>
-              {busy ? <Spinner /> : 'Créer'}
-            </Button>
-          </form>
-          {fresh && (
-            <div className="rounded-[8px] border border-warning/40 bg-warning-soft p-3">
-              <p className="mb-1 text-xs font-medium text-fg">
-                Copie-le maintenant : il ne sera plus affiché.
-              </p>
-              <CodeBlock code={fresh} wrap />
-            </div>
-          )}
-          {!tokens.data ? (
-            <Skeleton className="h-10 rounded-[8px]" />
-          ) : items.length === 0 ? (
-            <p className="text-xs text-subtle">Aucun jeton.</p>
-          ) : (
-            <ul className="flex flex-col gap-1.5">
-              {items.map((t) => (
-                <li key={t.id} className="flex items-center gap-2 text-[13px]">
-                  <span className="min-w-0 flex-1 truncate text-fg">{t.name}</span>
-                  <span
-                    className={cn(
-                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                      t.scope === 'platform'
-                        ? 'bg-accent-soft text-accent-text'
-                        : 'bg-surface-2 text-muted',
-                    )}
-                  >
-                    {t.scope === 'platform' ? 'Plateforme' : 'Pré-vol'}
-                  </span>
-                  <span className="font-mono text-xs text-subtle">…{t.hint}</span>
-                  <span className="hidden text-xs text-subtle sm:inline">
-                    {t.lastUsedAt
-                      ? `utilisé le ${new Date(t.lastUsedAt).toLocaleDateString('fr-FR')}`
-                      : 'jamais utilisé'}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Supprimer le jeton ${t.name}`}
-                    onClick={() => void revoke(t)}
-                    className="rounded p-1 text-muted hover:text-danger [&_svg]:size-3.5"
-                  >
-                    <Trash2 />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-    </section>
-  );
-}
-
-function CodeBlock({ code, wrap = false }: { code: string; wrap?: boolean }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="min-w-0 rounded-[8px] border border-line bg-surface-1">
-      <div className="flex justify-end border-b border-line px-2 py-1">
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted hover:text-fg [&_svg]:size-3.5"
-          onClick={() =>
-            void navigator.clipboard?.writeText(code).then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1400);
-            })
-          }
-        >
-          {copied ? <ClipboardCheck /> : <Clipboard />}
-          {copied ? 'Copié' : 'Copier'}
-        </button>
-      </div>
-      <pre
-        className={cn(
-          'p-3 font-mono text-[11.5px] leading-relaxed text-fg',
-          wrap ? 'whitespace-pre-wrap break-all' : 'overflow-x-auto',
-        )}
-      >
-        {code}
-      </pre>
-    </div>
   );
 }
 

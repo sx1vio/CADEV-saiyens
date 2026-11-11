@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 — Page dédiée « Agents IA et MCP » (/mcp)
+
+- **Demande de Sylvio** — une page à part pour les jetons MCP, avec l'explication complète ; la création du jeton demande d'être connecté.
+- **`/mcp`** (`pages/Mcp.tsx`), publique : présentation, trois étapes, **jetons** (connecté : création avec portée, liste, suppression ; visiteur : « Se connecter pour créer mon jeton » qui ramène sur `/mcp#jeton`), configuration par outil (Claude Code, Cursor, VS Code, Codex, Windsurf, GitHub Actions, le nouveau jeton inséré automatiquement), exemples de demandes à copier, les 42 outils par domaine, ce que le jeton peut et ne peut jamais faire, FAQ.
+- **Liens** — menu de l'application (Livrer → Agents IA), menu visiteur et pied de page, bouton de la landing, sitemap. La page Pré-vol renvoie vers `/mcp` au lieu d'y gérer les jetons.
+
 ### 12/11/2026 — « Créer mon jeton » mène vraiment au jeton
 
 - **Retour de Sylvio** — le bouton « Créer mon jeton » de la landing tombait sur `/prevol` sans rien montrer : la création de jeton n'apparaît qu'une fois connecté, en bas de la page.

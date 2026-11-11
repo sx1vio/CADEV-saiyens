@@ -60,7 +60,7 @@ export function McpSection() {
             les mêmes limites que l’application ; tu valides tout ce qui est publié.
           </p>
           <Link
-            to={`/connexion?next=${encodeURIComponent('/prevol#agent')}`}
+            to="/mcp"
             className="lp-press mt-7 inline-flex h-11 items-center gap-2 rounded-full bg-fg px-5 text-[15px] font-semibold text-canvas"
           >
             Créer mon jeton

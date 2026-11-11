@@ -3,7 +3,7 @@
 DevHub Africa expose un serveur MCP (Model Context Protocol) : l'agent IA du développeur (Claude Code, Cursor, Codex, Windsurf, VS Code…) agit sur la plateforme en son nom, sans quitter son éditeur. Il lance un pré-vol et corrige le projet, cherche une offre et prépare la candidature, répond aux questions d'entraide, publie une avancée, suit ses projets, ses messages et ses notifications.
 
 - **Adresse** : `POST https://devafrica.tech/api/v1/mcp` (transport « Streamable HTTP », sans état, réponses JSON).
-- **Authentification** : `Authorization: Bearer dh_pat_…`, un jeton d'API personnel créé sur la page **Pré-vol**, section « Brancher ton agent IA et ta CI ».
+- **Authentification** : `Authorization: Bearer dh_pat_…`, un jeton d'API personnel créé sur la page **Agents IA et MCP** (`/mcp`), qui donne aussi la configuration de chaque outil.
 
 ## Deux portées de jeton
 

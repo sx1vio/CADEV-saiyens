@@ -18,6 +18,7 @@ import {
   ServerCog,
   ShieldCheck,
   Smartphone,
+  Plug,
   Sun,
   Trophy,
   type LucideIcon,
@@ -155,6 +156,12 @@ const MENUS: { label: string; groups: { title: string; links: MenuLink[] }[] }[]
             label: 'Banc d’essai',
             text: 'Ton app testée sur de vrais téléphones',
             icon: Smartphone,
+          },
+          {
+            to: '/mcp',
+            label: 'Agents IA (MCP)',
+            text: 'Claude Code, Cursor ou Codex branché sur DevHub',
+            icon: Plug,
           },
           {
             to: '/systalink',
@@ -341,6 +348,7 @@ const FOOTER: { title: string; links: { to: string; label: string }[] }[] = [
     links: [
       { to: '/prevol', label: 'Pré-vol' },
       { to: '/banc', label: 'Banc d’essai' },
+      { to: '/mcp', label: 'Agents IA (MCP)' },
       { to: '/systalink', label: 'Systalink' },
     ],
   },

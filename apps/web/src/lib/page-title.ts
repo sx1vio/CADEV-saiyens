@@ -31,6 +31,7 @@ const SECTIONS: Record<string, Label> = {
   lecon: L('Leçon', 'Lesson'),
   prevol: L('Pré-vol', 'Preflight'),
   label: L('Label DevHub Ready', 'DevHub Ready label'),
+  mcp: L('Agents IA et MCP', 'AI agents and MCP'),
   banc: L('Banc d’essai', 'Test bench'),
   sos: L('Question', 'Question'),
   projets: L('Projets', 'Projects'),

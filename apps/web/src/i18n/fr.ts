@@ -116,6 +116,8 @@ const fr = {
     ship: 'Livrer',
     map: 'Carte des devs',
     testbench: 'Banc d’essai',
+    mcp: 'Agents IA (MCP)',
+    mcpShort: 'Agents IA',
     profile: 'Profil',
     explore: 'Progresser',
     create: 'Créer',
