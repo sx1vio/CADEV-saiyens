@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 (suite) — Lighthouse retiré du pré-vol, dossier de soumission à jour
+
+- **Demande de Sylvio** — retirer du pré-vol ce qui dépend de la clé PageSpeed (« Lighthouse indisponible » en démo).
+- **Pré-vol** — plus d'audit Lighthouse côté serveur (sonde débranchée dans `preflight.module.ts`), plus de ligne « audit indisponible » dans la recette, ni dans la Supervision de l'admin ; textes de `/prevol`, de la landing et de l'outil MCP mis à jour. Lighthouse reste dans l'action GitHub. Guide `prevol.md` à jour.
+- **Dossier de soumission** (`docs/soumission.md`) — liste de contrôle au 12/11 (fait / à faire), licences revérifiées (529 paquets, aucune GPL/AGPL/LGPL), section application mobile (Apache-2.0, Lucide ISC, Poppins OFL), usage de l'IA (application mobile, recette, distinction avec le serveur MCP du produit), contributions mises à jour ; `Neme6X-dev` à rattacher à un membre. Les signatures restent à faire par chaque membre.
+
 ### 12/11/2026 — MCP vérifié en production, correctif Next.js
 
 - **MCP en production** — Sylvio a branché son jeton dans Claude Code ; `whoami`, `list_news`, `list_preflights` et `run_preflight` (sur opuscrp.com, 90/100, GO provisoire) répondent par le serveur MCP de devafrica.tech. Conseil donné : remplacer le jeton, visible sur une capture.

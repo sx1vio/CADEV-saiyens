@@ -133,7 +133,7 @@ const TABS = [
   {
     id: 'prevol',
     label: 'Pré-vol',
-    text: 'Avant de lancer : secrets exposés, chargement en 3G, failles des dépendances, licences, Lighthouse et tenue à la charge. Le rapport se colle dans ton agent IA, qui corrige.',
+    text: 'Avant de lancer : secrets exposés, chargement en 3G, failles des dépendances, licences, accessibilité et tenue à la charge. Le rapport se colle dans ton agent IA, qui corrige.',
     src: shotPrevol,
   },
   {
@@ -205,7 +205,7 @@ const SHIP_STEPS = [
   {
     n: '2',
     title: 'Pré-vol',
-    text: 'Secrets exposés, premier affichage en 3G, failles connues, Lighthouse mobile, montée en charge, avec les fichiers de correction prêts. Verdict GO : ton app reçoit le label DevHub Ready.',
+    text: 'Secrets exposés, premier affichage en 3G, failles connues, accessibilité, montée en charge, avec les fichiers de correction prêts. Verdict GO : ton app reçoit le label DevHub Ready.',
     to: '/prevol',
   },
   {

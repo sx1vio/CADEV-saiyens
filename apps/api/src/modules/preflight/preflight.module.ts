@@ -13,7 +13,6 @@ import { GithubRateLimitedError, probeRepo, RepoNotFoundError } from './infrastr
 import { SafeFetcher, UnsafeTargetError } from './infrastructure/safe-fetch';
 import { probeDomain } from './infrastructure/domain.probe';
 import { probeSite, SiteUnreachableError } from './infrastructure/site.probe';
-import { probeLighthouse } from './infrastructure/lighthouse.probe';
 import { httpHit, runLoadStages } from './infrastructure/load-runner';
 import { verifyOwnership } from './infrastructure/ownership.probe';
 import { ownershipInstructions } from './domain/ownership';
@@ -37,7 +36,8 @@ import { PREFLIGHT_LOAD_LIMITS } from '@devhub/contracts';
           domain: (url, signal) => probeDomain(new SafeFetcher(signal), url),
           repo: (repo, signal) =>
             probeRepo(new SafeFetcher(signal), repo, env.PREFLIGHT_GITHUB_TOKEN),
-          lighthouse: (url) => probeLighthouse(url, env.PAGESPEED_API_KEY),
+          // Pas d'audit Lighthouse côté serveur (12/11/2026) : PageSpeed Insights sans clé échoue
+          // souvent et le rapport affichait « indisponible ». Lighthouse tourne dans l'action GitHub.
           ownership: (userId, url) =>
             verifyOwnership(
               new SafeFetcher(AbortSignal.timeout(15_000)),

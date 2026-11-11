@@ -59,12 +59,6 @@ export function configChecks(env: Env): Config[] {
       'Sans clé, la piste IA et la traduction utilisent le modèle de secours.',
     ),
     item(
-      'PAGESPEED_API_KEY',
-      'Lighthouse du pré-vol',
-      has(env.PAGESPEED_API_KEY),
-      'Clé PageSpeed Insights : sans elle, le pré-vol saute la mesure Lighthouse.',
-    ),
-    item(
       'PREFLIGHT_GITHUB_TOKEN',
       'Analyse des dépôts du pré-vol',
       has(env.PREFLIGHT_GITHUB_TOKEN),

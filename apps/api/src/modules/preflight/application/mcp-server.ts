@@ -98,7 +98,7 @@ const TOOLS = [
     name: 'run_preflight',
     title: 'Lancer un pré-vol',
     description:
-      'Vérifie une application en ligne et/ou un dépôt GitHub public (sécurité, dépendances, Lighthouse mobile réel, tenue à la charge en option ; 15 s à 2 min) et renvoie le ' +
+      'Vérifie une application en ligne et/ou un dépôt GitHub public (sécurité, réseau 3G, dépendances, accessibilité, tenue à la charge en option ; 15 s à 2 min) et renvoie le ' +
       'rapport en Markdown : score sur 100, verdict, puis chaque point à corriger avec la ' +
       'correction à appliquer. Donne au moins url ou repo.',
     inputSchema: {

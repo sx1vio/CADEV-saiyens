@@ -252,12 +252,8 @@ function untestedOf(r: ReportInput): string[] {
     'Parcours connectés et écritures (publier, payer, candidater) : à rejouer en préproduction ou avec un compte de test identifié.',
     'Déconnexion : session invalidée côté serveur et aucune réponse liée au compte relue depuis le cache du service worker.',
     'Accessibilité manuelle : clavier complet, lecteur d’écran réel (NVDA, VoiceOver, TalkBack), zoom 200 %, erreurs de formulaire annoncées. L’automatique couvre 20 à 30 % des critères.',
-    'Navigateurs : Safari et Firefox, en plus du Chrome utilisé par Lighthouse.',
+    'Navigateurs : Chrome, Safari et Firefox, sur téléphone et sur ordinateur.',
   ];
-  if (r.url && !r.lighthouse)
-    out.push(
-      'Lighthouse : audit indisponible pour ce passage, performance et accessibilité non mesurées.',
-    );
   if (r.lighthouse && !r.lighthouse.field)
     out.push(
       'Mesures terrain (CrUX) : pas assez de trafic ; la performance n’est mesurée qu’en laboratoire.',

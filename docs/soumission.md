@@ -1,6 +1,6 @@
 # Dossier de soumission CADEV 2026
 
-> Préparé le 23/10/2026, mis à jour le 04/11/2026 d'après le règlement officiel publié sur
+> Préparé le 23/10/2026, mis à jour le 04/11/2026 puis le 12/11/2026 d'après le règlement officiel publié sur
 > https://platform.systalink.com/cadev/conditions-generales. Équipe **Saiyens** (groupe Bénin),
 > projet **DevHub Africa**.
 
@@ -28,39 +28,44 @@
 
 ## 1. Liste de contrôle avant l'envoi
 
-| #   | Étape                                                                                                                  | Qui               | État                         |
-| --- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------- |
-| 1   | Acheter au moins un produit sur Datacloud avec le code promo −40 % (VPS **à Dakar**, pas hors de Dakar)                | Emmanuel, Sylvio  | À faire                      |
-| 2   | Déployer : secrets du dépôt, `DEPLOY_ENABLED=true`, pousser sur `main` (voir `infra/README.md`)                        | Emmanuel          | À faire                      |
-| 3   | Créer l'application OAuth GitHub de production et renseigner `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`               | Joachim, Emmanuel | À faire                      |
-| 4   | Vérifier que `AUTH_FAKE_PROVIDER` vaut `false` en production                                                           | Emmanuel          | À faire                      |
-| 5   | Optionnel : `LLM_API_KEY` plafonnée (sinon la piste IA, les tâches IA et la traduction utilisent le faux modèle)       | Joachim           | À faire                      |
-| 6   | Ouvrir l'URL publique depuis un téléphone, hors du réseau de l'équipe                                                  | Tous              | À faire                      |
-| 7   | Remplir et signer la section 4 (propriété), un membre après l'autre                                                    | Chaque membre     | À faire                      |
-| 8   | Soumettre : URL du dépôt, URL de la démo, ce document                                                                  | Caleb             | À faire                      |
-| 9   | **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue**                 | Chaque membre     | À faire                      |
-| 10  | Aucun composant GPL, AGPL ou LGPL                                                                                      | —                 | Vérifié le 04/11 (section 2) |
-| 11  | Créer le compte d'administration en production par la CLI (`apps/admin/README.md`), puis vérifier l'onglet Supervision | Emmanuel, Sylvio  | À faire (code prêt le 09/11) |
-| 12  | Portail entreprise : `BUSINESS_URL` et `BUSINESS_ADDRESS` (sous-domaine `business.`), voir `apps/business/README.md`   | Emmanuel          | À faire (code fini le 09/11) |
-| 13  | Renseigner `VITE_CONTACT_EMAIL` (adresse affichée sur la page Confidentialité)                                         | Sylvio            | À faire                      |
-| 14  | Ne laisser aucun compte de test ni contenu fictif en base de production                                                | Tous              | À vérifier avant l'envoi     |
+État au 12/11/2026.
+
+| #   | Étape                                                                                                            | Qui              | État                                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------- |
+| 1   | Acheter au moins un produit Datacloud avec le code promo −40 %                                                   | Sylvio           | Fait : « Produit Systalink actif » validé sur la page CADEV (11/11) |
+| 2   | Déployer : `DEPLOY_ENABLED=true`, déploiement automatique à chaque push sur `main`                               | Emmanuel, Sylvio | Fait : https://devafrica.tech en ligne depuis le 10/11              |
+| 3   | Application OAuth GitHub de production (`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`)                             | Sylvio           | Fait (10/11) ; boucle de connexion corrigée le 11/11                |
+| 4   | `AUTH_FAKE_PROVIDER` à `false` en production                                                                     | Emmanuel         | Fait (connexion GitHub réelle en production)                        |
+| 5   | **Envoi des e-mails** : SMTP + SPF, DKIM, DMARC sur devafrica.tech (inscription par e-mail, mot de passe oublié) | Sylvio           | **À faire** (anomalie majeure FONC-03 de la recette du 10/11)       |
+| 6   | Optionnel : `LLM_API_KEY` plafonnée (sinon la piste IA et la traduction utilisent le modèle de secours)          | Joachim          | À décider                                                           |
+| 7   | Ouvrir le site et l'application mobile sur un vrai téléphone, hors du réseau de l'équipe                         | Tous             | À faire                                                             |
+| 8   | Label « DevHub Ready » de devafrica.tech : publier la preuve de domaine, relancer le pré-vol                     | Sylvio           | À faire (démo)                                                      |
+| 9   | Vidéo de démo                                                                                                    | Sylvio           | À faire                                                             |
+| 10  | Remplir et signer la section 4 (propriété), un membre après l'autre                                              | Chaque membre    | **À faire** : personne ne signe pour un autre                       |
+| 11  | Soumettre sur la plateforme CADEV : URL du dépôt, URL de la démo, ce document, **avant le 15/11 à 17:00 GMT**    | Caleb            | À faire                                                             |
+| 12  | **Vote des pairs du 15/11 18:00 au 16/11 23:59 : chaque membre doit voter, sinon l'équipe est exclue**           | Chaque membre    | À faire                                                             |
+| 13  | Aucun composant GPL, AGPL ou LGPL                                                                                | —                | Revérifié le 12/11 (section 2), application mobile comprise         |
+| 14  | Compte d'administration de production (CLI) et onglet Supervision                                                | Sylvio           | Fait (10/11)                                                        |
+| 15  | Portail entreprise : `BUSINESS_URL`, `BUSINESS_ADDRESS`                                                          | Emmanuel, Sylvio | Fait : https://business.devafrica.tech répond                       |
+| 16  | Adresse de contact affichée (`CONTACT_EMAIL`)                                                                    | Sylvio           | À vérifier sur `/confidentialite`                                   |
+| 17  | Aucun compte de test ni contenu fictif en base de production                                                     | Tous             | À vérifier avant l'envoi                                            |
 
 ## 2. Composants et licences
 
-Inventaire tiré de `pnpm licenses list` le 23/10/2026, revérifié le 04/11/2026 (aucune nouvelle dépendance tierce depuis : le portail entreprise, l'administration, la messagerie et l'activité GitHub n'utilisent que les bibliothèques déjà listées).
+Inventaire tiré de `pnpm licenses list` le 23/10/2026, revérifié le 04/11/2026 puis le **12/11/2026** (529 paquets de production pour le web, l'API, l'administration et le portail entreprise ; application mobile comptée à part, voir plus bas).
 
 **Aucun composant sous GPL, AGPL ou LGPL.** Jusqu'au 23/10, l'API dépendait de `sharp`, dont la bibliothèque native libvips est sous LGPL-3.0. Elle est remplacée par `@napi-rs/canvas` (MIT, moteur Skia sous BSD-3-Clause) pour le proxy d'images des actualités et la Proof Card.
 
-### Dépendances de production (525 paquets, directes et indirectes)
+### Dépendances de production (529 paquets, directes et indirectes)
 
 | Licence                                                                                        | Paquets  |
 | ---------------------------------------------------------------------------------------------- | -------- |
-| MIT                                                                                            | 426      |
+| MIT                                                                                            | 427      |
 | Apache-2.0                                                                                     | 37       |
 | ISC                                                                                            | 33       |
 | BSD-2-Clause                                                                                   | 8        |
 | BSD-3-Clause                                                                                   | 6        |
-| OFL-1.1 (polices Inter, JetBrains Mono, Plus Jakarta Sans)                                     | 3        |
+| OFL-1.1 (polices Inter, JetBrains Mono, Plus Jakarta Sans, Poppins…)                           | 6        |
 | Unlicense                                                                                      | 3        |
 | BlueOak-1.0.0                                                                                  | 2        |
 | 0BSD, CC0-1.0, MIT-0, MIT OR CC0-1.0, MIT and ISC                                              | 1 chacun |
@@ -93,6 +98,17 @@ Mêmes familles de licences, plus `lightningcss` (MPL-2.0, utilisé par Tailwind
 | Contrat partagé | `zod`                                                                                                                              | MIT             |
 | Outils          | TypeScript, Vite, Tailwind CSS, Vitest, Playwright, oxlint, ESLint, Prettier, Turborepo, husky, commitlint                         | Apache-2.0, MIT |
 
+### Application mobile (Android et iOS, `apps/mobile`)
+
+Kotlin Multiplatform et Compose Multiplatform. Dépendances lues dans `apps/mobile/gradle/libs.versions.toml` le 12/11/2026 : **aucune sous GPL, AGPL ou LGPL**.
+
+| Composant                                                                                                               | Licence    |
+| ----------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Kotlin, kotlinx (coroutines, serialization), Compose Multiplatform, AndroidX (lifecycle, navigation, activity, browser) | Apache-2.0 |
+| Ktor (client HTTP), Coil 3 (images), Okio                                                                               | Apache-2.0 |
+| Icônes Lucide (tracés repris de lucide-react, `apps/mobile/LUCIDE-LICENSE.txt`)                                         | ISC        |
+| Police Poppins (`apps/mobile/POPPINS-OFL.txt`)                                                                          | OFL-1.1    |
+
 ### Données, images et services
 
 | Élément                                    | Origine                                                      | Licence ou conditions                                                   |
@@ -121,13 +137,15 @@ Les données personnelles des membres sont décrites sur la page `/confidentiali
 
 ## 3. Usage de l'IA
 
-| Outil                                                           | Usage                                                                                                                                                                                                                                                                                                      | Parties concernées                                                                                     |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Claude Code (Anthropic)                                         | Assistant de développement utilisé par plusieurs membres : écriture et relecture de code, tests, documentation, analyse des anomalies. Les commits concernés portent la ligne `Co-Authored-By: Claude`.                                                                                                    | Tout le dépôt : `apps/api`, `apps/web`, `apps/admin`, `apps/business`, `packages/*`, `infra/`, `docs/` |
-| Higgsfield (génération d'images)                                | Mascotte Djeli, illustrations, bannières                                                                                                                                                                                                                                                                   | `apps/web/public/`                                                                                     |
-| API Claude (modèle `LLM_MODEL`, par défaut `claude-sonnet-5-5`) | Fonction du produit, appelée côté serveur seulement : piste IA sur une question (S2), tâches proposées depuis la discussion d'une salle (R5), traduction FR ↔ EN (S10). Chaque contenu généré est marqué « généré par IA », les secrets sont masqués avant l'envoi et un quota par utilisateur s'applique. | `apps/api/src/modules/ai`                                                                              |
+| Outil                                                           | Usage                                                                                                                                                                                                                                                                                                      | Parties concernées                                                                                                    |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Claude Code (Anthropic)                                         | Assistant de développement utilisé par plusieurs membres : écriture et relecture de code, tests, documentation, analyse des anomalies, recette QA. Les commits concernés portent la ligne `Co-Authored-By: Claude`.                                                                                        | Tout le dépôt : `apps/api`, `apps/web`, `apps/admin`, `apps/business`, `apps/mobile`, `packages/*`, `infra/`, `docs/` |
+| Higgsfield (génération d'images)                                | Mascotte Djeli, illustrations, bannières                                                                                                                                                                                                                                                                   | `apps/web/public/`                                                                                                    |
+| API Claude (modèle `LLM_MODEL`, par défaut `claude-sonnet-5-5`) | Fonction du produit, appelée côté serveur seulement : piste IA sur une question (S2), tâches proposées depuis la discussion d'une salle (R5), traduction FR ↔ EN (S10). Chaque contenu généré est marqué « généré par IA », les secrets sont masqués avant l'envoi et un quota par utilisateur s'applique. | `apps/api/src/modules/ai`                                                                                             |
 
-Chaque membre doit pouvoir expliquer le code de son module, y compris la partie écrite avec l'IA (critère « qualité technique », 30 %). Les choix structurants sont expliqués dans les ADR (`docs/adr/`) et dans `context.md`.
+Chaque membre doit pouvoir expliquer le code de son module, y compris la partie écrite avec l'IA (critère « qualité technique », 30 %). Les choix structurants sont expliqués dans les ADR (`docs/adr/`) et dans `context.md`. L'IA a écrit du code, l'équipe l'a relu, testé (plus de 700 tests automatiques sur l'API, tests du web et de l'application mobile, CI à chaque push) et déployé.
+
+**Le serveur MCP de DevHub** (`/mcp`, `docs/guides/mcp.md`) n'est pas un usage de l'IA par l'équipe : c'est une fonction du produit, qui permet à l'agent IA **d'un développeur** d'agir sur la plateforme en son nom, avec ses droits et un jeton révocable. Aucun modèle d'IA n'est appelé par cette fonction.
 
 ## 4. Déclaration de propriété des membres
 
@@ -137,13 +155,13 @@ Chaque membre remplit sa ligne, avec la date.
 
 Si un membre a intégré du code personnel antérieur au concours (article 6.5), il le déclare ici avec son emplacement.
 
-| Membre            | Rôle                                   | Contributions principales                                                   |
-| ----------------- | -------------------------------------- | --------------------------------------------------------------------------- |
-| Caleb KPOSSOU     | Back-end, produit et pitch (rôle 1)    | `identity`, `passport`, `reputation`, `discovery`                           |
-| Florent AMAMION   | Back-end temps réel et synchronisation | `sos`, `matching`, `notifications`, `sync`                                  |
-| Joachim GOEH-AKUE | Back-end, IA et intégrations (rôle 5)  | `ai`, `github`, `rooms`                                                     |
-| Sylvio CHALLA     | Front-end et hors ligne (rôle 3)       | `apps/web`, `apps/admin`, `apps/business`, pré-vol, banc d'essai, Systalink |
-| Emmanuel OKORIE   | DevOps et sécurité (rôle 4)            | `moderation`, `platform`, `infra/`                                          |
+| Membre            | Rôle                                   | Contributions principales                                                                                                   |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Caleb KPOSSOU     | Back-end, produit et pitch (rôle 1)    | `identity`, `passport`, `reputation`, `discovery`                                                                           |
+| Florent AMAMION   | Back-end temps réel et synchronisation | `sos`, `matching`, `notifications`, `sync`, application mobile (`apps/mobile`)                                              |
+| Joachim GOEH-AKUE | Back-end, IA et intégrations (rôle 5)  | `ai`, `github`, `rooms`, recette QA et verdict GO / NO-GO du pré-vol                                                        |
+| Sylvio CHALLA     | Front-end et hors ligne (rôle 3)       | `apps/web`, `apps/admin`, `apps/business`, pré-vol, label DevHub Ready, serveur MCP, banc d'essai, Systalink, mise en ligne |
+| Emmanuel OKORIE   | DevOps et sécurité (rôle 4)            | `moderation`, `platform`, `infra/`                                                                                          |
 
 ### Signatures
 
@@ -162,4 +180,5 @@ sa ligne (personne ne signe pour un autre).
 
 - **Vote des pairs** : prévoir qui rappelle le 15/11 au soir que les **cinq** membres votent avant le 16/11 23:59.
 - **Licence du projet** : MIT (fichier `LICENSE`, 10/11/2026), au nom des cinq membres. Permissive et compatible avec toutes les licences des composants de la section 2 ; elle n'empêche pas Systalink ni l'équipe d'exploiter DevHub.
+- **Contributeur `Neme6X-dev`** (PR #183 à #196 de l'application mobile, #199 dépendances) : à rattacher à l'un des cinq membres dans la section 4 avant l'envoi.
 - **Contributeur `Sacem270`** : c'est Florent AMAMION (PR #151 à #154 et application mobile #194), confirmé par Sylvio le 10/11/2026.

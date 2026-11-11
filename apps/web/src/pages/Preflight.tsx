@@ -368,8 +368,8 @@ function Launcher() {
               {running && (
                 <span className="text-[13px] text-muted" aria-live="polite">
                   {loadTest
-                    ? 'Audit Lighthouse, analyse du site et du dépôt, puis montée en charge : jusqu’à 2 minutes.'
-                    : 'Audit Lighthouse, analyse du site, de ses fichiers et du dépôt : jusqu’à une minute.'}
+                    ? 'Analyse du site et du dépôt, puis montée en charge : jusqu’à 2 minutes.'
+                    : 'Analyse du site, de ses fichiers et du dépôt : jusqu’à une minute.'}
                 </span>
               )}
             </div>
@@ -394,11 +394,6 @@ function Launcher() {
                 Package,
                 'Dépendances',
                 'failles connues (base OSV) et version corrigée, fichiers de secrets',
-              ],
-              [
-                Gauge,
-                'Lighthouse mobile réel',
-                'performance, accessibilité, référencement, Core Web Vitals (Google)',
               ],
               [
                 Activity,
@@ -721,9 +716,9 @@ function ReportView({ id }: { id: string }) {
             </Card>
           )}
           <p className="px-1 text-xs text-subtle">
-            L’estimation 3G est un calcul ; l’audit Lighthouse est une vraie mesure faite par Google
-            PageSpeed Insights. Les failles viennent de la base publique OSV, les versions du
-            registre npm, le certificat et le DNS d’une connexion directe au domaine.
+            L’estimation 3G est un calcul sur le profil « 3G rapide ». Les failles viennent de la
+            base publique OSV, les versions du registre npm, le certificat et le DNS d’une connexion
+            directe au domaine.
           </p>
         </aside>
       </div>
