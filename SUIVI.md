@@ -179,6 +179,11 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 — MCP vérifié en production, correctif Next.js
+
+- **MCP en production** — Sylvio a branché son jeton dans Claude Code ; `whoami`, `list_news`, `list_preflights` et `run_preflight` (sur opuscrp.com, 90/100, GO provisoire) répondent par le serveur MCP de devafrica.tech. Conseil donné : remplacer le jeton, visible sur une capture.
+- **Correctifs prêts** — ajout de la variante Next.js (`headers()` dans `next.config.js`) pour les en-têtes de sécurité : opuscrp.com, en Next.js chez Hostinger, n'avait aucun format applicable.
+
 ### 12/11/2026 — Page dédiée « Agents IA et MCP » (/mcp)
 
 - **Demande de Sylvio** — une page à part pour les jetons MCP, avec l'explication complète ; la création du jeton demande d'être connecté.

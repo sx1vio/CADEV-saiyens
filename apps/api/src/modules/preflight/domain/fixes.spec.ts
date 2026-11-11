@@ -72,12 +72,15 @@ describe('correctifs prêts du pré-vol', () => {
     expect(fixes.map((f) => f.title)).toEqual([
       'En-têtes de sécurité (Netlify, Cloudflare Pages)',
       'En-têtes de sécurité (Vercel)',
+      'En-têtes de sécurité (Next.js)',
       'En-têtes de sécurité (Nginx)',
       'En-têtes de sécurité (Caddy)',
     ]);
     expect(fixes[0]!.content).toContain('Strict-Transport-Security: max-age=31536000');
     expect(JSON.parse(fixes[1]!.content).headers[0].source).toBe('/(.*)');
     expect(fixes[1]!.githubUrl).toBeNull();
+    expect(fixes[2]!.content).toContain("{ key: 'Strict-Transport-Security'");
+    expect(fixes[2]!.content).toContain('async headers()');
   });
 
   it('sans dépôt : le fichier est donné, sans lien GitHub', () => {

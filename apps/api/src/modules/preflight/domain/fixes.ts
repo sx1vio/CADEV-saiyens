@@ -127,6 +127,14 @@ export function fixesOf(report: Input, opts: { apiOrigin: string; now?: Date }):
     );
     snippet(
       headerCheck,
+      'En-têtes de sécurité (Next.js)',
+      'next.config.js',
+      'js',
+      `module.exports = {\n  async headers() {\n    return [\n      {\n        source: '/(.*)',\n        headers: [\n${SECURITY_HEADERS.map(([key, value]) => `          { key: '${key}', value: "${value}" },`).join('\n')}\n        ],\n      },\n    ];\n  },\n};`,
+      `À fusionner dans next.config.js (ou .mjs, .ts) s’il existe déjà : vaut quel que soit l’hébergeur (Vercel, Hostinger, VPS). ${CSP_NOTE}`,
+    );
+    snippet(
+      headerCheck,
       'En-têtes de sécurité (Nginx)',
       'nginx : bloc server { … }',
       'nginx',
