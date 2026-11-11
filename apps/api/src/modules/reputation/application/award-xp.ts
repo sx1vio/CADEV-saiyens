@@ -228,6 +228,21 @@ export class AwardXp {
     );
   }
 
+  /** Label « DevHub Ready » : premier pré-vol GO sur un domaine prouvé. +10, une fois par domaine. */
+  preflightReady(input: { labelId: string; userId: string }, tx?: unknown): Promise<AwardResult> {
+    return this.single(
+      {
+        userId: input.userId,
+        kind: 'preflight_ready',
+        sourceType: 'preflight_label',
+        sourceId: input.labelId,
+        tagIds: [],
+        counterpartId: null,
+      },
+      tx,
+    );
+  }
+
   /** Banc d'essai : rapport de test sur un vrai appareil confirmé par le demandeur. +8 au testeur. */
   fieldTestConfirmed(
     input: { reportId: string; testerId: string; requesterId: string },

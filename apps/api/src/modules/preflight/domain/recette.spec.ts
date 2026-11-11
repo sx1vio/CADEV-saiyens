@@ -383,6 +383,8 @@ describe('verdict de recette', () => {
         systalink: null,
         architecture: null,
         recette: null,
+        fixes: [],
+        label: null,
         author: { handle: 'a', displayName: 'A' },
       },
       { page: 'https://x/p', json: 'https://x/j' },

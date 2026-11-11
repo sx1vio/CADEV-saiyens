@@ -332,6 +332,70 @@ export const PreflightArchitecture = z.object({
 });
 export type PreflightArchitecture = z.infer<typeof PreflightArchitecture>;
 
+/**
+ * Correctif prêt à appliquer (11/11/2026), calculé à la lecture du rapport : un fichier à créer
+ * dans le dépôt (avec un lien qui ouvre l'éditeur de GitHub prérempli, d'où une pull request en
+ * un clic), un extrait à coller ou une commande.
+ */
+export const PreflightFix = z.object({
+  checkId: z.string(),
+  title: z.string(),
+  kind: z.enum(['file', 'snippet', 'command']),
+  /** Chemin dans le dépôt (fichier) ou fichier cible (extrait) ; null pour une commande. */
+  path: z.string().nullable(),
+  language: z.string(),
+  content: z.string(),
+  /** github.com/…/new/… prérempli ; null sans dépôt GitHub ou pour un extrait. */
+  githubUrl: z.string().nullable(),
+  note: z.string().nullable(),
+});
+export type PreflightFix = z.infer<typeof PreflightFix>;
+
+export const PreflightLabelDecision = z.enum(['go', 'go_with_reservations', 'no_go']);
+
+/** Durée de validité du label « DevHub Ready » après le dernier pré-vol GO. */
+export const PREFLIGHT_LABEL_TTL_DAYS = 30;
+
+/**
+ * Label « DevHub Ready » d'un domaine : état public, lu par la page /label/:domaine et le badge.
+ * `ready` : dernier pré-vol GO de moins de 30 jours ; `expired` : GO trop ancien ; `not_ready` :
+ * dernier pré-vol sans GO.
+ */
+export const PreflightLabel = z.object({
+  domain: z.string(),
+  status: z.enum(['ready', 'not_ready', 'expired']),
+  decision: PreflightLabelDecision,
+  score: z.number().int(),
+  recetteScore: z.number().int(),
+  checkedAt: z.iso.datetime(),
+  readySince: z.iso.datetime().nullable(),
+  expiresAt: z.iso.datetime().nullable(),
+  reportId: z.uuid(),
+  owner: z.object({
+    handle: z.string(),
+    displayName: z.string(),
+    avatarUrl: z.string().nullable(),
+  }),
+  /** Score par section de recette (fonctionnel, sécurité…), pour la page publique. */
+  sections: z.array(
+    z.object({ key: z.string(), label: z.string(), score: z.number().int().nullable() }),
+  ),
+});
+export type PreflightLabel = z.infer<typeof PreflightLabel>;
+
+export const ListPreflightLabelsResponse = z.object({ items: z.array(PreflightLabel) });
+export type ListPreflightLabelsResponse = z.infer<typeof ListPreflightLabelsResponse>;
+
+/** Ce que le rapport dit du label pour son domaine (lecture de l'auteur). */
+export const PreflightReportLabel = z.object({
+  domain: z.string(),
+  /** L'auteur a prouvé contrôler le domaine lors de ce pré-vol. */
+  owned: z.boolean(),
+  /** Ce pré-vol est le dernier du domaine et rend un GO : le label est actif. */
+  ready: z.boolean(),
+});
+export type PreflightReportLabel = z.infer<typeof PreflightReportLabel>;
+
 export const PreflightReport = z.object({
   id: z.uuid(),
   url: z.string().nullable(),
@@ -356,6 +420,10 @@ export const PreflightReport = z.object({
   architecture: PreflightArchitecture.nullable().default(null),
   /** Lecture « recette » des contrôles, recalculée à chaque lecture (aussi pour les anciens rapports). */
   recette: PreflightRecette.nullable().default(null),
+  /** Correctifs prêts à appliquer, recalculés à chaque lecture. */
+  fixes: z.array(PreflightFix).default([]),
+  /** Label « DevHub Ready » du domaine ; null pour un pré-vol du dépôt seul. */
+  label: PreflightReportLabel.nullable().default(null),
   checks: z.array(PreflightCheck),
   author: z.object({ handle: z.string(), displayName: z.string() }),
 });

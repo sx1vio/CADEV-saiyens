@@ -10,7 +10,8 @@ export type XpKind =
   | 'project_demo_shared'
   | 'question_resolved'
   | 'deployment_verified'
-  | 'field_test_confirmed';
+  | 'field_test_confirmed'
+  | 'preflight_ready';
 
 export const XP_POINTS: Record<XpKind, number> = {
   answer_accepted: 10,
@@ -24,6 +25,7 @@ export const XP_POINTS: Record<XpKind, number> = {
   deployment_verified: 10,
   /** Banc d'essai : rapport de test sur un vrai appareil confirmé par le demandeur. */
   field_test_confirmed: 8,
+  preflight_ready: 10,
 };
 
 export const XP_LIMITS = {

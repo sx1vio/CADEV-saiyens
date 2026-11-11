@@ -136,6 +136,7 @@ enum XpKind {
   question_resolved // +1, auteur
   deployment_verified // +10, application en production sur Systalink, une fois par salle
   field_test_confirmed // +8, rapport du Banc d'essai confirmé par le demandeur
+  preflight_ready // +10, application « DevHub Ready » (pré-vol GO sur un domaine prouvé), une fois par domaine
   difficulty_bonus // +5 (X6, P2)
   mentoring // +3 (R13, P2)
   still_resolved // +2 (S15, P2)
@@ -240,6 +241,7 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   preflightReports  PreflightReport[]
+  preflightLabels   PreflightLabel[]
   benchRequests     BenchRequest[]
   certAttempts      CertAttempt[]
   certificates      Certificate[]
@@ -1181,11 +1183,34 @@ model PreflightReport {
   result     Json
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labels PreflightLabel[]
 
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("preflight_reports")
+}
+
+/// Label « DevHub Ready » d'un domaine : dernier pré-vol de son propriétaire prouvé.
+model PreflightLabel {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  domain       String    @unique
+  userId       String    @map("user_id") @db.Uuid
+  reportId     String    @map("report_id") @db.Uuid
+  score        Int
+  recetteScore Int       @map("recette_score")
+  /// go | go_with_reservations | no_go (verdict de recette du dernier pré-vol)
+  decision     String
+  checkedAt    DateTime  @map("checked_at") @db.Timestamptz
+  /// Début de la série GO en cours ; null si le dernier pré-vol n'est pas GO.
+  readySince   DateTime? @map("ready_since") @db.Timestamptz
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report PreflightReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("preflight_labels")
 }
 
 // ─────────────────────────────── Banc d'essai ───────────────────────────────

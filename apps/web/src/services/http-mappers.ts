@@ -528,6 +528,7 @@ const XP_KIND: Record<ProofsResponse['events'][number]['kind'], XPKind> = {
   project_demo_shared: 'project-demo',
   deployment_verified: 'deployment-verified',
   field_test_confirmed: 'field-test',
+  preflight_ready: 'deployment-verified',
   question_resolved: 'question-resolved',
   difficulty_bonus: 'answer-accepted',
   mentoring: 'answer-helpful',

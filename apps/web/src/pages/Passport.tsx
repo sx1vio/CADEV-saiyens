@@ -44,6 +44,7 @@ import {
 import { useSession } from '@/stores/app';
 import { MESSAGE_ERRORS, messages as messagesApi } from '@/platform/messages';
 import { GithubActivity } from '@/components/passport/GithubActivity';
+import { ReadyApps } from '@/components/passport/ReadyApps';
 import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
@@ -353,6 +354,7 @@ export default function Passport() {
                   </div>
                 </section>
               )}
+              <ReadyApps handle={u.handle} />
               <GithubActivity handle={u.handle} />
               <section className="dh-panel p-5">
                 <div className="flex items-baseline justify-between">

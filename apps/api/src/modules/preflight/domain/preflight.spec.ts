@@ -301,6 +301,8 @@ describe('pré-vol : rapport', () => {
         checks,
         architecture: null,
         recette: null,
+        fixes: [],
+        label: null,
         author: { handle: 'awa', displayName: 'Awa' },
       },
       { page: 'https://devhub.africa/prevol/x', json: 'https://devhub.africa/api/v1/preflight/x' },

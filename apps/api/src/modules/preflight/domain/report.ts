@@ -122,6 +122,37 @@ export function toMarkdown(report: PreflightReport, links: { page: string; json:
   if (fail.length) out.push('', `## À corriger (${fail.length})`, '', fail.map(block).join('\n\n'));
   if (warn.length)
     out.push('', `## À améliorer (${warn.length})`, '', warn.map(block).join('\n\n'));
+  if (report.fixes?.length) {
+    out.push(
+      '',
+      `## Correctifs prêts (${report.fixes.length})`,
+      '',
+      'Fichiers et extraits complets : crée chaque fichier au chemin indiqué (ou fusionne-le avec l’existant), puis relance run_preflight.',
+    );
+    for (const f of report.fixes) {
+      out.push(
+        '',
+        `### ${f.title}${f.path ? ` · \`${f.path}\`` : ''} (\`${f.checkId}\`)`,
+        ...(f.note ? ['', f.note] : []),
+        '',
+        `\`\`\`${f.language}`,
+        f.content.trimEnd(),
+        '```',
+      );
+    }
+  }
+  if (report.label) {
+    out.push(
+      '',
+      '## Label DevHub Ready',
+      '',
+      report.label.ready
+        ? `${report.label.domain} est DevHub Ready (verdict GO sur un domaine prouvé).`
+        : report.label.owned
+          ? `Pas encore : il faut un verdict de recette GO pour ${report.label.domain}.`
+          : `Domaine non prouvé : publie le fichier .well-known/devhub-verify.txt (page Pré-vol de DevHub) pour que ${report.label.domain} puisse recevoir le label.`,
+    );
+  }
   if (info.length)
     out.push(
       '',

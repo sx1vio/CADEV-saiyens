@@ -13,6 +13,7 @@ describe('barème (§6.3)', () => {
       question_resolved: 1,
       deployment_verified: 10,
       field_test_confirmed: 8,
+      preflight_ready: 10,
     });
   });
 

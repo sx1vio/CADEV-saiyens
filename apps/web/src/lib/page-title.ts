@@ -30,6 +30,7 @@ const SECTIONS: Record<string, Label> = {
   sources: L('Sources'),
   lecon: L('Leçon', 'Lesson'),
   prevol: L('Pré-vol', 'Preflight'),
+  label: L('Label DevHub Ready', 'DevHub Ready label'),
   banc: L('Banc d’essai', 'Test bench'),
   sos: L('Question', 'Question'),
   projets: L('Projets', 'Projects'),
@@ -64,6 +65,8 @@ export function pageTitle(pathname: string, lang: AppLang): string | null {
   if (!section) return null;
   // Profil public : le pseudo dit de qui il s'agit.
   if (parts[0] === 'u' && parts[1]) return withSite(`${pick(section)} @${parts[1]}`);
+  // Label : le domaine dit de quelle application il s'agit.
+  if (parts[0] === 'label' && parts[1]) return withSite(`${pick(section)} · ${parts[1]}`);
   // Sous-page d'une liste (offre, examen…) : on précise qu'il s'agit du détail.
   if (
     parts.length > 1 &&

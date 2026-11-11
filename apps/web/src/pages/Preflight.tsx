@@ -1,6 +1,7 @@
 import type {
   ApiTokenItem,
   ApiTokenScope,
+  PreflightFix,
   CreateApiTokenResponse,
   ListApiTokensResponse,
   ListPreflightResponse,
@@ -47,7 +48,10 @@ import {
   ShieldCheck,
   Timer,
   Weight,
+  Wrench,
   XCircle,
+  BadgeCheck,
+  GitPullRequest,
 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
@@ -896,7 +900,13 @@ function ReportView({ id }: { id: string }) {
         </div>
       )}
 
+      {data.label && (
+        <LabelCard report={data} mine={!!user && user.handle === data.author.handle} />
+      )}
       {data.recette && <RecetteCard r={data.recette} />}
+      {data.fixes.length > 0 && (
+        <FixesCard fixes={data.fixes} repo={data.repoSummary?.fullName ?? null} />
+      )}
       {data.lighthouse && <LighthouseCard lh={data.lighthouse} />}
       {data.loadTest && <LoadCard lt={data.loadTest} />}
       {data.architecture && data.architecture.analysedFiles > 0 && (
@@ -958,6 +968,159 @@ function ReportView({ id }: { id: string }) {
         </aside>
       </div>
     </Page>
+  );
+}
+
+/* ---------------- Label « DevHub Ready » ---------------- */
+
+function LabelCard({ report, mine }: { report: PreflightReport; mine: boolean }) {
+  const label = report.label!;
+  const origin = window.location.origin;
+  const page = `${origin}/label/${label.domain}`;
+  const badge = `${origin}/api/v1/labels/${label.domain}/badge.svg`;
+  const proof = useQuery(mine && !label.owned ? `preflight:ownership:${report.url}` : null, () =>
+    preflightApi.ownership(report.url!),
+  );
+  if (label.ready) {
+    return (
+      <Card className="mt-3 overflow-hidden border-success/40 p-0">
+        <div className="flex flex-col gap-4 bg-success-soft/60 p-5 sm:flex-row sm:items-center">
+          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-success text-white [&_svg]:size-7">
+            <BadgeCheck />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[17px] font-semibold text-fg">{label.domain} est DevHub Ready</p>
+            <p className="mt-0.5 text-[13.5px] text-muted">
+              Verdict de recette GO sur un domaine prouvé. Le label est public, valable 30 jours
+              après le dernier pré-vol GO, et il a rapporté 10 Proof XP la première fois.
+            </p>
+          </div>
+          <ButtonLink to={`/label/${label.domain}`} variant="primary">
+            Voir le label
+          </ButtonLink>
+        </div>
+        <div className="grid gap-3 p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+          <img src={badge} alt={`DevHub Ready : ${label.domain}`} className="h-5" />
+          <div className="min-w-0">
+            <p className="mb-1.5 text-xs text-muted">Badge pour ton README (Markdown) :</p>
+            <CodeBlock code={`[![DevHub Ready](${badge})](${page})`} wrap />
+          </div>
+        </div>
+      </Card>
+    );
+  }
+  return (
+    <Card className="mt-3 flex flex-col gap-3 p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
+          <BadgeCheck className="size-[18px]" /> Label DevHub Ready
+        </h2>
+        <Badge tone="neutral">{label.owned ? 'pas encore' : 'domaine non prouvé'}</Badge>
+      </div>
+      {label.owned ? (
+        <p className="text-[13.5px] text-muted">
+          Il faut un verdict de recette <strong className="text-fg">GO</strong> : aucune anomalie
+          critique, aucune majeure en sécurité ni en accessibilité, et un score de recette d’au
+          moins 85. Applique les correctifs ci-dessous, puis relance le pré-vol.
+        </p>
+      ) : (
+        <p className="text-[13.5px] text-muted">
+          Le label est réservé au propriétaire du domaine : prouve que {label.domain} est à toi,
+          puis relance le pré-vol. Avec un verdict GO, ton app reçoit un label public, un badge pour
+          ton README et 10 Proof XP.
+        </p>
+      )}
+      {mine && !label.owned && proof.data && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="min-w-0">
+            <p className="mb-1.5 text-xs text-muted">
+              Option 1 : publie ce fichier à l’adresse {proof.data.fileUrl}
+            </p>
+            <CodeBlock code={proof.data.fileContent} wrap />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1.5 text-xs text-muted">
+              Option 2 : enregistrement DNS TXT {proof.data.dnsName}
+            </p>
+            <CodeBlock code={proof.data.dnsValue} wrap />
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* ---------------- Correctifs prêts ---------------- */
+
+const FIX_KIND: Record<PreflightFix['kind'], string> = {
+  file: 'Fichier',
+  snippet: 'Extrait',
+  command: 'Commande',
+};
+
+function FixesCard({ fixes, repo }: { fixes: PreflightFix[]; repo: string | null }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const prs = fixes.filter((f) => f.githubUrl).length;
+  return (
+    <Card className="mt-3 p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="flex items-center gap-2 text-[17px] font-semibold text-fg">
+          <Wrench className="size-[18px]" /> Correctifs prêts
+        </h2>
+        <Badge tone="accent">{fixes.length}</Badge>
+      </div>
+      <p className="mt-1.5 text-[13px] text-muted">
+        {prs > 0
+          ? `Le fichier est écrit pour toi. « Proposer sur GitHub » ouvre l’éditeur de github.com/${repo} déjà rempli : un clic sur « Propose changes » crée la branche et la pull request. DevHub n’a aucun droit d’écriture sur ton dépôt.`
+          : 'Le fichier ou l’extrait est écrit pour toi : copie-le dans ton projet. Lance le pré-vol avec ton dépôt GitHub pour proposer chaque fichier en pull request en un clic.'}
+      </p>
+      <ul className="mt-4 flex flex-col divide-y divide-line rounded-[10px] border border-line">
+        {fixes.map((f, i) => (
+          <li key={`${f.checkId}-${i}`} className="min-w-0">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 px-3 py-2.5">
+              <button
+                type="button"
+                aria-expanded={open === i}
+                onClick={() => setOpen(open === i ? null : i)}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left"
+              >
+                <ChevronDown
+                  className={cn(
+                    'size-4 shrink-0 text-muted transition-transform',
+                    open !== i && '-rotate-90',
+                  )}
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-[14px] font-medium text-fg">{f.title}</span>
+                  {f.path && (
+                    <span className="block truncate font-mono text-[12px] text-subtle">
+                      {f.path}
+                    </span>
+                  )}
+                </span>
+              </button>
+              <Badge tone="neutral">{FIX_KIND[f.kind]}</Badge>
+              {f.githubUrl && (
+                <a
+                  href={f.githubUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="lg-tint inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium [&_svg]:size-3.5"
+                >
+                  <GitPullRequest /> Proposer sur GitHub
+                </a>
+              )}
+            </div>
+            {open === i && (
+              <div className="px-3 pb-3">
+                {f.note && <p className="mb-2 text-xs text-muted">{f.note}</p>}
+                <CodeBlock code={f.content} />
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 

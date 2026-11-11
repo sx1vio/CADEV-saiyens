@@ -1,7 +1,7 @@
 import { XP_POINTS, type XpKind, applyDailyCap, isCapped, splitPoints } from '@devhub/core';
 
 export type XpSourceType =
-  'answer' | 'question' | 'task' | 'feedback_request' | 'room' | 'bench_report';
+  'answer' | 'question' | 'task' | 'feedback_request' | 'room' | 'bench_report' | 'preflight_label';
 
 export interface GainRequest {
   userId: string;

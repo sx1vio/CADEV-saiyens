@@ -10,6 +10,7 @@ export const XpEventKind = z.enum([
   'question_resolved',
   'deployment_verified',
   'field_test_confirmed',
+  'preflight_ready',
   // P2 (X6, R13, S15) : prévus dans la base, pas encore attribués.
   'difficulty_bonus',
   'mentoring',

@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
 import { IdentityModule } from '../identity';
+import { ReputationModule } from '../reputation';
+import { LabelsController } from './http/labels.controller';
+import { PreflightLabels } from './infrastructure/preflight-labels';
 import { type PreflightProbes, RunPreflight } from './application/run-preflight';
 import { McpController } from './http/mcp.controller';
 import { PreflightController } from './http/preflight.controller';
@@ -19,14 +22,15 @@ import { PREFLIGHT_LOAD_LIMITS } from '@devhub/contracts';
 // Pré-vol (« du prompt à la prod vérifiée ») : sécurité, réseau lent, dépendances et licences
 // d'une application en ligne et de son dépôt, avec un rapport lisible par l'IA du développeur.
 @Module({
-  imports: [IdentityModule],
-  controllers: [PreflightController, McpController],
+  imports: [IdentityModule, ReputationModule],
+  controllers: [PreflightController, McpController, LabelsController],
   providers: [
     PreflightRepository,
+    PreflightLabels,
     {
       provide: RunPreflight,
-      inject: [PreflightRepository, ENV],
-      useFactory: (store: PreflightRepository, env: Env) => {
+      inject: [PreflightRepository, ENV, PreflightLabels],
+      useFactory: (store: PreflightRepository, env: Env, labels: PreflightLabels) => {
         const probes: PreflightProbes = {
           site: (url, signal, opts) =>
             probeSite(new SafeFetcher(signal), url, env.SYSTALINK_IP_RANGES, opts),
@@ -55,7 +59,7 @@ import { PREFLIGHT_LOAD_LIMITS } from '@devhub/contracts';
                   ? 'github_rate_limited'
                   : 'other',
         };
-        return new RunPreflight(probes, store);
+        return new RunPreflight(probes, store, undefined, labels);
       },
     },
   ],

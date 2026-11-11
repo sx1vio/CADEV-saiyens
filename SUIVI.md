@@ -179,6 +179,14 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 11/11/2026 (nuit) — Pré-vol : label « DevHub Ready » et correctifs prêts
+
+- **Demande de Sylvio** — pistes 1 et 3 retenues : un label vérifiable, et la correction en un clic.
+- **Label DevHub Ready** — domaine prouvé + verdict de recette GO → label public (`/label/:domaine`), badge SVG pour le README (`/api/v1/labels/:domaine/badge.svg`), section « Applications DevHub Ready » sur le Passport, 10 Proof XP (`preflight_ready`) une fois par domaine. Le label suit le dernier pré-vol prouvé et expire 30 jours après le dernier GO. Migration `20261111180000_preflight_labels`.
+- **Correctifs prêts** — `fixes` dans le rapport : fichiers complets (en-têtes de sécurité, security.txt, robots, sitemap, .gitignore, CI avec le pré-vol…) et extraits. Bouton « Proposer sur GitHub » : éditeur de github.com prérempli, la PR se crée en un clic, sans aucun droit d'écriture pour DevHub (OAuth toujours en lecture seule). Aussi dans le Markdown lu par l'agent IA.
+- **Tests** — `fixes.spec.ts`, `test/preflight-labels.e2e.spec.ts` (sans preuve, GO, XP unique, NO-GO, badge, domaine invalide).
+- **Retour de Sylvio** — landing : présenter les applications mobiles (« bientôt »), landing « très pro ». À faire ensuite, avec l'interface mobile identique au web mobile.
+
 ### 11/11/2026 (soir) — Serveur MCP de toute la plateforme
 
 - **Demande de Sylvio** — « que la plateforme DevHub ait un MCP, pour permettre aux devs d'en faire ce qu'ils veulent, le connecter à leur IA, faire tout un tas d'actions ».

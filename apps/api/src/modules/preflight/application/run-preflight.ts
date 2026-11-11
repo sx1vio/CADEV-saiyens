@@ -78,8 +78,16 @@ export interface PreflightStore {
       | 'loadTest'
       | 'systalink'
       | 'architecture'
-    >;
+    > & {
+      /** L'auteur a prouvé contrôler le domaine de `url` (fichier .well-known ou DNS). */
+      owned: boolean;
+    };
   }): Promise<string>;
+}
+
+/** Label « DevHub Ready » : mis à jour après chaque pré-vol enregistré. */
+export interface PreflightLabelsPort {
+  record(reportId: string): Promise<void>;
 }
 
 const BUDGET_MS = 60_000;
@@ -103,6 +111,7 @@ export class RunPreflight {
     private readonly probes: PreflightProbes,
     private readonly store: PreflightStore,
     private readonly now: () => Date = () => new Date(),
+    private readonly labels?: PreflightLabelsPort,
   ) {}
 
   async run(input: RunInput): Promise<string> {
@@ -288,7 +297,7 @@ export class RunPreflight {
     }
 
     const sorted = sortChecks(checks);
-    return this.store.save({
+    const id = await this.store.save({
       userId: input.userId,
       url: input.url,
       repo: repoOk ? (repo as RepoFacts).fullName : input.repo,
@@ -304,7 +313,11 @@ export class RunPreflight {
         systalink,
         architecture: repoOk ? ((repo as RepoFacts).architecture ?? null) : null,
         counts: countChecks(sorted),
+        owned: owned && siteOk,
       },
     });
+    // Le label ne doit jamais faire échouer le pré-vol : au pire, il sera à jour au suivant.
+    await this.labels?.record(id).catch(() => undefined);
+    return id;
   }
 }

@@ -29,6 +29,34 @@ Depuis le 10/11/2026, chaque rapport porte aussi une lecture « recette » (mét
 
 La matrice des routes d'API en anonyme ne tourne que sur un **domaine prouvé** (même preuve que le test de charge : fichier `.well-known/devhub-verify.txt` ou DNS TXT) ; sans preuve, `sec.anonymous_api` reste une information et la gate « aucune donnée protégée servie sans connexion » est non évaluée. Les routes sont appelées en **GET seulement**, 18 au plus, jamais celles qui pourraient avoir un effet (`logout`, `delete`, `reset`, `publish`, `invite`, `cron`, `send`, `export`, paiement, OAuth…). Seuls les **noms** des champs sensibles d'une réponse sont relevés, jamais leurs valeurs. Une réponse vide comme `{ "user": null }` n'est pas une fuite.
 
+## Label « DevHub Ready »
+
+Depuis le 11/11/2026, une application peut recevoir le **label DevHub Ready** : la preuve publique qu'elle a passé la recette du pré-vol.
+
+- **Conditions** : le domaine est **prouvé** par l'auteur du pré-vol (fichier `.well-known/devhub-verify.txt` ou DNS TXT, la même preuve que le test de charge) et le verdict de recette est **GO**.
+- **Le label suit le dernier pré-vol prouvé du domaine** : un NO-GO ou un GO sous réserves le retire (`not_ready`), et il expire 30 jours après le dernier GO (`expired`). Si quelqu'un d'autre prouve à son tour le domaine, le label passe à son nom.
+- **Public** : page `/label/:domaine` (verdict, scores par section, propriétaire, lien vers le rapport), `GET /api/v1/labels/:domaine` (JSON), `GET /api/v1/labels?owner=:pseudo` (section « Applications DevHub Ready » du Passport).
+- **Badge** pour le README : `GET /api/v1/labels/:domaine/badge.svg`, vert « Ready ✓ 92 », orange « pré-vol 74/100 », gris « label expiré » ou « non vérifié ». Mis en cache une heure. Le rapport donne le Markdown à coller : `[![DevHub Ready](…/badge.svg)](…/label/:domaine)`.
+- **Proof XP** : 10 XP (`preflight_ready`) la première fois qu'un domaine passe GO, une seule fois par domaine et par personne.
+
+Table `preflight_labels` (un label par domaine), code : `infrastructure/preflight-labels.ts`, `http/labels.controller.ts`. Tests : `test/preflight-labels.e2e.spec.ts`.
+
+## Correctifs prêts (pull request en un clic)
+
+Pour les points qu'un fichier règle, le rapport donne le **fichier complet** (objet `fixes` du JSON, carte « Correctifs prêts » sur `/prevol/:id`, section du Markdown pour l'agent IA) :
+
+| Contrôle                                                                                    | Correctif                                                                           |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `site.security_headers`, `site.hsts_quality`, `site.permissions_policy`, `site.csp_quality` | `public/_headers` (Netlify, Cloudflare Pages), extraits Vercel, Nginx et Caddy      |
+| `site.security_txt`                                                                         | `public/.well-known/security.txt` (RFC 9116, expiration à un an)                    |
+| `seo.robots`, `seo.sitemap`                                                                 | `public/robots.txt`, `public/sitemap.xml`                                           |
+| `repo.gitignore`                                                                            | `.gitignore` (secrets et dépendances exclus)                                        |
+| `quality.ci`                                                                                | `.github/workflows/prevol.yml` : lint, types, tests, build et pré-vol à chaque push |
+| `net.mobile_viewport`, `a11y.lang`, `seo.title`, `seo.description`, `seo.open_graph`        | extraits HTML pour `index.html`                                                     |
+| `site.source_maps`, `site.tech_disclosure`, `deps.lockfile`                                 | extrait de configuration ou commande                                                |
+
+Avec un dépôt GitHub, chaque fichier a un bouton **« Proposer sur GitHub »** : il ouvre l'éditeur de github.com déjà rempli (`/new/<branche>?filename=…&value=…`), et « Propose changes » crée la branche et la pull request. DevHub n'a **aucun droit d'écriture** sur le dépôt : l'OAuth reste en lecture seule et c'est le développeur qui valide sur GitHub. Si le fichier existe déjà, GitHub le signale : il faut alors fusionner le contenu à la main. Calcul pur, à chaque lecture (`domain/fixes.ts`) : les anciens rapports en profitent aussi.
+
 ## Lighthouse et coûts
 
 L'audit Lighthouse du serveur passe par l'API PageSpeed Insights : il tourne chez Google, pas chez Systalink. Sans clé, Google partage un petit quota entre tous les appelants anonymes, souvent épuisé : en production, créer une clé gratuite (Google Cloud → API « PageSpeed Insights API » → identifiants → clé API, 25 000 audits par jour) et la mettre dans `PAGESPEED_API_KEY`. Sans réponse de Google, le rapport l'indique (`lh.unavailable`) et reste complet pour le reste. Dans la CI, l'action lance Lighthouse directement sur la machine GitHub.
