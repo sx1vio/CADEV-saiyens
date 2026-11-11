@@ -11,7 +11,6 @@ import africa.devhub.onboarding.Level
 import africa.devhub.onboarding.MAX_SKILLS
 import africa.devhub.onboarding.MIN_SKILLS
 import africa.devhub.onboarding.OnboardingProfile
-import africa.devhub.onboarding.RHYTHMS
 import africa.devhub.onboarding.StartTarget
 import africa.devhub.onboarding.Step
 import africa.devhub.onboarding.flowFor
@@ -25,6 +24,11 @@ import africa.devhub.sos.TagOption
 import africa.devhub.platform.deviceTimezone
 import africa.devhub.platform.formatUtc
 import africa.devhub.platform.utcOffsetMinutes
+import africa.devhub.resources.onb_unset
+import africa.devhub.resources.onb_goal_certify
+import africa.devhub.resources.onb_goal_ship
+import africa.devhub.resources.onb_plan_projects
+import africa.devhub.resources.onb_plan_preflight
 import africa.devhub.resources.*
 import africa.devhub.ui.components.BrandLogo
 import africa.devhub.ui.components.ChoiceCard
@@ -87,29 +91,28 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 private val LevelCopy = mapOf(
-    Level.Curious to Triple(Res.string.onb_level_curious, Res.string.onb_level_curious_t, Res.drawable.djeli_point),
     Level.Beginner to Triple(Res.string.onb_level_beginner, Res.string.onb_level_beginner_t, Res.drawable.djeli_book),
     Level.Junior to Triple(Res.string.onb_level_junior, Res.string.onb_level_junior_t, Res.drawable.djeli_laptop),
     Level.Senior to Triple(Res.string.onb_level_senior, Res.string.onb_level_senior_t, Res.drawable.djeli_trophy),
 )
 
 private fun goalLabel(goal: Goal): StringResource = when (goal) {
-    Goal.Learn -> Res.string.onb_goal_learn
-    Goal.Job -> Res.string.onb_goal_job
     Goal.GetHelp -> Res.string.onb_goal_get_help
     Goal.Help -> Res.string.onb_goal_help
+    Goal.Job -> Res.string.onb_goal_job
+    Goal.Certify -> Res.string.onb_goal_certify
     Goal.Project -> Res.string.onb_goal_project
-    Goal.BuildAi -> Res.string.onb_goal_build_ai
+    Goal.Ship -> Res.string.onb_goal_ship
     Goal.News -> Res.string.onb_goal_news
 }
 
 private fun goalIcon(goal: Goal) = when (goal) {
-    Goal.Learn -> DevHubIcons.Certification
+    Goal.GetHelp -> DevHubIcons.LifeBuoy
+    Goal.Help -> DevHubIcons.HandHelping
     Goal.Job -> DevHubIcons.Jobs
-    Goal.GetHelp -> DevHubIcons.Help
-    Goal.Help -> DevHubIcons.People
-    Goal.Project -> DevHubIcons.Folder
-    Goal.BuildAi -> DevHubIcons.Sparkles
+    Goal.Certify -> DevHubIcons.Award
+    Goal.Project -> DevHubIcons.Rocket
+    Goal.Ship -> DevHubIcons.PlaneTakeoff
     Goal.News -> DevHubIcons.News
 }
 
@@ -158,13 +161,6 @@ private fun domainIcon(d: Domain) = when (d) {
     Domain.Ai -> DevHubIcons.Sparkles
 }
 
-private fun rhythmTitle(min: Int): StringResource = when (min) {
-    5 -> Res.string.onb_rhythm_5
-    10 -> Res.string.onb_rhythm_10
-    20 -> Res.string.onb_rhythm_20
-    else -> Res.string.onb_rhythm_30
-}
-
 private fun csv(values: Collection<String>) = values.joinToString(",")
 private fun split(csv: String) = csv.split(",").filter { it.isNotBlank() }
 
@@ -189,7 +185,11 @@ fun OnboardingScreen(
     var courseName by rememberSaveable { mutableStateOf<String?>(null) }
     var domainsCsv by rememberSaveable { mutableStateOf("") }
     var skillsCsv by rememberSaveable { mutableStateOf("") }
-    var rhythm by rememberSaveable { mutableStateOf(10) }
+    // « Ne pas préciser », à chaque question, comme le web.
+    var goalsUnset by rememberSaveable { mutableStateOf(false) }
+    var courseUnset by rememberSaveable { mutableStateOf(false) }
+    var interestsUnset by rememberSaveable { mutableStateOf(false) }
+    var skillsUnset by rememberSaveable { mutableStateOf(false) }
     var availName by rememberSaveable { mutableStateOf(Availability.Busy.name) }
     var country by rememberSaveable { mutableStateOf(me.country) }
     var languagesCsv by rememberSaveable { mutableStateOf(me.languages.joinToString(",").ifEmpty { "fr" }) }
@@ -216,11 +216,12 @@ fun OnboardingScreen(
     val current = flow[step.coerceIn(0, last)]
     val canContinue = when (current) {
         Step.Level -> level != null
-        Step.Goals -> goals.isNotEmpty()
-        Step.Course -> course != null
-        Step.Domains -> domains.isNotEmpty() && (!experienced || skills.size >= MIN_SKILLS || tags?.isEmpty() == true)
-        Step.Rhythm, Step.Help -> true
-        Step.Where -> country != null && languages.isNotEmpty()
+        Step.Goals -> goals.isNotEmpty() || goalsUnset
+        Step.Course -> course != null || courseUnset
+        Step.Domains -> (domains.isNotEmpty() || interestsUnset) &&
+            (!experienced || skills.size >= MIN_SKILLS || skillsUnset || tags?.isEmpty() == true)
+        Step.Help -> true
+        Step.Where -> languages.isNotEmpty()
         Step.Plan -> accepted && !state.busy
     }
     val progress = stringResource(Res.string.onb_progress, step + 1, flow.size)
@@ -244,24 +245,52 @@ fun OnboardingScreen(
                         levelName = l.name
                         goalsCsv = csv(goals.intersect(goalsFor(l).toSet()).map { it.name })
                     }
-                    Step.Goals -> GoalsStep(level ?: Level.Beginner, goals) { g ->
-                        goalsCsv = csv((if (g in goals) goals - g else goals + g).map { it.name })
+                    Step.Goals -> {
+                        GoalsStep(level ?: Level.Beginner, goals) { g ->
+                            goalsUnset = false
+                            goalsCsv = csv((if (g in goals) goals - g else goals + g).map { it.name })
+                        }
+                        UnsetCard(goalsUnset) {
+                            goalsUnset = !goalsUnset
+                            if (goalsUnset) goalsCsv = ""
+                        }
                     }
-                    Step.Course -> CourseStep(course) { courseName = it.name }
-                    Step.Domains -> DomainsStep(
-                        domains, skills, tags, experienced,
-                        onDomain = { d -> domainsCsv = csv((if (d in domains) domains - d else domains + d).map { it.name }) },
-                        onSkill = { slug ->
-                            skillsCsv = csv(if (slug in skills) skills - slug else if (skills.size < MAX_SKILLS) skills + slug else skills)
-                        },
-                    )
-                    Step.Rhythm -> {
-                        RhythmStep(rhythm) { rhythm = it }
-                        if (experienced) AvailabilityBlock(availability, mission, heading = true, { availName = it.name }, { mission = it })
+                    Step.Course -> {
+                        CourseStep(course) {
+                            courseUnset = false
+                            courseName = it.name
+                        }
+                        UnsetCard(courseUnset) {
+                            courseUnset = !courseUnset
+                            if (courseUnset) courseName = null
+                        }
+                    }
+                    Step.Domains -> {
+                        DomainsStep(
+                            domains, skills, tags, experienced,
+                            onDomain = { d ->
+                                interestsUnset = false
+                                domainsCsv = csv((if (d in domains) domains - d else domains + d).map { it.name })
+                            },
+                            onSkill = { slug ->
+                                skillsUnset = false
+                                skillsCsv = csv(if (slug in skills) skills - slug else if (skills.size < MAX_SKILLS) skills + slug else skills)
+                            },
+                            interestsUnset = interestsUnset,
+                            onInterestsUnset = {
+                                interestsUnset = !interestsUnset
+                                if (interestsUnset) domainsCsv = ""
+                            },
+                            skillsUnset = skillsUnset,
+                            onSkillsUnset = {
+                                skillsUnset = !skillsUnset
+                                if (skillsUnset) skillsCsv = ""
+                            },
+                        )
                     }
                     Step.Help -> AvailabilityBlock(availability, mission, heading = false, { availName = it.name }, { mission = it })
                     Step.Where -> WhereStep(me, country, languages, { country = it }, { languagesCsv = csv(it) })
-                    Step.Plan -> PlanStep(me, goals, learner, course, rhythm, experienced, domains.isNotEmpty(), country, languages, accepted, state.failed) { accepted = it }
+                    Step.Plan -> PlanStep(me, goals, learner, course, experienced, country, languages, accepted, state.failed) { accepted = it }
                 }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -292,8 +321,8 @@ fun OnboardingScreen(
                                     mission = mission && experienced,
                                     availableNow = if (experienced) availability == Availability.Now else null,
                                     skillSlugs = if (experienced) skills.take(MAX_SKILLS) else emptyList(),
-                                    dailyGoal = if (Step.Rhythm in flow) rhythm else null,
-                                    start = startFor(goals, learner, domains.isNotEmpty()),
+                                    dailyGoal = null,
+                                    start = startFor(goals, learner && course != null),
                                 ),
                             )
                         }
@@ -309,10 +338,17 @@ fun OnboardingScreen(
 @Composable
 private fun LevelStep(level: Level?, onPick: (Level) -> Unit) {
     DjeliBubble(Res.drawable.djeli_wave, stringResource(Res.string.onb_q_level), stringResource(Res.string.onb_h_level))
-    Level.entries.forEach { l ->
-        val (title, text, pose) = LevelCopy.getValue(l)
+    LevelCopy.forEach { (l, copy) ->
+        val (title, text, pose) = copy
         ChoiceCard(level == l, { onPick(l) }, stringResource(title), text = stringResource(text), mascot = pose)
     }
+    UnsetCard(level == Level.Unset) { onPick(Level.Unset) }
+}
+
+/** « Ne pas préciser » : toujours possible, à chaque question (comme le web). */
+@Composable
+private fun UnsetCard(selected: Boolean, onClick: () -> Unit) {
+    ChoiceCard(selected, onClick, stringResource(Res.string.onb_unset), icon = DevHubIcons.Close, check = true)
 }
 
 @Composable
@@ -353,6 +389,10 @@ private fun DomainsStep(
     experienced: Boolean,
     onDomain: (Domain) -> Unit,
     onSkill: (String) -> Unit,
+    interestsUnset: Boolean,
+    onInterestsUnset: () -> Unit,
+    skillsUnset: Boolean,
+    onSkillsUnset: () -> Unit,
 ) {
     var filter by rememberSaveable { mutableStateOf("") }
     DjeliBubble(Res.drawable.djeli_laptop, stringResource(Res.string.onb_q_domains), stringResource(Res.string.onb_h_domains))
@@ -366,6 +406,7 @@ private fun DomainsStep(
             }
         }
     }
+    UnsetCard(interestsUnset, onInterestsUnset)
     if (!experienced) return
     Text(stringResource(Res.string.onb_skills), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
     Text(stringResource(Res.string.onb_skills_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -394,20 +435,7 @@ private fun DomainsStep(
             color = if (enough) successColor else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-}
-
-@Composable
-private fun RhythmStep(rhythm: Int, onPick: (Int) -> Unit) {
-    DjeliBubble(Res.drawable.djeli_trophy, stringResource(Res.string.onb_q_rhythm), stringResource(Res.string.onb_h_rhythm))
-    RHYTHMS.forEach { min ->
-        ChoiceCard(
-            rhythm == min, { onPick(min) }, stringResource(rhythmTitle(min)),
-            text = stringResource(Res.string.onb_rhythm_t, min),
-            leading = {
-                Text(min.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(44.dp))
-            },
-        )
-    }
+    UnsetCard(skillsUnset, onSkillsUnset)
 }
 
 /** Disponibilité pour aider, et ouverture aux missions : demandées aux devs seulement. */
@@ -509,9 +537,7 @@ private fun PlanStep(
     goals: Set<Goal>,
     learner: Boolean,
     course: Course?,
-    rhythm: Int,
     experienced: Boolean,
-    hasDomains: Boolean,
     country: String?,
     languages: Set<String>,
     accepted: Boolean,
@@ -519,17 +545,19 @@ private fun PlanStep(
     onAccept: (Boolean) -> Unit,
 ) {
     DjeliBubble(Res.drawable.djeli_celebrate, stringResource(Res.string.onb_q_plan), stringResource(Res.string.onb_h_plan))
-    val target = when (startFor(goals, learner, hasDomains)) {
+    val target = when (startFor(goals, learner && course != null)) {
         StartTarget.Home -> Res.string.onb_plan_home
         StartTarget.Certifications -> Res.string.onb_plan_certs
         StartTarget.Jobs -> Res.string.onb_plan_jobs
         StartTarget.Sos -> Res.string.onb_plan_sos
+        StartTarget.Projects -> Res.string.onb_plan_projects
+        StartTarget.Preflight -> Res.string.onb_plan_preflight
     }
     val countryName = country?.let { code -> africa.devhub.onboarding.AfricanCountries.firstOrNull { it.code == code }?.name(me.uiLang) }
     val langs = languages.sorted().joinToString(" · ") { if (it == "en") "English" else "Français" }
     DevCard {
         if (learner && course != null) {
-            NavRow(courseIcon(course), stringResource(Res.string.onb_plan_course, stringResource(courseTitle(course))), {}, chevron = false, detail = stringResource(Res.string.onb_plan_course_t, rhythm))
+            NavRow(courseIcon(course), stringResource(Res.string.onb_plan_course, stringResource(courseTitle(course))), {}, chevron = false, detail = stringResource(Res.string.onb_plan_course_t))
             RowDivider()
         }
         NavRow(DevHubIcons.Sparkles, stringResource(Res.string.onb_plan_first, stringResource(target)), {}, chevron = false)

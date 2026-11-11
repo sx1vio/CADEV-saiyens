@@ -49,6 +49,7 @@ fun DevHubApp(graph: AppGraph) {
                 is AppState.SignedOut -> SignInScreen(
                     state = s,
                     devSignIn = graph.config.devSignIn,
+                    webBaseUrl = graph.config.apiBaseUrl,
                     onSignInWithGithub = viewModel::signInWithGithub,
                     onSignInWithEmail = viewModel::signInWithEmail,
                     onRegisterWithEmail = viewModel::registerWithEmail,

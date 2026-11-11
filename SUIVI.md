@@ -179,6 +179,16 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 11/11/2026 (nuit, fin) — App mobile : même interface que le web mobile
+
+- **Demande de Sylvio** — « que l'app mobile ait la même interface exactement que la version mobile du site web : connexion, inscription, onboarding… ».
+- **Coque** (`ui/components/WebChrome.kt`) — en-tête du web (menu, symbole, recherche, messages, alertes, avatar) et barre d'onglets flottante sombre (Accueil, Emplois, « + », Certifs, Pré-vol) sur les écrans racine ; flèche retour sur les détails. Le « + » ouvre la feuille « Créer » du web (publier, je suis bloqué, ouvrir un projet, lancer un pré-vol) ; la recherche liste toutes les pages.
+- **Accueil** — onglets dans l'ordre du web (Pour toi, Questions, Actualité), puce « Mes sujets », troisième raccourci « Faire tester », avatar du compte.
+- **Connexion et inscription** — refaites comme `Login.tsx` : titre et bascule, Djeli, « Continuer avec GitHub », séparateur, libellés au-dessus des champs, erreur sous chaque champ, œil du mot de passe, « Mot de passe oublié ? », jauge de force (même règle que le web), règles de la communauté, note de sécurité.
+- **Onboarding** — modèle aligné sur le parcours web du 09/11 : trois niveaux et « Ne pas préciser », les sept objectifs du web, plus d'étape « rythme », « Ne pas préciser » à chaque question, première page selon le premier objectif (questions, emplois, certifications, projets, pré-vol).
+- **Vérifié en local** — SDK Android présent sur la machine (`~/Android/sdk`) : `./gradlew :shared:testAndroidHostTest` passe (compilation commune + tests, dont les nouveaux tests du parcours).
+- **CI bloquée** — depuis 20 h 22 UTC, toutes les exécutions GitHub Actions restent « en file d'attente » (dépôt privé : quota de minutes probablement épuisé). Rien de la soirée n'est donc déployé tant que ce n'est pas réglé.
+
 ### 11/11/2026 (nuit, suite) — Admin : gérer les actus, skills et vidéos
 
 - **Demande de Sylvio** — « depuis l'admin on doit pouvoir ajouter, retirer, modifier les trucs de la plateforme : les skills, les actus (grâce au lien), etc. »

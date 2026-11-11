@@ -327,6 +327,8 @@ fun SignedInArea(
             StartTarget.Certifications -> navController.navigate(CertsRoute)
             StartTarget.Jobs -> navController.navigate(JobsRoute)
             StartTarget.Sos -> navController.navigate(SosRoute)
+            StartTarget.Projects -> navController.navigate(RoomsRoute)
+            StartTarget.Preflight -> navController.navigate(PreflightRoute)
             StartTarget.Home -> Unit
         }
         if (start != StartTarget.Home) onStartHandled()
