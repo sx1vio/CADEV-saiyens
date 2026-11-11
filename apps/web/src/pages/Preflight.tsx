@@ -1,5 +1,4 @@
 import type {
-  ApiTokenItem,
   ApiTokenScope,
   PreflightFix,
   CreateApiTokenResponse,
@@ -34,9 +33,7 @@ import {
   Download,
   Gauge,
   GitBranch,
-  KeyRound,
   Plug,
-  Trash2,
   Globe,
   Info,
   Package,
@@ -53,7 +50,7 @@ import {
   BadgeCheck,
   GitPullRequest,
 } from 'lucide-react';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain';
