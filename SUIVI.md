@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 (soir) — Menus de l'en-tête au survol et au clic, pages réservées aux membres
+
+- **Retours de Sylvio** — les menus de l'en-tête public (Réseau, Progresser, Livrer, À propos) doivent s'ouvrir au survol ET au clic ; trop de pages se consultaient sans compte.
+- **Menus** — le survol ouvrait le menu et le clic qui suivait le refermait ; un menu se fermait aussi en passant au suivant (fermeture différée partagée). Désormais : survol = ouverture, clic = ouverture épinglée (un second clic, Échap ou un clic ailleurs la ferment), chaque menu ne ferme que lui-même. Vérifié au navigateur.
+- **Pages réservées** — sans compte, toutes les pages de la plateforme passent par la connexion puis reviennent à la page demandée (chemin et paramètres) : publication, emplois, entreprises, certifications, leçons, outils IA, sources, pré-vol, MCP, banc d'essai, questions, projets, salles, développeurs, carte, Systalink, impact. Restent publics : la landing, connexion/inscription/mot de passe, règles, confidentialité, profil public `/u/…`, vérification d'un certificat `/certificat/…` et d'un label `/label/…`. Vérifié au navigateur ; tests e2e `landing` et `status-history` adaptés.
+
 ### 12/11/2026 (après-midi, suite) — Fil façon LinkedIn + GitHub, avec photos
 
 - **Demande de Sylvio** — « le LinkedIn des devs et le GitHub des non-devs » : pouvoir publier de tout dans l'accueil, pas seulement ses blocages.

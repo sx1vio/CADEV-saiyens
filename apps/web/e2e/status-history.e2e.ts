@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
+import { signIn, uniqueLogin } from './support/session';
 
 /**
  * Y5 : l'écran /systalink dessine la disponibilité des 7 derniers jours à partir de
@@ -17,6 +18,8 @@ test('disponibilité sur 7 jours : barres par jour et jours sans mesure', async 
     stdio: ['pipe', 'ignore', 'inherit'],
   });
 
+  // Page réservée aux membres depuis le 12/11/2026.
+  await signIn(page, uniqueLogin('status'));
   await page.goto('/systalink');
   const section = page.locator('section', {
     has: page.getByRole('heading', { name: 'Disponibilité sur 7 jours' }),

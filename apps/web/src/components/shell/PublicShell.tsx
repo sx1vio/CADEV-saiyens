@@ -217,8 +217,13 @@ function HeaderMenu({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const timer = useRef<number | undefined>(undefined);
+  /** Ouvert par un clic : le survol ne le referme plus, seul un second clic, Échap ou ailleurs. */
+  const pinned = useRef(false);
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      pinned.current = false;
+      return;
+    }
     const down = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && onClose();
     const key = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('pointerdown', down);
@@ -238,12 +243,20 @@ function HeaderMenu({
       ref={ref}
       className="relative"
       onPointerEnter={hover(onOpen, 60)}
-      onPointerLeave={hover(onClose, 160)}
+      onPointerLeave={hover(() => !pinned.current && onClose(), 220)}
     >
       <button
         type="button"
         aria-expanded={open}
-        onClick={() => (open ? onClose() : onOpen())}
+        aria-haspopup="true"
+        onClick={() => {
+          window.clearTimeout(timer.current);
+          // Recette du 12/11/2026 : le survol ouvrait le menu et le clic qui suivait le refermait.
+          // Un clic ouvre et épingle ; un second clic sur un menu épinglé le referme.
+          if (open && pinned.current) return onClose();
+          pinned.current = true;
+          onOpen();
+        }}
         className={cn(
           'inline-flex h-9 items-center gap-1 rounded-full px-3.5 text-[15px] font-medium text-fg transition-colors hover:bg-surface-2',
           open && 'bg-surface-2',
@@ -379,7 +392,6 @@ export function PublicShell() {
     setShownPath(pathname);
     setMenu(null);
   }
-  const close = () => setMenu(null);
   // L'accueil public est toujours sombre (Landing) : pas de bouton clair/sombre sur cette page.
   const themeLocked = pathname === '/';
 
@@ -400,7 +412,8 @@ export function PublicShell() {
                 menu={m}
                 open={menu === i}
                 onOpen={() => setMenu(i)}
-                onClose={close}
+                // Ne referme que ce menu : une fermeture différée ne doit pas fermer le suivant.
+                onClose={() => setMenu((m) => (m === i ? null : m))}
               />
             ))}
           </nav>
