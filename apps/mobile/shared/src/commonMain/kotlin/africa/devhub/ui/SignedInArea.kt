@@ -57,6 +57,12 @@ import africa.devhub.onboarding.StartTarget
 import africa.devhub.passport.PassportViewModel
 import africa.devhub.passport.ProofsViewModel
 import africa.devhub.resources.Res
+import africa.devhub.resources.drawer_about
+import africa.devhub.resources.nav_impact
+import africa.devhub.resources.nav_host
+import africa.devhub.resources.nav_mcp
+import africa.devhub.resources.nav_sources
+import africa.devhub.resources.nav_privacy
 import africa.devhub.resources.email_back
 import africa.devhub.resources.nav_home
 import africa.devhub.resources.home_menu
@@ -428,6 +434,12 @@ fun SignedInArea(
             }
         }
     }
+    val siteHandler = LocalUriHandler.current
+    val siteBase = graph.config.apiBaseUrl.trimEnd('/')
+    val openSite: (String) -> Unit = { path ->
+        scope.launch { drawerState.close() }
+        siteHandler.openWeb(siteBase + path)
+    }
     val leaderboard = entry?.takeIf { onDiscover }?.toRoute<DiscoverRoute>()?.leaderboard == true
     val drawerKey = when {
         destination?.hasRoute<HomeRoute>() == true -> "home"
@@ -441,6 +453,7 @@ fun SignedInArea(
         onPreflight || onPreflightReport -> "preflight"
         onBench || onBenchNew || onBenchReport -> "bench"
         onDevMap -> "devmap"
+        destination?.hasRoute<RulesRoute>() == true -> "rules"
         else -> null
     }
     val groups = listOf(
@@ -472,6 +485,18 @@ fun SignedInArea(
             listOf(
                 DrawerEntry("profile", stringResource(Res.string.nav_profile), DevHubIcons.Person) { go(PassportRoute(me.handle)) },
                 DrawerEntry("devmap", stringResource(Res.string.nav_devmap), DevHubIcons.Map) { go(DevMapRoute) },
+            ),
+        ),
+        // Pages d'information du site (#202) : les règles dans l'application, le reste dans le navigateur.
+        DrawerGroup(
+            stringResource(Res.string.drawer_about),
+            listOf(
+                DrawerEntry("rules", stringResource(Res.string.nav_rules), DevHubIcons.Info) { go(RulesRoute) },
+                DrawerEntry("impact", stringResource(Res.string.nav_impact), DevHubIcons.Trophy) { openSite("/impact") },
+                DrawerEntry("systalink", stringResource(Res.string.nav_host), DevHubIcons.Server) { openSite("/systalink") },
+                DrawerEntry("mcp", stringResource(Res.string.nav_mcp), DevHubIcons.Sparkles) { openSite("/mcp") },
+                DrawerEntry("sources", stringResource(Res.string.nav_sources), DevHubIcons.News) { openSite("/sources") },
+                DrawerEntry("privacy", stringResource(Res.string.nav_privacy), DevHubIcons.Lock) { openSite("/confidentialite") },
             ),
         ),
     )
@@ -838,7 +863,7 @@ fun SignedInArea(
                 composable<SettingsRoute> {
                     val vm = viewModel { SettingsViewModel(graph.meApi, graph.passportApi, me, space, onMeUpdated, onAccountDeleted) }
                     val state by vm.state.collectAsStateWithLifecycle()
-                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount, onRules = { navController.navigate(RulesRoute) })
+                    SettingsScreen(state, me.handle, vm::edit, vm::save, vm::deleteAccount, onRules = { navController.navigate(RulesRoute) }, onPrivacyPolicy = { openSite("/confidentialite") })
                 }
                 composable<SyncRoute> {
                     SyncCenterScreen(

@@ -1,6 +1,7 @@
 package africa.devhub.ui.settings
 
 import africa.devhub.resources.Res
+import africa.devhub.resources.settings_privacy_policy
 import africa.devhub.resources.lang_en
 import africa.devhub.resources.lang_fr
 import africa.devhub.resources.privacy_availability
@@ -73,6 +74,7 @@ fun SettingsScreen(
     onSave: () -> Unit,
     onDelete: (String) -> Unit,
     onRules: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
 ) {
     val f = state.form
     ScreenColumn {
@@ -137,6 +139,7 @@ fun SettingsScreen(
 
         DevCard {
             NavRow(DevHubIcons.Info, stringResource(Res.string.nav_rules), onClick = onRules)
+            NavRow(DevHubIcons.Lock, stringResource(Res.string.settings_privacy_policy), onClick = onPrivacyPolicy)
         }
 
         when {
