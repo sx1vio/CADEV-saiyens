@@ -77,6 +77,8 @@ const en: Dict = {
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
     myPassport: 'My profile',
+    infoLabel: 'Help and info',
+    infoAria: 'About DevHub',
     noRooms: 'No rooms yet',
     newRoom: 'New room',
     tour: 'Guided tour',
@@ -119,6 +121,11 @@ const en: Dict = {
     testbench: 'Test bench',
     mcp: 'AI agents (MCP)',
     mcpShort: 'AI agents',
+    host: 'Host on Systalink',
+    hostShort: 'Host',
+    systalinkHelp: 'Systalink hosting help',
+    sources: 'Our sources',
+    privacy: 'Privacy',
     profile: 'Profile',
     explore: 'Grow',
     create: 'Create',
@@ -813,6 +820,7 @@ const en: Dict = {
     leaderboardCta: 'Country leaderboard',
   },
   map: {
+    seeImpact: 'See DevHub’s impact',
     title: 'Map of Africa',
     subtitle:
       'DevHub developers, country by country. Click a country to see its numbers and its developers.',
@@ -1088,6 +1096,11 @@ const en: Dict = {
     deleted: 'Account deleted.',
     saved: 'Profile saved.',
     privacyTitle: 'Passport privacy',
+    privacyPolicy: 'Read the privacy policy',
+    agentsTitle: 'AI agents and tokens',
+    agentsText:
+      'Connect Claude Code, Cursor or Codex to DevHub with a revocable token, and manage your tokens.',
+    agentsCta: 'Manage my tokens',
     privacyText:
       'What your public Passport shows. Your contributions and their proofs stay visible.',
     privacy: {

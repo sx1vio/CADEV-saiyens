@@ -633,7 +633,7 @@ function NewsStream() {
 
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <div className="flex gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         {(
           [
             ['all', 'Tout'],
@@ -646,6 +646,9 @@ function NewsStream() {
             {l}
           </Chip>
         ))}
+        <Link to="/sources" className="ml-auto text-[13px] text-accent-text hover:underline">
+          D’où viennent ces actus ?
+        </Link>
       </div>
       {!home.data && home.error ? (
         <p className="dh-panel p-6 text-[14px] text-muted">
