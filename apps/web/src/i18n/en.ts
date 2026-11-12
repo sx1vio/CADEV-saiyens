@@ -1068,6 +1068,22 @@ const en: Dict = {
   },
   settings: {
     title: 'Settings',
+    github: 'GitHub account',
+    githubLinkedAs:
+      'Linked to github.com/{{login}}. Your public activity and repositories feed your Passport.',
+    githubNone:
+      'Link your GitHub to show your repositories, activity and skills on your Passport. Your DevHub handle stays the same.',
+    githubLink: 'Link my GitHub',
+    githubUnlink: 'Unlink',
+    githubUnlinkNeedsPassword: 'Your account has no password: GitHub is your only way to sign in.',
+    githubUnlinked: 'GitHub unlinked.',
+    githubResult: {
+      relie: 'GitHub linked to your account. Importing your repositories.',
+      github_taken: 'This GitHub is already linked to another DevHub account.',
+      already_linked: 'Your account is already linked to another GitHub. Unlink it first.',
+      github_unavailable: 'GitHub did not respond. Try again in a moment.',
+      access_denied: 'Linking cancelled on GitHub.',
+    },
     profile: 'Profile',
     displayName: 'Display name',
     bio: 'Bio',
@@ -1151,6 +1167,7 @@ const en: Dict = {
   errors: {
     generic: 'Something went wrong. Try again in a moment.',
     auth_required: 'Log in to do that.',
+    account_password_required: 'Set a password first: without it you could no longer sign in.',
     'not-found': 'Not found.',
     forbidden: "You don't have permission to do that.",
     deployment_proof_missing:

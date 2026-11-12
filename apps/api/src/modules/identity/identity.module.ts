@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ENV } from '../../infrastructure/config/config.module';
 import type { Env } from '../../infrastructure/config/env';
 import { MAILER, SmtpMailer } from '../../infrastructure/mail/mailer';
+import { LinkGithub } from './application/link-github';
 import { SignInWithEmail } from './application/sign-in-with-email';
 import { SignInWithGithub } from './application/sign-in-with-github';
 import { AesGcmTokenCipher } from './infrastructure/aes-gcm-token-cipher';
@@ -61,6 +62,17 @@ import { PasswordResets } from './infrastructure/password-resets';
           new AesGcmTokenCipher(env.TOKEN_ENCRYPTION_KEY),
           { now: () => new Date() },
           signUps,
+        ),
+    },
+    {
+      provide: LinkGithub,
+      inject: [ENV, PrismaIdentityRepository, EnqueueProfileImport],
+      useFactory: (env: Env, accounts: PrismaIdentityRepository, imports: EnqueueProfileImport) =>
+        new LinkGithub(
+          accounts,
+          new AesGcmTokenCipher(env.TOKEN_ENCRYPTION_KEY),
+          { now: () => new Date() },
+          imports,
         ),
     },
     {

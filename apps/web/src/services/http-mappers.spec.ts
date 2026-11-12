@@ -46,6 +46,8 @@ describe('préférence e-mail (Y3)', () => {
     emailNotifications: false,
     lookingFor: null,
     githubLinked: true,
+    githubLogin: 'awa-dev',
+    hasPassword: false,
     githubCreatedAt: null,
     codeOfConductAcceptedAt: null,
     isAdmin: false,

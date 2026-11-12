@@ -171,6 +171,8 @@ enum ContentType {
 model User {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   githubId           BigInt?   @unique @map("github_id")
+  /// Login GitHub réel (le pseudo DevHub peut différer : compte e-mail relié plus tard, suffixe anti-collision).
+  githubLogin        String?   @map("github_login") @db.Citext
   handle             String    @unique @db.Citext
   displayName        String    @map("display_name")
   email              String?   @unique @db.Citext

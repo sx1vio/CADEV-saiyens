@@ -78,6 +78,8 @@ export interface DevHubApi {
   updateMe(input: ProfileInput): Promise<User>;
   /** A3 : anonymise le compte ; `confirmHandle` est le pseudo retapé par la personne. */
   deleteMe(confirmHandle: string): Promise<void>;
+  /** Délie GitHub (compte avec mot de passe seulement) ; la liaison passe par githubLinkUrl. */
+  unlinkGithub(): Promise<User>;
   setMySkills(slugs: string[]): Promise<void>;
 
   /* Référentiels */

@@ -50,6 +50,7 @@ export class SignInWithGithub {
           : null;
       await this.accounts.refresh({
         userId: existing.userId,
+        githubLogin: identity.login,
         avatarUrl: identity.avatarUrl,
         email,
         githubCreatedAt: identity.createdAt,
@@ -69,6 +70,7 @@ export class SignInWithGithub {
         avatarUrl: identity.avatarUrl,
         email,
         githubId: identity.githubId,
+        githubLogin: identity.login,
         githubCreatedAt: identity.createdAt,
         accessTokenEnc,
         scopes: identity.scopes,

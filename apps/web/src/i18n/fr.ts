@@ -1096,6 +1096,23 @@ const fr = {
   },
   settings: {
     title: 'Réglages',
+    github: 'Compte GitHub',
+    githubLinkedAs:
+      'Relié à github.com/{{login}}. Ton activité et tes dépôts publics nourrissent ton Passport.',
+    githubNone:
+      'Relie ton GitHub pour afficher tes dépôts, ton activité et tes compétences sur ton Passport. Ton pseudo DevHub ne change pas.',
+    githubLink: 'Relier mon GitHub',
+    githubUnlink: 'Délier',
+    githubUnlinkNeedsPassword:
+      'Ton compte n’a pas de mot de passe : GitHub est ta seule connexion.',
+    githubUnlinked: 'GitHub délié.',
+    githubResult: {
+      relie: 'GitHub relié à ton compte. Import de tes dépôts en cours.',
+      github_taken: 'Ce GitHub est déjà relié à un autre compte DevHub.',
+      already_linked: 'Ton compte est déjà relié à un autre GitHub. Délie-le d’abord.',
+      github_unavailable: 'GitHub n’a pas répondu. Réessaie dans un instant.',
+      access_denied: 'Liaison annulée sur GitHub.',
+    },
     profile: 'Profil',
     displayName: 'Nom affiché',
     bio: 'Bio',
@@ -1179,6 +1196,8 @@ const fr = {
   errors: {
     generic: 'Quelque chose a coincé. Réessaie dans un instant.',
     auth_required: 'Connecte-toi pour faire ça.',
+    account_password_required:
+      'Choisis d’abord un mot de passe : sans lui, tu ne pourrais plus te connecter.',
     'not-found': 'Introuvable.',
     forbidden: "Tu n'as pas les droits pour faire ça.",
     deployment_proof_missing:

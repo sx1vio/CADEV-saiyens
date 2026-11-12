@@ -228,6 +228,10 @@ export const httpApi: DevHubApi = {
     if (input.codeOfConductAcceptedAt) await post('/me/code-of-conduct');
     return sessionOrThrow();
   },
+  unlinkGithub: async () => {
+    await call('DELETE', '/me/github');
+    return sessionOrThrow();
+  },
   deleteMe: async (confirmHandle) => {
     const body: DeleteMeRequest = { confirmHandle };
     try {

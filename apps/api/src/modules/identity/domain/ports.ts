@@ -25,6 +25,7 @@ export interface NewAccount {
   avatarUrl: string | null;
   email: string | null;
   githubId: bigint;
+  githubLogin: string;
   githubCreatedAt: Date;
   accessTokenEnc: Uint8Array;
   scopes: string[];
@@ -33,6 +34,7 @@ export interface NewAccount {
 
 export interface AccountRefresh {
   userId: string;
+  githubLogin: string;
   avatarUrl: string | null;
   email: string | null;
   githubCreatedAt: Date;
@@ -48,6 +50,24 @@ export interface IdentityRepository {
   isEmailAvailable(email: string, exceptUserId?: string): Promise<boolean>;
   create(account: NewAccount): Promise<ExistingAccount>;
   refresh(account: AccountRefresh): Promise<void>;
+  /** Compte déjà relié à un GitHub (null sinon) : on ne remplace jamais un GitHub par un autre. */
+  linkedGithubId(userId: string): Promise<bigint | null>;
+  /** Relie un GitHub à un compte existant (ouvert par e-mail). */
+  link(account: GithubLink): Promise<void>;
+}
+
+export interface GithubLink {
+  userId: string;
+  githubId: bigint;
+  githubLogin: string;
+  githubCreatedAt: Date;
+  /** Photo GitHub, posée seulement si le compte n'en a pas. */
+  avatarUrl: string | null;
+  /** E-mail GitHub vérifié, posé seulement si le compte n'a pas d'adresse. */
+  email: string | null;
+  accessTokenEnc: Uint8Array;
+  scopes: string[];
+  now: Date;
 }
 
 export interface NewSession {

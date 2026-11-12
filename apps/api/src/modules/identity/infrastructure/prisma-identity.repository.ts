@@ -3,6 +3,7 @@ import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import type {
   AccountRefresh,
   ExistingAccount,
+  GithubLink,
   IdentityRepository,
   NewAccount,
 } from '../domain/ports';
@@ -39,6 +40,7 @@ export class PrismaIdentityRepository implements IdentityRepository {
         email: a.email,
         emailVerified: a.email !== null,
         githubId: a.githubId,
+        githubLogin: a.githubLogin,
         githubCreatedAt: a.githubCreatedAt,
         lastSeenAt: a.now,
         oauthAccounts: {
@@ -61,6 +63,7 @@ export class PrismaIdentityRepository implements IdentityRepository {
         where: { id: a.userId },
         data: {
           avatarUrl: a.avatarUrl,
+          githubLogin: a.githubLogin,
           githubCreatedAt: a.githubCreatedAt,
           lastSeenAt: a.now,
           ...(a.email ? { email: a.email, emailVerified: true } : {}),
@@ -75,6 +78,41 @@ export class PrismaIdentityRepository implements IdentityRepository {
           },
         },
         data: { accessTokenEnc: Buffer.from(a.accessTokenEnc), scopes: a.scopes },
+      });
+    });
+  }
+
+  async linkedGithubId(userId: string): Promise<bigint | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { githubId: true },
+    });
+    return user?.githubId ?? null;
+  }
+
+  async link(a: GithubLink): Promise<void> {
+    const providerAccountId = a.githubId.toString();
+    const token = { accessTokenEnc: Buffer.from(a.accessTokenEnc), scopes: a.scopes };
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUniqueOrThrow({
+        where: { id: a.userId },
+        select: { avatarUrl: true, email: true },
+      });
+      await tx.user.update({
+        where: { id: a.userId },
+        data: {
+          githubId: a.githubId,
+          githubLogin: a.githubLogin,
+          githubCreatedAt: a.githubCreatedAt,
+          lastSeenAt: a.now,
+          ...(user.avatarUrl ? {} : { avatarUrl: a.avatarUrl }),
+          ...(!user.email && a.email ? { email: a.email, emailVerified: true } : {}),
+        },
+      });
+      await tx.oAuthAccount.upsert({
+        where: { provider_providerAccountId: { provider: 'github', providerAccountId } },
+        create: { userId: a.userId, provider: 'github', providerAccountId, ...token },
+        update: token,
       });
     });
   }

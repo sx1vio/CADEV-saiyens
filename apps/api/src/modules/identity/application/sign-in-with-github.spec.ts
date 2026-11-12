@@ -49,6 +49,10 @@ class InMemoryAccounts implements IdentityRepository {
     row.email = a.email;
     row.data = a;
   }
+  async linkedGithubId(): Promise<bigint | null> {
+    return null;
+  }
+  async link(): Promise<void> {}
 }
 
 class InMemorySessions implements SessionStore {

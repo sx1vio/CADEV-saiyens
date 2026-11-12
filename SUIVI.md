@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 (après-midi) — Relier GitHub à un compte ouvert par e-mail
+
+- **Retour de Sylvio** — après une inscription par e-mail, impossible de relier son GitHub ; le Passport affichait un lien `github.com/<pseudo DevHub>` qui menait à une 404 quand le pseudo n'était pas le login GitHub.
+- **API** — colonne `users.github_login` (migration `20261112120000_github_login`, rempli avec le pseudo pour les comptes déjà reliés, corrigé à la prochaine connexion GitHub) ; route `GET /api/v1/auth/github/link` (session par cookie, jamais un jeton d'API) ; le callback relie le GitHub au compte au lieu d'en créer un (`LinkGithub` : refuse un GitHub déjà pris par un autre compte ou le remplacement d'un GitHub par un autre, lance l'import des dépôts, ne touche pas au pseudo) ; `DELETE /api/v1/me/github` (seulement si le compte a un mot de passe) ; `/me` renvoie `githubLogin` et `hasPassword`, le Passport `githubLogin`. 5 tests ajoutés.
+- **Web** — carte « Compte GitHub » dans les Réglages (relier, délier) ; Passport : lien vers le vrai login GitHub, ou « Relier mon GitHub » sur son propre profil, rien sinon ; message au retour de GitHub.
+
 ### 12/11/2026 (suite) — Lighthouse retiré du pré-vol, dossier de soumission à jour
 
 - **Demande de Sylvio** — retirer du pré-vol ce qui dépend de la clé PageSpeed (« Lighthouse indisponible » en démo).

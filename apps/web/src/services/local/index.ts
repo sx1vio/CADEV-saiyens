@@ -279,6 +279,10 @@ export const localApi: DevHubApi = {
     });
   },
 
+  async unlinkGithub() {
+    throw new DomainError('forbidden');
+  },
+
   async deleteMe() {
     await write((e, me) => e.deleteAccount(me.id, Date.now()));
     storageSet(SESSION_KEY, null);

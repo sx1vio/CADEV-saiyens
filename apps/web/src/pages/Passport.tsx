@@ -47,6 +47,7 @@ import { GithubActivity } from '@/components/passport/GithubActivity';
 import { ReadyApps } from '@/components/passport/ReadyApps';
 import { Page } from './_layout';
 import { BrandLogo } from '@/platform/logos';
+import { linkGithubHref, useGithubLinkResult } from '@/components/GithubLink';
 import { PLATFORM_CERTS } from '@/platform/data/certs';
 import { certsApi } from '@/platform/certs-api';
 import { CertBadge } from '@/platform/ui';
@@ -67,6 +68,7 @@ export default function Passport() {
   const [contact, setContact] = useState(false);
   const [opening, setOpening] = useState(false);
   const nav = useNavigate();
+  useGithubLinkResult();
   const [card, setCard] = useState(false);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -98,10 +100,13 @@ export default function Passport() {
 
   const u = p.user;
   const isMe = me?.id === u.id;
-  const ghYears = Math.max(
-    1,
-    Math.floor((now - new Date(u.githubCreatedAt).getTime()) / (365 * 864e5)),
-  );
+  // Ancienneté GitHub donnée par l'API ; à défaut (mode local), calculée depuis la création du compte.
+  const ghYears =
+    u.githubYears ??
+    Math.max(1, Math.floor((now - new Date(u.githubCreatedAt).getTime()) / (365 * 864e5)));
+  // Vrai login GitHub : un compte ouvert par e-mail n'en a pas, son pseudo DevHub n'est pas un
+  // compte GitHub (le lien menait à une 404). Le mode local garde le pseudo, issu du login.
+  const ghLogin = api.mode === 'http' ? (u.githubLogin ?? null) : u.handle;
   const proofsBySkill = (tagId: string) =>
     p.proofs.filter((e) => e.kind !== 'revert' && (e.tagIds ?? [e.tagId]).includes(tagId));
 
@@ -230,15 +235,27 @@ export default function Passport() {
                   {formatUtc(u.utcOffset)} ·{' '}
                   <span className="uppercase">{u.languages.join(' / ')}</span>
                 </span>
-                <a
-                  href={`https://github.com/${u.handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 hover:text-fg hover:underline"
-                >
-                  <BrandLogo name="GitHub" size={14} />
-                  {u.handle} · {t('common.githubYears', { count: ghYears })}
-                </a>
+                {ghLogin ? (
+                  <a
+                    href={`https://github.com/${ghLogin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 hover:text-fg hover:underline"
+                  >
+                    <BrandLogo name="GitHub" size={14} />
+                    {ghLogin} · {t('common.githubYears', { count: ghYears })}
+                  </a>
+                ) : (
+                  isMe && (
+                    <a
+                      href={linkGithubHref(`/u/${u.handle}`)}
+                      className="inline-flex items-center gap-1.5 font-medium text-accent-text hover:underline"
+                    >
+                      <BrandLogo name="GitHub" size={14} />
+                      {t('settings.githubLink')}
+                    </a>
+                  )
+                )}
                 {u.emailVerified && (
                   <span className="inline-flex items-center gap-1.5">
                     <BadgeCheck className="size-3.5 text-subtle" />

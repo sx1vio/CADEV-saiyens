@@ -19,6 +19,7 @@ import type { Request, Response } from 'express';
 import { createZodDto } from 'nestjs-zod';
 import { ENV } from '../../../infrastructure/config/config.module';
 import type { Env } from '../../../infrastructure/config/env';
+import { LinkGithub, LinkGithubRefused } from '../application/link-github';
 import { SignInWithGithub } from '../application/sign-in-with-github';
 import type { GithubOAuthProvider } from '../domain/ports';
 import {
@@ -38,7 +39,13 @@ import {
 import { PrismaSessionStore } from '../infrastructure/prisma-session.store';
 import { OAUTH_STATE_COOKIE, SESSION_COOKIE, baseCookie, readCookie } from './cookies';
 import { AllowCrossOrigin } from './origin.guard';
-import { type AuthenticatedUser, CurrentUser, SessionGuard } from './session.guard';
+import {
+  type AuthenticatedUser,
+  CurrentUser,
+  OptionalSessionGuard,
+  OptionalUser,
+  SessionGuard,
+} from './session.guard';
 
 class MobileTokenRequestDto extends createZodDto(MobileTokenRequest) {}
 class MobileTokenResponseDto extends createZodDto(MobileTokenResponse) {}
@@ -56,6 +63,7 @@ export class AuthController {
     @Inject(ENV) private readonly env: Env,
     @Inject(GITHUB_OAUTH_PROVIDER) private readonly github: GithubOAuthProvider,
     private readonly signIn: SignInWithGithub,
+    private readonly linkGithub: LinkGithub,
     private readonly sessions: PrismaSessionStore,
   ) {
     this.redirectUri = new URL('/api/v1/auth/github/callback', env.API_URL).toString();
@@ -68,6 +76,27 @@ export class AuthController {
     @Res() res: Response,
   ): void {
     this.authorize(res, newOAuthState(safeReturnTo(returnTo), Date.now()), loginHint);
+  }
+
+  /**
+   * Relier GitHub à un compte ouvert par e-mail (12/11/2026), depuis les réglages ou le Passport.
+   * Navigation du navigateur : session par cookie uniquement (jamais un jeton d'API).
+   */
+  @Get('github/link')
+  @UseGuards(OptionalSessionGuard)
+  startLink(
+    @OptionalUser() auth: AuthenticatedUser | null,
+    @Query('returnTo') returnTo: unknown,
+    @Query('login') loginHint: string | undefined,
+    @Res() res: Response,
+  ): void {
+    const back = safeReturnTo(returnTo === undefined ? '/reglages' : returnTo);
+    if (!auth || auth.tokenScope) {
+      const url = new URL('/connexion', this.env.APP_URL);
+      url.searchParams.set('next', back);
+      return res.redirect(302, url.toString());
+    }
+    this.authorize(res, newOAuthState(back, Date.now(), undefined, auth.userId), loginHint);
   }
 
   /**
@@ -116,6 +145,8 @@ export class AuthController {
       oauth?.appChallenge ? this.failMobile(res, reason) : this.fail(res, reason);
     if (error) return fail(error === 'access_denied' ? 'access_denied' : 'github_error');
     if (!oauth || !code) return fail('invalid_state');
+
+    if (oauth.linkUserId) return this.finishLink(res, oauth, code);
 
     try {
       const identity = await this.github.exchange(code, oauth.codeVerifier, this.redirectUri);
@@ -185,6 +216,23 @@ export class AuthController {
   ): Promise<void> {
     await this.sessions.revoke(auth.sessionIdHash);
     res.clearCookie(SESSION_COOKIE, baseCookie);
+  }
+
+  private async finishLink(res: Response, oauth: OAuthState, code: string): Promise<void> {
+    const back = new URL(oauth.returnTo, this.env.APP_URL);
+    try {
+      const identity = await this.github.exchange(code, oauth.codeVerifier, this.redirectUri);
+      await this.linkGithub.execute(oauth.linkUserId!, identity);
+      back.searchParams.set('github', 'relie');
+    } catch (err) {
+      if (err instanceof LinkGithubRefused) {
+        back.searchParams.set('github', err.reason);
+      } else {
+        this.logger.error({ err }, 'Liaison GitHub échouée');
+        back.searchParams.set('github', 'github_unavailable');
+      }
+    }
+    res.redirect(302, back.toString());
   }
 
   private failMobile(res: Response, reason: string): void {
