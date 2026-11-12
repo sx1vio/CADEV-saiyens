@@ -211,6 +211,7 @@ model User {
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz // A3 : anonymisation
 
   community         Community?           @relation(fields: [communityId], references: [id])
+  media             Media[]
   oauthAccounts     OAuthAccount[]
   sessions          Session[]
   apiTokens         ApiToken[]
@@ -870,22 +871,22 @@ enum NewsKind {
 }
 
 model NewsItem {
-  id          String   @id // SHA-1 tronqué du lien : un même lien n'est stocké qu'une fois
+  id          String    @id // SHA-1 tronqué du lien : un même lien n'est stocké qu'une fois
   kind        NewsKind
   source      String // identifiant de la source (apps/api/src/modules/news/domain/sources.ts)
-  sourceName  String   @map("source_name")
+  sourceName  String    @map("source_name")
   category    String // ia | tech | apple | google | samsung | mobile | dev | afrique | cloud | securite
-  lang        Lang     @default(en)
+  lang        Lang      @default(en)
   title       String
-  summary     String   @default("")
-  url         String   @unique
+  summary     String    @default("")
+  url         String    @unique
   image       String?
   author      String?
-  publishedAt DateTime @map("published_at") @db.Timestamptz
-  score       Int      @default(0)
-  comments    Int      @default(0)
-  extra       Json     @default("{}")
-  fetchedAt   DateTime @default(now()) @map("fetched_at") @db.Timestamptz
+  publishedAt DateTime  @map("published_at") @db.Timestamptz
+  score       Int       @default(0)
+  comments    Int       @default(0)
+  extra       Json      @default("{}")
+  fetchedAt   DateTime  @default(now()) @map("fetched_at") @db.Timestamptz
   /// Retiré par l'administration : invisible partout, jamais remis en ligne par la collecte.
   hiddenAt    DateTime? @map("hidden_at") @db.Timestamptz
   /// Ajouté ou modifié par l'administration : la collecte ne l'écrase plus et ne le purge pas.
@@ -986,6 +987,8 @@ model Post {
   linkUrl   String?   @map("link_url")
   code      String?
   tags      String[]  @default([])
+  /// Photos (ids de media), 4 au plus, dans l'ordre d'affichage.
+  images    String[]  @default([]) @db.Uuid
   hiddenAt  DateTime? @map("hidden_at") @db.Timestamptz // modération (M1)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
@@ -1348,4 +1351,24 @@ model PasswordReset {
 
   @@index([kind, subjectId])
   @@map("password_resets")
+}
+
+/// Photo envoyée par un membre pour une publication (12/11/2026). Réduite dans le navigateur avant
+/// l'envoi (1 600 px, WebP), vérifiée par ses octets magiques, servie par GET /api/v1/media/:id.
+model Media {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  mime      String
+  bytes     Bytes
+  width     Int
+  height    Int
+  /// Publication qui l'utilise ; null tant qu'elle n'est pas publiée.
+  postId    String?  @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt])
+  @@index([postId])
+  @@map("media")
 }

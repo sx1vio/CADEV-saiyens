@@ -16,6 +16,8 @@ const me = {
   uiLang: 'fr',
   lookingFor: null,
   githubLinked: true,
+  githubLogin: 'awa-dev',
+  hasPassword: false,
   githubCreatedAt: '2020-01-01T00:00:00.000Z',
   codeOfConductAcceptedAt: null,
   isAdmin: false,

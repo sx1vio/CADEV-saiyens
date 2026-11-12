@@ -210,7 +210,7 @@ export const PLATFORM_TOOLS: PlatformTool[] = [
     name: 'create_post',
     title: 'Publier',
     description:
-      'Publie dans le fil : une avancée (kind "showcase"), une discussion, une actu, un projet open source. Visible par toute la communauté.',
+      'Publie dans le fil, comme sur LinkedIn : texte libre sans titre (kind "update", par défaut), projet ("showcase"), mise en ligne ou nouvelle version ("release"), célébration ("celebration"), article ou tutoriel ("article"), discussion, question, actu, projet open source. Les photos s’envoient avant par POST /media. Visible par toute la communauté.',
     method: 'POST',
     path: '/posts',
     input: CreatePostRequest,

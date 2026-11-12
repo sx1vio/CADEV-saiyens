@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 12/11/2026 (après-midi, suite) — Fil façon LinkedIn + GitHub, avec photos
+
+- **Demande de Sylvio** — « le LinkedIn des devs et le GitHub des non-devs » : pouvoir publier de tout dans l'accueil, pas seulement ses blocages.
+- **API** — titre facultatif (un texte, un titre ou une photo suffit) ; sujet « Tout le monde » (`general`, visible dans tous les fils) par défaut ; nouveaux types `update` (publication libre, par défaut), `release` (mise en ligne), `celebration`, `article`. Photos : `POST /api/v1/media` (octets bruts réduits dans le navigateur à 1 600 px en WebP, 2 Mo au plus, format vérifié par les octets magiques, SVG/HTML refusés, 40 envois par jour), `GET /api/v1/media/:id` (cache d'un an, `nosniff`, CSP `sandbox`), table `media` (migration `20261112140000_post_media`), 4 photos par publication, une photo ne sert qu'une fois et seulement à son auteur, supprimée avec la publication. Fil d'activité façon GitHub : `GET /api/v1/activity` (certification obtenue, projet lancé, PR fusionnée, application mise en ligne, label DevHub Ready), membres masqués, supprimés ou suspendus exclus. Outil MCP `create_post` décrit en conséquence. Tests : 5 e2e ajoutés (photo, types, activité) + test de l'image ; suite complète de l'API : 732/732.
+- **Web** — « Commencer un post » ouvre une fenêtre de publication (Photo, Projet, Célébrer, Article, « Bloqué ? » garde l'entraide) ; formulaire commun à la fenêtre et à `/publier` : type, sujet, texte, photos avec aperçu, lien, dépôt GitHub, code, étiquettes. Carte de publication façon LinkedIn : auteur, texte avec « voir plus », grille de 1 à 4 photos, carte de dépôt façon GitHub (description, sujets, langage, étoiles, forks), J'aime / Commenter / Partager / Enregistrer. Activité de la plateforme mêlée au fil « Pour toi ». Page d'une publication alignée. Vérifié dans le navigateur (1440 et 390 px) : publication avec photo et dépôt `vitejs/vite`.
+
 ### 12/11/2026 (après-midi) — Relier GitHub à un compte ouvert par e-mail
 
 - **Retour de Sylvio** — après une inscription par e-mail, impossible de relier son GitHub ; le Passport affichait un lien `github.com/<pseudo DevHub>` qui menait à une 404 quand le pseudo n'était pas le login GitHub.

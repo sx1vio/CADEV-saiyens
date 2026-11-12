@@ -11,7 +11,9 @@ import { relativeTime, useLang } from '@/i18n';
 import { useQuery } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { api, type QuestionTab } from '@/services';
-import { PostCard, communityApi } from '@/platform/community';
+import { communityApi, type ActivityItem, type PostKind } from '@/platform/community';
+import { PostComposer, type ComposerInitial } from '@/platform/composer';
+import { ActivityCard, PostCard } from '@/platform/post-ui';
 import { COMMUNITIES } from '@/platform/data/feed';
 import {
   NEWS_CATEGORIES,
@@ -30,8 +32,10 @@ import {
   ArrowSquareOut,
   BookmarkSimple,
   ChatCircle,
-  DeviceMobile,
+  Article,
+  Confetti,
   FolderSimple,
+  Image as ImageIcon,
   Lightning,
   Faders,
   PencilSimple,
@@ -195,39 +199,96 @@ export function InterestsSheet({
 
 /* ---------------- Barre de publication ---------------- */
 
+/**
+ * « Commencer un post » façon LinkedIn (12/11/2026) : on publie tout, pas seulement un blocage.
+ * Le formulaire s'ouvre dans une fenêtre ; « Je suis bloqué » garde son parcours d'entraide.
+ */
 function Composer() {
   const me = useSession((s) => s.user);
   const setAsk = useUI((s) => s.setAsk);
   const nav = useNavigate();
+  const [compose, setCompose] = useState<ComposerInitial | null>(null);
   if (!me) return null;
   const action =
-    'inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-[8px] px-2 text-[14px] font-medium whitespace-nowrap text-fg transition-colors hover:bg-surface-2';
+    'inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-[8px] px-2 text-[14px] font-semibold whitespace-nowrap text-muted transition-colors hover:bg-surface-2 hover:text-fg';
+  const start = (kind?: PostKind, pickPhoto = false) => setCompose({ kind, pickPhoto });
   return (
-    <section data-tour="hero" className="dh-panel px-4 pt-4 pb-2">
+    <section data-tour="hero" className="dh-panel px-4 pt-4 pb-1.5">
       <div className="flex items-center gap-3">
         <Avatar name={me.displayName} src={me.avatarUrl} size={48} />
         <button
           type="button"
-          onClick={() => nav('/publier')}
-          className="lg-clear h-12 min-w-0 flex-1 truncate rounded-full px-5 text-left text-[15px] font-medium text-subtle"
+          onClick={() => start()}
+          className="h-12 min-w-0 flex-1 truncate rounded-full border border-line-strong px-5 text-left text-[15px] font-medium text-subtle transition-colors hover:bg-surface-2"
         >
-          Partage une avancée, un projet, une question
+          Commencer un post
         </button>
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-1">
-        <button type="button" data-tour="hero-ask" onClick={() => setAsk(true)} className={action}>
-          <Lightning className="size-[22px] text-fg" />
-          Je suis bloqué
+      <div className="mt-1.5 grid grid-cols-5 items-center gap-0.5">
+        <button
+          type="button"
+          aria-label="Ajouter une photo"
+          onClick={() => start('update', true)}
+          className={action}
+        >
+          <ImageIcon className="size-[22px] text-[#378fe9]" weight="fill" />
+          <span className="hidden sm:inline">Photo</span>
         </button>
-        <button type="button" onClick={() => nav('/publier?type=launch')} className={action}>
-          <FolderSimple className="size-[22px] text-fg" />
-          Un projet
+        <button
+          type="button"
+          aria-label="Présenter un projet"
+          onClick={() => start('showcase')}
+          className={action}
+        >
+          <FolderSimple className="size-[22px] text-[#5f9b41]" weight="fill" />
+          <span className="hidden sm:inline">Projet</span>
         </button>
-        <button type="button" onClick={() => nav('/banc')} className={action}>
-          <DeviceMobile className="size-[22px] text-fg" />
-          Faire tester
+        <button
+          type="button"
+          aria-label="Célébrer"
+          onClick={() => start('celebration')}
+          className={action}
+        >
+          <Confetti className="size-[22px] text-[#c37d16]" weight="fill" />
+          <span className="hidden sm:inline">Célébrer</span>
+        </button>
+        <button
+          type="button"
+          aria-label="Écrire un article"
+          onClick={() => start('article')}
+          className={action}
+        >
+          <Article className="size-[22px] text-[#e06847]" weight="fill" />
+          <span className="hidden sm:inline">Article</span>
+        </button>
+        <button
+          type="button"
+          data-tour="hero-ask"
+          aria-label="Je suis bloqué"
+          onClick={() => setAsk(true)}
+          className={action}
+        >
+          <Lightning className="size-[22px] text-[#a872e8]" weight="fill" />
+          <span className="hidden sm:inline">Bloqué ?</span>
         </button>
       </div>
+      <Sheet
+        open={compose !== null}
+        onOpenChange={(o) => !o && setCompose(null)}
+        title="Créer une publication"
+        size="lg"
+      >
+        {compose && (
+          <PostComposer
+            initial={compose}
+            onCancel={() => setCompose(null)}
+            onDone={(id) => {
+              setCompose(null);
+              nav(`/post/${id}`);
+            }}
+          />
+        )}
+      </Sheet>
     </section>
   );
 }
@@ -251,7 +312,8 @@ const TOPIC_NEWS: Record<string, string[]> = {
 
 type Entry =
   | { kind: 'news'; at: string; item: NewsItem }
-  | { kind: 'post'; at: string; post: Parameters<typeof PostCard>[0]['post'] };
+  | { kind: 'post'; at: string; post: Parameters<typeof PostCard>[0]['post'] }
+  | { kind: 'activity'; at: string; item: ActivityItem };
 
 function ForYou() {
   const [params] = useSearchParams();
@@ -264,6 +326,8 @@ function ForYou() {
   const posts = useQuery(`posts:feed:recent:${topic}`, () =>
     communityApi.list({ sort: 'recent', community: topic || undefined }),
   );
+  // Activité de la plateforme (façon GitHub) : seulement dans le fil général, sans sujet choisi.
+  const activity = useQuery(topic ? null : 'activity:feed', () => communityApi.activity());
   const [more, setMore] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -286,8 +350,9 @@ function ForYou() {
       // Sujet précis choisi : toute l'actualité suit ce sujet (à la une, vidéos et suite du
       // défilement compris) ; « Montre ton projet » n'a pas d'actualité, seulement des publications.
       .filter((i) => !topic || wanted.has(i.category));
+    // Une publication « Tout le monde » apparaît quel que soit le sujet suivi.
     const mine = (posts.data?.data ?? []).filter(
-      (p) => topics.length === 0 || topics.includes(p.community),
+      (p) => topics.length === 0 || p.community === 'general' || topics.includes(p.community),
     );
     const keepNews = news.filter(
       (i) =>
@@ -306,9 +371,14 @@ function ForYou() {
         at: post.createdAt,
         post,
       })),
+      ...(kind === '' && !topic ? (activity.data?.data ?? []) : []).map((item) => ({
+        kind: 'activity' as const,
+        at: item.at,
+        item,
+      })),
     ].sort((a, b) => b.at.localeCompare(a.at));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [home.data, posts.data, more, topic, joined, kind, lang]);
+  }, [home.data, posts.data, activity.data, more, topic, joined, kind, lang]);
 
   // Défilement infini : la suite de l'actualité se charge en approchant du bas
   useEffect(() => {
@@ -348,8 +418,14 @@ function ForYou() {
         </p>
       )}
       {entries.map((e, i) => (
-        <div key={e.kind === 'news' ? e.item.id : e.post.id} className="contents">
-          {e.kind === 'news' ? <FeedPost item={e.item} /> : <PostCard post={e.post} />}
+        <div key={e.kind === 'post' ? e.post.id : e.item.id} className="contents">
+          {e.kind === 'news' ? (
+            <FeedPost item={e.item} />
+          ) : e.kind === 'activity' ? (
+            <ActivityCard item={e.item} />
+          ) : (
+            <PostCard post={e.post} />
+          )}
           {i === 1 && <NeedsYou />}
         </div>
       ))}

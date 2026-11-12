@@ -8,6 +8,7 @@ import {
   type ListPostsResponse,
   type PostCommentView,
   type PostDetail,
+  type PostImage,
   type PostKind,
   type PostView,
 } from '@devhub/contracts';
@@ -28,6 +29,7 @@ type Row = {
   linkUrl: string | null;
   code: string | null;
   tags: string[];
+  images: string[];
   createdAt: Date;
   author: PostView['author'];
   _count: { comments: number };
@@ -39,7 +41,8 @@ export class PostsRepository {
 
   private async views(rows: Row[], viewer: string | null): Promise<PostView[]> {
     const ids = rows.map((r) => r.id);
-    const [scores, mine] = await Promise.all([
+    const imageIds = rows.flatMap((r) => r.images);
+    const [scores, mine, media] = await Promise.all([
       ids.length
         ? this.prisma.postVote.groupBy({
             by: ['postId'],
@@ -50,7 +53,16 @@ export class PostsRepository {
       viewer && ids.length
         ? this.prisma.postVote.findMany({ where: { postId: { in: ids }, userId: viewer } })
         : [],
+      imageIds.length
+        ? this.prisma.media.findMany({
+            where: { id: { in: imageIds } },
+            select: { id: true, width: true, height: true },
+          })
+        : [],
     ]);
+    const image = new Map<string, PostImage>(
+      media.map((m) => [m.id, { ...m, url: `/api/v1/media/${m.id}` }]),
+    );
     const score = new Map(scores.map((s) => [s.postId, s._sum.value ?? 0]));
     const my = new Map(mine.map((v) => [v.postId, v.value]));
     return rows.map((r) => ({
@@ -62,6 +74,7 @@ export class PostsRepository {
       linkUrl: r.linkUrl,
       code: r.code,
       tags: r.tags,
+      images: r.images.flatMap((id) => (image.has(id) ? [image.get(id)!] : [])),
       author: r.author,
       score: score.get(r.id) ?? 0,
       myVote: my.get(r.id) ?? 0,
@@ -81,6 +94,7 @@ export class PostsRepository {
     linkUrl: true,
     code: true,
     tags: true,
+    images: true,
     createdAt: true,
     author,
     _count: { select: { comments: { where: { hiddenAt: null } } } },
@@ -153,23 +167,41 @@ export class PostsRepository {
       : this.prisma.postComment.count({ where: { authorId, createdAt: { gte: since } } });
   }
 
-  async create(input: CreatePostRequest, authorId: string): Promise<string> {
-    const row = await this.prisma.post.create({
-      data: {
-        authorId,
-        community: input.community,
-        kind: input.kind,
-        title: input.title,
-        body: input.body,
-        linkUrl: input.linkUrl,
-        code: input.code,
-        tags: [...new Set(input.tags.map((t) => t.toLowerCase()))],
-      },
-      select: { id: true },
+  /** Photos envoyées par l'auteur et pas encore utilisées : seules celles-là sont acceptées. */
+  async ownFreeMedia(ids: string[], ownerId: string): Promise<boolean> {
+    if (ids.length === 0) return true;
+    const unique = [...new Set(ids)];
+    const count = await this.prisma.media.count({
+      where: { id: { in: unique }, ownerId, postId: null },
     });
-    // L'auteur vote pour sa publication, comme sur la plupart des forums.
-    await this.prisma.postVote.create({ data: { postId: row.id, userId: authorId, value: 1 } });
-    return row.id;
+    return count === unique.length && unique.length === ids.length;
+  }
+
+  async create(input: CreatePostRequest, authorId: string): Promise<string> {
+    return this.prisma.$transaction(async (tx) => {
+      const row = await tx.post.create({
+        data: {
+          authorId,
+          community: input.community,
+          kind: input.kind,
+          title: input.title,
+          body: input.body,
+          linkUrl: input.linkUrl,
+          code: input.code,
+          tags: [...new Set(input.tags.map((t) => t.toLowerCase()))],
+          images: input.images,
+        },
+        select: { id: true },
+      });
+      if (input.images.length > 0)
+        await tx.media.updateMany({
+          where: { id: { in: input.images }, ownerId: authorId, postId: null },
+          data: { postId: row.id },
+        });
+      // L'auteur aime sa publication, comme sur la plupart des réseaux.
+      await tx.postVote.create({ data: { postId: row.id, userId: authorId, value: 1 } });
+      return row.id;
+    });
   }
 
   async exists(id: string): Promise<boolean> {
@@ -203,6 +235,7 @@ export class PostsRepository {
   /** L'auteur supprime sa publication (les commentaires et votes partent avec). */
   async deleteOwn(id: string, authorId: string): Promise<boolean> {
     const { count } = await this.prisma.post.deleteMany({ where: { id, authorId } });
+    if (count > 0) await this.prisma.media.deleteMany({ where: { postId: id } });
     return count > 0;
   }
 

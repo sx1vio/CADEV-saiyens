@@ -1,38 +1,40 @@
 import type {
+  ActivityItem,
   CommunitySlug,
   CreatePostRequest,
+  ListActivityResponse,
   ListCommunitiesResponse,
   ListPostsResponse,
   PostDetail,
   PostKind,
+  PostImage,
   PostVoteResponse,
   PostView,
 } from '@devhub/contracts';
 import {
   ArrowBigDown,
   ArrowBigUp,
-  Bookmark,
-  Code2,
-  ExternalLink,
+  FileText,
   FolderGit2,
   HelpCircle,
   MessageSquare,
   Newspaper,
+  PackageCheck,
+  PartyPopper,
+  PenLine,
   Rocket,
-  Share2,
+  ThumbsUp,
   type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { DomainError } from '@/services/types';
 import { useSession } from '@/stores/app';
-import { usePlatform } from './store';
-import { Ago, CommunityIcon, communityOf, compact } from './ui';
-import { TechChip } from './logos';
+import { compact } from './ui';
 
-export type { PostView, PostDetail, PostKind, CommunitySlug };
+export type { ActivityItem, PostView, PostDetail, PostImage, PostKind, CommunitySlug };
 
 /* ---------------- Client de l'API du fil ---------------- */
 
@@ -75,7 +77,44 @@ export const communityApi = {
   vote: (id: string, value: -1 | 0 | 1) =>
     call<PostVoteResponse>('PUT', `/posts/${id}/vote`, { value }),
   communities: () => call<ListCommunitiesResponse>('GET', '/communities'),
+  activity: (before?: string) =>
+    call<ListActivityResponse>('GET', `/activity?limit=20${before ? `&before=${before}` : ''}`),
 };
+
+/** Réduit une photo dans le navigateur (1 600 px, WebP) puis l'envoie : POST /api/v1/media. */
+export async function uploadImage(file: File): Promise<PostImage> {
+  const bitmap = await createImageBitmap(file).catch(() => {
+    throw new DomainError('media.unsupported');
+  });
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+  const encode = (type: string, quality: number) =>
+    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+  let blob = await encode('image/webp', 0.82);
+  // Navigateur sans encodeur WebP : il rend du PNG, souvent trop lourd ; on passe en JPEG.
+  if (!blob || blob.type !== 'image/webp') blob = await encode('image/jpeg', 0.85);
+  if (blob && blob.size > 1_900_000) blob = await encode(blob.type, 0.6);
+  if (!blob) throw new DomainError('media.unsupported');
+  const res = await fetch(`/api/v1/media?w=${width}&h=${height}`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type, 'X-DevHub-Client': 'web', Accept: 'application/json' },
+    credentials: 'include',
+    body: blob,
+  }).catch(() => {
+    throw new DomainError('network.offline');
+  });
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { code?: string };
+    throw new DomainError(err.code ?? `http.${res.status}`);
+  }
+  return (await res.json()) as PostImage;
+}
 
 /** Message lisible pour une erreur du fil. */
 export function communityError(e: unknown): string {
@@ -86,6 +125,12 @@ export function communityError(e: unknown): string {
   if (code === 'post.links_too_early')
     return 'Les nouveaux comptes peuvent publier des liens après leur première heure.';
   if (code === 'network.offline') return 'Pas de connexion. Réessaie quand le réseau revient.';
+  if (code === 'media.too_large') return 'Photo trop lourde, même réduite (2 Mo au plus).';
+  if (code === 'media.unsupported') return 'Format non pris en charge : JPEG, PNG ou WebP.';
+  if (code === 'media.daily_limit')
+    return 'Tu as envoyé beaucoup de photos aujourd’hui. Réessaie demain.';
+  if (code === 'post.images_invalid')
+    return 'Une photo n’a pas été envoyée correctement. Retire-la et réessaie.';
   if (code === 'validation.failed' || code === 'http.400')
     return 'Vérifie les champs du formulaire.';
   return 'Une erreur est survenue. Réessaie dans un instant.';
@@ -94,6 +139,26 @@ export function communityError(e: unknown): string {
 /* ---------------- Types de publication ---------------- */
 
 export const POST_KINDS: Record<PostKind, { label: string; icon: LucideIcon; hint: string }> = {
+  update: {
+    label: 'Publication',
+    icon: PenLine,
+    hint: 'Une avancée, une idée, ce que tu as appris',
+  },
+  release: {
+    label: 'Mise en ligne',
+    icon: PackageCheck,
+    hint: 'Une app en ligne, une nouvelle version',
+  },
+  celebration: {
+    label: 'Célébration',
+    icon: PartyPopper,
+    hint: 'Nouveau poste, certification, cap franchi',
+  },
+  article: {
+    label: 'Article',
+    icon: FileText,
+    hint: 'Un tutoriel, un retour d’expérience',
+  },
   discussion: {
     label: 'Discussion',
     icon: MessageSquare,
@@ -127,7 +192,7 @@ export function PostKindBadge({ kind }: { kind: PostKind }) {
   );
 }
 
-const hostOf = (url: string) => {
+export const hostOf = (url: string) => {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {
@@ -227,101 +292,31 @@ export function PostVote({
   );
 }
 
-/* ---------------- Carte de publication ---------------- */
+/* ---------------- J'aime (façon LinkedIn) ---------------- */
 
-export function PostCard({ post }: { post: PostView }) {
-  const saved = usePlatform((s) => s.saved.includes(post.id));
-  const toggle = usePlatform((s) => s.toggle);
-  return (
-    <article className="dh-panel dh-panel-link group relative flex gap-1.5 py-2 pr-4 pl-1.5">
-      <Link
-        to={`/post/${post.id}`}
-        className="absolute inset-0 rounded-[12px]"
-        aria-label={post.title}
-      />
-      <div className="relative z-10 pt-0.5">
-        <PostVote post={post} />
-      </div>
-      <div className="min-w-0 flex-1 py-1">
-        <div className="relative z-10 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-subtle">
-          <Link
-            to={`/?topic=${post.community}`}
-            className="inline-flex items-center gap-1.5 font-medium text-fg hover:underline"
-          >
-            <CommunityIcon slug={post.community} size={18} />
-            {communityOf(post.community).name}
-          </Link>
-          <span aria-hidden>·</span>
-          <Link to={`/u/${post.author.handle}`} className="hover:underline">
-            {post.author.displayName}
-          </Link>
-          <span aria-hidden>·</span>
-          <Ago iso={post.createdAt} />
-          <span className="ml-1">
-            <PostKindBadge kind={post.kind} />
-          </span>
-        </div>
-        <h3 className="mt-1.5 text-[15px] leading-snug font-semibold tracking-[-0.01em] text-fg">
-          {post.title}
-        </h3>
-        {post.body && (
-          <p className="mt-1 line-clamp-3 text-[13.5px] leading-[1.55] text-muted">{post.body}</p>
-        )}
-        {post.code && (
-          <pre className="mt-2 overflow-hidden rounded-[8px] border border-line bg-inset px-3 py-2 font-mono text-[12px] text-muted">
-            <span className="line-clamp-2 whitespace-pre-wrap">{post.code}</span>
-          </pre>
-        )}
-        {post.linkUrl && (
-          <a
-            href={post.linkUrl}
-            target="_blank"
-            rel="noopener noreferrer nofollow ugc"
-            onClick={(e) => e.stopPropagation()}
-            className="relative z-10 mt-2.5 inline-flex max-w-full items-center gap-2 rounded-[10px] bg-canvas px-3 py-2 text-[12.5px] font-medium text-fg"
-          >
-            <ExternalLink className="size-3.5 shrink-0 text-subtle" />
-            <span className="truncate">{hostOf(post.linkUrl)}</span>
-          </a>
-        )}
-        <div className="relative z-10 mt-2 -ml-2 flex flex-wrap items-center gap-0.5 text-[12.5px] font-medium text-muted">
-          <Link
-            to={`/post/${post.id}`}
-            className="inline-flex h-7 items-center gap-1.5 rounded-full px-2 hover:bg-surface-3"
-          >
-            <MessageSquare className="size-[15px]" />
-            {post.comments} commentaire{post.comments > 1 ? 's' : ''}
-          </Link>
-          <button
-            type="button"
-            onClick={() => share(`/post/${post.id}`)}
-            className="inline-flex h-7 items-center gap-1.5 rounded-full px-2 hover:bg-surface-3"
-          >
-            <Share2 className="size-[15px]" />
-            Partager
-          </button>
-          <button
-            type="button"
-            aria-pressed={saved}
-            onClick={() => toggle('saved', post.id)}
-            className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-full px-2 hover:bg-surface-3',
-              saved && 'text-accent-text',
-            )}
-          >
-            <Bookmark className="size-[15px]" fill={saved ? 'currentColor' : 'none'} />
-            {saved ? 'Enregistré' : 'Enregistrer'}
-          </button>
-          {post.code && (
-            <Code2 className="ml-1 size-[15px] text-subtle" aria-label="Contient du code" />
-          )}
-          <span className="ml-auto hidden gap-1 sm:flex">
-            {post.tags.slice(0, 3).map((t) => (
-              <TechChip key={t} label={t} />
-            ))}
-          </span>
-        </div>
-      </div>
-    </article>
-  );
+/** Bouton « J'aime » : un vote +1, retiré au second clic. */
+export function useLike(post: Pick<PostView, 'id' | 'score' | 'myVote'>) {
+  const me = useSession((s) => s.user);
+  const nav = useNavigate();
+  const [state, setState] = useState({ score: post.score, myVote: post.myVote });
+  const [busy, setBusy] = useState(false);
+  const toggle = async () => {
+    if (!me) return nav('/connexion');
+    if (busy) return;
+    const value = (state.myVote === 1 ? 0 : 1) as 0 | 1;
+    const prev = state;
+    setState({ score: state.score - state.myVote + value, myVote: value });
+    setBusy(true);
+    try {
+      setState(await communityApi.vote(post.id, value));
+    } catch (e) {
+      setState(prev);
+      toast.error(communityError(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { likes: Math.max(0, state.score), liked: state.myVote === 1, toggle };
 }
+
+export const LikeIcon = ThumbsUp;

@@ -4,6 +4,16 @@ import type { Community } from '../types';
  * Les communautés du fil : sujet, description et règles. Leur activité (publications, auteurs)
  * vient de l'API (GET /api/v1/communities) ; les slugs suivent COMMUNITY_SLUGS de @devhub/contracts.
  */
+/** Publication libre, sans sujet (12/11/2026) : visible dans tous les fils, absente des sujets. */
+export const GENERAL_COMMUNITY: Community = {
+  slug: 'general',
+  name: 'Tout le monde',
+  description: 'Publication visible par toute la communauté, quel que soit le sujet suivi.',
+  color: '#64748b',
+  icon: 'users',
+  rules: [],
+};
+
 export const COMMUNITIES: Community[] = [
   {
     slug: 'ia',
