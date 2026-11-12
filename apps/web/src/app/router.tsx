@@ -163,7 +163,13 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
 function IndexSwitch() {
   const user = useSession((s) => s.user);
-  return user ? <HomeRoute /> : <LandingRoute />;
+  const { search } = useLocation();
+  if (user) return <HomeRoute />;
+  // Ancien lien vers l'entraide (/sos → /?f=questions) : le visiteur passe par la connexion et
+  // revient sur les questions, comme le lien « Entraide » du menu public (#204).
+  if (new URLSearchParams(search).get('f') === 'questions')
+    return <Navigate to={`/connexion?next=${encodeURIComponent('/?f=questions')}`} replace />;
+  return <LandingRoute />;
 }
 
 const HomeLazy = reactLazy(pages.home);
