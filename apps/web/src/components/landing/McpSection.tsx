@@ -32,18 +32,18 @@ export function McpSection() {
         <div>
           <p className="inline-flex items-center gap-2 text-[14px] font-semibold text-accent-text">
             <Plug weight="fill" className="size-4" />
-            Serveur MCP
+            Agents IA
           </p>
           <h2
             id="mcp-title"
             className="mt-2 text-[34px] leading-[1.06] font-bold tracking-[-0.03em] text-fg sm:text-[48px]"
           >
-            Ton agent IA, branché sur DevHub.
+            DevHub a son serveur MCP.
           </h2>
           <p className="mt-4 max-w-[520px] text-[17px] leading-relaxed text-fg/80">
-            Une ligne de configuration, et ton agent de code agit sur la plateforme en ton nom, sans
-            quitter l’éditeur. Il voit ce que tu vois, il fait ce que tu ferais, jamais rien sur ton
-            compte ni tes accès.
+            MCP (Model Context Protocol) est le standard qui relie un agent IA à un service. Une
+            commande, et ton agent de code agit sur DevHub en ton nom, sans quitter l’éditeur. Il
+            voit ce que tu vois, il fait ce que tu ferais, jamais rien sur ton compte ni tes accès.
           </p>
           <ul className="mt-7 flex flex-col gap-3">
             {CAN.map((c) => (

@@ -179,6 +179,14 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 13/11/2026 (soir) — Accueil : applications mobiles sans « hors ligne », MCP nommé, liens d'info dans les Réglages
+
+- **Demande de Sylvio** (captures de l'accueil et de la barre latérale) : « enlève tout ce qui parle de hors réseau », « tu n'as pas mentionné MCP, la compréhension doit être directe », liens Règles / Impact / Systalink / Nos sources / Confidentialité « dans les paramètres ».
+- **Applications mobiles** (`MobileApps.tsx`) : titre « DevHub dans ta poche. » (au lieu de « … même sans réseau »), fin de phrase « pensées pour les réseaux du continent » retirée, carte « Hors ligne d'abord » remplacée par « Emplois et pré-vol », bandeau « Hors ligne · 2 actions partiront au retour du réseau » retiré du second téléphone (écran renommé `JobsScreen`). « Légère en 3G » est gardé.
+- **MCP** : titre de la section de l'accueil « DevHub a son serveur MCP. », et le texte explique d'emblée ce qu'est MCP (« le standard qui relie un agent IA à un service ») ; titre de la page `/mcp` aligné (« Le serveur MCP de DevHub, pour ton agent IA. ») ; la petite étiquette au-dessus devient « Agents IA » pour ne pas répéter.
+- **Liens d'information** : retirés de sous la carte du profil (barre latérale et tiroir) et regroupés dans une carte « Aide et infos » des **Réglages** (`/reglages`), avant la zone de danger. Ils restent aussi dans le menu du compte (Règles, Confidentialité), la recherche Ctrl K et le pied de page public. Test e2e `info-pages.e2e.ts` adapté.
+- Vérifié : Prettier, oxlint (0 erreur), typage du web. Les e2e tournent dans la CI.
+
 ### 13/11/2026 — Cours complets terminés, candidatures complètes (web, MCP, DevHub Business)
 
 - **Demande de Sylvio** — finir la refonte des cours ; pouvoir publier de tout dans le fil (pas seulement des demandes d'aide) ; postuler directement sur la plateforme et par le MCP, l'espace business recevant les candidatures ; vérifier tous les parcours, rien de simulé.

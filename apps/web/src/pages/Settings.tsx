@@ -1,8 +1,10 @@
 import {
   BellOff,
   Briefcase,
+  ChevronRight,
   Eye,
   EyeOff,
+  Info,
   Languages,
   Mail,
   Map,
@@ -21,6 +23,7 @@ import { BrandLogo } from '@/platform/logos';
 import { linkGithubHref, useGithubLinkResult } from '@/components/GithubLink';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/overlay';
+import { INFO_LINKS } from '@/components/shell/nav';
 import { Card, CardHeader, Field, Input, Textarea } from '@/components/ui/primitives';
 import { Segmented } from '@/components/ui/segmented';
 import { setLanguage, useLang, type AppLang } from '@/i18n';
@@ -240,6 +243,23 @@ export default function Settings() {
             </Row>
           </Card>
         )}
+
+        {/* Pages d'information, sorties de la barre latérale le 13/11/2026 (demande de Sylvio). */}
+        <Card className="p-5 sm:p-6">
+          <CardHeader icon={<Info />} title={t('nav.infoLabel')} />
+          <nav aria-label={t('nav.infoAria')} className="mt-3 flex flex-col">
+            {INFO_LINKS.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="-mx-2 flex items-center justify-between rounded-[10px] px-2 py-2.5 text-[15px] text-fg transition-colors hover:bg-fg/[0.04]"
+              >
+                {t(l.label)}
+                <ChevronRight className="size-4 text-subtle" />
+              </Link>
+            ))}
+          </nav>
+        </Card>
 
         <Card className="border-danger/30 p-5 sm:p-6">
           <Row label={t('settings.danger')} hint={t('settings.deleteText')}>

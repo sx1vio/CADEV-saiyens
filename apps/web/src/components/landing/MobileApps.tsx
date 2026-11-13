@@ -6,7 +6,6 @@ import {
   Briefcase,
   Certificate,
   ChatCircleDots,
-  CloudSlash,
   DeviceMobile,
   FolderSimple,
   House,
@@ -29,9 +28,9 @@ import { cn } from '@/lib/utils';
 
 const FEATURES = [
   {
-    icon: CloudSlash,
-    title: 'Hors ligne d’abord',
-    text: 'Lis, réponds, postule sans réseau : tes actions attendent dans une file et partent dès que la connexion revient.',
+    icon: Briefcase,
+    title: 'Emplois et pré-vol',
+    text: 'Postule, suis tes candidatures et lance un pré-vol depuis ton téléphone.',
   },
   {
     icon: Bell,
@@ -71,11 +70,11 @@ export function MobileAppsSection() {
             id="mobile-title"
             className="mt-4 max-w-[560px] text-[34px] leading-[1.06] font-bold tracking-[-0.03em] sm:text-[48px]"
           >
-            DevHub dans ta poche, même sans réseau.
+            DevHub dans ta poche.
           </h2>
           <p className="mt-4 max-w-[520px] text-[17px] leading-relaxed text-white/80">
             Les applications natives Android et iOS arrivent : le même compte, le même fil, la même
-            interface que sur le web, pensées pour les réseaux du continent.
+            interface que sur le web.
           </p>
 
           <ul className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -110,7 +109,7 @@ export function MobileAppsSection() {
             <HomeScreen />
           </Phone>
           <Phone className="absolute right-[2%] z-[1] hidden translate-y-6 rotate-[5deg] opacity-95 sm:block">
-            <OfflineScreen />
+            <JobsScreen />
           </Phone>
         </div>
       </div>
@@ -261,13 +260,10 @@ function HomeScreen() {
   );
 }
 
-function OfflineScreen() {
+function JobsScreen() {
   return (
     <>
       <TopBar />
-      <div className="flex items-center gap-1.5 bg-[#fff4d6] px-3.5 py-1.5 text-[9.5px] font-semibold text-[#8a5a00] [&_svg]:size-3.5">
-        <CloudSlash weight="fill" /> Hors ligne · 2 actions partiront au retour du réseau
-      </div>
       <div className="px-3 pt-3">
         <p className="text-[13px] font-semibold">Emplois</p>
         {[

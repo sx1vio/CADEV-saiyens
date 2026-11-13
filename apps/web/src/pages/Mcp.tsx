@@ -259,10 +259,10 @@ export default function Mcp() {
       {/* En-tête */}
       <section className="pt-2">
         <p className="inline-flex items-center gap-2 text-[14px] font-semibold text-accent-text">
-          <Plug className="size-4" /> Serveur MCP
+          <Plug className="size-4" /> Agents IA
         </p>
         <h1 className="mt-2 max-w-[760px] text-[32px] leading-[1.08] font-bold tracking-[-0.03em] text-fg sm:text-[44px]">
-          Ton agent IA, branché sur DevHub.
+          Le serveur MCP de DevHub, pour ton agent IA.
         </h1>
         <p className="mt-3 max-w-[720px] text-[16px] leading-relaxed text-muted">
           Avec une ligne de configuration, Claude Code, Cursor, Codex ou Copilot agissent sur DevHub
