@@ -56,7 +56,13 @@ export const hostOf = (url: string) => {
 
 /* ---------------- Candidatures sur DevHub (offres d'entreprises inscrites) ---------------- */
 
-import type { CompanyPublicView, MyApplicationView } from '@devhub/contracts';
+import {
+  CV_MAX_BYTES,
+  type ApplyRequest,
+  type CompanyPublicView,
+  type MyApplicationView,
+  type UploadCvResponse,
+} from '@devhub/contracts';
 import { DomainError } from '@/services/types';
 
 async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -84,8 +90,30 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T>
 export type { MyApplicationView, CompanyPublicView };
 
 export const careers = {
-  apply: (jobId: string, message: string) =>
-    send<void>('POST', `/jobs/${jobId}/apply`, { message }),
+  apply: (jobId: string, body: ApplyRequest) => send<void>('POST', `/jobs/${jobId}/apply`, body),
+  /** CV en PDF (5 Mo au plus), envoyé tel quel puis joint à la candidature. */
+  uploadCv: async (file: File): Promise<UploadCvResponse> => {
+    if (file.size > CV_MAX_BYTES) throw new DomainError('cv.too_large');
+    if (file.type && file.type !== 'application/pdf') throw new DomainError('cv.unsupported');
+    const res = await fetch(`/api/v1/me/cv?name=${encodeURIComponent(file.name)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/pdf',
+        'X-DevHub-Client': 'web',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      credentials: 'include',
+      body: file,
+    }).catch(() => {
+      throw new DomainError('network.offline');
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { code?: string };
+      throw new DomainError(err.code ?? `http.${res.status}`);
+    }
+    return (await res.json()) as UploadCvResponse;
+  },
+  cvUrl: (id: string) => `/api/v1/me/cv/${id}`,
   mine: () => send<{ data: MyApplicationView[] }>('GET', '/me/applications').then((r) => r.data),
   withdraw: (id: string) => send<void>('DELETE', `/me/applications/${id}`),
   company: (slug: string) =>

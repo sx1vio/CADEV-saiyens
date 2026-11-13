@@ -31,6 +31,7 @@ test('page publique : compteurs réels et question récente', async ({ browser }
   await expect(live.getByText(login)).toHaveCount(0);
   await visitor.screenshot({ path: 'test-results/landing-live.png', fullPage: true });
 
+  // Sans compte, la question passe par la connexion puis s'ouvre (pages réservées, 12/11/2026).
   await live.getByRole('link', { name: title }).click();
-  await expect(visitor).toHaveURL(/\/sos\//);
+  await expect(visitor).toHaveURL(/\/connexion\?next=%2Fsos%2F/);
 });

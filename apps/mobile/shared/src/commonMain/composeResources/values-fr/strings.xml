@@ -947,4 +947,11 @@
     <string name="onb_goal_ship">Mettre en ligne une app qui tient</string>
     <string name="onb_plan_projects">Les projets</string>
     <string name="onb_plan_preflight">Le pré-vol</string>
+    <string name="drawer_about">À propos</string>
+    <string name="nav_impact">Impact</string>
+    <string name="nav_host">Héberger chez Systalink</string>
+    <string name="nav_mcp">Agents IA (MCP)</string>
+    <string name="nav_sources">Nos sources</string>
+    <string name="nav_privacy">Confidentialité</string>
+    <string name="settings_privacy_policy">Politique de confidentialité</string>
 </resources>

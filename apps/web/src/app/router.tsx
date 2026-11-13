@@ -105,6 +105,22 @@ const pages = {
 const lazy = (k: keyof typeof pages) => () => pages[k]().then((m) => ({ Component: m.default }));
 
 /**
+ * Page réservée aux membres (recette du 12/11/2026) : sans compte, on passe par la connexion et on
+ * revient ensuite à la page demandée. Restent publics la landing, la connexion, les règles, la
+ * confidentialité, le profil public (/u/…) et les pages de vérification (certificat, label).
+ */
+const authed = (k: keyof typeof pages) => async () => {
+  const m = await pages[k]();
+  return {
+    element: (
+      <RequireAuth>
+        <m.default />
+      </RequireAuth>
+    ),
+  };
+};
+
+/**
  * Préchargement discret des pages principales, seulement sur une bonne connexion
  * et sans « économie de données » (O6) : la navigation devient instantanée sans gaspiller la data.
  */
@@ -157,13 +173,24 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const user = useSession((s) => s.user);
   const location = useLocation();
   if (!user)
-    return <Navigate to={`/connexion?next=${encodeURIComponent(location.pathname)}`} replace />;
+    return (
+      <Navigate
+        to={`/connexion?next=${encodeURIComponent(location.pathname + location.search)}`}
+        replace
+      />
+    );
   return <>{children}</>;
 }
 
 function IndexSwitch() {
   const user = useSession((s) => s.user);
-  return user ? <HomeRoute /> : <LandingRoute />;
+  const { search } = useLocation();
+  if (user) return <HomeRoute />;
+  // Ancien lien vers l'entraide (/sos → /?f=questions) : le visiteur passe par la connexion et
+  // revient sur les questions, comme le lien « Entraide » du menu public (#204).
+  if (new URLSearchParams(search).get('f') === 'questions')
+    return <Navigate to={`/connexion?next=${encodeURIComponent('/?f=questions')}`} replace />;
+  return <LandingRoute />;
 }
 
 const HomeLazy = reactLazy(pages.home);
@@ -244,7 +271,7 @@ export const router = createBrowserRouter([
           };
         },
       },
-      { path: 'post/:id', lazy: lazy('post') },
+      { path: 'post/:id', lazy: authed('post') },
       {
         path: 'publier',
         lazy: async () => {
@@ -258,10 +285,10 @@ export const router = createBrowserRouter([
           };
         },
       },
-      { path: 'emplois', lazy: lazy('jobs') },
-      { path: 'emplois/direct/:id', lazy: lazy('jobDirect') },
-      { path: 'emplois/:id', lazy: lazy('jobs') },
-      { path: 'entreprises/:slug', lazy: lazy('company') },
+      { path: 'emplois', lazy: authed('jobs') },
+      { path: 'emplois/direct/:id', lazy: authed('jobDirect') },
+      { path: 'emplois/:id', lazy: authed('jobs') },
+      { path: 'entreprises/:slug', lazy: authed('company') },
       ...['messages', 'messages/:id'].map((path) => ({
         path,
         lazy: async () => {
@@ -275,21 +302,21 @@ export const router = createBrowserRouter([
           };
         },
       })),
-      { path: 'certifications', lazy: lazy('certs') },
-      { path: 'certifications/:id', lazy: lazy('certExam') },
+      { path: 'certifications', lazy: authed('certs') },
+      { path: 'certifications/:id', lazy: authed('certExam') },
       { path: 'certificat/:code', lazy: lazy('certVerify') },
-      { path: 'skills', lazy: lazy('skills') },
-      { path: 'skills/:id', lazy: lazy('skill') },
-      { path: 'sources', lazy: lazy('sources') },
-      { path: 'lecon/:courseId/:lessonId', lazy: lazy('lessonPlayer') },
-      { path: 'prevol', lazy: lazy('preflight') },
-      { path: 'prevol/:id', lazy: lazy('preflight') },
+      { path: 'skills', lazy: authed('skills') },
+      { path: 'skills/:id', lazy: authed('skill') },
+      { path: 'sources', lazy: authed('sources') },
+      { path: 'lecon/:courseId/:lessonId', lazy: authed('lessonPlayer') },
+      { path: 'prevol', lazy: authed('preflight') },
+      { path: 'prevol/:id', lazy: authed('preflight') },
       { path: 'label/:domain', lazy: lazy('label') },
-      { path: 'mcp', lazy: lazy('mcp') },
-      { path: 'banc', lazy: lazy('bench') },
-      { path: 'banc/:id', lazy: lazy('bench') },
-      { path: 'sos/:id', lazy: lazy('question') },
-      { path: 'projets', lazy: lazy('projects') },
+      { path: 'mcp', lazy: authed('mcp') },
+      { path: 'banc', lazy: authed('bench') },
+      { path: 'banc/:id', lazy: authed('bench') },
+      { path: 'sos/:id', lazy: authed('question') },
+      { path: 'projets', lazy: authed('projects') },
       {
         path: 'projets/nouvelle',
         lazy: async () => {
@@ -303,13 +330,13 @@ export const router = createBrowserRouter([
           };
         },
       },
-      { path: 'p/:code', lazy: lazy('room') },
-      { path: 'decouvrir', lazy: lazy('discover') },
-      { path: 'carte', lazy: lazy('africaMap') },
+      { path: 'p/:code', lazy: authed('room') },
+      { path: 'decouvrir', lazy: authed('discover') },
+      { path: 'carte', lazy: authed('africaMap') },
       { path: 'u/:handle', lazy: lazy('passport') },
-      { path: 'systalink', lazy: lazy('systalink') },
-      { path: 'systalink/aide', lazy: lazy('systalinkHelp') },
-      { path: 'impact', lazy: lazy('impact') },
+      { path: 'systalink', lazy: authed('systalink') },
+      { path: 'systalink/aide', lazy: authed('systalinkHelp') },
+      { path: 'impact', lazy: authed('impact') },
       { path: 'regles', lazy: lazy('rules') },
       { path: 'confidentialite', lazy: lazy('privacy') },
       {

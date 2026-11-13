@@ -7,6 +7,10 @@ export type * from './types';
 /** Contenu chargé à la demande : seul le cours ouvert est téléchargé. */
 const LOADERS: Record<string, () => Promise<{ units: CourseUnit[] }>> = {
   web: () => import('./web'),
+  js: () => import('./js'),
+  react: () => import('./react'),
+  securite: () => import('./securite'),
+  docker: () => import('./docker'),
   python: () => import('./python'),
   git: () => import('./git'),
   sql: () => import('./sql'),
@@ -62,6 +66,3 @@ export function courseProgress(course: Course, done: readonly string[]) {
   );
   return { n, total, pct: total ? Math.round((n / total) * 100) : 0 };
 }
-
-/** Nombre de leçons d'un cours sans charger son contenu (pour les cartes du catalogue). */
-export const LESSONS_PER_COURSE = 12;

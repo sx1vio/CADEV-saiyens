@@ -48,7 +48,7 @@ Exemples de demandes : « lance un pré-vol sur https://monapp.sn et corrige ce 
 | Compte et réseau       | `whoami`, `update_my_profile`, `get_passport`, `search_devs`, `leaderboard`                                                                                       |
 | Entraide               | `list_questions`, `get_question`, `ask_question`, `answer_question`, `upvote_answer`, `accept_answer`                                                             |
 | Fil                    | `list_posts`, `get_post`, `create_post`, `comment_post`, `vote_post`, `list_news`                                                                                 |
-| Emplois                | `list_jobs`, `get_job`, `apply_job`, `my_applications`                                                                                                            |
+| Emplois                | `list_jobs`, `get_job`, `apply_job`, `my_applications`, `withdraw_application`                                                                                    |
 | Projets                | `list_projects`, `get_project`, `create_project`, `join_project`, `list_project_tasks`, `create_project_task`, `take_task`, `submit_task`, `post_project_message` |
 | Messages               | `list_conversations`, `read_conversation`, `start_conversation`, `send_message`, `list_notifications`                                                             |
 | Livrer                 | `list_test_requests`, `request_device_tests`, `my_certifications`                                                                                                 |

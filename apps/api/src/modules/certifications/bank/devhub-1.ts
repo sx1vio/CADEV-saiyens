@@ -298,7 +298,7 @@ export const JS: PlatformCert = {
   skills: ['JavaScript'],
   color: '#f0b232',
   logo: 'JavaScript',
-  course: 'web',
+  course: 'js',
   codeLang: 'javascript',
   description:
     'Types, portée, fonctions, tableaux, objets, asynchrone et modules : les bases que tout dev JavaScript doit maîtriser.',

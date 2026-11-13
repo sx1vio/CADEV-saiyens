@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  ApplyRequest,
   ApplicationStatus,
   ApplicationView,
   BusinessJobInput,
@@ -21,6 +22,31 @@ import { JOB_INCLUDE, publicWhere, toPublic } from '../../backoffice';
 import { companySlug } from '../domain/slug';
 
 export class EmailTakenError extends Error {}
+
+export type ApplyResult =
+  | { kind: 'not_found' }
+  | { kind: 'already' }
+  | { kind: 'bad_cv' }
+  | { kind: 'external'; url: string | null }
+  | {
+      kind: 'ok';
+      applicationId: string;
+      jobTitle: string;
+      candidate: { displayName: string; handle: string };
+      recruiters: { email: string; name: string }[];
+    };
+
+export type StatusChange =
+  | { changed: false }
+  | {
+      changed: true;
+      email: string | null;
+      displayName: string;
+      jobTitle: string;
+      company: string;
+      label: string | null;
+      note: string | null;
+    };
 export class CompanyNotVerifiedError extends Error {}
 
 const companyView = (c: Company): CompanyView => ({
@@ -238,6 +264,7 @@ export class BusinessRepository {
       ...(take ? { take } : {}),
       include: {
         job: { select: { title: true } },
+        cv: { select: { name: true, size: true } },
         user: {
           select: {
             id: true,
@@ -269,6 +296,10 @@ export class BusinessRepository {
       message: r.message,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
+      contactEmail: r.contactEmail,
+      links: r.links,
+      cv: r.cv,
+      note: r.note,
       candidate: {
         handle: r.user.handle,
         displayName: r.user.displayName,
@@ -282,16 +313,31 @@ export class BusinessRepository {
     }));
   }
 
-  /** L'entreprise change le statut ; le dev reçoit une notification. */
-  async setApplicationStatus(companyId: string, id: string, status: ApplicationStatus) {
+  /**
+   * L'entreprise change le statut, avec un mot facultatif ; le dev reçoit une notification.
+   * Renvoie de quoi le prévenir par e-mail (null : candidature introuvable pour cette entreprise).
+   */
+  async setApplicationStatus(
+    companyId: string,
+    id: string,
+    status: ApplicationStatus,
+    note?: string,
+  ): Promise<StatusChange | null> {
     const app = await this.prisma.jobApplication.findFirst({
       where: { id, job: { companyId }, status: { not: 'withdrawn' } },
-      include: { job: { select: { id: true, title: true, company: true } } },
+      include: {
+        job: { select: { id: true, title: true, company: true } },
+        user: { select: { email: true, displayName: true, emailNotifications: true } },
+      },
     });
-    if (!app) return false;
-    if (app.status === status) return true;
+    if (!app) return null;
+    const text = note?.trim() || null;
+    if (app.status === status && !text) return { changed: false };
     await this.prisma.$transaction(async (tx) => {
-      await tx.jobApplication.update({ where: { id }, data: { status } });
+      await tx.jobApplication.update({
+        where: { id },
+        data: { status, ...(text ? { note: text } : {}) },
+      });
       if (STATUS_LABEL[status]) {
         await tx.notification.create({
           data: {
@@ -303,13 +349,22 @@ export class BusinessRepository {
               company: app.job.company,
               status,
               label: STATUS_LABEL[status],
+              ...(text ? { note: text } : {}),
             },
           },
         });
         await publishToUsers(tx, [app.userId]);
       }
     });
-    return true;
+    return {
+      changed: true,
+      email: app.user.emailNotifications ? app.user.email : null,
+      displayName: app.user.displayName,
+      jobTitle: app.job.title,
+      company: app.job.company,
+      label: STATUS_LABEL[status] ?? null,
+      note: text,
+    };
   }
 
   /* ---------------- Compte et équipe ---------------- */
@@ -392,24 +447,85 @@ export class BusinessRepository {
 
   /* ---------------- Côté devs ---------------- */
 
-  /** Le dev postule à une offre publique d'une entreprise inscrite. */
-  async apply(jobId: string, userId: string, message: string, now: Date) {
+  /**
+   * Le dev postule à une offre publique d'une entreprise inscrite, avec son Passport, un message,
+   * et s'il le veut son e-mail, des liens et un CV. Renvoie de quoi prévenir les recruteurs.
+   */
+  async apply(jobId: string, userId: string, input: ApplyRequest, now: Date): Promise<ApplyResult> {
     const job = await this.prisma.jobOffer.findFirst({
-      where: { id: jobId, companyId: { not: null }, ...publicWhere(now) },
-      select: { id: true },
+      where: { id: jobId, ...publicWhere(now) },
+      select: {
+        id: true,
+        title: true,
+        companyId: true,
+        applyUrl: true,
+        sourceUrl: true,
+        companyRef: {
+          select: {
+            name: true,
+            members: { where: { disabledAt: null }, select: { email: true, name: true } },
+          },
+        },
+      },
     });
-    if (!job) return 'not_found' as const;
+    if (!job) return { kind: 'not_found' };
+    if (!job.companyId) return { kind: 'external', url: job.applyUrl ?? job.sourceUrl };
+    if (input.cvId) {
+      const cv = await this.prisma.cvFile.findFirst({
+        where: { id: input.cvId, ownerId: userId },
+        select: { id: true },
+      });
+      if (!cv) return { kind: 'bad_cv' };
+    }
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { email: true, displayName: true, handle: true },
+    });
+    const data = {
+      message: input.message,
+      contactEmail: input.shareEmail ? user.email : null,
+      links: input.links ?? [],
+      cvId: input.cvId ?? null,
+      note: null,
+    };
     const prev = await this.prisma.jobApplication.findUnique({
       where: { jobId_userId: { jobId, userId } },
     });
-    if (prev && prev.status !== 'withdrawn') return 'already' as const;
-    if (prev)
-      await this.prisma.jobApplication.update({
-        where: { id: prev.id },
-        data: { message, status: 'submitted' },
-      });
-    else await this.prisma.jobApplication.create({ data: { jobId, userId, message } });
-    return 'ok' as const;
+    if (prev && prev.status !== 'withdrawn') return { kind: 'already' };
+    const row = prev
+      ? await this.prisma.jobApplication.update({
+          where: { id: prev.id },
+          data: { ...data, status: 'submitted' },
+          select: { id: true },
+        })
+      : await this.prisma.jobApplication.create({
+          data: { ...data, jobId, userId },
+          select: { id: true },
+        });
+    return {
+      kind: 'ok',
+      applicationId: row.id,
+      jobTitle: job.title,
+      candidate: { displayName: user.displayName, handle: user.handle },
+      recruiters: job.companyRef?.members ?? [],
+    };
+  }
+
+  /** CV privé : son auteur seulement. */
+  myCv(id: string, ownerId: string) {
+    return this.prisma.cvFile.findFirst({
+      where: { id, ownerId },
+      select: { name: true, bytes: true },
+    });
+  }
+
+  /** CV joint à une candidature reçue par cette entreprise. */
+  async applicationCv(companyId: string, applicationId: string) {
+    const app = await this.prisma.jobApplication.findFirst({
+      where: { id: applicationId, job: { companyId }, status: { not: 'withdrawn' } },
+      select: { cv: { select: { name: true, bytes: true } } },
+    });
+    return app?.cv ?? null;
   }
 
   async withdraw(id: string, userId: string): Promise<boolean> {
@@ -424,12 +540,18 @@ export class BusinessRepository {
     const rows = await this.prisma.jobApplication.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
-      include: { job: { select: { id: true, title: true, company: true, location: true } } },
+      include: {
+        job: { select: { id: true, title: true, company: true, location: true } },
+        cv: { select: { id: true, name: true } },
+      },
     });
     return rows.map((r) => ({
       id: r.id,
       status: r.status as ApplicationStatus,
       message: r.message,
+      note: r.note,
+      emailShared: r.contactEmail !== null,
+      cv: r.cv,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
       job: r.job,

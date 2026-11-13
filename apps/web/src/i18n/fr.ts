@@ -76,6 +76,8 @@ const fr = {
     collapse: 'Replier la barre',
     expand: 'Déplier la barre',
     myPassport: 'Mon profil',
+    infoLabel: 'Aide et infos',
+    infoAria: 'Informations sur DevHub',
     noRooms: 'Aucune salle pour le moment',
     newRoom: 'Nouvelle salle',
     tour: 'Visite guidée',
@@ -118,6 +120,11 @@ const fr = {
     testbench: 'Banc d’essai',
     mcp: 'Agents IA (MCP)',
     mcpShort: 'Agents IA',
+    host: 'Héberger chez Systalink',
+    hostShort: 'Héberger',
+    systalinkHelp: 'Aide à l’hébergement Systalink',
+    sources: 'Nos sources',
+    privacy: 'Confidentialité',
     profile: 'Profil',
     explore: 'Progresser',
     create: 'Créer',
@@ -823,6 +830,7 @@ const fr = {
     leaderboardCta: 'Classement par pays',
   },
   map: {
+    seeImpact: 'Voir l’impact de DevHub',
     title: "Carte de l'Afrique",
     subtitle:
       'Les devs de DevHub, pays par pays. Clique sur un pays pour voir ses chiffres et ses devs.',
@@ -1096,6 +1104,23 @@ const fr = {
   },
   settings: {
     title: 'Réglages',
+    github: 'Compte GitHub',
+    githubLinkedAs:
+      'Relié à github.com/{{login}}. Ton activité et tes dépôts publics nourrissent ton Passport.',
+    githubNone:
+      'Relie ton GitHub pour afficher tes dépôts, ton activité et tes compétences sur ton Passport. Ton pseudo DevHub ne change pas.',
+    githubLink: 'Relier mon GitHub',
+    githubUnlink: 'Délier',
+    githubUnlinkNeedsPassword:
+      'Ton compte n’a pas de mot de passe : GitHub est ta seule connexion.',
+    githubUnlinked: 'GitHub délié.',
+    githubResult: {
+      relie: 'GitHub relié à ton compte. Import de tes dépôts en cours.',
+      github_taken: 'Ce GitHub est déjà relié à un autre compte DevHub.',
+      already_linked: 'Ton compte est déjà relié à un autre GitHub. Délie-le d’abord.',
+      github_unavailable: 'GitHub n’a pas répondu. Réessaie dans un instant.',
+      access_denied: 'Liaison annulée sur GitHub.',
+    },
     profile: 'Profil',
     displayName: 'Nom affiché',
     bio: 'Bio',
@@ -1116,6 +1141,11 @@ const fr = {
     deleted: 'Compte supprimé.',
     saved: 'Profil enregistré.',
     privacyTitle: 'Confidentialité du profil',
+    privacyPolicy: 'Lire la politique de confidentialité',
+    agentsTitle: 'Agents IA et jetons',
+    agentsText:
+      'Branche Claude Code, Cursor ou Codex sur DevHub avec un jeton révocable, et gère tes jetons.',
+    agentsCta: 'Gérer mes jetons',
     privacyText:
       'Ce que ton profil public montre. Tes contributions et leurs preuves restent visibles.',
     privacy: {
@@ -1179,6 +1209,8 @@ const fr = {
   errors: {
     generic: 'Quelque chose a coincé. Réessaie dans un instant.',
     auth_required: 'Connecte-toi pour faire ça.',
+    account_password_required:
+      'Choisis d’abord un mot de passe : sans lui, tu ne pourrais plus te connecter.',
     'not-found': 'Introuvable.',
     forbidden: "Tu n'as pas les droits pour faire ça.",
     deployment_proof_missing:

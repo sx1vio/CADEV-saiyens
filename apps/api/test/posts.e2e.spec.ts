@@ -68,7 +68,10 @@ describe('fil de la communauté', () => {
   });
 
   afterAll(async () => {
-    await prisma.post.deleteMany({ where: { title: { contains: suffix } } });
+    await prisma.post.deleteMany({
+      where: { OR: [{ title: { contains: suffix } }, { body: { contains: suffix } }] },
+    });
+    await prisma.media.deleteMany({ where: { owner: { handle: { contains: suffix } } } });
     await app.close();
   });
 
@@ -103,11 +106,12 @@ describe('fil de la communauté', () => {
     expect(asAwa.body).toMatchObject({ mine: true, myVote: 1, commentList: [] });
   });
 
-  it('valide le contenu : titre trop court, communauté inconnue, lien non https', async () => {
+  it('valide le contenu : publication vide, communauté inconnue, lien non https', async () => {
     await send('post', 'awa', '/api/v1/posts', {
       community: 'web',
       kind: 'discussion',
-      title: 'Court',
+      title: '   ',
+      body: '',
     }).expect(400);
     await send('post', 'awa', '/api/v1/posts', {
       community: 'jeux',
@@ -196,7 +200,102 @@ describe('fil de la communauté', () => {
 
   it('activité réelle des communautés', async () => {
     const res = await get('/api/v1/communities').expect(200);
-    expect(res.body.data).toHaveLength(10);
-    expect(res.body.data[0]).toMatchObject({ slug: 'ia', posts: expect.any(Number) });
+    expect(res.body.data).toHaveLength(11);
+    expect(res.body.data[0]).toMatchObject({ slug: 'general', posts: expect.any(Number) });
+  });
+
+  it('publication libre façon LinkedIn : sans titre ni sujet, avec photo', async () => {
+    const webp = Buffer.concat([
+      Buffer.from('RIFF'),
+      Buffer.alloc(4),
+      Buffer.from('WEBPVP8 '),
+      Buffer.alloc(64, 1),
+    ]);
+    const upload = (bytes: Buffer, query = '?w=1200&h=800') =>
+      request(app.getHttpServer())
+        .post(`/api/v1/media${query}`)
+        .set(WRITE_HEADERS)
+        .set('Cookie', cookie.get('kofi')!)
+        .set('Content-Type', 'image/webp')
+        .send(bytes);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/media?w=10&h=10')
+      .set(WRITE_HEADERS)
+      .set('Content-Type', 'image/webp')
+      .send(webp)
+      .expect(401);
+    await upload(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>')).expect(422);
+    await upload(webp, '').expect(422);
+    const media = await upload(webp).expect(201);
+    expect(media.body).toMatchObject({ width: 1200, height: 800 });
+
+    const img = await get(media.body.url).expect(200);
+    expect(img.headers['content-type']).toBe('image/webp');
+    expect(img.headers['cache-control']).toContain('immutable');
+
+    // Une photo d'un autre membre ne s'attache pas.
+    await send('post', 'awa', '/api/v1/posts', {
+      body: `Photo volée ${suffix}`,
+      images: [media.body.id],
+    }).expect(422);
+
+    const p = await send('post', 'kofi', '/api/v1/posts', {
+      body: `Ma première app est en ligne ! ${suffix}`,
+      images: [media.body.id],
+    }).expect(201);
+    const view = await get(`/api/v1/posts/${p.body.id}`).expect(200);
+    expect(view.body).toMatchObject({
+      community: 'general',
+      kind: 'update',
+      title: '',
+      images: [{ id: media.body.id, width: 1200, height: 800 }],
+    });
+
+    // Une photo déjà publiée ne se réutilise pas.
+    await send('post', 'kofi', '/api/v1/posts', {
+      body: `Encore ${suffix}`,
+      images: [media.body.id],
+    }).expect(422);
+
+    // La suppression de la publication emporte ses photos.
+    await send('delete', 'kofi', `/api/v1/posts/${p.body.id}`).expect(204);
+    await get(media.body.url).expect(404);
+  });
+
+  it('nouveaux types : célébration, mise en ligne, article', async () => {
+    for (const kind of ['celebration', 'release', 'article']) {
+      await send('post', 'kofi', '/api/v1/posts', {
+        kind,
+        title: `Un ${kind} ${suffix}`,
+        body: 'Texte',
+      }).expect(201);
+    }
+  });
+
+  it('activité de la plateforme : certification obtenue, membre masqué exclu', async () => {
+    const kofi = await prisma.user.findFirstOrThrow({ where: { handle: handle('kofi') } });
+    const cert = await prisma.certificate.create({
+      data: {
+        userId: kofi.id,
+        certId: 'git-fondamentaux',
+        bestScore: 90,
+        code: `T${suffix}`.toUpperCase(),
+      },
+    });
+    const res = await get('/api/v1/activity?limit=50').expect(200);
+    const item = res.body.data.find((i: { id: string }) => i.id === `cert:${cert.id}`);
+    expect(item).toMatchObject({
+      kind: 'certificate',
+      actor: { handle: handle('kofi') },
+      href: `/certificat/${cert.code}`,
+    });
+    expect(item.subject).toContain('Git');
+
+    await prisma.user.update({ where: { id: kofi.id }, data: { privacy: { unlisted: true } } });
+    const hidden = await get('/api/v1/activity?limit=50').expect(200);
+    expect(hidden.body.data.some((i: { id: string }) => i.id === `cert:${cert.id}`)).toBe(false);
+    await prisma.user.update({ where: { id: kofi.id }, data: { privacy: {} } });
+    await prisma.certificate.delete({ where: { id: cert.id } });
   });
 });

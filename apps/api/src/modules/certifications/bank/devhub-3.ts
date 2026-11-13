@@ -12,6 +12,7 @@ export const SECURITE: PlatformCert = {
   skills: ['Sécurité', 'OWASP'],
   color: '#dc2626',
   logo: 'OWASP',
+  course: 'securite',
   codeLang: 'javascript',
   description:
     'Les failles les plus courantes (OWASP Top 10) et leurs protections : injections, XSS, authentification, secrets, contrôle d’accès, configuration.',
@@ -312,6 +313,7 @@ export const DOCKER: PlatformCert = {
   skills: ['Docker', 'Linux', 'CI/CD'],
   color: '#2496ed',
   logo: 'Docker',
+  course: 'docker',
   description:
     'Construire des images légères, lancer des conteneurs, composer plusieurs services, déployer derrière un proxy HTTPS et automatiser avec la CI.',
   syllabus: [

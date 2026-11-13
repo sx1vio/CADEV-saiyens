@@ -210,7 +210,7 @@ export const PLATFORM_TOOLS: PlatformTool[] = [
     name: 'create_post',
     title: 'Publier',
     description:
-      'Publie dans le fil : une avancée (kind "showcase"), une discussion, une actu, un projet open source. Visible par toute la communauté.',
+      'Publie dans le fil, comme sur LinkedIn : texte libre sans titre (kind "update", par défaut), projet ("showcase"), mise en ligne ou nouvelle version ("release"), célébration ("celebration"), article ou tutoriel ("article"), discussion, question, actu, projet open source. Les photos s’envoient avant par POST /media. Visible par toute la communauté.',
     method: 'POST',
     path: '/posts',
     input: CreatePostRequest,
@@ -255,7 +255,8 @@ export const PLATFORM_TOOLS: PlatformTool[] = [
   {
     name: 'list_jobs',
     title: 'Offres d’emploi',
-    description: 'Offres publiées par les entreprises sur DevHub.',
+    description:
+      'Sélection DevHub : offres des entreprises vérifiées et offres choisies par l’équipe. Une offre sans applyUrl se postule directement sur DevHub (apply_job) ; avec un applyUrl, la candidature se fait sur ce lien. Les offres collectées en direct (Remotive, Jobicy…) sont dans list_news avec kind: "job".',
     method: 'GET',
     path: '/jobs',
     readOnly: true,
@@ -273,7 +274,7 @@ export const PLATFORM_TOOLS: PlatformTool[] = [
     name: 'apply_job',
     title: 'Postuler',
     description:
-      'Envoie une candidature à une offre, avec un message de 30 à 3 000 caractères. Le Passport du dev est joint. Demande toujours confirmation au dev avant.',
+      'Postule directement sur DevHub à une offre sans applyUrl (entreprise vérifiée) : message de 30 à 3 000 caractères, Passport joint ; shareEmail: true pour que l’entreprise voie l’e-mail du dev (seulement s’il l’accepte), links: jusqu’à 3 liens https (portfolio, dépôt). Les recruteurs sont prévenus par e-mail. Une offre avec applyUrl renvoie l’erreur job.external : donne alors le lien au dev. Montre toujours le message au dev et attends son accord avant.',
     method: 'POST',
     path: '/jobs/:id/apply',
     params: { id: 'Identifiant (UUID) de l’offre' },
@@ -284,10 +285,23 @@ export const PLATFORM_TOOLS: PlatformTool[] = [
   {
     name: 'my_applications',
     title: 'Mes candidatures',
-    description: 'Mes candidatures et leur statut.',
+    description:
+      'Mes candidatures : statut (envoyée, consultée, entretien, non retenue, acceptée, retirée) et dernier mot de l’entreprise (note).',
     method: 'GET',
     path: '/me/applications',
     readOnly: true,
+  },
+
+  {
+    name: 'withdraw_application',
+    title: 'Retirer une candidature',
+    description:
+      'Retire une de mes candidatures (identifiant donné par my_applications). Demande confirmation au dev avant.',
+    method: 'DELETE',
+    path: '/me/applications/:id',
+    params: { id: 'Identifiant (UUID) de la candidature' },
+    readOnly: false,
+    destructive: true,
   },
 
   // ── Projets (salles) ────────────────────────────────────────────────────────────────────

@@ -171,6 +171,8 @@ enum ContentType {
 model User {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   githubId           BigInt?   @unique @map("github_id")
+  /// Login GitHub réel (le pseudo DevHub peut différer : compte e-mail relié plus tard, suffixe anti-collision).
+  githubLogin        String?   @map("github_login") @db.Citext
   handle             String    @unique @db.Citext
   displayName        String    @map("display_name")
   email              String?   @unique @db.Citext
@@ -209,6 +211,8 @@ model User {
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz // A3 : anonymisation
 
   community         Community?           @relation(fields: [communityId], references: [id])
+  media             Media[]
+  cvFiles           CvFile[]
   oauthAccounts     OAuthAccount[]
   sessions          Session[]
   apiTokens         ApiToken[]
@@ -868,22 +872,22 @@ enum NewsKind {
 }
 
 model NewsItem {
-  id          String   @id // SHA-1 tronqué du lien : un même lien n'est stocké qu'une fois
+  id          String    @id // SHA-1 tronqué du lien : un même lien n'est stocké qu'une fois
   kind        NewsKind
   source      String // identifiant de la source (apps/api/src/modules/news/domain/sources.ts)
-  sourceName  String   @map("source_name")
+  sourceName  String    @map("source_name")
   category    String // ia | tech | apple | google | samsung | mobile | dev | afrique | cloud | securite
-  lang        Lang     @default(en)
+  lang        Lang      @default(en)
   title       String
-  summary     String   @default("")
-  url         String   @unique
+  summary     String    @default("")
+  url         String    @unique
   image       String?
   author      String?
-  publishedAt DateTime @map("published_at") @db.Timestamptz
-  score       Int      @default(0)
-  comments    Int      @default(0)
-  extra       Json     @default("{}")
-  fetchedAt   DateTime @default(now()) @map("fetched_at") @db.Timestamptz
+  publishedAt DateTime  @map("published_at") @db.Timestamptz
+  score       Int       @default(0)
+  comments    Int       @default(0)
+  extra       Json      @default("{}")
+  fetchedAt   DateTime  @default(now()) @map("fetched_at") @db.Timestamptz
   /// Retiré par l'administration : invisible partout, jamais remis en ligne par la collecte.
   hiddenAt    DateTime? @map("hidden_at") @db.Timestamptz
   /// Ajouté ou modifié par l'administration : la collecte ne l'écrase plus et ne le purge pas.
@@ -984,6 +988,8 @@ model Post {
   linkUrl   String?   @map("link_url")
   code      String?
   tags      String[]  @default([])
+  /// Photos (ids de media), 4 au plus, dans l'ordre d'affichage.
+  images    String[]  @default([]) @db.Uuid
   hiddenAt  DateTime? @map("hidden_at") @db.Timestamptz // modération (M1)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
@@ -1084,20 +1090,46 @@ model BusinessSession {
 
 /// Candidature d'un dev à une offre d'entreprise inscrite, avec son Passport.
 model JobApplication {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  jobId     String   @map("job_id") @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  message   String
-  status    String   @default("submitted") // submitted | seen | interview | rejected | hired | withdrawn
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId        String   @map("job_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  message      String
+  status       String   @default("submitted") // submitted | seen | interview | rejected | hired | withdrawn
+  /// Adresse e-mail partagée avec l'entreprise, seulement si le dev l'a accepté en postulant.
+  contactEmail String?  @map("contact_email")
+  /// Liens joints (portfolio, LinkedIn, dépôt), https uniquement.
+  links        String[] @default([])
+  /// CV en PDF joint à la candidature.
+  cvId         String?  @map("cv_id") @db.Uuid
+  /// Dernier mot de l'entreprise au candidat (avec le changement de statut).
+  note         String?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   job  JobOffer @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cv   CvFile?  @relation(fields: [cvId], references: [id], onDelete: SetNull)
 
   @@unique([jobId, userId])
   @@index([userId])
   @@map("job_applications")
+}
+
+/// CV en PDF d'un dev (13/11/2026) : privé, lisible par son auteur et par les entreprises
+/// auxquelles il l'a envoyé avec une candidature.
+model CvFile {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  name      String
+  bytes     Bytes
+  size      Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  owner        User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+
+  @@index([ownerId, createdAt])
+  @@map("cv_files")
 }
 
 /// Annonce affichée en bandeau sur le site, publiée depuis l'administration.
@@ -1346,4 +1378,24 @@ model PasswordReset {
 
   @@index([kind, subjectId])
   @@map("password_resets")
+}
+
+/// Photo envoyée par un membre pour une publication (12/11/2026). Réduite dans le navigateur avant
+/// l'envoi (1 600 px, WebP), vérifiée par ses octets magiques, servie par GET /api/v1/media/:id.
+model Media {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  mime      String
+  bytes     Bytes
+  width     Int
+  height    Int
+  /// Publication qui l'utilise ; null tant qu'elle n'est pas publiée.
+  postId    String?  @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt])
+  @@index([postId])
+  @@map("media")
 }

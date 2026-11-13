@@ -16,6 +16,8 @@ import {
   Repeat,
   Search,
   Settings,
+  ShieldCheck,
+  Scroll,
   Sun,
   UserRound,
   PlaneTakeoff,
@@ -35,7 +37,7 @@ import { serverLogout } from '@/platform/auth';
 import { messages as messagesApi } from '@/platform/messages';
 import { DropMenu, MenuItem, MenuLabel, MenuSeparator, Sheet, useMedia } from '../ui/overlay';
 import { Avatar, CountDot, Kbd } from '../ui/primitives';
-import { CREATE_NAV, EXPLORE_NAV, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
+import { CREATE_NAV, EXPLORE_NAV, INFO_LINKS, MAIN_NAV, NETWORK_NAV, type NavEntry } from './nav';
 import { NetworkIndicator, OfflineBanner } from './network';
 import { AnnouncementBar } from './announcements';
 import { BrandLogo } from '../brand';
@@ -246,6 +248,28 @@ function UserCard({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+/** Liens d'information sous la carte du profil, discrets comme un pied de page (#200). */
+function InfoLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <nav
+      aria-label={t('nav.infoAria')}
+      className="mx-3 mt-2 flex flex-wrap gap-x-2.5 gap-y-0.5 px-1.5 text-[12px] leading-5"
+    >
+      {INFO_LINKS.map((l) => (
+        <Link
+          key={l.to}
+          to={l.to}
+          onClick={onNavigate}
+          className="rounded-[4px] text-white/55 transition-colors hover:text-white hover:underline focus-visible:text-white"
+        >
+          {t(l.label)}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
   const me = useSession((s) => s.user);
@@ -370,7 +394,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       {!onNavigate && <DjeliCorner />}
       {me ? (
-        <UserCard onNavigate={onNavigate} />
+        <>
+          <UserCard onNavigate={onNavigate} />
+          <InfoLinks onNavigate={onNavigate} />
+        </>
       ) : (
         <Link
           to="/connexion"
@@ -649,6 +676,14 @@ function UserMenu({ trigger }: { trigger?: ReactNode }) {
       </MenuItem>
       <MenuItem icon={<Keyboard />} onSelect={() => setShortcuts(true)} hint={<Kbd>?</Kbd>}>
         {t('nav.shortcuts')}
+      </MenuItem>
+      <MenuSeparator />
+      <MenuLabel>{t('nav.infoLabel')}</MenuLabel>
+      <MenuItem icon={<Scroll />} onSelect={() => nav('/regles')}>
+        {t('navEntry.rules')}
+      </MenuItem>
+      <MenuItem icon={<ShieldCheck />} onSelect={() => nav('/confidentialite')}>
+        {t('navEntry.privacy')}
       </MenuItem>
       {me.isDemo && (
         <>

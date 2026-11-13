@@ -19,6 +19,8 @@ import { ApiOkResponse } from '@nestjs/swagger';
 import {
   CreatePostCommentRequest,
   CreatePostRequest,
+  ListActivityQuery,
+  ListActivityResponse,
   ListCommunitiesResponse,
   ListPostsQuery,
   ListPostsResponse,
@@ -36,6 +38,7 @@ import {
   SessionGuard,
 } from '../../identity';
 import { COMMENTS_PER_DAY, NEW_ACCOUNT_LINK_DELAY_MS, POSTS_PER_DAY } from '../domain/limits';
+import { ActivityReader } from '../infrastructure/activity.reader';
 import { PostsRepository } from '../infrastructure/posts.repository';
 
 class CreatePostRequestDto extends createZodDto(CreatePostRequest) {}
@@ -45,6 +48,8 @@ class ListPostsQueryDto extends createZodDto(ListPostsQuery) {}
 class ListPostsResponseDto extends createZodDto(ListPostsResponse) {}
 class PostDetailDto extends createZodDto(PostDetail) {}
 class ListCommunitiesResponseDto extends createZodDto(ListCommunitiesResponse) {}
+class ListActivityQueryDto extends createZodDto(ListActivityQuery) {}
+class ListActivityResponseDto extends createZodDto(ListActivityResponse) {}
 
 const DAY = 24 * 60 * 60 * 1000;
 const notFound = () => new NotFoundException({ code: 'not_found', title: 'Post not found' });
@@ -57,7 +62,15 @@ export class PostsController {
   constructor(
     private readonly posts: PostsRepository,
     private readonly prisma: PrismaService,
+    private readonly activity: ActivityReader,
   ) {}
+
+  /** Fil d'activité façon GitHub : certifications, projets, PR fusionnées, mises en ligne. */
+  @Get('activity')
+  @ApiOkResponse({ type: ListActivityResponseDto })
+  async listActivity(@Query() q: ListActivityQueryDto): Promise<ListActivityResponse> {
+    return { data: await this.activity.list(q) };
+  }
 
   @Get('communities')
   @ApiOkResponse({ type: ListCommunitiesResponseDto })
@@ -107,6 +120,11 @@ export class PostsController {
           title: 'New accounts cannot post links during their first hour',
         });
     }
+    if (!(await this.posts.ownFreeMedia(body.images, auth.userId)))
+      throw new UnprocessableEntityException({
+        code: 'post.images_invalid',
+        title: 'Unknown or already used images',
+      });
     return { id: await this.posts.create(body, auth.userId) };
   }
 

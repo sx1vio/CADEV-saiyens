@@ -79,6 +79,8 @@ export const PassportResponse = z.object({
     availability: Availability.nullable(),
     isDemo: z.boolean(),
     memberSince: z.iso.datetime(),
+    /** Login GitHub réel ; null sans GitHub relié. */
+    githubLogin: z.string().nullable(),
   }),
   trust: z.object({
     githubLinked: z.boolean(),

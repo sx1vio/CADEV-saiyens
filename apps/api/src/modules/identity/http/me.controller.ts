@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   Patch,
@@ -186,6 +187,8 @@ export class MeController {
       emailNotifications: u.emailNotifications,
       lookingFor: u.lookingFor,
       githubLinked: u.githubId !== null,
+      githubLogin: u.githubId !== null ? u.githubLogin : null,
+      hasPassword: u.passwordHash !== null,
       githubCreatedAt: u.githubCreatedAt?.toISOString() ?? null,
       codeOfConductAcceptedAt: u.cocAcceptedAt?.toISOString() ?? null,
       isAdmin: u.isAdmin,
@@ -194,6 +197,45 @@ export class MeController {
       privacy: resolvePrivacy(u.privacy),
       trust: trustSignals(u, new Date()),
     };
+  }
+
+  /**
+   * Délier GitHub (12/11/2026) : seulement pour un compte qui a un mot de passe, sinon la personne
+   * ne pourrait plus se connecter. Le pseudo, les preuves et les compétences restent.
+   */
+  @Delete('github')
+  @UseGuards(SessionGuard)
+  @HttpCode(200)
+  @ApiOkResponse({ type: MeResponseDto })
+  async unlinkGithub(@CurrentUser() auth: AuthenticatedUser): Promise<MeResponse> {
+    if (auth.tokenScope) {
+      throw new ForbiddenException({
+        code: 'auth.session_required',
+        title: 'Sign in on the website to change linked accounts',
+      });
+    }
+    const u = await this.prisma.user.findUniqueOrThrow({
+      where: { id: auth.userId },
+      select: { githubId: true, passwordHash: true },
+    });
+    if (u.githubId !== null) {
+      if (u.passwordHash === null) {
+        throw new UnprocessableEntityException({
+          code: 'account.password_required',
+          title: 'Set a password before unlinking GitHub',
+        });
+      }
+      await this.prisma.$transaction([
+        this.prisma.oAuthAccount.deleteMany({
+          where: { userId: auth.userId, provider: 'github' },
+        }),
+        this.prisma.user.update({
+          where: { id: auth.userId },
+          data: { githubId: null, githubLogin: null, githubCreatedAt: null },
+        }),
+      ]);
+    }
+    return this.load(auth.userId);
   }
 
   /**

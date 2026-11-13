@@ -31,6 +31,7 @@ export class AccountDeletion {
           handle: deletedHandle(),
           displayName: 'Compte supprimé',
           githubId: null,
+          githubLogin: null,
           email: null,
           emailVerified: false,
           passwordHash: null,

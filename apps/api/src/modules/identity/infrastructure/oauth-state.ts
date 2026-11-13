@@ -9,17 +9,25 @@ export interface OAuthState {
   expiresAt: number;
   /** Défi PKCE de l'application mobile (ADR-0021) ; absent pour le web. */
   appChallenge?: string;
+  /** Liaison d'un GitHub au compte connecté (compte ouvert par e-mail) au lieu d'une connexion. */
+  linkUserId?: string;
 }
 
 export const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
-export function newOAuthState(returnTo: string, now: number, appChallenge?: string): OAuthState {
+export function newOAuthState(
+  returnTo: string,
+  now: number,
+  appChallenge?: string,
+  linkUserId?: string,
+): OAuthState {
   return {
     state: randomBytes(24).toString('base64url'),
     codeVerifier: randomBytes(32).toString('base64url'),
     returnTo,
     expiresAt: now + OAUTH_STATE_TTL_MS,
     ...(appChallenge ? { appChallenge } : {}),
+    ...(linkUserId ? { linkUserId } : {}),
   };
 }
 

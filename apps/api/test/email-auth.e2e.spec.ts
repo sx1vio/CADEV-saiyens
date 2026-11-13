@@ -16,6 +16,8 @@ const tag = randomBytes(4).toString('hex');
 const email = `e2e-${tag}@example.test`;
 const displayName = `Awa E2e ${tag}`;
 const password = 'une phrase assez longue';
+const other = `e2e-autre-${tag}@example.test`;
+const ghLogin = `gh-${tag}`;
 
 function sid(res: request.Response): string | undefined {
   const raw = ([] as string[]).concat(res.headers['set-cookie'] ?? []);
@@ -38,7 +40,8 @@ describe('compte par e-mail', () => {
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email } });
+    await prisma.oAuthAccount.deleteMany({ where: { user: { email: { in: [email, other] } } } });
+    await prisma.user.deleteMany({ where: { email: { in: [email, other] } } });
     await app.close();
   });
 
@@ -99,5 +102,66 @@ describe('compte par e-mail', () => {
       .set('Origin', APP_ORIGIN)
       .send({ email, password })
       .expect(403);
+  });
+
+  /** Liaison GitHub complète avec le faux fournisseur : renvoie l'adresse de retour finale. */
+  async function linkGithub(cookie: string, login: string): Promise<URL> {
+    const start = await request(app.getHttpServer())
+      .get('/api/v1/auth/github/link')
+      .query({ returnTo: '/reglages', login })
+      .set('Cookie', cookie)
+      .expect(302);
+    const callback = new URL(start.headers.location as string);
+    const oauth = ([] as string[])
+      .concat(start.headers['set-cookie'] ?? [])
+      .find((c) => c.startsWith('__Host-oauth='))!
+      .split(';')[0]!;
+    const done = await request(app.getHttpServer())
+      .get(callback.pathname + callback.search)
+      .set('Cookie', oauth)
+      .expect(302);
+    expect(sid(done)).toBeUndefined(); // une liaison n'ouvre pas de nouvelle session
+    return new URL(done.headers.location as string);
+  }
+
+  it('relie un GitHub au compte e-mail sans changer le pseudo, puis le délie', async () => {
+    const login = await post('login', { email, password }).expect(204);
+    const cookie = `__Host-sid=${sid(login)}`;
+
+    const anonymous = await request(app.getHttpServer())
+      .get('/api/v1/auth/github/link')
+      .expect(302);
+    expect(anonymous.headers.location).toContain('/connexion?next=%2Freglages');
+
+    const back = await linkGithub(cookie, ghLogin);
+    expect(back.pathname).toBe('/reglages');
+    expect(back.searchParams.get('github')).toBe('relie');
+
+    const me = await request(app.getHttpServer())
+      .get('/api/v1/me')
+      .set('Cookie', cookie)
+      .expect(200);
+    expect(me.body).toMatchObject({
+      handle: `awa-e2e-${tag}`,
+      githubLinked: true,
+      githubLogin: ghLogin,
+      hasPassword: true,
+    });
+    const passport = await request(app.getHttpServer()).get(`/api/v1/u/awa-e2e-${tag}`).expect(200);
+    expect(passport.body.user.githubLogin).toBe(ghLogin);
+
+    // Le même GitHub ne se relie pas à un second compte.
+    const reg = await post('register', { displayName: 'Autre compte', email: other, password });
+    const otherCookie = `__Host-sid=${sid(reg.status === 204 ? reg : await post('login', { email: other, password }))}`;
+    const taken = await linkGithub(otherCookie, ghLogin);
+    expect(taken.searchParams.get('github')).toBe('github_taken');
+
+    const unlinked = await request(app.getHttpServer())
+      .delete('/api/v1/me/github')
+      .set('Origin', APP_ORIGIN)
+      .set('X-DevHub-Client', 'web')
+      .set('Cookie', cookie)
+      .expect(200);
+    expect(unlinked.body).toMatchObject({ githubLinked: false, githubLogin: null });
   });
 });

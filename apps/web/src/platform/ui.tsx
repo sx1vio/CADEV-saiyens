@@ -12,6 +12,7 @@ import {
   Server,
   Smartphone,
   Sparkles,
+  Users,
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
@@ -19,7 +20,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { relativeTime, useLang } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { COMMUNITIES } from './data/feed';
+import { COMMUNITIES, GENERAL_COMMUNITY } from './data/feed';
 import { BrandLogo, logoFor } from './logos';
 import type { Template } from './types';
 
@@ -36,6 +37,7 @@ export const ICONS: Record<string, LucideIcon> = {
   rocket: Rocket,
   bot: Bot,
   'layout-dashboard': LayoutDashboard,
+  users: Users,
 };
 
 export function compact(n: number) {
@@ -60,6 +62,7 @@ export function Ago({ iso, className }: { iso: string; className?: string }) {
 /* ---------------- Personnes ---------------- */
 
 export function communityOf(slug: string) {
+  if (slug === GENERAL_COMMUNITY.slug) return GENERAL_COMMUNITY;
   return COMMUNITIES.find((c) => c.slug === slug) ?? COMMUNITIES[0];
 }
 

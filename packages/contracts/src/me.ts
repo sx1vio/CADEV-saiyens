@@ -17,6 +17,10 @@ export const MeResponse = z.object({
   emailNotifications: z.boolean(),
   lookingFor: z.string().nullable(),
   githubLinked: z.boolean(),
+  /** Login GitHub réel ; null sans GitHub relié (le pseudo DevHub peut différer). */
+  githubLogin: z.string().nullable(),
+  /** Le compte a un mot de passe : il peut se délier de GitHub sans perdre l'accès. */
+  hasPassword: z.boolean(),
   githubCreatedAt: z.iso.datetime().nullable(),
   codeOfConductAcceptedAt: z.iso.datetime().nullable(),
   isAdmin: z.boolean(),

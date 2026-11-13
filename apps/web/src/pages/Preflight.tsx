@@ -691,7 +691,21 @@ function ReportView({ id }: { id: string }) {
             <PromptBox
               text={`Lis ${absoluteMd} et corrige mon projet en suivant la consigne du rapport.`}
             />
+            <Link
+              to="/mcp"
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-accent-text hover:underline"
+            >
+              <Plug className="size-3.5" /> Corriger avec ton agent IA (MCP)
+            </Link>
           </Card>
+          {!data.systalink && (
+            <Link
+              to="/systalink"
+              className="flex items-center gap-1.5 px-1 text-xs font-medium text-accent-text hover:underline"
+            >
+              <Server className="size-3.5" /> Héberger chez Systalink
+            </Link>
+          )}
           {data.repoSummary && (
             <Card className="p-4 text-[13px]">
               <p className="flex items-center gap-1.5 font-medium text-fg">

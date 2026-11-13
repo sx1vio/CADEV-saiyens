@@ -27,6 +27,10 @@ export async function authProviders(): Promise<Record<Provider, boolean>> {
 export const githubSignInUrl = (returnTo: string) =>
   `/api/v1/auth/github?returnTo=${encodeURIComponent(returnTo)}`;
 
+/** Relie GitHub au compte connecté (compte ouvert par e-mail) ; retour sur `returnTo?github=…`. */
+export const githubLinkUrl = (returnTo: string) =>
+  `/api/v1/auth/github/link?returnTo=${encodeURIComponent(returnTo)}`;
+
 export async function fetchMe(): Promise<MeResponse> {
   const res = await fetch('/api/v1/me', { credentials: 'include' });
   if (!res.ok) throw new Error('session introuvable');

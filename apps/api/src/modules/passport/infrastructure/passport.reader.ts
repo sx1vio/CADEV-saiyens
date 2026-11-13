@@ -80,6 +80,7 @@ export class PassportReader {
         availability: privacy.hideAvailability ? null : (u.availability as Availability),
         isDemo: u.isDemo,
         memberSince: u.createdAt.toISOString(),
+        githubLogin: u.githubId !== null ? u.githubLogin : null,
       },
       trust: trustSignals(u, new Date()),
       skills: skills.map((s) => ({

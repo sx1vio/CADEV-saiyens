@@ -6,6 +6,7 @@ import {
   Languages,
   Mail,
   Map,
+  Plug,
   Moon,
   RotateCcw,
   Sun,
@@ -13,10 +14,12 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { errorText, PageHeader } from '@/components/domain';
-import { Button } from '@/components/ui/button';
+import { BrandLogo } from '@/platform/logos';
+import { linkGithubHref, useGithubLinkResult } from '@/components/GithubLink';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/overlay';
 import { Card, CardHeader, Field, Input, Textarea } from '@/components/ui/primitives';
 import { Segmented } from '@/components/ui/segmented';
@@ -42,6 +45,7 @@ export default function Settings() {
   const [typedHandle, setTypedHandle] = useState('');
   const [deleting, setDeleting] = useState(false);
   const handleMatches = typedHandle.trim().toLowerCase() === me.handle.toLowerCase();
+  useGithubLinkResult();
 
   return (
     <Page className="max-w-3xl">
@@ -152,8 +156,24 @@ export default function Settings() {
           </Row>
         </Card>
 
+        {api.mode === 'http' && <GithubCard />}
+
         {/* PR14 : la confidentialité est appliquée par l'API ; le serveur local n'a rien à régler. */}
         {api.mode === 'http' && me.privacy && <PrivacyCard privacy={me.privacy} />}
+
+        {/* Agents IA (MCP) : les jetons se créent et se révoquent sur /mcp (#200). */}
+        <Card className="p-5 sm:p-6">
+          <CardHeader
+            icon={<Plug />}
+            title={t('settings.agentsTitle')}
+            subtitle={t('settings.agentsText')}
+            action={
+              <ButtonLink to="/mcp#jeton" variant="secondary" size="sm">
+                {t('settings.agentsCta')}
+              </ButtonLink>
+            }
+          />
+        </Card>
 
         {/* Y3 : seule l'API envoie des e-mails ; le serveur local n'a rien à régler. */}
         {api.mode === 'http' && (
@@ -315,7 +335,17 @@ function PrivacyCard({ privacy }: { privacy: PrivacySettings }) {
 
   return (
     <Card className="flex flex-col gap-5 p-5 sm:p-6">
-      <CardHeader title={t('settings.privacyTitle')} subtitle={t('settings.privacyText')} />
+      <CardHeader
+        title={t('settings.privacyTitle')}
+        subtitle={
+          <>
+            {t('settings.privacyText')}{' '}
+            <Link to="/confidentialite" className="text-accent-text hover:underline">
+              {t('settings.privacyPolicy')}
+            </Link>
+          </>
+        }
+      />
       {PRIVACY_ROWS.map((key) => {
         const label = t(`settings.privacy.${key}`);
         // Le fuseau révèle le pays (« Africa/Dakar ») : il suit le pays quand celui-ci est masqué.
@@ -357,6 +387,71 @@ function PrivacyCard({ privacy }: { privacy: PrivacySettings }) {
           </Row>
         );
       })}
+    </Card>
+  );
+}
+
+/** Compte ouvert par e-mail : relier GitHub après coup (12/11/2026). */
+function GithubCard() {
+  const { t } = useTranslation();
+  const me = useSession((s) => s.user)!;
+  const setUser = useSession((s) => s.setUser);
+  const [busy, setBusy] = useState(false);
+  const login = me.githubLogin ?? null;
+  return (
+    <Card className="p-5 sm:p-6">
+      <Row
+        label={t('settings.github')}
+        hint={
+          login
+            ? t('settings.githubLinkedAs', { login }) +
+              (me.hasPassword ? '' : ` ${t('settings.githubUnlinkNeedsPassword')}`)
+            : t('settings.githubNone')
+        }
+      >
+        {login ? (
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://github.com/${login}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="lg-clear inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-[14px] font-medium text-fg"
+            >
+              <BrandLogo name="GitHub" size={16} />
+              {login}
+            </a>
+            {me.hasPassword && (
+              <Button
+                variant="ghost"
+                size="sm"
+                loading={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    setUser(await api.unlinkGithub());
+                    invalidate('');
+                    toast.success(t('settings.githubUnlinked'));
+                  } catch (e) {
+                    toast.error(errorText(t, e));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {t('settings.githubUnlink')}
+              </Button>
+            )}
+          </div>
+        ) : (
+          <a
+            href={linkGithubHref('/reglages')}
+            className="lg-tint inline-flex h-10 items-center gap-2 rounded-full px-4 text-[14px] font-semibold"
+          >
+            <BrandLogo name="GitHub" size={16} />
+            {t('settings.githubLink')}
+          </a>
+        )}
+      </Row>
     </Card>
   );
 }

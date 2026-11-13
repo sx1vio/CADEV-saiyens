@@ -47,6 +47,12 @@ export interface User {
   lastSeenAt: ISODate;
   createdAt: ISODate;
   githubCreatedAt: ISODate;
+  /** Login GitHub réel ; null sans GitHub relié (compte ouvert par e-mail). Absent en mode local. */
+  githubLogin?: string | null;
+  /** Ancienneté du compte GitHub en années (Passport public, API seulement). */
+  githubYears?: number | null;
+  /** Le compte a un mot de passe : il peut délier GitHub (API seulement). */
+  hasPassword?: boolean;
   isAdmin: boolean;
   /** Comptes de démonstration, marqués « Démo » partout (CDC §6.6) */
   isDemo: boolean;

@@ -17,6 +17,8 @@ export interface ProblemDetails {
   code: string;
   instance: string;
   requestId?: string;
+  /** Précision lisible (RFC 9457), ex. le lien de candidature d'une offre externe. */
+  detail?: string;
   errors?: unknown[];
   /** Conflit de version (409 version_conflict) : la version actuelle côté serveur. */
   server?: unknown;
@@ -60,6 +62,7 @@ export function toProblem(
       code,
       instance,
       requestId,
+      ...(typeof body.detail === 'string' ? { detail: body.detail } : {}),
       ...(Array.isArray(body.errors) ? { errors: body.errors } : {}),
       ...(body.server !== undefined ? { server: body.server } : {}),
       ...(typeof body.retryAfter === 'number' ? { retryAfter: body.retryAfter } : {}),
