@@ -6,6 +6,7 @@ import {
   Languages,
   Mail,
   Map,
+  Plug,
   Moon,
   RotateCcw,
   Sun,
@@ -13,12 +14,12 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { errorText, PageHeader } from '@/components/domain';
 import { BrandLogo } from '@/platform/logos';
 import { linkGithubHref, useGithubLinkResult } from '@/components/GithubLink';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/overlay';
 import { Card, CardHeader, Field, Input, Textarea } from '@/components/ui/primitives';
 import { Segmented } from '@/components/ui/segmented';
@@ -159,6 +160,20 @@ export default function Settings() {
 
         {/* PR14 : la confidentialité est appliquée par l'API ; le serveur local n'a rien à régler. */}
         {api.mode === 'http' && me.privacy && <PrivacyCard privacy={me.privacy} />}
+
+        {/* Agents IA (MCP) : les jetons se créent et se révoquent sur /mcp (#200). */}
+        <Card className="p-5 sm:p-6">
+          <CardHeader
+            icon={<Plug />}
+            title={t('settings.agentsTitle')}
+            subtitle={t('settings.agentsText')}
+            action={
+              <ButtonLink to="/mcp#jeton" variant="secondary" size="sm">
+                {t('settings.agentsCta')}
+              </ButtonLink>
+            }
+          />
+        </Card>
 
         {/* Y3 : seule l'API envoie des e-mails ; le serveur local n'a rien à régler. */}
         {api.mode === 'http' && (
@@ -320,7 +335,17 @@ function PrivacyCard({ privacy }: { privacy: PrivacySettings }) {
 
   return (
     <Card className="flex flex-col gap-5 p-5 sm:p-6">
-      <CardHeader title={t('settings.privacyTitle')} subtitle={t('settings.privacyText')} />
+      <CardHeader
+        title={t('settings.privacyTitle')}
+        subtitle={
+          <>
+            {t('settings.privacyText')}{' '}
+            <Link to="/confidentialite" className="text-accent-text hover:underline">
+              {t('settings.privacyPolicy')}
+            </Link>
+          </>
+        }
+      />
       {PRIVACY_ROWS.map((key) => {
         const label = t(`settings.privacy.${key}`);
         // Le fuseau révèle le pays (« Africa/Dakar ») : il suit le pays quand celui-ci est masqué.

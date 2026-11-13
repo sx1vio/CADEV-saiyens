@@ -76,6 +76,8 @@ const fr = {
     collapse: 'Replier la barre',
     expand: 'Déplier la barre',
     myPassport: 'Mon profil',
+    infoLabel: 'Aide et infos',
+    infoAria: 'Informations sur DevHub',
     noRooms: 'Aucune salle pour le moment',
     newRoom: 'Nouvelle salle',
     tour: 'Visite guidée',
@@ -118,6 +120,11 @@ const fr = {
     testbench: 'Banc d’essai',
     mcp: 'Agents IA (MCP)',
     mcpShort: 'Agents IA',
+    host: 'Héberger chez Systalink',
+    hostShort: 'Héberger',
+    systalinkHelp: 'Aide à l’hébergement Systalink',
+    sources: 'Nos sources',
+    privacy: 'Confidentialité',
     profile: 'Profil',
     explore: 'Progresser',
     create: 'Créer',
@@ -823,6 +830,7 @@ const fr = {
     leaderboardCta: 'Classement par pays',
   },
   map: {
+    seeImpact: 'Voir l’impact de DevHub',
     title: "Carte de l'Afrique",
     subtitle:
       'Les devs de DevHub, pays par pays. Clique sur un pays pour voir ses chiffres et ses devs.',
@@ -1133,6 +1141,11 @@ const fr = {
     deleted: 'Compte supprimé.',
     saved: 'Profil enregistré.',
     privacyTitle: 'Confidentialité du profil',
+    privacyPolicy: 'Lire la politique de confidentialité',
+    agentsTitle: 'Agents IA et jetons',
+    agentsText:
+      'Branche Claude Code, Cursor ou Codex sur DevHub avec un jeton révocable, et gère tes jetons.',
+    agentsCta: 'Gérer mes jetons',
     privacyText:
       'Ce que ton profil public montre. Tes contributions et leurs preuves restent visibles.',
     privacy: {

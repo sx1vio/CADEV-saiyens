@@ -106,6 +106,10 @@ export default function AfricaMapPage() {
             <Link to="/regles" className="font-medium text-accent-text hover:underline">
               {t('leaderboard.how')}
             </Link>
+            {' · '}
+            <Link to="/impact" className="font-medium text-accent-text hover:underline">
+              {t('map.seeImpact')}
+            </Link>
           </p>
 
           <div className="mt-8 overflow-x-auto">

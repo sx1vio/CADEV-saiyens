@@ -10,9 +10,12 @@ import {
   FolderSimple,
   House,
   HardDrives,
+  Lifebuoy,
   MapTrifold,
+  Newspaper,
   PuzzlePiece,
   Scroll,
+  ShieldCheck,
 } from '@phosphor-icons/react';
 
 /** Icône pleine et unie (Phosphor, graisse « fill » fixée par le shell). */
@@ -68,6 +71,7 @@ export const CREATE_NAV: NavEntry[] = [
   },
   { to: '/banc', label: 'navEntry.testbench', short: 'navEntry.testbench', icon: DeviceMobile },
   { to: '/mcp', label: 'navEntry.mcp', short: 'navEntry.mcpShort', icon: Plugs },
+  { to: '/systalink', label: 'navEntry.host', short: 'navEntry.hostShort', icon: HardDrives },
 ];
 
 /** Hors barre latérale, accessibles par la recherche (Ctrl K). */
@@ -79,10 +83,25 @@ export const NETWORK_NAV: NavEntry[] = [
 /** Les services, dans l'ordre (palette, barre d'onglets). */
 export const SERVICES_NAV: NavEntry[] = [MAIN_NAV[1]!, ...EXPLORE_NAV, ...CREATE_NAV];
 
+/** Pages d'information, accessibles par la recherche (Ctrl K) (#200). */
 export const PLATFORM_NAV: NavEntry[] = [
-  { to: '/systalink', label: 'navEntry.systalink', icon: HardDrives },
+  { to: '/systalink/aide', label: 'navEntry.systalinkHelp', icon: Lifebuoy },
   { to: '/impact', label: 'navEntry.impact', icon: ChartBar },
   { to: '/regles', label: 'navEntry.rules', icon: Scroll },
+  { to: '/sources', label: 'navEntry.sources', icon: Newspaper },
+  { to: '/confidentialite', label: 'navEntry.privacy', icon: ShieldCheck },
+];
+
+/**
+ * Liens discrets sous la carte du profil (barre latérale et tiroir) : les mêmes que le groupe
+ * « DevHub » du pied de page public, pour qu'aucune page ne disparaisse une fois connecté (#200).
+ */
+export const INFO_LINKS: { to: string; label: string }[] = [
+  { to: '/regles', label: 'navEntry.rules' },
+  { to: '/impact', label: 'navEntry.impact' },
+  { to: '/systalink', label: 'navEntry.systalink' },
+  { to: '/sources', label: 'navEntry.sources' },
+  { to: '/confidentialite', label: 'navEntry.privacy' },
 ];
 
 export const ALL_NAV = [
