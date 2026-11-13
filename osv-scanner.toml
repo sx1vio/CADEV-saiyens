@@ -1,0 +1,9 @@
+# Exceptions d'osv-scanner (pré-vol). Chaque exception est justifiée et datée ;
+# elle expire d'elle-même et doit alors être réexaminée.
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2027-02-10T00:00:00Z
+reason = """deepmerge 4.3.1 : aucune version corrigée publiée. Utilisé par nestjs-zod (fusion des \
+schémas OpenAPI écrits dans notre code), @rollup/plugin-node-resolve et fork-ts-checker \
+(outils de build). Aucune donnée de requête n'est fusionnée : pas d'empoisonnement de prototype possible."""
