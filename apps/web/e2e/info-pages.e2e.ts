@@ -3,8 +3,8 @@ import { signIn, uniqueLogin } from './support/session';
 
 /**
  * #200 : une fois connecté, les pages d'information du site public (règles, impact, Systalink,
- * sources, confidentialité, agents IA) restent accessibles depuis l'interface, pas seulement
- * en tapant leur adresse.
+ * sources, confidentialité, agents IA) restent accessibles depuis l'interface (carte « Aide et
+ * infos » des Réglages depuis le 13/11/2026), pas seulement en tapant leur adresse.
  */
 const INFO = [
   ['Règles', '/regles'],
@@ -16,12 +16,14 @@ const INFO = [
 
 test.use({ viewport: { width: 1280, height: 768 } });
 
-test('connecté : pages d’information accessibles depuis la barre latérale', async ({ page }) => {
+test('connecté : pages d’information accessibles depuis les Réglages', async ({ page }) => {
   await signIn(page, uniqueLogin('info'), '/');
-  const info = page.getByRole('navigation', { name: 'Informations sur DevHub' });
-  await expect(info).toBeVisible();
+  // Depuis le 13/11/2026, ces liens ne sont plus sous la carte du profil.
+  await expect(page.getByRole('navigation', { name: 'Informations sur DevHub' })).toHaveCount(0);
 
   for (const [label, path] of INFO) {
+    await page.goto('/reglages');
+    const info = page.getByRole('navigation', { name: 'Informations sur DevHub' });
     await info.getByRole('link', { name: label, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`${path}$`));
   }
@@ -31,12 +33,6 @@ test('connecté : pages d’information accessibles depuis la barre latérale', 
   await expect(page).toHaveURL(/\/systalink$/);
   await side.getByRole('link', { name: 'Agents IA (MCP)', exact: true }).click();
   await expect(page).toHaveURL(/\/mcp$/);
-
-  // Les liens d'information restent visibles sans faire défiler la barre latérale.
-  await expect(info).toBeInViewport();
-  const overflow = await side.evaluate((el) => el.scrollHeight - el.clientHeight);
-  console.log(`débordement de la barre latérale à 768 px : ${overflow}px`);
-  await page.screenshot({ path: 'test-results/info-pages-sidebar.png' });
 });
 
 test('connecté : menu du compte, recherche et liens en contexte', async ({ page }) => {

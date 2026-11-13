@@ -93,8 +93,9 @@ export const PLATFORM_NAV: NavEntry[] = [
 ];
 
 /**
- * Liens discrets sous la carte du profil (barre latérale et tiroir) : les mêmes que le groupe
- * « DevHub » du pied de page public, pour qu'aucune page ne disparaisse une fois connecté (#200).
+ * Pages d'information, carte « Aide et infos » des Réglages : les mêmes que le groupe « DevHub »
+ * du pied de page public, pour qu'aucune page ne disparaisse une fois connecté (#200).
+ * Sorties de la barre latérale le 13/11/2026.
  */
 export const INFO_LINKS: { to: string; label: string }[] = [
   { to: '/regles', label: 'navEntry.rules' },
