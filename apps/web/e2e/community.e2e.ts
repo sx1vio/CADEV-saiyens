@@ -7,10 +7,13 @@ test('publier dans une communauté, puis commenter et répondre', async ({ page 
   await signIn(page, uniqueLogin('poster'), '/publier');
   await page.goto('/publier?c=web');
 
+  // Depuis le 12/11/2026, une publication libre n'a pas de titre : l'article en a un.
+  await page.getByRole('radio', { name: 'Article' }).click();
   await page.getByLabel('Titre').fill(title);
   await page
-    .getByLabel('Texte')
+    .getByLabel('Texte de la publication')
     .fill('Je rejoue mes écritures hors ligne. Comment éviter les doublons ?');
+  await page.getByRole('button', { name: 'Étiquettes' }).click();
   await page.getByLabel('Étiquettes').fill('PWA');
   await page.getByRole('button', { name: 'Publier', exact: true }).click();
   await page.waitForURL('**/post/**');
