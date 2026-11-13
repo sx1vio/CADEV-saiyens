@@ -26,8 +26,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'JavaScript et DOM',
       'Requêtes réseau et bonnes pratiques',
     ],
-    topicCounts: [5, 5, 5, 5, 5],
-    bankSize: 25,
+    topicCounts: [10, 10, 10, 10, 10],
+    bankSize: 50,
   },
   {
     id: 'js-fondamentaux',
@@ -40,7 +40,7 @@ export const CERT_CATALOG: CertMeta[] = [
     skills: ['JavaScript'],
     color: '#f0b232',
     logo: 'JavaScript',
-    course: 'web',
+    course: 'js',
     codeLang: 'javascript',
     description:
       'Types, portée, fonctions, tableaux, objets, asynchrone et modules : les bases que tout dev JavaScript doit maîtriser.',
@@ -51,8 +51,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Asynchrone : promesses et async/await',
       'Modules et erreurs',
     ],
-    topicCounts: [5, 5, 6, 5, 4],
-    bankSize: 25,
+    topicCounts: [10, 10, 11, 10, 9],
+    bankSize: 50,
   },
   {
     id: 'python-fondamentaux',
@@ -76,8 +76,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Fonctions',
       'Modules, fichiers et exceptions',
     ],
-    topicCounts: [5, 5, 6, 5, 4],
-    bankSize: 25,
+    topicCounts: [10, 10, 11, 10, 9],
+    bankSize: 50,
   },
   {
     id: 'git-fondamentaux',
@@ -101,8 +101,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Remote, push, pull et pull requests',
       'Bonnes pratiques et secrets',
     ],
-    topicCounts: [4, 5, 6, 5, 5],
-    bankSize: 25,
+    topicCounts: [9, 10, 11, 10, 10],
+    bankSize: 50,
   },
   {
     id: 'sql-fondamentaux',
@@ -126,8 +126,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Clés et jointures',
       'Sécurité et performance',
     ],
-    topicCounts: [5, 5, 5, 5, 5],
-    bankSize: 25,
+    topicCounts: [10, 10, 10, 10, 10],
+    bankSize: 50,
   },
   {
     id: 'react-essentiel',
@@ -140,6 +140,7 @@ export const CERT_CATALOG: CertMeta[] = [
     skills: ['React', 'JavaScript'],
     color: '#0ea5e9',
     logo: 'React',
+    course: 'react',
     codeLang: 'jsx',
     description:
       'Composants, props, état, effets, listes, formulaires et chargement de données : écrire des interfaces React correctes et performantes.',
@@ -150,8 +151,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Listes et formulaires',
       'Performance et structure',
     ],
-    topicCounts: [5, 5, 5, 5, 5],
-    bankSize: 25,
+    topicCounts: [10, 10, 10, 10, 10],
+    bankSize: 50,
   },
   {
     id: 'securite-web',
@@ -164,6 +165,7 @@ export const CERT_CATALOG: CertMeta[] = [
     skills: ['Sécurité', 'OWASP'],
     color: '#dc2626',
     logo: 'OWASP',
+    course: 'securite',
     codeLang: 'javascript',
     description:
       'Les failles les plus courantes (OWASP Top 10) et leurs protections : injections, XSS, authentification, secrets, contrôle d’accès, configuration.',
@@ -174,8 +176,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Secrets et dépendances',
       'Configuration et HTTPS',
     ],
-    topicCounts: [5, 5, 5, 5, 5],
-    bankSize: 25,
+    topicCounts: [10, 10, 10, 10, 10],
+    bankSize: 50,
   },
   {
     id: 'docker-deploiement',
@@ -188,6 +190,7 @@ export const CERT_CATALOG: CertMeta[] = [
     skills: ['Docker', 'Linux', 'CI/CD'],
     color: '#2496ed',
     logo: 'Docker',
+    course: 'docker',
     description:
       'Construire des images légères, lancer des conteneurs, composer plusieurs services, déployer derrière un proxy HTTPS et automatiser avec la CI.',
     syllabus: [
@@ -197,8 +200,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Déploiement et HTTPS',
       'CI/CD et exploitation',
     ],
-    topicCounts: [5, 5, 5, 5, 5],
-    bankSize: 25,
+    topicCounts: [10, 10, 10, 10, 10],
+    bankSize: 50,
   },
   {
     id: 'ia-usage-responsable',
@@ -221,8 +224,8 @@ export const CERT_CATALOG: CertMeta[] = [
       'Données, sécurité et licences',
       'Travailler avec un agent',
     ],
-    topicCounts: [5, 5, 5, 5, 5],
-    bankSize: 25,
+    topicCounts: [10, 10, 10, 10, 10],
+    bankSize: 50,
   },
 ];
 

@@ -586,6 +586,7 @@ export const REACT: PlatformCert = {
   skills: ['React', 'JavaScript'],
   color: '#0ea5e9',
   logo: 'React',
+  course: 'react',
   codeLang: 'jsx',
   description:
     'Composants, props, état, effets, listes, formulaires et chargement de données : écrire des interfaces React correctes et performantes.',

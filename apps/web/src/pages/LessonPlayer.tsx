@@ -385,7 +385,7 @@ function TipView({ step, color }: { step: Extract<Step, { kind: 'tip' }>; color:
       <h1 className="font-display text-[26px] leading-tight font-bold tracking-[-0.02em] text-fg sm:text-[30px]">
         {step.title}
       </h1>
-      <p className="text-[17px] leading-relaxed text-fg">{step.body}</p>
+      <p className="text-[17px] leading-relaxed whitespace-pre-line text-fg">{step.body}</p>
       {step.code && <CodeBlock code={step.code} />}
     </div>
   );

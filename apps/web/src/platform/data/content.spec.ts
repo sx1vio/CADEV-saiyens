@@ -19,17 +19,23 @@ describe('certifications officielles', () => {
 
 describe('cours façon Duolingo', () => {
   for (const meta of COURSE_META) {
-    it(`${meta.id} : 4 unités de 3 leçons, exercices jouables`, async () => {
+    it(`${meta.id} : cours complet (6 unités ou plus), fiches rédigées, exercices jouables`, async () => {
       const course = (await loadCourse(meta.id))!;
-      expect(course.units).toHaveLength(4);
+      // Depuis le 12/11/2026 : des cours complets, pas des aperçus.
+      expect(course.units.length).toBeGreaterThanOrEqual(6);
       const lessonIds = new Set<string>();
+      const unitIds = new Set<string>();
       for (const u of course.units) {
-        expect(u.lessons).toHaveLength(3);
+        expect(unitIds.has(u.id), `unité en double : ${u.id}`).toBe(false);
+        unitIds.add(u.id);
+        expect(u.lessons.length, u.id).toBeGreaterThanOrEqual(3);
         for (const l of u.lessons) {
           expect(lessonIds.has(l.id), `leçon en double : ${l.id}`).toBe(false);
           lessonIds.add(l.id);
           expect(l.steps[0]?.kind, `${l.id} commence par une fiche`).toBe('tip');
-          expect(l.steps.filter((s) => s.kind !== 'tip').length).toBeGreaterThanOrEqual(4);
+          expect(l.steps.filter((s) => s.kind !== 'tip').length, l.id).toBeGreaterThanOrEqual(5);
+          const written = l.steps.reduce((n, s) => n + (s.kind === 'tip' ? s.body.length : 0), 0);
+          expect(written, `${meta.id}/${l.id} : fiches trop courtes`).toBeGreaterThanOrEqual(500);
           for (const s of l.steps) {
             const where = `${meta.id}/${l.id}`;
             switch (s.kind) {

@@ -1,4 +1,15 @@
-import { Database, GitBranch, Globe, Smartphone, Sparkles, Terminal } from 'lucide-react';
+import {
+  Atom,
+  Braces,
+  Container,
+  Database,
+  GitBranch,
+  Globe,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Terminal,
+} from 'lucide-react';
 import type { CourseMeta } from './types';
 
 /** Les cours façon Duolingo, du plus demandé au plus spécialisé. Le contenu est chargé à la demande. */
@@ -12,6 +23,27 @@ export const COURSE_META: CourseMeta[] = [
     color: '#2563eb',
     domain: 'web',
     certId: 'web-fondamentaux',
+  },
+  {
+    id: 'js',
+    title: 'JavaScript en profondeur',
+    tagline:
+      'Types, fonctions, tableaux et objets, asynchrone, modules et erreurs : le langage du web, vraiment compris.',
+    forWho: 'Après les bases du web, pour écrire du JavaScript solide côté navigateur et serveur.',
+    icon: Braces,
+    color: '#ca8a04',
+    domain: 'web',
+    certId: 'js-fondamentaux',
+  },
+  {
+    id: 'react',
+    title: 'Interfaces avec React',
+    tagline: 'Composants, props, état, effets, listes, formulaires et données distantes.',
+    forWho: 'Quand tu connais JavaScript et veux construire de vraies applications web.',
+    icon: Atom,
+    color: '#0ea5e9',
+    domain: 'web',
+    certId: 'react-essentiel',
   },
   {
     id: 'python',
@@ -43,6 +75,28 @@ export const COURSE_META: CourseMeta[] = [
     color: '#0891b2',
     domain: 'backend',
     certId: 'sql-fondamentaux',
+  },
+  {
+    id: 'securite',
+    title: 'Sécurité des applications web',
+    tagline:
+      'Injections, XSS, authentification, sessions, secrets, en-têtes : les failles courantes et leurs parades.',
+    forWho: 'Pour tout dev qui met une application en ligne avec de vrais utilisateurs.',
+    icon: ShieldCheck,
+    color: '#dc2626',
+    domain: 'backend',
+    certId: 'securite-web',
+  },
+  {
+    id: 'docker',
+    title: 'Docker et mise en ligne',
+    tagline:
+      'Images, conteneurs, Dockerfile, Compose, variables d’environnement, serveur et déploiement continu.',
+    forWho: 'Pour faire tourner ton app partout de la même façon et la mettre en ligne.',
+    icon: Container,
+    color: '#2563eb',
+    domain: 'cloud',
+    certId: 'docker-deploiement',
   },
   {
     id: 'mobile',
