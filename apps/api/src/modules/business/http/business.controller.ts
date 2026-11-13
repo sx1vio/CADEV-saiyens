@@ -65,6 +65,8 @@ import {
   EmailTakenError,
 } from '../infrastructure/business.repository';
 import { BusinessSessionStore } from '../infrastructure/business-session.store';
+import { statusChangeEmail } from '../domain/application-emails';
+import { sendPdf } from './careers.controller';
 import {
   BUSINESS_COOKIE,
   type BusinessRequest,
@@ -377,7 +379,34 @@ export class BusinessController {
     @Body() body: StatusDto,
     @Req() req: BusinessRequest,
   ) {
-    if (!(await this.repo.setApplicationStatus(req.biz!.companyId, id, body.status)))
-      throw notFound();
+    const r = await this.repo.setApplicationStatus(req.biz!.companyId, id, body.status, body.note);
+    if (!r) throw notFound();
+    // Le candidat est prévenu par e-mail pour un entretien, une réponse ou un mot de l'entreprise.
+    if (r.changed && r.email && this.mailer.configured && (body.status !== 'seen' || r.note)) {
+      const mail = statusChangeEmail({
+        name: r.displayName,
+        company: r.company,
+        jobTitle: r.jobTitle,
+        label: r.label,
+        note: r.note,
+        url: `${this.env.APP_URL.replace(/\/$/, '')}/emplois`,
+      });
+      this.mailer
+        .send({ to: r.email, ...mail })
+        .catch((e: unknown) => this.logger.warn(`status e-mail failed: ${String(e)}`));
+    }
+  }
+
+  /** CV joint à une candidature reçue (pièce jointe, jamais affiché dans le portail). */
+  @Get('applications/:id/cv')
+  @UseGuards(BusinessSessionGuard)
+  async cv(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: BusinessRequest,
+    @Res() res: Response,
+  ): Promise<void> {
+    const cv = await this.repo.applicationCv(req.biz!.companyId, id);
+    if (!cv) throw notFound();
+    sendPdf(res, cv.name, cv.bytes);
   }
 }

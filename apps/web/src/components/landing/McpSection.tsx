@@ -56,7 +56,7 @@ export function McpSection() {
             ))}
           </ul>
           <p className="mt-6 text-[13.5px] text-fg/65">
-            Compatible avec {AGENTS.join(', ')} et tout client MCP. 42 outils, les mêmes droits et
+            Compatible avec {AGENTS.join(', ')} et tout client MCP. 43 outils, les mêmes droits et
             les mêmes limites que l’application ; tu valides tout ce qui est publié.
           </p>
           <Link

@@ -456,19 +456,6 @@ function Applications({
   }, [job.id, onError]);
   useEffect(load, [load]);
 
-  const setStatus = async (
-    a: ApplicationView,
-    status: 'seen' | 'interview' | 'rejected' | 'hired',
-  ) => {
-    try {
-      await api.setStatus(a.id, { status });
-      load();
-    } catch (e) {
-      onError(e);
-      alert(errorMessage(e));
-    }
-  };
-
   return (
     <section>
       <button
@@ -480,7 +467,8 @@ function Applications({
       </button>
       <h1 className="text-[22px] font-bold">{job.title}</h1>
       <p className="mt-1 text-[14px] text-muted">
-        Le candidat voit chaque changement de statut. Ouvrez son Passport pour voir ses preuves.
+        Le candidat est prévenu de chaque changement de statut (notification et e-mail), avec votre
+        message s’il y en a un. Ouvrez son Passport pour voir ses preuves.
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {rows === null && <li className="text-muted">Chargement…</li>}
@@ -490,109 +478,212 @@ function Applications({
           </li>
         )}
         {rows?.map((a) => (
-          <li key={a.id} className="rounded-xl border border-line bg-panel p-4">
-            <div className="flex flex-wrap items-start gap-3">
-              {a.candidate.avatarUrl ? (
-                <img
-                  src={a.candidate.avatarUrl}
-                  alt=""
-                  className="size-11 rounded-full object-cover"
-                />
-              ) : (
-                <span className="grid size-11 place-items-center rounded-full bg-brand-soft font-bold text-brand">
-                  {a.candidate.displayName.slice(0, 1)}
-                </span>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">
-                  {a.candidate.displayName}{' '}
-                  <span className="font-normal text-muted">@{a.candidate.handle}</span>
-                </p>
-                <p className="text-[13px] text-muted">
-                  {a.candidate.proofXp} Proof XP
-                  {a.candidate.country && ` · ${a.candidate.country}`}
-                  {a.candidate.githubLinked && (
-                    <span className="ml-1.5 inline-flex items-center gap-1">
-                      <Code2 className="size-3.5" /> GitHub relié
-                    </span>
-                  )}
-                  {' · '}postulé le {fmt(a.createdAt)}
-                </p>
-              </div>
-              <span
-                className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${APP_STATUS[a.status].tone}`}
-              >
-                {APP_STATUS[a.status].label}
-              </span>
-            </div>
-            {a.candidate.skills.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {a.candidate.skills.map((s) => (
-                  <span
-                    key={s.label}
-                    className="rounded-md bg-page px-2 py-0.5 text-[12px] font-medium"
-                  >
-                    {s.label} <span className="text-muted">{s.score}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-            <p className="mt-3 rounded-lg bg-page px-3 py-2 text-[14px] whitespace-pre-wrap">
-              {a.message}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <a
-                href={`${SITE_URL}/u/${a.candidate.handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-ghost h-9"
-              >
-                Voir le Passport <ExternalLink className="size-4" />
-              </a>
-              {a.status !== 'withdrawn' && (
-                <>
-                  {a.status === 'submitted' && (
-                    <button
-                      type="button"
-                      className="btn-ghost h-9"
-                      onClick={() => setStatus(a, 'seen')}
-                    >
-                      Marquer consultée
-                    </button>
-                  )}
-                  {a.status !== 'interview' && a.status !== 'hired' && (
-                    <button
-                      type="button"
-                      className="btn-ghost h-9"
-                      onClick={() => setStatus(a, 'interview')}
-                    >
-                      Proposer un entretien
-                    </button>
-                  )}
-                  {a.status !== 'hired' && (
-                    <button
-                      type="button"
-                      className="btn-primary h-9"
-                      onClick={() => setStatus(a, 'hired')}
-                    >
-                      Recruter
-                    </button>
-                  )}
-                  {a.status !== 'rejected' && a.status !== 'hired' && (
-                    <button
-                      type="button"
-                      className="btn-danger h-9"
-                      onClick={() => setStatus(a, 'rejected')}
-                    >
-                      Ne pas retenir
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          </li>
+          <ApplicationCard key={a.id} a={a} onChanged={load} onError={onError} />
         ))}
       </ul>
     </section>
+  );
+}
+
+const fmtSize = (n: number) =>
+  n >= 1024 * 1024
+    ? `${(n / 1024 / 1024).toFixed(1)} Mo`
+    : `${Math.max(1, Math.round(n / 1024))} Ko`;
+
+/** Une candidature : Passport, message, contact partagé, CV, liens, décision avec un mot. */
+function ApplicationCard({
+  a,
+  onChanged,
+  onError,
+}: {
+  a: ApplicationView;
+  onChanged: () => void;
+  onError: (e: unknown) => void;
+}) {
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const setStatus = async (status: 'seen' | 'interview' | 'rejected' | 'hired') => {
+    setBusy(true);
+    try {
+      await api.setStatus(a.id, { status, ...(note.trim() ? { note: note.trim() } : {}) });
+      setNote('');
+      onChanged();
+    } catch (e) {
+      onError(e);
+      alert(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <li className="rounded-xl border border-line bg-panel p-4">
+      <div className="flex flex-wrap items-start gap-3">
+        {a.candidate.avatarUrl ? (
+          <img src={a.candidate.avatarUrl} alt="" className="size-11 rounded-full object-cover" />
+        ) : (
+          <span className="grid size-11 place-items-center rounded-full bg-brand-soft font-bold text-brand">
+            {a.candidate.displayName.slice(0, 1)}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold">
+            {a.candidate.displayName}{' '}
+            <span className="font-normal text-muted">@{a.candidate.handle}</span>
+          </p>
+          <p className="text-[13px] text-muted">
+            {a.candidate.proofXp} Proof XP
+            {a.candidate.country && ` · ${a.candidate.country}`}
+            {a.candidate.githubLinked && (
+              <span className="ml-1.5 inline-flex items-center gap-1">
+                <Code2 className="size-3.5" /> GitHub relié
+              </span>
+            )}
+            {' · '}postulé le {fmt(a.createdAt)}
+          </p>
+        </div>
+        <span
+          className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${APP_STATUS[a.status].tone}`}
+        >
+          {APP_STATUS[a.status].label}
+        </span>
+      </div>
+      {a.candidate.skills.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {a.candidate.skills.map((s) => (
+            <span key={s.label} className="rounded-md bg-page px-2 py-0.5 text-[12px] font-medium">
+              {s.label} <span className="text-muted">{s.score}</span>
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="mt-3 rounded-lg bg-page px-3 py-2 text-[14px] whitespace-pre-wrap">
+        {a.message}
+      </p>
+
+      <dl className="mt-3 grid gap-1.5 text-[13.5px]">
+        <div className="flex flex-wrap gap-x-2">
+          <dt className="text-muted">E-mail :</dt>
+          <dd>
+            {a.contactEmail ? (
+              <a
+                href={`mailto:${a.contactEmail}`}
+                className="font-medium text-brand hover:underline"
+              >
+                {a.contactEmail}
+              </a>
+            ) : (
+              <span className="text-muted">
+                non partagé (répondez par le changement de statut ci-dessous)
+              </span>
+            )}
+          </dd>
+        </div>
+        {a.links.length > 0 && (
+          <div className="flex flex-wrap gap-x-2">
+            <dt className="text-muted">Liens :</dt>
+            <dd className="flex min-w-0 flex-wrap gap-x-3">
+              {a.links.map((l) => (
+                <a
+                  key={l}
+                  href={l}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="max-w-[320px] truncate font-medium text-brand hover:underline"
+                >
+                  {l.replace(/^https:\/\//, '')}
+                </a>
+              ))}
+            </dd>
+          </div>
+        )}
+        {a.note && (
+          <div className="flex flex-wrap gap-x-2">
+            <dt className="text-muted">Dernier message envoyé :</dt>
+            <dd className="whitespace-pre-wrap">{a.note}</dd>
+          </div>
+        )}
+      </dl>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <a
+          href={`${SITE_URL}/u/${a.candidate.handle}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-ghost h-9"
+        >
+          Voir le Passport <ExternalLink className="size-4" />
+        </a>
+        {a.cv && (
+          <button
+            type="button"
+            className="btn-ghost h-9"
+            onClick={() => api.downloadCv(a.id, a.cv!.name).catch((e) => alert(errorMessage(e)))}
+          >
+            Télécharger le CV ({fmtSize(a.cv.size)})
+          </button>
+        )}
+      </div>
+
+      {a.status !== 'withdrawn' && (
+        <div className="mt-4 border-t border-line pt-3">
+          <label className="block text-[13px] font-medium text-muted" htmlFor={`note-${a.id}`}>
+            Message au candidat (facultatif, envoyé avec votre décision)
+          </label>
+          <textarea
+            id={`note-${a.id}`}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            maxLength={1000}
+            rows={2}
+            placeholder="Ex. : entretien jeudi 10 h en visio, lien à suivre."
+            className="mt-1.5 w-full rounded-lg border border-line bg-page px-3 py-2 text-[14px] outline-none focus:border-brand"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            {a.status === 'submitted' && (
+              <button
+                type="button"
+                disabled={busy}
+                className="btn-ghost h-9"
+                onClick={() => setStatus('seen')}
+              >
+                Marquer consultée
+              </button>
+            )}
+            {a.status !== 'hired' && (
+              <button
+                type="button"
+                disabled={busy}
+                className="btn-ghost h-9"
+                onClick={() => setStatus('interview')}
+              >
+                {a.status === 'interview' ? 'Envoyer le message' : 'Proposer un entretien'}
+              </button>
+            )}
+            {a.status !== 'hired' && (
+              <button
+                type="button"
+                disabled={busy}
+                className="btn-primary h-9"
+                onClick={() => setStatus('hired')}
+              >
+                Recruter
+              </button>
+            )}
+            {a.status !== 'rejected' && a.status !== 'hired' && (
+              <button
+                type="button"
+                disabled={busy}
+                className="btn-danger h-9"
+                onClick={() => setStatus('rejected')}
+              >
+                Ne pas retenir
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </li>
   );
 }

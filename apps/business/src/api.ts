@@ -67,6 +67,22 @@ export const api = {
     call<{ data: ApplicationView[] }>('GET', `/jobs/${jobId}/applications`),
   setStatus: (id: string, body: ApplicationStatusRequest) =>
     call<void>('PATCH', `/applications/${id}`, body),
+  /** CV joint (PDF) : lu avec l'en-tête du portail puis enregistré par le navigateur. */
+  downloadCv: async (id: string, name: string) => {
+    const res = await fetch(`/api/v1/business/applications/${id}/cv`, {
+      credentials: 'same-origin',
+      headers: { 'X-DevHub-Client': 'business' },
+    }).catch(() => {
+      throw new ApiError(0, 'network', 'Le serveur ne répond pas. Vérifie ta connexion.');
+    });
+    if (!res.ok) throw new ApiError(res.status, 'not_found', 'CV introuvable.');
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  },
   recentApplications: (limit = 6) =>
     call<{ data: RecentApplicationView[] }>('GET', `/applications?limit=${limit}`),
   forgotPassword: (email: string) => call<void>('POST', '/password/forgot', { email }),

@@ -185,6 +185,121 @@ describe('portail entreprise', () => {
     expect(notif?.payload).toMatchObject({ status: 'interview', jobId });
   });
 
+  it('candidature complète : CV PDF privé, e-mail partagé avec accord, liens, mot de l’entreprise', async () => {
+    const dev2 = await signInAs(app, `dev2-biz-${suffix}`);
+    const user2 = await prisma.user.findFirstOrThrow({ where: { handle: `dev2-biz-${suffix}` } });
+    await prisma.user.update({
+      where: { id: user2.id },
+      data: { email: `dev2-${suffix}@exemple.bj` },
+    });
+    // Pas un PDF : refusé.
+    await http()
+      .post('/api/v1/me/cv?name=cv.pdf')
+      .set(WRITE_HEADERS)
+      .set('Content-Type', 'application/pdf')
+      .set('Cookie', dev2)
+      .send(Buffer.from('<html>pas un pdf</html>'))
+      .expect(422);
+    const pdf = Buffer.from('%PDF-1.7\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF');
+    const up = await http()
+      .post('/api/v1/me/cv?name=Mon CV <script>.pdf')
+      .set(WRITE_HEADERS)
+      .set('Content-Type', 'application/pdf')
+      .set('Cookie', dev2)
+      .send(pdf)
+      .expect(201);
+    expect(up.body).toMatchObject({ name: 'Mon CV script.pdf', size: pdf.length });
+    // Le CV d'un autre ne peut pas être joint.
+    await http()
+      .post(`/api/v1/jobs/${jobId}/apply`)
+      .set(WRITE_HEADERS)
+      .set('Idempotency-Key', randomUUID())
+      .set('Cookie', dev)
+      .send({ message: 'x'.repeat(40), cvId: up.body.id })
+      .expect((r) => expect([409, 422]).toContain(r.status));
+    await http()
+      .post(`/api/v1/jobs/${jobId}/apply`)
+      .set(WRITE_HEADERS)
+      .set('Idempotency-Key', randomUUID())
+      .set('Cookie', dev2)
+      .send({
+        message: 'Trois ans de Flutter en production, dont une app de paiement mobile money.',
+        shareEmail: true,
+        links: ['https://github.com/exemple/livraison'],
+        cvId: up.body.id,
+      })
+      .expect(204);
+    const list = await asBiz('get', `/api/v1/business/jobs/${jobId}/applications`).expect(200);
+    const mine = list.body.data.find(
+      (a: { candidate: { handle: string } }) => a.candidate.handle === `dev2-biz-${suffix}`,
+    );
+    expect(mine).toMatchObject({
+      contactEmail: `dev2-${suffix}@exemple.bj`,
+      links: ['https://github.com/exemple/livraison'],
+      cv: { name: 'Mon CV script.pdf', size: pdf.length },
+    });
+    // Le premier candidat n'a pas partagé son e-mail.
+    const first = list.body.data.find((a: { id: string }) => a.id === applicationId);
+    expect(first).toMatchObject({ contactEmail: null, cv: null });
+    const file = await asBiz('get', `/api/v1/business/applications/${mine.id}/cv`)
+      .buffer(true)
+      .parse((res, cb) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => cb(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    expect(file.headers['content-type']).toBe('application/pdf');
+    expect(file.headers['content-disposition']).toContain('attachment');
+    expect(Buffer.compare(file.body as Buffer, pdf)).toBe(0);
+    // Le CV reste privé : un autre dev ne le lit pas.
+    await http().get(`/api/v1/me/cv/${up.body.id}`).set('Cookie', dev).expect(404);
+    await http().get(`/api/v1/me/cv/${up.body.id}`).set('Cookie', dev2).expect(200);
+
+    await asBiz('patch', `/api/v1/business/applications/${mine.id}`)
+      .send({
+        status: 'interview',
+        note: 'Entretien jeudi 10 h, en visio. Lien envoyé par e-mail.',
+      })
+      .expect(204);
+    const back = await http().get('/api/v1/me/applications').set('Cookie', dev2).expect(200);
+    expect(back.body.data[0]).toMatchObject({
+      status: 'interview',
+      note: 'Entretien jeudi 10 h, en visio. Lien envoyé par e-mail.',
+      emailShared: true,
+      cv: { name: 'Mon CV script.pdf' },
+    });
+  });
+
+  it('une offre externe se postule chez son éditeur, pas sur DevHub', async () => {
+    const ext = await prisma.jobOffer.create({
+      data: {
+        title: `Offre externe ${suffix}`,
+        company: 'Ailleurs',
+        location: 'Dakar',
+        workMode: 'remote',
+        contract: 'cdi',
+        seniority: 'junior',
+        description: 'Offre publiée par l’équipe avec un lien officiel.',
+        applyUrl: 'https://exemple.sn/carrieres/1',
+        status: 'published',
+        publishedAt: new Date(),
+      },
+    });
+    const r = await http()
+      .post(`/api/v1/jobs/${ext.id}/apply`)
+      .set(WRITE_HEADERS)
+      .set('Idempotency-Key', randomUUID())
+      .set('Cookie', dev)
+      .send({ message: 'x'.repeat(40) })
+      .expect(422);
+    expect(r.body).toMatchObject({
+      code: 'job.external',
+      detail: 'https://exemple.sn/carrieres/1',
+    });
+    await prisma.jobOffer.delete({ where: { id: ext.id } });
+  });
+
   it('une autre entreprise ne voit pas ces candidatures', async () => {
     const other = await http()
       .post('/api/v1/business/register')

@@ -212,6 +212,7 @@ model User {
 
   community         Community?           @relation(fields: [communityId], references: [id])
   media             Media[]
+  cvFiles           CvFile[]
   oauthAccounts     OAuthAccount[]
   sessions          Session[]
   apiTokens         ApiToken[]
@@ -1089,20 +1090,46 @@ model BusinessSession {
 
 /// Candidature d'un dev à une offre d'entreprise inscrite, avec son Passport.
 model JobApplication {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  jobId     String   @map("job_id") @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  message   String
-  status    String   @default("submitted") // submitted | seen | interview | rejected | hired | withdrawn
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId        String   @map("job_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  message      String
+  status       String   @default("submitted") // submitted | seen | interview | rejected | hired | withdrawn
+  /// Adresse e-mail partagée avec l'entreprise, seulement si le dev l'a accepté en postulant.
+  contactEmail String?  @map("contact_email")
+  /// Liens joints (portfolio, LinkedIn, dépôt), https uniquement.
+  links        String[] @default([])
+  /// CV en PDF joint à la candidature.
+  cvId         String?  @map("cv_id") @db.Uuid
+  /// Dernier mot de l'entreprise au candidat (avec le changement de statut).
+  note         String?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   job  JobOffer @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cv   CvFile?  @relation(fields: [cvId], references: [id], onDelete: SetNull)
 
   @@unique([jobId, userId])
   @@index([userId])
   @@map("job_applications")
+}
+
+/// CV en PDF d'un dev (13/11/2026) : privé, lisible par son auteur et par les entreprises
+/// auxquelles il l'a envoyé avec une candidature.
+model CvFile {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  name      String
+  bytes     Bytes
+  size      Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  owner        User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+
+  @@index([ownerId, createdAt])
+  @@map("cv_files")
 }
 
 /// Annonce affichée en bandeau sur le site, publiée depuis l'administration.

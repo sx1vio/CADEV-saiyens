@@ -108,6 +108,13 @@ export const ApplicationView = z.object({
   message: z.string(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+  /** E-mail du candidat, seulement s'il a accepté de le partager en postulant. */
+  contactEmail: z.string().nullable(),
+  links: z.array(z.string()),
+  /** CV en PDF joint (téléchargement : GET /api/v1/business/applications/:id/cv). */
+  cv: z.object({ name: z.string(), size: z.number().int() }).nullable(),
+  /** Dernier mot envoyé au candidat avec un changement de statut. */
+  note: z.string().nullable(),
   candidate: z.object({
     handle: z.string(),
     displayName: z.string(),
@@ -162,11 +169,24 @@ export type BusinessInviteResponse = z.infer<typeof BusinessInviteResponse>;
 /** PATCH /api/v1/business/applications/:id (le dev voit le nouveau statut) */
 export const ApplicationStatusRequest = z.object({
   status: z.enum(['seen', 'interview', 'rejected', 'hired']),
+  /** Mot au candidat (date d'entretien, suite…), joint à sa notification et à son e-mail. */
+  note: z.string().trim().max(1000).optional(),
 });
 export type ApplicationStatusRequest = z.infer<typeof ApplicationStatusRequest>;
 
 /** POST /api/v1/jobs/:id/apply (connecté) */
-export const ApplyRequest = z.object({ message: z.string().trim().min(30).max(3000) });
+export const ApplyRequest = z.object({
+  message: z.string().trim().min(30).max(3000),
+  /** Le dev accepte que l'entreprise voie son adresse e-mail pour le contacter. */
+  shareEmail: z.boolean().default(false),
+  /** Portfolio, LinkedIn, dépôt… (https, 3 au plus). */
+  links: z
+    .array(z.url({ protocol: /^https$/ }).max(500))
+    .max(3)
+    .default([]),
+  /** CV en PDF envoyé avant par POST /api/v1/me/cv. */
+  cvId: z.uuid().optional(),
+});
 export type ApplyRequest = z.infer<typeof ApplyRequest>;
 
 /** GET /api/v1/me/applications */
@@ -176,8 +196,21 @@ export const MyApplicationView = z.object({
   message: z.string(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+  /** Mot de l'entreprise avec le dernier changement de statut. */
+  note: z.string().nullable(),
+  emailShared: z.boolean(),
+  cv: z.object({ id: z.uuid(), name: z.string() }).nullable(),
   job: z.object({ id: z.uuid(), title: z.string(), company: z.string(), location: z.string() }),
 });
+
+/** POST /api/v1/me/cv (octets bruts d'un PDF, 5 Mo au plus) */
+export const CV_MAX_BYTES = 5 * 1024 * 1024;
+export const UploadCvResponse = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  size: z.number().int(),
+});
+export type UploadCvResponse = z.infer<typeof UploadCvResponse>;
 export type MyApplicationView = z.infer<typeof MyApplicationView>;
 
 /** GET /api/v1/companies/:slug : entreprise validée et ses offres ouvertes. */

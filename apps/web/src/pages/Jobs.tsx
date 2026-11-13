@@ -458,21 +458,45 @@ function JobDetail({ job, alone }: { job: JobOffer; alone?: boolean }) {
 
 const APPLY_ERRORS: Record<string, string> = {
   'application.exists': 'Tu as déjà postulé à cette offre.',
+  'application.cv': 'Ce CV est introuvable : envoie-le à nouveau.',
   'http.401': 'Connecte-toi pour postuler.',
   'auth.required': 'Connecte-toi pour postuler.',
   not_found: 'Cette offre n’est plus ouverte.',
-  'validation.failed': 'Ton message doit faire au moins 30 caractères.',
+  'job.external': 'Cette offre se postule sur le site de l’entreprise.',
+  'validation.failed': 'Vérifie ton message (30 caractères au moins) et tes liens (https).',
+  'cv.too_large': 'Ton CV dépasse 5 Mo.',
+  'cv.unsupported': 'Le CV doit être un fichier PDF.',
+  'cv.daily_limit': 'Trop d’envois de CV aujourd’hui. Réessaie demain.',
+  'network.offline': 'Pas de connexion. Réessaie quand le réseau revient.',
 };
 
-/** Candidature avec le Passport, pour les offres des entreprises inscrites sur DevHub. */
+const isHttps = (u: string) => {
+  try {
+    return new URL(u).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Candidature sur DevHub (offres des entreprises vérifiées) : Passport joint d'office, message,
+ * et au choix du dev son e-mail, un CV en PDF et des liens. Les recruteurs sont prévenus par e-mail.
+ */
 function ApplyOnDevHub({ job }: { job: JobOffer }) {
   const me = useSession((s) => s.user);
   const nav = useNavigate();
   const { data: mine } = useQuery(me ? 'my-applications' : null, () => careers.mine());
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [shareEmail, setShareEmail] = useState(true);
+  const [links, setLinks] = useState(['', '']);
+  const [cv, setCv] = useState<{ id: string; name: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const app = mine?.find((a) => a.job.id === job.id && a.status !== 'withdrawn');
+  const hasEmail = me?.hasEmail !== false;
+  const cleanLinks = links.map((l) => l.trim()).filter(Boolean);
+  const badLink = cleanLinks.some((l) => !isHttps(l));
 
   if (app)
     return (
@@ -482,31 +506,53 @@ function ApplyOnDevHub({ job }: { job: JobOffer }) {
       </span>
     );
 
+  const pickCv = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const r = await careers.uploadCv(file);
+      setCv({ id: r.id, name: r.name });
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? '';
+      toast.error(APPLY_ERRORS[code] ?? 'Envoi du CV impossible. Réessaie.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <>
       <button
         type="button"
-        onClick={() => (me ? setOpen(true) : nav('/connexion'))}
+        onClick={() =>
+          me ? setOpen(true) : nav(`/connexion?next=${encodeURIComponent(`/emplois/${job.id}`)}`)
+        }
         className="inline-flex h-10 items-center gap-2 rounded-full bg-accent px-5 text-[14px] font-semibold text-white hover:bg-accent-hover"
       >
-        Postuler avec mon Passport
+        Postuler sur DevHub
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4"
+          className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/40 px-4 py-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="apply-title"
+          onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
         >
           <form
-            className="w-full max-w-[520px] rounded-[16px] bg-canvas p-5"
+            className="w-full max-w-[560px] rounded-[16px] bg-canvas p-5"
             onSubmit={async (e) => {
               e.preventDefault();
               setBusy(true);
               try {
-                await careers.apply(job.id, message.trim());
+                await careers.apply(job.id, {
+                  message: message.trim(),
+                  shareEmail: hasEmail && shareEmail,
+                  links: cleanLinks,
+                  ...(cv ? { cvId: cv.id } : {}),
+                });
                 invalidate('my-applications');
-                toast.success('Candidature envoyée. Tu verras ici chaque étape.');
+                toast.success(`Candidature envoyée à ${job.company}. Tu suis chaque étape ici.`);
                 setOpen(false);
               } catch (err) {
                 const code = (err as { code?: string }).code ?? '';
@@ -520,21 +566,92 @@ function ApplyOnDevHub({ job }: { job: JobOffer }) {
               Postuler : {job.title}
             </h2>
             <p className="mt-1 text-[13.5px] text-muted">
-              {job.company} verra ton Passport public (compétences, Proof XP, projets) et ce
-              message.
+              {job.company} reçoit ton Passport public (compétences prouvées, Proof XP, projets) et
+              ce que tu ajoutes ci-dessous. Rien d’autre.
             </p>
+
+            <label className="mt-4 block text-[13.5px] font-semibold text-fg" htmlFor="apply-msg">
+              Message
+            </label>
             <Textarea
+              id="apply-msg"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="mt-4 min-h-36"
+              className="mt-1.5 min-h-32"
               maxLength={3000}
-              aria-label="Message de candidature"
               placeholder="Pourquoi ce poste, ce que tu as déjà construit de proche, tes disponibilités…"
             />
             <p className="mt-1 text-[12px] text-subtle">
               {message.trim().length} / 30 caractères minimum
             </p>
-            <div className="mt-4 flex justify-end gap-2">
+
+            <p className="mt-4 text-[13.5px] font-semibold text-fg">CV (facultatif)</p>
+            {cv ? (
+              <div className="mt-1.5 flex items-center gap-2 rounded-[10px] bg-surface-1 px-3 py-2 text-[13.5px]">
+                <span className="min-w-0 flex-1 truncate font-medium text-fg">{cv.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setCv(null)}
+                  className="text-[13px] font-semibold text-muted hover:text-fg"
+                >
+                  Retirer
+                </button>
+              </div>
+            ) : (
+              <label className="mt-1.5 flex cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-line-strong px-3 py-2.5 text-[13.5px] text-muted hover:text-fg">
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={(e) => void pickCv(e.target.files?.[0])}
+                />
+                {uploading ? 'Envoi du CV…' : 'Joindre un CV en PDF (5 Mo au plus)'}
+              </label>
+            )}
+
+            <p className="mt-4 text-[13.5px] font-semibold text-fg">Liens (facultatif)</p>
+            <div className="mt-1.5 grid gap-2">
+              {links.map((l, i) => (
+                <input
+                  key={i}
+                  type="url"
+                  inputMode="url"
+                  value={l}
+                  onChange={(e) => setLinks(links.map((x, j) => (j === i ? e.target.value : x)))}
+                  placeholder={
+                    i === 0 ? 'https://portfolio-ou-site.com' : 'https://linkedin.com/in/…'
+                  }
+                  aria-label={`Lien ${i + 1}`}
+                  className="h-10 rounded-[10px] border border-line bg-canvas px-3 text-[14px] text-fg outline-none focus:border-line-strong"
+                />
+              ))}
+            </div>
+            {badLink && (
+              <p className="mt-1 text-[12px] text-danger">
+                Les liens doivent commencer par https://
+              </p>
+            )}
+
+            <label className="mt-4 flex items-start gap-2.5 text-[13.5px] text-fg">
+              <input
+                type="checkbox"
+                checked={hasEmail && shareEmail}
+                disabled={!hasEmail}
+                onChange={(e) => setShareEmail(e.target.checked)}
+                className="mt-0.5 size-4"
+              />
+              <span>
+                Partager mon adresse e-mail avec {job.company} pour qu’elle me contacte
+                {!hasEmail && (
+                  <span className="block text-[12px] text-subtle">
+                    Ajoute une adresse e-mail dans tes Réglages pour pouvoir la partager.
+                  </span>
+                )}
+              </span>
+            </label>
+
+            <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -544,7 +661,7 @@ function ApplyOnDevHub({ job }: { job: JobOffer }) {
               </button>
               <button
                 type="submit"
-                disabled={busy || message.trim().length < 30}
+                disabled={busy || uploading || badLink || message.trim().length < 30}
                 className="h-10 rounded-full bg-accent px-5 text-[14px] font-semibold text-white disabled:opacity-50"
               >
                 {busy ? 'Envoi…' : 'Envoyer ma candidature'}
@@ -569,17 +686,17 @@ function MyApplications() {
       </h2>
       <ul className="grid gap-2 md:grid-cols-2">
         {data.map((a) => (
-          <li key={a.id}>
+          <li key={a.id} className="rounded-[10px] bg-surface-1">
             <Link
               to={`/emplois/${a.job.id}`}
-              className="flex items-center gap-3 rounded-[10px] bg-surface-1 p-3 hover:bg-surface-2"
+              className="flex items-center gap-3 rounded-[10px] p-3 hover:bg-surface-2"
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14px] font-semibold text-fg">
                   {a.job.title}
                 </span>
                 <span className="block truncate text-[12.5px] text-subtle">
-                  {a.job.company} · {a.job.location}
+                  {a.job.company} · {a.job.location} · <Ago iso={a.updatedAt} />
                 </span>
               </span>
               <span
@@ -597,6 +714,38 @@ function MyApplications() {
                 {APPLICATION_STATUS[a.status]}
               </span>
             </Link>
+            {a.note && (
+              <p className="mx-3 mb-2 rounded-[8px] bg-canvas px-3 py-2 text-[13px] whitespace-pre-line text-fg">
+                <span className="font-semibold">{a.job.company} : </span>
+                {a.note}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 pb-3 text-[12.5px] text-subtle">
+              {a.cv && (
+                <a href={careers.cvUrl(a.cv.id)} className="hover:text-fg">
+                  CV joint : {a.cv.name}
+                </a>
+              )}
+              {a.emailShared && <span>E-mail partagé</span>}
+              {a.status !== 'withdrawn' && a.status !== 'hired' && a.status !== 'rejected' && (
+                <button
+                  type="button"
+                  className="ml-auto font-semibold text-muted hover:text-danger"
+                  onClick={async () => {
+                    if (!confirm(`Retirer ta candidature à « ${a.job.title} » ?`)) return;
+                    try {
+                      await careers.withdraw(a.id);
+                      invalidate('my-applications');
+                      toast.success('Candidature retirée.');
+                    } catch {
+                      toast.error('Impossible de retirer la candidature. Réessaie.');
+                    }
+                  }}
+                >
+                  Retirer
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>

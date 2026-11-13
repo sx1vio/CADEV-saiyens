@@ -119,7 +119,7 @@ const TOOL_GROUPS: { icon: typeof Bot; title: string; tools: string[] }[] = [
   {
     icon: Briefcase,
     title: 'Emplois',
-    tools: ['list_jobs', 'get_job', 'apply_job', 'my_applications'],
+    tools: ['list_jobs', 'get_job', 'apply_job', 'my_applications', 'withdraw_application'],
   },
   {
     icon: FolderGit2,
@@ -271,7 +271,7 @@ export default function Mcp() {
           Protocol), le standard ouvert des agents IA.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Badge tone="accent">42 outils</Badge>
+          <Badge tone="accent">43 outils</Badge>
           <Badge tone="neutral">Mêmes droits que toi, jamais ton compte</Badge>
           <Badge tone="neutral">Jeton révocable en un clic</Badge>
           <Badge tone="neutral">Gratuit</Badge>
@@ -404,7 +404,7 @@ export default function Mcp() {
 
       {/* Outils */}
       <section className="mt-10">
-        <h2 className="text-[20px] font-semibold text-fg">Les 42 outils</h2>
+        <h2 className="text-[20px] font-semibold text-fg">Les 43 outils</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {TOOL_GROUPS.map((g) => (
             <Card key={g.title} className="p-4">
