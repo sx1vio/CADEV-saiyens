@@ -179,6 +179,14 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 14/11/2026 — E-mails de production branchés (SMTP Gmail)
+
+- **Infra** — SMTP posé dans `/srv/devhub/.env` de `devhub-app` : `smtp.gmail.com:587`, compte d'envoi fourni par Sylvio (mot de passe d'application, **jamais dans le dépôt**), expéditeur « DevHub Africa ». Ancien fichier sauvegardé en `.env.bak-2026-11-14`.
+- **Infra** — API et worker recréés à 10 h 04 UTC sans coupure visible (site 200, API `healthy`) ; `deploy.sh` a échoué au `pull` (le registre ghcr.io n'est connecté que pendant la CI), donc recréation directe avec la même version (`TAG` = `.current`), sans `pull`.
+- **Vérifié** — Authentification SMTP réussie depuis le conteneur de production (connexion seulement, aucun e-mail envoyé).
+- **Limites connues** — Gmail : ~500 e-mails/jour ; si le propriétaire du compte change son mot de passe Google ou coupe la double authentification, le mot de passe d'application est révoqué et les e-mails s'arrêtent sans erreur visible. L'expéditeur est le compte Gmail (pas `notifications@devafrica.tech`) : SPF/DKIM de Google s'alignent d'office, rien à régler dans le DNS.
+- **Test** — Sur https://devafrica.tech : « Mot de passe oublié » avec un compte e-mail + mot de passe (les comptes GitHub seuls et les admins sont ignorés par conception) ; voir aussi Supervision → « E-mails (SMTP) ».
+
 ### 13/11/2026 (soir) — Accueil : applications mobiles sans « hors ligne », MCP nommé, liens d'info dans les Réglages
 
 - **Demande de Sylvio** (captures de l'accueil et de la barre latérale) : « enlève tout ce qui parle de hors réseau », « tu n'as pas mentionné MCP, la compréhension doit être directe », liens Règles / Impact / Systalink / Nos sources / Confidentialité « dans les paramètres ».
