@@ -183,7 +183,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 - **Demande de Sylvio** (capture iPhone sur Découvrir) : avec le clavier ouvert, la barre d'onglets du bas remontait et passait par-dessus les filtres.
 - **Correction** : `useKeyboardFlag` (`AppShell.tsx`) pose `data-kbd="open"` sur `<html>` tant qu'un champ de saisie a le focus (ou que la zone visible rétrécit de plus de 150 px). Dans ce cas la barre d'onglets (`.dh-tabbar`) et le bouton flottant du panneau latéral (`.dh-fab`) sont masqués et `--tabbar-h` passe à 0 (`globals.css`). Tout revient à la fermeture du clavier.
-- Vérifié : typage du web. À confirmer sur iPhone après déploiement.
+- Vérifié : typage du web. Fusionné sur `main` (`edc630a`), CI verte (lint, tests, e2e, images, déploiement) et règle CSS `data-kbd` présente sur https://devafrica.tech à 11 h 55 UTC. Reste à confirmer sur iPhone.
 
 ### 14/11/2026 — E-mails de production branchés (SMTP Gmail)
 
