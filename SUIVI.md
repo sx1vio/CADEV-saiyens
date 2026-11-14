@@ -179,6 +179,12 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 
 ## Journal
 
+### 14/11/2026 (après-midi) — Mobile : la barre d'onglets ne recouvre plus le formulaire quand le clavier s'ouvre
+
+- **Demande de Sylvio** (capture iPhone sur Découvrir) : avec le clavier ouvert, la barre d'onglets du bas remontait et passait par-dessus les filtres.
+- **Correction** : `useKeyboardFlag` (`AppShell.tsx`) pose `data-kbd="open"` sur `<html>` tant qu'un champ de saisie a le focus (ou que la zone visible rétrécit de plus de 150 px). Dans ce cas la barre d'onglets (`.dh-tabbar`) et le bouton flottant du panneau latéral (`.dh-fab`) sont masqués et `--tabbar-h` passe à 0 (`globals.css`). Tout revient à la fermeture du clavier.
+- Vérifié : typage du web. À confirmer sur iPhone après déploiement.
+
 ### 14/11/2026 — E-mails de production branchés (SMTP Gmail)
 
 - **Infra** — SMTP posé dans `/srv/devhub/.env` de `devhub-app` : `smtp.gmail.com:587`, compte d'envoi fourni par Sylvio (mot de passe d'application, **jamais dans le dépôt**), expéditeur « DevHub Africa ». Ancien fichier sauvegardé en `.env.bak-2026-11-14`.

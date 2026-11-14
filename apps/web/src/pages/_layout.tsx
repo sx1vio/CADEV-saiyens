@@ -54,7 +54,7 @@ export function WithPanel({
             size="sm"
             icon={<PanelRight />}
             onClick={() => setOpen(true)}
-            className="fixed right-4 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+14px)] z-30 rounded-full shadow-lg sm:static sm:float-right sm:mb-2 sm:ml-3 sm:shadow-raised"
+            className="dh-fab fixed right-4 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+14px)] z-30 rounded-full shadow-lg sm:static sm:float-right sm:mb-2 sm:ml-3 sm:shadow-raised"
           >
             {panelTitle}
           </Button>

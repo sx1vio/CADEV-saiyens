@@ -722,7 +722,7 @@ function TabBar({ onCreate }: { onCreate: () => void }) {
   return (
     <nav
       aria-label={t('navEntry.navAria')}
-      className="fixed inset-x-3 bottom-3 z-40 dh-ink rounded-[10px] pb-safe shadow-lg sm:hidden"
+      className="dh-tabbar fixed inset-x-3 bottom-3 z-40 dh-ink rounded-[10px] pb-safe shadow-lg sm:hidden"
     >
       <div className="grid h-16 grid-cols-5 items-center">
         {tabs.map((tab) =>
@@ -850,7 +850,48 @@ function useEdgeSwipe(enabled: boolean) {
    Shell
    ================================================================ */
 
+/**
+ * Mobile : quand le clavier est ouvert (un champ de saisie a le focus), on pose
+ * `data-kbd="open"` sur <html>. La barre d'onglets et les boutons flottants se masquent
+ * (sinon ils remontent avec le clavier et recouvrent le formulaire, surtout sur iOS).
+ */
+function useKeyboardFlag() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const isField = (el: Element | null) =>
+      !!el &&
+      (el.matches('textarea, select, [contenteditable="true"]') ||
+        (el.matches('input') &&
+          !/^(checkbox|radio|button|submit|reset|range|file|color|image)$/i.test(
+            (el as HTMLInputElement).type,
+          )));
+    let timer: number | undefined;
+    const sync = () => {
+      window.clearTimeout(timer);
+      // Petit délai : le focus passe d'un champ à l'autre sans clignoter.
+      timer = window.setTimeout(() => {
+        const vv = window.visualViewport;
+        const shrunk = !!vv && window.innerHeight - vv.height > 150;
+        const open = isField(document.activeElement) || shrunk;
+        if (open) root.setAttribute('data-kbd', 'open');
+        else root.removeAttribute('data-kbd');
+      }, 60);
+    };
+    document.addEventListener('focusin', sync);
+    document.addEventListener('focusout', sync);
+    window.visualViewport?.addEventListener('resize', sync);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('focusin', sync);
+      document.removeEventListener('focusout', sync);
+      window.visualViewport?.removeEventListener('resize', sync);
+      root.removeAttribute('data-kbd');
+    };
+  }, []);
+}
+
 export function AppShell() {
+  useKeyboardFlag();
   const { t } = useTranslation();
   const setDrawer = useUI((s) => s.setDrawer);
   const me = useSession((s) => s.user);

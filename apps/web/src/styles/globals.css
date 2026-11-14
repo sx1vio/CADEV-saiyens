@@ -257,6 +257,15 @@
   --reading-w: 720px;
 }
 
+/* Clavier mobile ouvert : plus de barre d'onglets ni de bouton flottant par-dessus le formulaire. */
+html[data-kbd='open'] {
+  --tabbar-h: 0px;
+}
+html[data-kbd='open'] .dh-tabbar,
+html[data-kbd='open'] .dh-fab {
+  display: none;
+}
+
 /* Pont Tailwind v4 : les utilitaires lisent les tokens, donc suivent le thème. */
 @theme inline {
   --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
