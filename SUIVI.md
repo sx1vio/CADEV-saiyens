@@ -185,6 +185,7 @@ Pistes d'amélioration proposées en cours de route, à valider ou écarter.
 - **Infra** — API et worker recréés à 10 h 04 UTC sans coupure visible (site 200, API `healthy`) ; `deploy.sh` a échoué au `pull` (le registre ghcr.io n'est connecté que pendant la CI), donc recréation directe avec la même version (`TAG` = `.current`), sans `pull`.
 - **Vérifié** — Authentification SMTP réussie depuis le conteneur de production (connexion seulement, aucun e-mail envoyé).
 - **Limites connues** — Gmail : ~500 e-mails/jour ; si le propriétaire du compte change son mot de passe Google ou coupe la double authentification, le mot de passe d'application est révoqué et les e-mails s'arrêtent sans erreur visible. L'expéditeur est le compte Gmail (pas `notifications@devafrica.tech`) : SPF/DKIM de Google s'alignent d'office, rien à régler dans le DNS.
+- **Contact** — Variable de dépôt `CONTACT_EMAIL` posée (adresse donnée par Sylvio), CI relancée et redéployée : `security.txt` la publie ; adresse visible sur `/confidentialite`.
 - **Test** — Sur https://devafrica.tech : « Mot de passe oublié » avec un compte e-mail + mot de passe (les comptes GitHub seuls et les admins sont ignorés par conception) ; voir aussi Supervision → « E-mails (SMTP) ».
 
 ### 13/11/2026 (soir) — Accueil : applications mobiles sans « hors ligne », MCP nommé, liens d'info dans les Réglages
